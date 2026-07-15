@@ -1,0 +1,40 @@
+<div class="modal-overlay">
+  <div class="modal-content card">
+    <div class="modal-header">
+      <h2>{{ patientId ? 'Editar Paciente' : 'Nuevo Paciente' }}</h2>
+      <button class="close-btn" (click)="cancel()">×</button>
+    </div>
+    
+    <form [formGroup]="patientForm" (ngSubmit)="onSubmit()">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Nombres</label>
+          <input type="text" formControlName="firstName" class="input-field">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Apellidos</label>
+          <input type="text" formControlName="lastName" class="input-field">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Documento de Identidad</label>
+          <input type="text" formControlName="identificationDocument" class="input-field">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teléfono</label>
+          <input type="text" formControlName="contactNumber" class="input-field">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" formControlName="email" class="input-field">
+        </div>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn-text" (click)="cancel()">Cancelar</button>
+        <button type="submit" class="btn-primary" [disabled]="patientForm.invalid || isSaving">
+          {{ patientId ? 'Guardar Cambios' : 'Guardar Paciente' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

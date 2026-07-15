@@ -1,0 +1,21 @@
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 1rem 2rem;
+  border-radius: var(--radius-md);
+  color: white;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  z-index: 9999;
+  animation: slideIn 0.3s ease-out;
+}
+
+.success { background-color: var(--accent-color); }
+.error { background-color: var(--danger); }
+.info { background-color: var(--text-muted); }
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}

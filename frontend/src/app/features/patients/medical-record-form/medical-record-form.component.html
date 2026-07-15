@@ -1,0 +1,34 @@
+<h3>Registrar Nueva Sesión</h3>
+<form [formGroup]="recordForm" (ngSubmit)="onSubmit()">
+  <div class="form-group">
+    <label for="sessionDate">Fecha y Hora</label>
+    <input type="datetime-local" id="sessionDate" formControlName="sessionDate" class="form-control">
+  </div>
+
+  <div class="form-group">
+    <label for="reasonForConsultation">Motivo de Consulta *</label>
+    <textarea id="reasonForConsultation" formControlName="reasonForConsultation" class="form-control" rows="3"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label for="evolutionNotes">Notas de Evolución *</label>
+    <textarea id="evolutionNotes" formControlName="evolutionNotes" class="form-control" rows="4"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label for="presumptiveDiagnosis">Diagnóstico Presuntivo</label>
+    <input type="text" id="presumptiveDiagnosis" formControlName="presumptiveDiagnosis" class="form-control">
+  </div>
+
+  <div class="form-group">
+    <label for="agreementsAndTasks">Acuerdos y Tareas</label>
+    <textarea id="agreementsAndTasks" formControlName="agreementsAndTasks" class="form-control" rows="3"></textarea>
+  </div>
+
+  <div class="form-actions">
+    <button type="button" class="btn btn-secondary" (click)="onCancel()">Cancelar</button>
+    <button type="submit" class="btn btn-primary" [disabled]="recordForm.invalid || isSubmitting">
+      {{ isSubmitting ? 'Guardando...' : 'Guardar Sesión' }}
+    </button>
+  </div>
+</form>

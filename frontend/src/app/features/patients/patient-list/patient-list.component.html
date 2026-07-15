@@ -1,0 +1,38 @@
+<div class="card">
+  <div class="header-actions">
+    <h2>Directorio de Pacientes</h2>
+    <button class="btn-primary" (click)="openModal()">+ Nuevo Paciente</button>
+  </div>
+  
+  <div class="table-responsive">
+    <table class="minimal-table">
+      <thead>
+        <tr>
+          <th>Nombre Completo</th>
+          <th>Documento</th>
+          <th>Contacto</th>
+          <th>Email</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let patient of patients">
+          <td>{{ patient.firstName }} {{ patient.lastName }}</td>
+          <td>{{ patient.identificationDocument }}</td>
+          <td>{{ patient.contactNumber }}</td>
+          <td>{{ patient.email }}</td>
+          <td>
+            <button class="btn-text" [routerLink]="['/patients', patient.id]">Ver Ficha</button>
+            <button class="btn-text" (click)="openModal(patient.id)" style="margin-left: 8px;">Editar</button>
+            <button class="btn-text" (click)="deletePatient(patient.id!)" style="margin-left: 8px; color: var(--danger-color);">Eliminar</button>
+          </td>
+        </tr>
+        <tr *ngIf="patients.length === 0">
+          <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">No hay pacientes registrados.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<app-patient-form *ngIf="showModal" [patientId]="selectedPatientId" (closeModal)="closeModal($event)"></app-patient-form>

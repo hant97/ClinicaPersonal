@@ -1,0 +1,39 @@
+<div class="card">
+  <div class="header-actions">
+    <h2>Facturación Básica</h2>
+    <button class="btn-primary" (click)="openForm()">+ Registrar Pago</button>
+  </div>
+  
+  <div class="table-responsive">
+    <table class="minimal-table">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Paciente</th>
+          <th>Descripción</th>
+          <th>Monto</th>
+          <th>Método</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let payment of payments">
+          <td>{{ payment.paymentDate | date:'medium' }}</td>
+          <td>{{ payment.patientName }}</td>
+          <td>{{ payment.description || '-' }}</td>
+          <td class="amount-cell">{{ payment.amount | currency:'PEN':'S/ ':'1.2-2' }}</td>
+          <td>
+            <span class="method-badge">{{ getPaymentMethodText(payment.paymentMethod) }}</span>
+          </td>
+        </tr>
+        <tr *ngIf="payments.length === 0">
+          <td colspan="5" class="empty-state">No hay pagos registrados.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<app-payment-form *ngIf="showForm"
+  (saved)="onPaymentSaved()"
+  (cancelled)="closeForm()">
+</app-payment-form>

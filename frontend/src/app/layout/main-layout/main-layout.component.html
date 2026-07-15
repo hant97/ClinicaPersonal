@@ -1,0 +1,31 @@
+<div class="layout-container">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-icon">🌿</div>
+      <h2>Clínica Vida</h2>
+    </div>
+    <nav class="sidebar-nav">
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">Dashboard</a>
+      <a routerLink="/patients" routerLinkActive="active" class="nav-item">Pacientes</a>
+      <a routerLink="/agenda" routerLinkActive="active" class="nav-item">Agenda</a>
+      <a routerLink="/billing" routerLinkActive="active" class="nav-item">Facturación</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a routerLink="/login" class="nav-item logout-item">Cerrar Sesión</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-header">
+      <div class="header-title">
+        <h1>Bienvenida, Dra.</h1>
+      </div>
+      <div class="header-profile">
+        <div class="avatar">D</div>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</div>

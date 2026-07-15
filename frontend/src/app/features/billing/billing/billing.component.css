@@ -1,0 +1,26 @@
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.amount-cell {
+  font-weight: bold;
+  color: #2a9d8f;
+}
+
+.method-badge {
+  background-color: #f1f3f5;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.85em;
+  color: #495057;
+  border: 1px solid #dee2e6;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px !important;
+  color: #888;
+}

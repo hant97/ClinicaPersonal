@@ -1,0 +1,51 @@
+<div class="split-layout">
+  <div class="hero-section">
+    <div class="hero-content">
+      <div class="logo-icon-large">🌿</div>
+      <h1>Clínica Vida</h1>
+      <p class="tagline">Gestión integral y eficiente para su consultorio.</p>
+    </div>
+  </div>
+  
+  <div class="form-section">
+    <div class="form-container">
+      <h2>Iniciar Sesión</h2>
+      <p class="subtitle">Bienvenida Dra. Ingrese sus credenciales para acceder al sistema.</p>
+
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label class="form-label" for="username">Usuario</label>
+          <input 
+            type="text" 
+            id="username" 
+            formControlName="username" 
+            class="input-field" 
+            placeholder="Ej: doctora.ana"
+            autocomplete="username"
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Contraseña</label>
+          <input 
+            type="password" 
+            id="password" 
+            formControlName="password" 
+            class="input-field" 
+            placeholder="••••••••"
+            autocomplete="current-password"
+          >
+        </div>
+
+        <button type="submit" class="btn-primary login-btn" [disabled]="loginForm.invalid || isLoading">
+          <span *ngIf="!isLoading">Ingresar</span>
+          <span *ngIf="isLoading">Verificando...</span>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

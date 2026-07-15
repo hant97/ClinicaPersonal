@@ -1,0 +1,28 @@
+<div class="dashboard-wrapper" *ngIf="stats$ | async as stats">
+  <div class="dashboard-cards">
+    <div class="card stat-card">
+      <h3>Pacientes Activos</h3>
+      <p class="stat-number">{{ stats.activePatients }}</p>
+    </div>
+    <div class="card stat-card">
+      <h3>Citas Hoy</h3>
+      <p class="stat-number">{{ stats.appointmentsToday }}</p>
+    </div>
+    <div class="card stat-card">
+      <h3>Ingresos del Mes</h3>
+      <p class="stat-number">{{ stats.monthlyIncome | currency }}</p>
+    </div>
+  </div>
+
+  <div class="card notifications-card">
+    <h3>Próximas Citas</h3>
+    <ul class="notification-list" *ngIf="stats.upcomingAppointments.length > 0; else noAppointments">
+      <li *ngFor="let app of stats.upcomingAppointments">
+        <strong>{{ app.appointmentDate | date:'shortTime' }}</strong> - {{ app.patientName || 'Paciente ID: ' + app.patientId }} ({{ app.status }})
+      </li>
+    </ul>
+    <ng-template #noAppointments>
+      <p>No hay citas próximas programadas.</p>
+    </ng-template>
+  </div>
+</div>

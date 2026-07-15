@@ -1,0 +1,32 @@
+<div class="card">
+  <div class="header-actions">
+    <h2>Agenda de Citas</h2>
+    <button class="btn-primary" (click)="openForm()">+ Agendar Cita</button>
+  </div>
+  
+  <div class="calendar-placeholder">
+    <div class="agenda-list" *ngIf="appointments.length > 0; else noAppointments">
+      <div class="agenda-item" *ngFor="let appointment of appointments">
+        <div class="time">{{ appointment.appointmentDate | date:'short' }}</div>
+        <div class="details">
+          <h4>{{ appointment.patientName }}</h4>
+          <p>{{ appointment.notes || 'Sin detalles' }}</p>
+        </div>
+        <div class="status" [ngClass]="getStatusClass(appointment.status)">
+          {{ getStatusText(appointment.status) }}
+        </div>
+      </div>
+    </div>
+
+    <ng-template #noAppointments>
+      <p class="placeholder-text" style="text-align: center; padding: 40px; color: #888;">
+        No hay citas registradas en la agenda.
+      </p>
+    </ng-template>
+  </div>
+</div>
+
+<app-appointment-form *ngIf="showForm" 
+  (saved)="onAppointmentSaved()" 
+  (cancelled)="closeForm()">
+</app-appointment-form>

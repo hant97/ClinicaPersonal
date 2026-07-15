@@ -1,0 +1,49 @@
+<div class="patient-detail-container" *ngIf="patient">
+  <div class="header">
+    <button class="btn btn-secondary" (click)="goBack()">&larr; Volver</button>
+    <h2>Perfil del Paciente: {{ patient.firstName }} {{ patient.lastName }}</h2>
+  </div>
+
+  <div class="patient-info card">
+    <h3>Información General</h3>
+    <p><strong>Documento:</strong> {{ patient.identificationDocument }}</p>
+    <p><strong>Email:</strong> {{ patient.email || 'N/A' }}</p>
+    <p><strong>Teléfono:</strong> {{ patient.contactNumber || 'N/A' }}</p>
+  </div>
+
+  <div class="records-section">
+    <div class="records-header">
+      <h3>Historia Clínica (Sesiones)</h3>
+      <button class="btn btn-primary" (click)="openForm()">+ Nueva Sesión</button>
+    </div>
+
+    <div class="records-list" *ngIf="records.length > 0; else noRecords">
+      <div class="record-card card" *ngFor="let record of records">
+        <div class="record-date">{{ record.sessionDate | date:'short' }}</div>
+        <p><strong>Motivo:</strong> {{ record.reasonForConsultation }}</p>
+        <p><strong>Evolución:</strong> {{ record.evolutionNotes }}</p>
+        <p><strong>Diagnóstico:</strong> {{ record.presumptiveDiagnosis }}</p>
+        <p><strong>Acuerdos:</strong> {{ record.agreementsAndTasks }}</p>
+      </div>
+    </div>
+    <ng-template #noRecords>
+      <p class="empty-state">No hay sesiones registradas para este paciente.</p>
+    </ng-template>
+  </div>
+
+  <!-- Modal superpuesto para nueva sesión -->
+  <div class="modal-overlay" *ngIf="showForm">
+    <div class="modal-content">
+      <button class="close-btn" (click)="closeForm()">&times;</button>
+      <app-medical-record-form 
+        [patientId]="patient.id!" 
+        (saved)="onRecordSaved()"
+        (cancelled)="closeForm()">
+      </app-medical-record-form>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="!patient" class="loading">
+  Cargando información del paciente...
+</div>
