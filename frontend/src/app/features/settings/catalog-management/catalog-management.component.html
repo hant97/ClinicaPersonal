@@ -1,0 +1,105 @@
+<div class="container catalog-container">
+  <div class="header-section">
+    <h1>Administración de Catálogos</h1>
+  </div>
+
+  <div class="catalog-grid">
+    <!-- Lista de Catálogos (Sidebar del módulo) -->
+    <div class="card catalog-sidebar">
+      <h2>Catálogos Disponibles</h2>
+      <ul class="catalog-list">
+        <li *ngFor="let catalog of catalogs" 
+            (click)="selectCatalog(catalog)"
+            [class.active]="selectedCatalog?.id === catalog.id"
+            class="catalog-list-item">
+          <div class="catalog-info">
+            <span class="catalog-name">{{ catalog.name }}</span>
+            <span class="catalog-desc">{{ catalog.description }}</span>
+          </div>
+          <span class="chevron">›</span>
+        </li>
+        <li *ngIf="catalogs.length === 0" class="empty-state text-muted">
+          No hay catálogos disponibles
+        </li>
+      </ul>
+    </div>
+
+    <!-- Detalles del Catálogo Seleccionado -->
+    <div class="card catalog-content">
+      <div *ngIf="selectedCatalog; else noSelection">
+        <div class="content-header">
+          <h2>{{ selectedCatalog.name }}</h2>
+          <p class="text-muted">{{ selectedCatalog.description }}</p>
+          <span class="badge">Código: {{ selectedCatalog.code }}</span>
+        </div>
+
+        <!-- Formulario para agregar -->
+        <div class="add-item-box">
+          <h3>Agregar Nueva Opción</h3>
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label">Nombre Visible</label>
+              <input type="text" [(ngModel)]="newItemName" placeholder="Ej: Nuevo Estado" class="input-field">
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label">Código Interno</label>
+              <input type="text" [(ngModel)]="newItemCode" placeholder="Ej: NUEVO_ESTADO" class="input-field uppercase-input">
+            </div>
+            <div class="form-group button-group">
+              <button (click)="addItem()" [disabled]="!newItemName || !newItemCode" class="btn-primary">
+                Agregar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lista de Opciones -->
+        <div class="table-container">
+          <h3>Opciones Actuales</h3>
+          <table class="minimal-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Código</th>
+                <th>Estado</th>
+                <th style="text-align: right;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of items" [class.inactive-row]="!item.isActive">
+                <td class="font-medium">
+                  {{ item.itemName }}
+                </td>
+                <td class="text-muted font-mono">
+                  {{ item.itemCode }}
+                </td>
+                <td>
+                  <span class="status-badge" [class.active]="item.isActive" [class.inactive]="!item.isActive">
+                    {{ item.isActive ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </td>
+                <td style="text-align: right;">
+                  <button (click)="toggleActive(item)" class="action-btn" [class.text-danger]="item.isActive" [class.text-success]="!item.isActive">
+                    {{ item.isActive ? 'Desactivar' : 'Activar' }}
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="items.length === 0">
+                <td colspan="4" class="empty-state">
+                  No hay opciones registradas para este catálogo.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <ng-template #noSelection>
+        <div class="empty-selection">
+          <div class="icon-placeholder">📑</div>
+          <p>Selecciona un catálogo del panel izquierdo para administrar sus opciones.</p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

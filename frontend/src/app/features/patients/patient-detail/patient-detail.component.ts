@@ -8,11 +8,12 @@ import { ClinicalSession } from '../../../core/models/clinical-session.model';
 import { ClinicalSessionFormComponent } from '../clinical-session-form/clinical-session-form.component';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
+import { AssessmentListComponent } from '../assessment-list/assessment-list.component';
 
 @Component({
   selector: 'app-patient-detail',
   standalone: true,
-  imports: [CommonModule, ClinicalSessionFormComponent],
+  imports: [CommonModule, ClinicalSessionFormComponent, AssessmentListComponent],
   templateUrl: './patient-detail.component.html',
   styleUrls: ['./patient-detail.component.css']
 })

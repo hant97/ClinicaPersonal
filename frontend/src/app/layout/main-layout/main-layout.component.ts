@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, LayoutDashboard, Users, CalendarDays, Receipt, LogOut } from 'lucide-angular';
+import { LucideAngularModule, LayoutDashboard, Users, CalendarDays, Receipt, LogOut, ClipboardList, Package, Settings } from 'lucide-angular';
 
 @Component({
   selector: 'app-main-layout',
@@ -16,4 +16,7 @@ export class MainLayoutComponent {
   readonly CalendarDays = CalendarDays;
   readonly Receipt = Receipt;
   readonly LogOut = LogOut;
+  readonly ClipboardList = ClipboardList;
+  readonly Package = Package;
+  readonly Settings = Settings;
 }

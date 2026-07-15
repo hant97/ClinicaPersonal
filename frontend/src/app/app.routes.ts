@@ -8,6 +8,11 @@ import { AgendaComponent } from './features/agenda/agenda/agenda.component';
 import { BillingComponent } from './features/billing/billing/billing.component';
 import { authGuard } from './core/guards/auth.guard';
 
+import { TestsCatalogListComponent } from './features/tests-catalog/tests-catalog-list/tests-catalog-list.component';
+import { TestsCatalogFormComponent } from './features/tests-catalog/tests-catalog-form/tests-catalog-form.component';
+import { InventoryListComponent } from './features/inventory/inventory-list/inventory-list.component';
+import { CatalogManagementComponent } from './features/settings/catalog-management/catalog-management.component';
+
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
@@ -21,6 +26,11 @@ export const routes: Routes = [
       { path: 'patients/:id', component: PatientDetailComponent },
       { path: 'agenda', component: AgendaComponent },
       { path: 'billing', component: BillingComponent },
+      { path: 'tests-catalog', component: TestsCatalogListComponent },
+      { path: 'tests-catalog/new', component: TestsCatalogFormComponent },
+      { path: 'tests-catalog/edit/:id', component: TestsCatalogFormComponent },
+      { path: 'inventory', component: InventoryListComponent },
+      { path: 'settings/catalogs', component: CatalogManagementComponent }
     ]
   }
 ];

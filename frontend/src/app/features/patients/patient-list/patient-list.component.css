@@ -9,6 +9,63 @@
   font-size: 1.5rem;
   color: var(--text-main);
   font-weight: 600;
+  margin: 0;
+}
+
+/* Search Bar Styling */
+.search-container {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.search-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1.25rem;
+  color: var(--text-muted, #6b7280);
+  transition: color 0.3s ease;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 1rem 1rem 1rem 3.25rem;
+  font-size: 1rem;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 12px;
+  background-color: #f9fafb;
+  color: var(--text-main, #111827);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02) inset;
+}
+
+.search-input::placeholder {
+  color: #9ca3af;
+}
+
+.search-input:hover {
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.search-input:focus {
+  outline: none;
+  background-color: #ffffff;
+  border-color: var(--accent-color, #4aa38c);
+  box-shadow: 0 0 0 4px rgba(74, 163, 140, 0.15);
+}
+
+.search-input:focus + .search-icon, 
+.search-wrapper:focus-within .search-icon {
+  color: var(--accent-color, #4aa38c);
 }
 
 .table-responsive {

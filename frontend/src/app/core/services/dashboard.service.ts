@@ -43,7 +43,7 @@ export class DashboardService {
         const activePatients = patients.length;
 
         const appointmentsToday = appointments.filter(app => {
-          const appDate = new Date(app.appointmentDate).getTime();
+          const appDate = new Date(app.appointmentDate + 'T00:00:00').getTime();
           return appDate >= startOfDay && appDate < endOfDay;
         }).length;
 
@@ -56,13 +56,14 @@ export class DashboardService {
           'SCHEDULED': 'Programada',
           'COMPLETED': 'Completada',
           'CANCELLED': 'Cancelada',
-          'NO_ASISTIO': 'No Asistió'
+          'NO_ASISTIO': 'No Asistió',
+          'CONFIRMADA': 'Confirmada'
         };
 
         // Nuevos cálculos
         // 1. Tasa de Asistencia y Cancelaciones (Mes Actual)
         const appointmentsThisMonth = appointments.filter(app => {
-          const appDate = new Date(app.appointmentDate);
+          const appDate = new Date(app.appointmentDate + 'T00:00:00');
           return appDate.getMonth() === currentMonth && appDate.getFullYear() === currentYear;
         });
         
@@ -95,8 +96,19 @@ export class DashboardService {
         }
 
         const upcomingAppointments = appointments
-          .filter(app => new Date(app.appointmentDate).getTime() >= today.getTime())
-          .sort((a, b) => new Date(a.appointmentDate).getTime() - new Date(b.appointmentDate).getTime())
+          .filter(app => {
+            const appDateTimeStr = app.startTime ? `${app.appointmentDate}T${app.startTime}` : `${app.appointmentDate}T00:00:00`;
+            const appDateTime = new Date(appDateTimeStr);
+            return appDateTime.getTime() >= today.getTime() && 
+                   app.status !== 'CANCELLED' && 
+                   app.status !== 'NO_ASISTIO' && 
+                   app.status !== 'COMPLETED';
+          })
+          .sort((a, b) => {
+            const dateA = new Date(a.startTime ? `${a.appointmentDate}T${a.startTime}` : `${a.appointmentDate}T00:00:00`).getTime();
+            const dateB = new Date(b.startTime ? `${b.appointmentDate}T${b.startTime}` : `${b.appointmentDate}T00:00:00`).getTime();
+            return dateA - dateB;
+          })
           .slice(0, 5) // top 5 upcoming
           .map(app => {
             const patient = patients.find(p => p.id === app.patientId);

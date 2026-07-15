@@ -1,0 +1,80 @@
+<div class="modal-overlay" (click)="close()">
+  <div class="modal-content card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ isEditMode ? 'Editar' : 'Nuevo' }} Insumo</h2>
+      <button class="close-btn" (click)="close()">
+        <lucide-icon [img]="X" [size]="20"></lucide-icon>
+      </button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="form-grid">
+        <div class="form-group" style="grid-column: span 2;">
+          <label for="name" class="form-label">Nombre del Insumo <span class="required">*</span></label>
+          <input type="text" id="name" formControlName="name" class="input-field" placeholder="Ej. Paracetamol 500mg" [class.is-invalid]="form.get('name')?.invalid && form.get('name')?.touched">
+          @if (form.get('name')?.invalid && form.get('name')?.touched) {
+            <div class="error-messages">
+              <small class="text-error">El nombre es requerido</small>
+            </div>
+          }
+        </div>
+
+        <div class="form-group" style="grid-column: span 2;">
+          <label for="description" class="form-label">Descripción</label>
+          <textarea id="description" formControlName="description" class="input-field" rows="2" placeholder="Detalles adicionales..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="currentStock" class="form-label">Stock Actual <span class="required">*</span></label>
+          <input type="number" id="currentStock" formControlName="currentStock" class="input-field" min="0" [class.is-invalid]="form.get('currentStock')?.invalid && form.get('currentStock')?.touched">
+          @if (form.get('currentStock')?.invalid && form.get('currentStock')?.touched) {
+            <div class="error-messages">
+              <small class="text-error">Stock inválido</small>
+            </div>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="minStockLevel" class="form-label">Nivel Mínimo <span class="required">*</span></label>
+          <input type="number" id="minStockLevel" formControlName="minStockLevel" class="input-field" min="0" [class.is-invalid]="form.get('minStockLevel')?.invalid && form.get('minStockLevel')?.touched">
+          @if (form.get('minStockLevel')?.invalid && form.get('minStockLevel')?.touched) {
+            <div class="error-messages">
+              <small class="text-error">Nivel mínimo inválido</small>
+            </div>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="unit" class="form-label">Unidad de Medida <span class="required">*</span></label>
+          <select id="unit" formControlName="unit" class="input-field" [class.is-invalid]="form.get('unit')?.invalid && form.get('unit')?.touched">
+            <option value="">Seleccionar...</option>
+            <option value="Unidad">Unidad</option>
+            <option value="Caja">Caja</option>
+            <option value="Blister">Blister</option>
+            <option value="Frasco">Frasco</option>
+            <option value="Paquete">Paquete</option>
+            <option value="Galón">Galón</option>
+            <option value="Litro">Litro</option>
+          </select>
+          @if (form.get('unit')?.invalid && form.get('unit')?.touched) {
+            <div class="error-messages">
+              <small class="text-error">La unidad es requerida</small>
+            </div>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="expirationDate" class="form-label">Fecha de Caducidad</label>
+          <input type="date" id="expirationDate" formControlName="expirationDate" class="input-field">
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="close()">Cancelar</button>
+        <button type="submit" class="btn-primary" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

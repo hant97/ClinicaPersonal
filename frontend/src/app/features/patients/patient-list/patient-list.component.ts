@@ -6,7 +6,8 @@ import { PatientFormComponent } from '../patient-form/patient-form.component';
 import { RouterLink } from '@angular/router';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule, Search, Eye, Edit, Trash2, Plus } from 'lucide-angular';
+import { ExportService } from '../../../shared/services/export/export.service';
+import { LucideAngularModule, Search, Eye, Edit, Trash2, Plus, Download } from 'lucide-angular';
 
 @Component({
   selector: 'app-patient-list',
@@ -21,6 +22,7 @@ export class PatientListComponent implements OnInit {
   readonly Edit = Edit;
   readonly Trash2 = Trash2;
   readonly Plus = Plus;
+  readonly Download = Download;
 
   patients: Patient[] = [];
   filteredPatients: Patient[] = [];
@@ -31,7 +33,8 @@ export class PatientListComponent implements OnInit {
   constructor(
     private patientService: PatientService,
     private toastService: ToastService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private exportService: ExportService
   ) {}
 
   ngOnInit(): void {
@@ -98,5 +101,19 @@ export class PatientListComponent implements OnInit {
         }
       });
     }
+  }
+
+  exportPatients(): void {
+    const dataToExport = this.filteredPatients.map(patient => ({
+      'Nombre Completo': `${patient.firstName} ${patient.lastName}`,
+      'Documento': patient.identificationDocument || '',
+      'Contacto': patient.contactNumber || '',
+      'Email': patient.email || '',
+      'Fecha Nac.': (patient.dateOfBirth || '').replace('T', ' '),
+      'Género': patient.gender || '',
+      'Dirección': patient.address || ''
+    }));
+
+    this.exportService.exportToExcel(dataToExport, 'Directorio_Pacientes');
   }
 }

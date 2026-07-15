@@ -4,8 +4,9 @@ import { PaymentService } from '../../../core/services/payment.service';
 import { Payment } from '../../../core/models/payment.model';
 import { PaymentFormComponent } from '../payment-form/payment-form.component';
 import { PatientService } from '../../../core/services/patient/patient.service';
-import { LucideAngularModule, Plus, Edit, Trash2 } from 'lucide-angular';
+import { LucideAngularModule, Plus, Edit, Trash2, Download } from 'lucide-angular';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
+import { ExportService } from '../../../shared/services/export/export.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 
 @Component({
@@ -19,6 +20,7 @@ export class BillingComponent implements OnInit {
   readonly Plus = Plus;
   readonly Edit = Edit;
   readonly Trash2 = Trash2;
+  readonly Download = Download;
   
   payments: Payment[] = [];
   showForm = false;
@@ -29,7 +31,8 @@ export class BillingComponent implements OnInit {
     private paymentService: PaymentService,
     private patientService: PatientService,
     private notificationService: NotificationService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private exportService: ExportService
   ) {}
 
   ngOnInit(): void {
@@ -99,5 +102,17 @@ export class BillingComponent implements OnInit {
       case 'CARD': return 'Tarjeta';
       default: return method;
     }
+  }
+
+  exportPayments(): void {
+    const dataToExport = this.payments.map(pay => ({
+      'Paciente': pay.patientName,
+      'Fecha': (pay.paymentDate || '').replace('T', ' '),
+      'Monto': pay.amount,
+      'Método de Pago': this.getPaymentMethodText(pay.paymentMethod),
+      'Motivo': pay.description || ''
+    }));
+
+    this.exportService.exportToExcel(dataToExport, 'Cobros_Facturacion');
   }
 }

@@ -1,0 +1,81 @@
+<div class="catalog-form-container">
+  <div class="header">
+    <button class="btn btn-secondary" (click)="goBack()">&larr; Volver</button>
+    <h2>{{ isEditMode ? 'Editar Test Psicométrico' : 'Crear Nuevo Test Psicométrico' }}</h2>
+  </div>
+
+  <div class="card">
+    <form [formGroup]="testForm" (ngSubmit)="saveTest()">
+      
+      <div class="form-section">
+        <h3>Información General</h3>
+        <div class="form-group">
+          <label>Nombre del Test</label>
+          <input type="text" formControlName="name" class="form-control" placeholder="Ej. Test de Ansiedad de Beck" />
+          <div *ngIf="testForm.get('name')?.invalid && testForm.get('name')?.touched" class="error-text">
+            El nombre es requerido.
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea formControlName="description" class="form-control" rows="2" placeholder="Breve descripción del propósito de la prueba..."></textarea>
+          <div *ngIf="testForm.get('description')?.invalid && testForm.get('description')?.touched" class="error-text">
+            La descripción es requerida.
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-header">
+          <h3>Preguntas ({{ questions.length }})</h3>
+          <button type="button" class="btn btn-sm btn-primary" (click)="addQuestion()">+ Añadir Pregunta</button>
+        </div>
+
+        <div formArrayName="questions" class="questions-list">
+          <div *ngFor="let question of questions.controls; let qIndex = index" [formGroupName]="qIndex" class="question-card">
+            
+            <div class="question-header">
+              <span class="question-number">Pregunta {{ qIndex + 1 }}</span>
+              <button type="button" class="btn-icon btn-delete" (click)="removeQuestion(qIndex)" title="Eliminar Pregunta">&times;</button>
+            </div>
+            
+            <div class="form-group">
+              <input type="text" formControlName="text" class="form-control" placeholder="Escribe el enunciado de la pregunta..." />
+            </div>
+
+            <div class="options-section">
+              <div class="options-header">
+                <h4>Opciones de Respuesta</h4>
+                <button type="button" class="btn btn-xs btn-secondary" (click)="addOption(qIndex)">+ Añadir Opción</button>
+              </div>
+
+              <div formArrayName="options" class="options-list">
+                <div *ngFor="let option of options(qIndex).controls; let oIndex = index" [formGroupName]="oIndex" class="option-row">
+                  <div class="option-score">
+                    <label>Puntaje</label>
+                    <input type="number" formControlName="score" class="form-control form-control-sm" />
+                  </div>
+                  <div class="option-text">
+                    <label>Texto de la Opción</label>
+                    <input type="text" formControlName="text" class="form-control form-control-sm" placeholder="Ej. A veces" />
+                  </div>
+                  <button type="button" class="btn-icon btn-delete-option" (click)="removeOption(qIndex, oIndex)" title="Quitar Opción">&times;</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="goBack()">Cancelar</button>
+        <button type="submit" class="btn btn-primary btn-lg" [disabled]="testForm.invalid || isSaving">
+          {{ isSaving ? 'Guardando...' : 'Guardar Test' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

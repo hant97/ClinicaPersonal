@@ -2,14 +2,21 @@
   <div class="header-actions">
     <h2>Directorio de Pacientes</h2>
     <div style="display: flex; gap: 1rem; align-items: center;">
-      <div style="position: relative; display: flex; align-items: center;">
-        <lucide-icon [img]="Search" [size]="18" [strokeWidth]="2" style="position: absolute; left: 10px; color: var(--text-muted);"></lucide-icon>
-        <input type="text" class="input-field" placeholder="Buscar por nombre o documento..." (input)="onSearch($event)" style="min-width: 250px; padding: 0.5rem 0.5rem 0.5rem 2.2rem; border: 1px solid var(--border-color); border-radius: 4px;">
-      </div>
+      <button class="btn-secondary" (click)="exportPatients()" title="Exportar a Excel">
+        <lucide-icon [img]="Download" [size]="18"></lucide-icon>
+        Exportar
+      </button>
       <button class="btn-primary" (click)="openModal()">
         <lucide-icon [img]="Plus" [size]="18"></lucide-icon>
         Nuevo Paciente
       </button>
+    </div>
+  </div>
+
+  <div class="search-container">
+    <div class="search-wrapper">
+      <lucide-icon [img]="Search" [size]="20" [strokeWidth]="2" class="search-icon"></lucide-icon>
+      <input type="text" class="search-input" placeholder="Buscar pacientes por nombre, documento o email..." (input)="onSearch($event)">
     </div>
   </div>
   

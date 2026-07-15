@@ -1,0 +1,38 @@
+<div class="card assessments-card">
+  <div class="header">
+    <h3 class="section-title">Evaluaciones Psicométricas</h3>
+    <button class="btn btn-primary" (click)="openForm()">+ Registrar Evaluación</button>
+  </div>
+
+  <div class="table-container">
+    <table class="table" *ngIf="assessments.length > 0; else noData">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Test</th>
+          <th>Puntaje Total</th>
+          <th>Notas</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let assessment of assessments">
+          <td>{{ assessment.assessmentDate | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>{{ assessment.testName }}</td>
+          <td><span class="score-badge">{{ assessment.totalScore }}</span></td>
+          <td class="notes-col">{{ assessment.notes || '-' }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <ng-template #noData>
+      <div class="empty-state">
+        <p>No hay evaluaciones registradas para este paciente.</p>
+      </div>
+    </ng-template>
+  </div>
+</div>
+
+<app-assessment-form 
+  *ngIf="showForm" 
+  [patientId]="patientId" 
+  (close)="closeForm($event)">
+</app-assessment-form>

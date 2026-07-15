@@ -1,0 +1,53 @@
+<div class="modal-overlay">
+  <div class="modal-content">
+    <button class="close-btn" (click)="cancel()">&times;</button>
+    <h3 class="modal-title">Registrar Evaluación</h3>
+
+    <div class="form-body">
+      <div class="form-group">
+        <label>Seleccionar Prueba</label>
+        <select class="form-control" (change)="onTestSelect($event)">
+          <option value="" disabled selected>-- Elige una prueba --</option>
+          <option *ngFor="let test of tests" [value]="test.id">{{ test.name }}</option>
+        </select>
+        <small class="help-text" *ngIf="selectedTest">{{ selectedTest.description }}</small>
+      </div>
+
+      <div *ngIf="selectedTest && questions.length > 0" class="questions-container">
+        <div *ngFor="let question of questions; let i = index" class="question-card">
+          <p class="question-text">{{ i + 1 }}. {{ question.text }}</p>
+          <div class="options-list">
+            <label *ngFor="let option of question.options" class="option-label">
+              <input type="radio" 
+                     [name]="'question_' + question.id" 
+                     [value]="option.score" 
+                     [(ngModel)]="answers[question.id]" />
+              <span>{{ option.text }} <small>(Puntaje: {{ option.score }})</small></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="selectedTest" class="form-group mt-4">
+        <label>Notas / Conclusiones Adicionales</label>
+        <textarea class="form-control" rows="4" placeholder="Observaciones..." [(ngModel)]="notes"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <div class="score-display" *ngIf="selectedTest">
+        Puntaje Total Calculado: <strong>{{ calculateTotalScore() }}</strong>
+      </div>
+      <div *ngIf="!selectedTest"></div>
+      
+      <div class="actions">
+        <button class="btn btn-secondary" (click)="cancel()">Cancelar</button>
+        <button class="btn btn-primary" 
+                [disabled]="!isValid() || isSaving" 
+                (click)="saveAssessment()">
+          {{ isSaving ? 'Guardando...' : 'Guardar Evaluación' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -9,7 +9,8 @@ import { AppointmentFormComponent } from '../appointment-form/appointment-form.c
 import { PatientService } from '../../../core/services/patient/patient.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
-import { LucideAngularModule, Plus, Calendar, MoreVertical, Check, X, Clock, Video, User, Search, Filter, ChevronLeft, ChevronRight, LayoutList, CalendarDays } from 'lucide-angular';
+import { ExportService } from '../../../shared/services/export/export.service';
+import { LucideAngularModule, Plus, Calendar, MoreVertical, Check, X, Clock, Video, User, Search, Filter, ChevronLeft, ChevronRight, LayoutList, CalendarDays, Download } from 'lucide-angular';
 
 @Component({
   selector: 'app-agenda',
@@ -33,6 +34,7 @@ export class AgendaComponent implements OnInit, OnDestroy {
   readonly ChevronRight = ChevronRight;
   readonly LayoutList = LayoutList;
   readonly CalendarDays = CalendarDays;
+  readonly Download = Download;
 
   appointments: Appointment[] = [];
   showForm = false;
@@ -55,7 +57,8 @@ export class AgendaComponent implements OnInit, OnDestroy {
     private patientService: PatientService,
     private router: Router,
     private notificationService: NotificationService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private exportService: ExportService
   ) {}
 
   ngOnInit(): void {
@@ -351,5 +354,19 @@ export class AgendaComponent implements OnInit, OnDestroy {
       case 'NO_ASISTIO': return 'status-missed'; 
       default: return '';
     }
+  }
+
+  exportAppointments(): void {
+    const dataToExport = this.appointments.map(app => ({
+      'Paciente': app.patientName,
+      'Fecha': (app.appointmentDate || '').replace('T', ' '),
+      'Hora Inicio': app.startTime,
+      'Hora Fin': app.endTime,
+      'Motivo': app.notes || '',
+      'Estado': app.status,
+      'Tipo': app.modality === 'VIRTUAL' ? 'Virtual' : 'Presencial'
+    }));
+
+    this.exportService.exportToExcel(dataToExport, 'Citas_Agenda');
   }
 }

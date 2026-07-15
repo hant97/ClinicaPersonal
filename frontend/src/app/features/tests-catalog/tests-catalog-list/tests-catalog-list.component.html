@@ -1,0 +1,39 @@
+<div class="catalog-container">
+  <div class="header">
+    <h2>Catálogo de Pruebas Psicométricas</h2>
+    <button class="btn btn-primary" (click)="createNewTest()">+ Crear Nuevo Test</button>
+  </div>
+
+  <div class="card">
+    <div class="table-container">
+      <table class="table" *ngIf="tests.length > 0; else noData">
+        <thead>
+          <tr>
+            <th>Nombre del Test</th>
+            <th>Descripción</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let test of tests">
+            <td class="font-bold">{{ test.name }}</td>
+            <td class="description-cell">{{ test.description }}</td>
+            <td class="actions">
+              <button class="btn-icon text-primary" (click)="editTest(test.id)" title="Editar">
+                <lucide-icon [img]="Edit" [size]="18" [strokeWidth]="2"></lucide-icon>
+              </button>
+              <button class="btn-icon text-danger" (click)="deleteTest(test.id)" title="Eliminar">
+                <lucide-icon [img]="Trash2" [size]="18" [strokeWidth]="2"></lucide-icon>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <ng-template #noData>
+        <div class="empty-state">
+          <p>No hay tests registrados en el catálogo.</p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

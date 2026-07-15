@@ -1,10 +1,16 @@
 <div class="card">
   <div class="header-actions">
     <h2>Facturación Básica</h2>
-    <button class="btn-primary" (click)="openForm()">
-      <lucide-icon [img]="Plus" [size]="18"></lucide-icon>
-      Registrar Pago
-    </button>
+    <div style="display: flex; gap: 1rem;">
+      <button class="btn-secondary" (click)="exportPayments()" title="Exportar a Excel">
+        <lucide-icon [img]="Download" [size]="18"></lucide-icon>
+        Exportar
+      </button>
+      <button class="btn-primary" (click)="openForm()">
+        <lucide-icon [img]="Plus" [size]="18"></lucide-icon>
+        Registrar Pago
+      </button>
+    </div>
   </div>
   
   <div class="table-responsive">

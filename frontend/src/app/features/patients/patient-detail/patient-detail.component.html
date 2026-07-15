@@ -91,6 +91,9 @@
     </div>
   </div>
 
+  <!-- Evaluaciones Psicométricas -->
+  <app-assessment-list [patientId]="patient.id!"></app-assessment-list>
+
   <!-- Modal superpuesto para nueva sesión -->
   @if (showForm) {
     <div class="modal-overlay">

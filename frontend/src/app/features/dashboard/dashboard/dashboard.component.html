@@ -1,54 +1,109 @@
 <div class="dashboard-wrapper" *ngIf="stats$ | async as stats">
   <div class="dashboard-cards">
-    <div class="card stat-card">
-      <h3>Pacientes Activos</h3>
-      <p class="stat-number">{{ stats.activePatients }}</p>
+    <div class="card stat-card hover-lift gradient-1">
+      <div class="stat-content-wrapper">
+        <div class="stat-info">
+          <h3>Pacientes Activos</h3>
+          <p class="stat-number">{{ stats.activePatients }}</p>
+        </div>
+        <div class="stat-icon-wrapper">
+          <lucide-icon [img]="Users" class="stat-icon"></lucide-icon>
+        </div>
+      </div>
     </div>
-    <div class="card stat-card">
-      <h3>Citas Hoy</h3>
-      <p class="stat-number">{{ stats.appointmentsToday }}</p>
+    
+    <div class="card stat-card hover-lift gradient-2">
+      <div class="stat-content-wrapper">
+        <div class="stat-info">
+          <h3>Citas Hoy</h3>
+          <p class="stat-number">{{ stats.appointmentsToday }}</p>
+        </div>
+        <div class="stat-icon-wrapper">
+          <lucide-icon [img]="Calendar" class="stat-icon"></lucide-icon>
+        </div>
+      </div>
     </div>
-    <div class="card stat-card">
-      <h3>Ingresos del Mes</h3>
-      <p class="stat-number">{{ stats.monthlyIncome | currency:'PEN':'S/ ' }}</p>
+    
+    <div class="card stat-card hover-lift gradient-3">
+      <div class="stat-content-wrapper">
+        <div class="stat-info">
+          <h3>Ingresos del Mes</h3>
+          <p class="stat-number">{{ stats.monthlyIncome | currency:'PEN':'S/ ' }}</p>
+        </div>
+        <div class="stat-icon-wrapper">
+          <lucide-icon [img]="DollarSign" class="stat-icon"></lucide-icon>
+        </div>
+      </div>
     </div>
   </div>
 
   <div class="dashboard-cards advanced-stats">
-    <div class="card stat-card stat-card-small">
-      <h3>Asistencia / Cancelaciones (Mes)</h3>
-      <div class="stat-content">
-        <p class="stat-number">{{ stats.attendanceRate }}%</p>
-        <span class="stat-subtext">{{ stats.cancelledAppointments }} canceladas/ausencias</span>
+    <div class="card stat-card stat-card-small hover-lift">
+      <div class="stat-content-wrapper">
+        <div class="stat-info">
+          <h3>Asistencia (Mes)</h3>
+          <p class="stat-number">{{ stats.attendanceRate }}%</p>
+          <span class="stat-subtext">{{ stats.cancelledAppointments }} canceladas/ausencias</span>
+        </div>
+        <div class="stat-icon-wrapper outline-icon">
+          <lucide-icon [img]="Activity" class="stat-icon text-muted"></lucide-icon>
+        </div>
       </div>
     </div>
-    <div class="card stat-card stat-card-small">
-      <h3>Nuevos Pacientes (Mes)</h3>
-      <div class="stat-content">
-        <p class="stat-number">{{ stats.newPatientsThisMonth }}</p>
-        <span class="stat-subtext">registrados este mes</span>
+    
+    <div class="card stat-card stat-card-small hover-lift">
+      <div class="stat-content-wrapper">
+        <div class="stat-info">
+          <h3>Nuevos Pacientes</h3>
+          <p class="stat-number">{{ stats.newPatientsThisMonth }}</p>
+          <span class="stat-subtext">registrados este mes</span>
+        </div>
+        <div class="stat-icon-wrapper outline-icon">
+          <lucide-icon [img]="UserPlus" class="stat-icon text-muted"></lucide-icon>
+        </div>
       </div>
     </div>
-    <div class="card stat-card stat-card-small">
-      <h3>Crecimiento Ingresos</h3>
-      <div class="stat-content">
-        <p class="stat-number" [class.positive]="stats.monthlyIncomeGrowth > 0" [class.negative]="stats.monthlyIncomeGrowth < 0">
-          {{ stats.monthlyIncomeGrowth > 0 ? '+' : '' }}{{ stats.monthlyIncomeGrowth }}%
-        </p>
-        <span class="stat-subtext">vs mes anterior</span>
+    
+    <div class="card stat-card stat-card-small hover-lift">
+      <div class="stat-content-wrapper">
+        <div class="stat-info">
+          <h3>Crecimiento Ingresos</h3>
+          <p class="stat-number" [class.positive]="stats.monthlyIncomeGrowth > 0" [class.negative]="stats.monthlyIncomeGrowth < 0">
+            {{ stats.monthlyIncomeGrowth > 0 ? '+' : '' }}{{ stats.monthlyIncomeGrowth }}%
+          </p>
+          <span class="stat-subtext">vs mes anterior</span>
+        </div>
+        <div class="stat-icon-wrapper outline-icon">
+          <lucide-icon [img]="stats.monthlyIncomeGrowth >= 0 ? TrendingUp : TrendingDown" 
+                       class="stat-icon"
+                       [class.positive-icon]="stats.monthlyIncomeGrowth >= 0"
+                       [class.negative-icon]="stats.monthlyIncomeGrowth < 0"></lucide-icon>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="card notifications-card">
-    <h3>Próximas Citas</h3>
+  <div class="card notifications-card hover-lift">
+    <div class="card-header-icon">
+      <lucide-icon [img]="Clock" class="header-icon"></lucide-icon>
+      <h3>Próximas Citas</h3>
+    </div>
     <ul class="notification-list" *ngIf="stats.upcomingAppointments.length > 0; else noAppointments">
       <li *ngFor="let app of stats.upcomingAppointments">
-        <strong>{{ app.appointmentDate | date:'shortTime' }}</strong> - {{ app.patientName || 'Paciente ID: ' + app.patientId }} ({{ app.status }})
+        <div class="appointment-time">
+          <span class="time-badge">{{ (app.appointmentDate + 'T' + (app.startTime || '00:00:00')) | date:'shortTime' }}</span>
+        </div>
+        <div class="appointment-details">
+          <span class="patient-name">{{ app.patientName || 'Paciente ID: ' + app.patientId }}</span>
+          <span class="appointment-status" [ngClass]="app.status.toLowerCase().replace(' ', '-')">{{ app.status }}</span>
+        </div>
       </li>
     </ul>
     <ng-template #noAppointments>
-      <p>No hay citas próximas programadas.</p>
+      <div class="empty-state">
+        <lucide-icon [img]="Calendar" class="empty-icon"></lucide-icon>
+        <p>No hay citas próximas programadas.</p>
+      </div>
     </ng-template>
   </div>
 </div>

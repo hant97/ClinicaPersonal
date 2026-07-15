@@ -12,6 +12,11 @@
         </button>
       </div>
 
+      <button class="btn-secondary" (click)="exportAppointments()" title="Exportar a Excel">
+        <lucide-icon [img]="Download" [size]="18"></lucide-icon>
+        Exportar
+      </button>
+
       <button class="btn-primary" (click)="openForm()">
         <lucide-icon [img]="Plus" [size]="18"></lucide-icon>
         Agendar Cita
