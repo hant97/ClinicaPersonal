@@ -22,4 +22,15 @@ public class PaymentController {
     public ResponseEntity<PaymentDto> create(@RequestBody PaymentDto dto) {
         return ResponseEntity.ok(service.create(dto));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<PaymentDto> update(@PathVariable Long id, @RequestBody PaymentDto dto) {
+        return ResponseEntity.ok(service.update(id, dto));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        service.delete(id);
+        return ResponseEntity.ok().build();
+    }
 }

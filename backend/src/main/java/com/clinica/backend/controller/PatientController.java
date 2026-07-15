@@ -20,6 +20,11 @@ public class PatientController {
         return ResponseEntity.ok(patientService.getAllPatients());
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<PatientDto>> searchPatients(@RequestParam String query) {
+        return ResponseEntity.ok(patientService.searchPatients(query));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<PatientDto> getPatientById(@PathVariable Long id) {
         return ResponseEntity.ok(patientService.getPatientById(id));

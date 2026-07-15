@@ -1,19 +1,12 @@
 <div class="modal-overlay">
   <div class="modal-content">
     <button class="close-btn" (click)="onCancel()">&times;</button>
-    <h3>Registrar Cobro</h3>
+    <h3>{{ payment ? 'Editar Cobro' : 'Registrar Cobro' }}</h3>
 
     <form [formGroup]="paymentForm" (ngSubmit)="onSubmit()">
       <div class="form-group">
         <label for="patientId">Paciente *</label>
-        <select id="patientId" formControlName="patientId" class="form-control">
-          <option value="" disabled selected>Seleccione un paciente</option>
-          @for (p of patients; track p.id) {
-            <option [value]="p.id">
-              {{ p.firstName }} {{ p.lastName }} ({{ p.identificationDocument }})
-            </option>
-          }
-        </select>
+        <app-patient-autocomplete id="patientId" formControlName="patientId"></app-patient-autocomplete>
         @if (paymentForm.get('patientId')?.invalid && (paymentForm.get('patientId')?.dirty || paymentForm.get('patientId')?.touched)) {
           <div class="error-messages">
             @if (paymentForm.get('patientId')?.hasError('required')) { <small class="text-error">El paciente es requerido.</small> }
@@ -73,7 +66,7 @@
       <div class="form-actions">
         <button type="button" class="btn btn-secondary" (click)="onCancel()">Cancelar</button>
         <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
-          {{ isSubmitting ? 'Guardando...' : 'Registrar Cobro' }}
+          {{ isSubmitting ? 'Guardando...' : (payment ? 'Guardar Cambios' : 'Registrar Cobro') }}
         </button>
       </div>
     </form>

@@ -20,19 +20,30 @@ CREATE TABLE patients (
     email VARCHAR(255),
     occupation VARCHAR(255),
     marital_status VARCHAR(255),
-    emergency_contact VARCHAR(255)
+    emergency_contact VARCHAR(255),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE medical_records (
+CREATE TABLE clinical_sessions (
     id BIGSERIAL PRIMARY KEY,
     patient_id BIGINT NOT NULL,
-    session_date TIMESTAMP NOT NULL,
-    reason_for_consultation TEXT,
-    evolution_notes TEXT,
-    presumptive_diagnosis VARCHAR(255),
-    agreements_and_tasks TEXT,
-    dynamic_data JSONB,
-    CONSTRAINT fk_medical_records_patient FOREIGN KEY (patient_id) REFERENCES patients (id)
+    session_date DATE NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    session_type VARCHAR(255) NOT NULL,
+    modality VARCHAR(255) NOT NULL,
+    status VARCHAR(255) NOT NULL,
+    subjective TEXT,
+    objective TEXT,
+    analysis TEXT,
+    plan TEXT,
+    is_confidential BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    professional_id BIGINT,
+    appointment_id BIGINT,
+    CONSTRAINT fk_clinical_sessions_patient FOREIGN KEY (patient_id) REFERENCES patients (id)
 );
 
 CREATE TABLE appointments (

@@ -5,6 +5,7 @@ import { Patient } from '../../../core/models/patient.model';
 import { PatientFormComponent } from '../patient-form/patient-form.component';
 import { RouterLink } from '@angular/router';
 import { ToastService } from '../../../shared/services/toast/toast.service';
+import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { LucideAngularModule, Search, Eye, Edit, Trash2, Plus } from 'lucide-angular';
 
 @Component({
@@ -29,7 +30,8 @@ export class PatientListComponent implements OnInit {
 
   constructor(
     private patientService: PatientService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
@@ -78,8 +80,14 @@ export class PatientListComponent implements OnInit {
     }
   }
 
-  deletePatient(id: number): void {
-    if (confirm('¿Estás seguro de que deseas eliminar este paciente?')) {
+  async deletePatient(id: number): Promise<void> {
+    const confirmed = await this.notificationService.confirm(
+      'Eliminar Paciente',
+      '¿Estás seguro de que deseas eliminar este paciente? Esta acción no se puede deshacer.',
+      'Sí, eliminar',
+      'Cancelar'
+    );
+    if (confirmed) {
       this.patientService.delete(id).subscribe({
         next: () => {
           this.toastService.show('Paciente eliminado exitosamente', 'success');

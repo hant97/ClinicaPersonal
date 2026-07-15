@@ -4,6 +4,7 @@ import com.clinica.backend.dto.PatientDto;
 import com.clinica.backend.model.Patient;
 import com.clinica.backend.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,6 +18,15 @@ public class PatientService {
 
     public List<PatientDto> getAllPatients() {
         return patientRepository.findByDeletedFalse().stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<PatientDto> searchPatients(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return List.of();
+        }
+        return patientRepository.searchPatients(query, PageRequest.of(0, 15)).stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }

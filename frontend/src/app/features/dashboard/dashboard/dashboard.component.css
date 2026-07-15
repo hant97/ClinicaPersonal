@@ -52,3 +52,29 @@
 .notification-list li:last-child {
   border-bottom: none;
 }
+
+.advanced-stats {
+  margin-top: -0.5rem;
+}
+
+.stat-card-small {
+  padding: 1.5rem;
+}
+
+.stat-card-small .stat-number {
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+}
+
+.stat-subtext {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.positive {
+  color: #10b981; /* Green */
+}
+
+.negative {
+  color: #ef4444; /* Red */
+}

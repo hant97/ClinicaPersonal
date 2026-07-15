@@ -14,4 +14,5 @@ export interface Patient {
   address?: string;
   guardianName?: string;
   guardianContact?: string;
+  createdAt?: string;
 }

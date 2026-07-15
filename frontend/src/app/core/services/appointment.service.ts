@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Appointment } from '../models/appointment.model';
 
@@ -13,6 +13,15 @@ export class AppointmentService {
 
   getAll(): Observable<Appointment[]> {
     return this.http.get<Appointment[]>(this.apiUrl);
+  }
+
+  search(searchTerm?: string, status?: string, startDate?: string, endDate?: string): Observable<Appointment[]> {
+    let params = new HttpParams();
+    if (searchTerm) params = params.set('searchTerm', searchTerm);
+    if (status && status !== 'ALL') params = params.set('status', status);
+    if (startDate) params = params.set('startDate', startDate);
+    if (endDate) params = params.set('endDate', endDate);
+    return this.http.get<Appointment[]>(`${this.apiUrl}/search`, { params });
   }
 
   getByPatientId(patientId: number): Observable<Appointment[]> {

@@ -14,11 +14,11 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final PatientRepository patientRepository;
     public List<PaymentDto> getByPatientId(Long patientId) {
-        return paymentRepository.findByPatientIdOrderByPaymentDateDesc(patientId).stream()
+        return paymentRepository.findByPatientIdAndDeletedFalseOrderByPaymentDateDesc(patientId).stream()
                 .map(this::mapToDto).collect(Collectors.toList());
     }
     public List<PaymentDto> getAll() {
-        return paymentRepository.findAllByOrderByPaymentDateDesc().stream()
+        return paymentRepository.findAllByDeletedFalseOrderByPaymentDateDesc().stream()
                 .map(this::mapToDto).collect(Collectors.toList());
     }
     public PaymentDto create(PaymentDto dto) {
@@ -40,5 +40,20 @@ public class PaymentService {
         dto.setPaymentMethod(payment.getPaymentMethod());
         dto.setDescription(payment.getDescription());
         return dto;
+    }
+
+    public PaymentDto update(Long id, PaymentDto dto) {
+        Payment payment = paymentRepository.findById(id).orElseThrow();
+        payment.setAmount(dto.getAmount());
+        payment.setPaymentDate(dto.getPaymentDate());
+        payment.setPaymentMethod(dto.getPaymentMethod());
+        payment.setDescription(dto.getDescription());
+        return mapToDto(paymentRepository.save(payment));
+    }
+
+    public void delete(Long id) {
+        Payment payment = paymentRepository.findById(id).orElseThrow();
+        payment.setDeleted(true);
+        paymentRepository.save(payment);
     }
 }

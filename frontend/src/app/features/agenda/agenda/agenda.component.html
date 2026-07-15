@@ -1,53 +1,214 @@
-<div class="card">
+<div class="card" (click)="closeMenu()">
   <div class="header-actions">
     <h2>Agenda de Citas</h2>
-    <button class="btn-primary" (click)="openForm()">
-      <lucide-icon [img]="Plus" [size]="18"></lucide-icon>
-      Agendar Cita
-    </button>
+    <div class="header-controls" style="display: flex; gap: 15px;">
+      
+      <div class="view-toggle">
+        <button [class.active]="currentView === 'list'" (click)="toggleView('list')">
+          <lucide-icon [img]="LayoutList" [size]="16"></lucide-icon> Lista
+        </button>
+        <button [class.active]="currentView === 'calendar'" (click)="toggleView('calendar')">
+          <lucide-icon [img]="CalendarDays" [size]="16"></lucide-icon> Calendario
+        </button>
+      </div>
+
+      <button class="btn-primary" (click)="openForm()">
+        <lucide-icon [img]="Plus" [size]="18"></lucide-icon>
+        Agendar Cita
+      </button>
+    </div>
+  </div>
+
+  <div class="filters-bar" [formGroup]="filterForm">
+    <div class="filter-group search-group">
+      <lucide-icon [img]="Search" [size]="16" class="search-icon"></lucide-icon>
+      <input type="text" formControlName="searchTerm" placeholder="Buscar por paciente..." class="filter-input search-input">
+    </div>
+    
+    <div class="filter-group">
+      <lucide-icon [img]="Filter" [size]="16" class="filter-icon"></lucide-icon>
+      <select formControlName="status" class="filter-input">
+        <option value="ALL">Todos los estados</option>
+        <option value="PROGRAMADA">Programada</option>
+        <option value="CONFIRMADA">Confirmada</option>
+        <option value="COMPLETADA">Completada</option>
+        <option value="NO_ASISTIO">No asistió</option>
+        <option value="CANCELADA">Cancelada</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <lucide-icon [img]="Calendar" [size]="16" class="filter-icon"></lucide-icon>
+      <select formControlName="dateRange" class="filter-input">
+        <option value="ALL">Cualquier fecha</option>
+        <option value="TODAY">Hoy</option>
+        <option value="WEEK">Esta semana</option>
+        <option value="MONTH">Este mes</option>
+      </select>
+    </div>
   </div>
   
-  <div class="calendar-placeholder">
+  <div class="calendar-placeholder" *ngIf="currentView === 'list'">
     <div class="agenda-list" *ngIf="appointments.length > 0; else noAppointments">
+      <!-- VISTA DE LISTA (Ya existente) -->
       <div class="agenda-item" *ngFor="let appointment of appointments">
+        
         <div class="time">
           <lucide-icon [img]="Calendar" [size]="16" style="margin-right: 4px; vertical-align: text-bottom;"></lucide-icon>
-          {{ appointment.appointmentDate | date:'dd/MM/yyyy hh:mm a' }}
+          <strong>{{ appointment.appointmentDate | date:'dd/MM/yyyy' }}</strong>
+          <br>
+          <lucide-icon [img]="Clock" [size]="14" style="margin-right: 4px; vertical-align: text-bottom;"></lucide-icon>
+          <span style="font-size: 0.9em; color: #555;">{{ appointment.startTime }} - {{ appointment.endTime }}</span>
         </div>
+        
         <div class="details">
-          <h4>{{ appointment.patientName }}</h4>
+          <h4>
+            {{ appointment.patientName }}
+            <span *ngIf="appointment.isFirstTime" class="badge-new-patient" title="Primera Vez">⭐ 1ra Vez</span>
+          </h4>
           <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;">{{ appointment.notes || 'Sin detalles' }}</p>
+          
+          <div style="margin-top: 8px; font-size: 0.85rem;">
+            <span class="modality-badge" [ngClass]="appointment.modality === 'VIRTUAL' ? 'modality-virtual' : 'modality-inperson'">
+              <lucide-icon [img]="appointment.modality === 'VIRTUAL' ? Video : User" [size]="14" style="margin-right: 4px; vertical-align: text-bottom;"></lucide-icon>
+              {{ appointment.modality }}
+            </span>
+            <a *ngIf="appointment.modality === 'VIRTUAL' && appointment.videoCallLink" [href]="appointment.videoCallLink" target="_blank" class="link-call" (click)="$event.stopPropagation()">
+              Abrir Link
+            </a>
+          </div>
         </div>
+        
         <div class="status-container">
           <div class="status" [ngClass]="getStatusClass(appointment.status)">
-            {{ getStatusText(appointment.status) }}
+            {{ appointment.status }}
           </div>
           
           <div class="action-menu-container">
-            <button class="action-trigger" (click)="toggleMenu(appointment.id)">
+            <button class="action-trigger" (click)="toggleMenu(appointment.id, $event)">
               <lucide-icon [img]="MoreVertical" [size]="20"></lucide-icon>
             </button>
+            
             <div class="dropdown-menu" *ngIf="openMenuId === appointment.id">
-              <button class="dropdown-item confirm-item" (click)="confirmAppointment(appointment)" *ngIf="appointment.status !== 'CONFIRMED'">
-                Confirmar Cita
-              </button>
-              <button class="dropdown-item" (click)="openRescheduleForm(appointment)">
-                Reprogramar
-              </button>
-              <button class="dropdown-item danger-item" (click)="cancelAppointment(appointment)" *ngIf="appointment.status !== 'CANCELLED'">
-                Cancelar Cita
+              <ng-container *ngIf="appointment.status === 'PROGRAMADA'">
+                <button class="dropdown-item confirm-item" (click)="confirmAppointment(appointment)">
+                  <lucide-icon [img]="Check" [size]="16" style="margin-right: 8px; vertical-align: bottom;"></lucide-icon> Confirmar
+                </button>
+                <button class="dropdown-item" (click)="openRescheduleForm(appointment)">
+                  <lucide-icon [img]="Calendar" [size]="16" style="margin-right: 8px; vertical-align: bottom;"></lucide-icon> Reprogramar
+                </button>
+                <button class="dropdown-item danger-item" (click)="cancelAppointment(appointment)">
+                  <lucide-icon [img]="X" [size]="16" style="margin-right: 8px; vertical-align: bottom;"></lucide-icon> Cancelar Cita
+                </button>
+              </ng-container>
+
+              <ng-container *ngIf="appointment.status === 'CONFIRMADA'">
+                <button class="dropdown-item confirm-item" (click)="markCompleted(appointment)" style="color: #27ae60;">
+                  <lucide-icon [img]="Check" [size]="16" style="margin-right: 8px; vertical-align: bottom;"></lucide-icon> Completada
+                </button>
+                <button class="dropdown-item" (click)="markNoShow(appointment)" style="color: #f39c12;">
+                  <lucide-icon [img]="X" [size]="16" style="margin-right: 8px; vertical-align: bottom;"></lucide-icon> No asistió
+                </button>
+                <button class="dropdown-item danger-item" (click)="cancelAppointment(appointment)">
+                  <lucide-icon [img]="X" [size]="16" style="margin-right: 8px; vertical-align: bottom;"></lucide-icon> Cancelar Cita
+                </button>
+              </ng-container>
+
+              <hr style="margin: 4px 0; border: 0; border-top: 1px solid #eee;" />
+              
+              <button class="dropdown-item" (click)="viewPatientProfile(appointment.patientId)">
+                <lucide-icon [img]="User" [size]="16" style="margin-right: 8px; vertical-align: bottom;"></lucide-icon> Ver perfil
               </button>
             </div>
           </div>
         </div>
       </div>
     </div>
-
     <ng-template #noAppointments>
-      <p class="placeholder-text" style="text-align: center; padding: 40px; color: #888;">
-        No hay citas registradas en la agenda.
-      </p>
+      <p class="placeholder-text" style="text-align: center; padding: 40px; color: #888;">No hay citas registradas.</p>
     </ng-template>
+  </div>
+
+  <div class="calendar-container" *ngIf="currentView === 'calendar'">
+    <div class="calendar-nav">
+      <button class="btn-icon" (click)="prevWeek()"><lucide-icon [img]="ChevronLeft" [size]="20"></lucide-icon></button>
+      <h3>{{ weekDays[0] | date:'MMMM yyyy' | titlecase }}</h3>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn-secondary" (click)="todayWeek()" style="padding: 4px 12px; font-size: 0.9em; height: 32px;">Hoy</button>
+        <button class="btn-icon" (click)="nextWeek()"><lucide-icon [img]="ChevronRight" [size]="20"></lucide-icon></button>
+      </div>
+    </div>
+
+    <div class="calendar-grid">
+      <!-- Esquina vacía -->
+      <div class="calendar-header-cell empty-cell"></div>
+      
+      <!-- Cabecera de días -->
+      <div class="calendar-header-cell" *ngFor="let day of weekDays" [class.is-today]="isToday(day)">
+        <div class="day-name">{{ day | date:'EEEE' | titlecase }}</div>
+        <div class="day-number">{{ day | date:'d' }}</div>
+      </div>
+
+      <!-- Filas de horas -->
+      <ng-container *ngFor="let hour of hours">
+        <!-- Columna de hora -->
+        <div class="calendar-time-cell">
+          {{ hour }}
+        </div>
+        
+        <!-- Celdas de días -->
+        <div class="calendar-cell" *ngFor="let day of weekDays">
+          <!-- Citas renderizadas dinamicamente dentro de esta celda -->
+          <div 
+            *ngFor="let app of getAppointmentsForDayAndHour(day, hour)" 
+            class="calendar-appointment" 
+            [ngClass]="getStatusClass(app.status)"
+            [ngStyle]="getAppointmentStyle(app)"
+            (click)="toggleMenu(app.id, $event)"
+          >
+            <div class="appt-time">{{ app.startTime.substring(0,5) }}</div>
+            <div class="appt-patient">{{ app.patientName }}</div>
+            
+            <!-- POPUP MENU -->
+            <div class="dropdown-menu calendar-popup-menu" *ngIf="openMenuId === app.id" (click)="$event.stopPropagation()">
+              <div style="padding: 10px; background: #f8f9fa; border-bottom: 1px solid #eee; margin-bottom: 4px;">
+                <strong>{{ app.patientName }}</strong>
+                <div style="font-size: 0.85em; color: #666; margin-top: 4px;">{{ app.startTime.substring(0,5) }} - {{ app.endTime.substring(0,5) }}</div>
+              </div>
+              <ng-container *ngIf="app.status === 'PROGRAMADA'">
+                <button class="dropdown-item confirm-item" (click)="confirmAppointment(app)">
+                  <lucide-icon [img]="Check" [size]="14"></lucide-icon> Confirmar
+                </button>
+                <button class="dropdown-item" (click)="openRescheduleForm(app)">
+                  <lucide-icon [img]="Calendar" [size]="14"></lucide-icon> Reprogramar
+                </button>
+                <button class="dropdown-item danger-item" (click)="cancelAppointment(app)">
+                  <lucide-icon [img]="X" [size]="14"></lucide-icon> Cancelar
+                </button>
+              </ng-container>
+
+              <ng-container *ngIf="app.status === 'CONFIRMADA'">
+                <button class="dropdown-item confirm-item" (click)="markCompleted(app)" style="color: #27ae60;">
+                  <lucide-icon [img]="Check" [size]="14"></lucide-icon> Completar
+                </button>
+                <button class="dropdown-item" (click)="markNoShow(app)" style="color: #f39c12;">
+                  <lucide-icon [img]="X" [size]="14"></lucide-icon> No asistió
+                </button>
+                <button class="dropdown-item danger-item" (click)="cancelAppointment(app)">
+                  <lucide-icon [img]="X" [size]="14"></lucide-icon> Cancelar
+                </button>
+              </ng-container>
+
+              <hr style="margin: 4px 0; border: 0; border-top: 1px solid #eee;" />
+              <button class="dropdown-item" (click)="viewPatientProfile(app.patientId)">
+                <lucide-icon [img]="User" [size]="14"></lucide-icon> Ver perfil
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </ng-container>
+    </div>
   </div>
 </div>
 

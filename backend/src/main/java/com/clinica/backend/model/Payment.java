@@ -33,4 +33,7 @@ public class Payment {
 
     @Column(name = "description")
     private String description;
+
+    @Column(name = "deleted", nullable = false)
+    private boolean deleted = false;
 }

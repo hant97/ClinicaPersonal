@@ -1,0 +1,89 @@
+<div class="form-container">
+  <h3>Nueva Sesión (S.O.A.P.)</h3>
+  
+  <form [formGroup]="sessionForm" (ngSubmit)="onSubmit()">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Fecha de la Sesión</label>
+        <input type="date" formControlName="sessionDate" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>Hora de Inicio</label>
+        <input type="time" formControlName="startTime" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>Hora de Fin</label>
+        <input type="time" formControlName="endTime" class="form-control">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tipo de Sesión</label>
+        <select formControlName="sessionType" class="form-control">
+          <option value="INDIVIDUAL">Individual</option>
+          <option value="PAREJA">Pareja</option>
+          <option value="FAMILIAR">Familiar</option>
+          <option value="GRUPAL">Grupal</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Modalidad</label>
+        <select formControlName="modality" class="form-control">
+          <option value="PRESENCIAL">Presencial</option>
+          <option value="VIRTUAL">Virtual</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Estado</label>
+        <select formControlName="status" class="form-control">
+          <option value="COMPLETADA">Completada</option>
+          <option value="CANCELADA">Cancelada</option>
+          <option value="NO_ASISTIO">No Asistió</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="soap-section">
+      <div class="form-group">
+        <label>Subjetivo (S)</label>
+        <textarea formControlName="subjective" class="form-control" rows="3" 
+          placeholder="¿Qué reporta el paciente sobre su estado o semana?"></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label>Objetivo (O)</label>
+        <textarea formControlName="objective" class="form-control" rows="3" 
+          placeholder="Observaciones clínicas medibles durante la sesión."></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label>Análisis (A)</label>
+        <textarea formControlName="analysis" class="form-control" rows="3" 
+          placeholder="Interpretación clínica y diagnóstico presuntivo."></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label>Plan (P)</label>
+        <textarea formControlName="plan" class="form-control" rows="3" 
+          placeholder="Tareas asignadas, próximos pasos o derivaciones."></textarea>
+      </div>
+    </div>
+
+    <div *ngIf="sessionForm.hasError('soapRequired')" class="error-msg text-danger mb-3">
+      Debe llenar al menos uno de los campos S.O.A.P.
+    </div>
+
+    <div class="form-group checkbox-group">
+      <label class="checkbox-label">
+        <input type="checkbox" formControlName="isConfidential">
+        Contiene información sensible/confidencial
+      </label>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="onCancel()">Cancelar</button>
+      <button type="submit" class="btn btn-primary" [disabled]="sessionForm.invalid">Guardar Sesión</button>
+    </div>
+  </form>
+</div>

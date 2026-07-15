@@ -36,33 +36,78 @@
       <button class="btn btn-primary" (click)="openForm()">+ Nueva Sesión</button>
     </div>
 
-    <div class="records-list" *ngIf="records.length > 0; else noRecords">
-      <div class="record-card card" *ngFor="let record of records">
-        <div class="record-date">{{ record.sessionDate | date:'short' }}</div>
-        <p><strong>Motivo:</strong> {{ record.reasonForConsultation }}</p>
-        <p><strong>Evolución:</strong> {{ record.evolutionNotes }}</p>
-        <p><strong>Diagnóstico:</strong> {{ record.presumptiveDiagnosis }}</p>
-        <p><strong>Acuerdos:</strong> {{ record.agreementsAndTasks }}</p>
-      </div>
+    <div class="timeline">
+      @for (session of sessions; track session.id) {
+        <div class="timeline-item card" (click)="toggleSessionExpand(session.id!)" [class.expanded]="expandedSessionId === session.id">
+          
+          <!-- Vista Colapsada -->
+          <div class="timeline-summary">
+            <div class="timeline-date-time">
+              <strong>{{ session.sessionDate | date:'mediumDate' }}</strong>
+              <span class="time">{{ session.startTime }} - {{ session.endTime }}</span>
+            </div>
+            <div class="timeline-badges">
+              <span class="badge" [ngClass]="'badge-' + session.status.toLowerCase()">{{ session.status }}</span>
+              <span class="badge badge-type">{{ session.sessionType }}</span>
+              <span class="badge badge-modality">{{ session.modality }}</span>
+              @if (session.isConfidential) {
+                <span class="badge badge-confidential" title="Confidencial">🔒</span>
+              }
+            </div>
+            <div class="timeline-actions">
+              <button class="btn-icon btn-edit" (click)="editSession(session.id!, $event)" title="Editar">✏️</button>
+              <button class="btn-icon btn-delete" (click)="deleteSession(session.id!, $event)" title="Eliminar">🗑️</button>
+            </div>
+          </div>
+
+          <!-- Vista Expandida -->
+          @if (expandedSessionId === session.id) {
+            <div class="timeline-details">
+              <hr>
+              <div class="soap-grid">
+                <div class="soap-item" *ngIf="session.subjective">
+                  <h4>Subjetivo</h4>
+                  <p>{{ session.subjective }}</p>
+                </div>
+                <div class="soap-item" *ngIf="session.objective">
+                  <h4>Objetivo</h4>
+                  <p>{{ session.objective }}</p>
+                </div>
+                <div class="soap-item" *ngIf="session.analysis">
+                  <h4>Análisis</h4>
+                  <p>{{ session.analysis }}</p>
+                </div>
+                <div class="soap-item" *ngIf="session.plan">
+                  <h4>Plan</h4>
+                  <p>{{ session.plan }}</p>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      } @empty {
+        <p class="empty-state">Aún no hay sesiones registradas para este paciente.</p>
+      }
     </div>
-    <ng-template #noRecords>
-      <p class="empty-state">No hay sesiones registradas para este paciente.</p>
-    </ng-template>
   </div>
 
   <!-- Modal superpuesto para nueva sesión -->
-  <div class="modal-overlay" *ngIf="showForm">
-    <div class="modal-content">
-      <button class="close-btn" (click)="closeForm()">&times;</button>
-      <app-medical-record-form 
-        [patientId]="patient.id!" 
-        (saved)="onRecordSaved()"
-        (cancelled)="closeForm()">
-      </app-medical-record-form>
+  @if (showForm) {
+    <div class="modal-overlay">
+      <div class="modal-content">
+        <button class="close-btn" (click)="closeForm()">&times;</button>
+        <app-clinical-session-form 
+          [patientId]="patient.id!" 
+          (saved)="onSessionSaved()"
+          (cancelled)="closeForm()">
+        </app-clinical-session-form>
+      </div>
     </div>
-  </div>
+  }
 </div>
 
-<div *ngIf="!patient" class="loading">
-  Cargando información del paciente...
-</div>
+@if (!patient) {
+  <div class="loading">
+    Cargando información del paciente...
+  </div>
+}

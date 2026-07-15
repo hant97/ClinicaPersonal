@@ -24,3 +24,15 @@
   padding: 40px !important;
   color: #888;
 }
+
+.btn-text {
+  background: none;
+  border: none;
+  color: var(--accent-color);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-text:hover {
+  text-decoration: underline;
+}

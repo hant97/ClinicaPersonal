@@ -10,6 +10,10 @@ export interface DashboardStats {
   appointmentsToday: number;
   monthlyIncome: number;
   upcomingAppointments: Appointment[];
+  attendanceRate: number;
+  cancelledAppointments: number;
+  newPatientsThisMonth: number;
+  monthlyIncomeGrowth: number;
 }
 
 @Injectable({
@@ -51,8 +55,44 @@ export class DashboardService {
         const statusTranslations: { [key: string]: string } = {
           'SCHEDULED': 'Programada',
           'COMPLETED': 'Completada',
-          'CANCELLED': 'Cancelada'
+          'CANCELLED': 'Cancelada',
+          'NO_ASISTIO': 'No Asistió'
         };
+
+        // Nuevos cálculos
+        // 1. Tasa de Asistencia y Cancelaciones (Mes Actual)
+        const appointmentsThisMonth = appointments.filter(app => {
+          const appDate = new Date(app.appointmentDate);
+          return appDate.getMonth() === currentMonth && appDate.getFullYear() === currentYear;
+        });
+        
+        const completedThisMonth = appointmentsThisMonth.filter(app => app.status === 'COMPLETED').length;
+        const cancelledAppointments = appointmentsThisMonth.filter(app => app.status === 'CANCELLED' || app.status === 'NO_ASISTIO').length;
+        const totalPastThisMonth = completedThisMonth + cancelledAppointments;
+        const attendanceRate = totalPastThisMonth > 0 ? Math.round((completedThisMonth / totalPastThisMonth) * 100) : 0;
+
+        // 2. Nuevos Pacientes
+        const newPatientsThisMonth = patients.filter(p => {
+          if (!p.createdAt) return false;
+          const pDate = new Date(p.createdAt);
+          return pDate.getMonth() === currentMonth && pDate.getFullYear() === currentYear;
+        }).length;
+
+        // 3. Crecimiento de Ingresos
+        const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+        const previousMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+        
+        const previousMonthlyIncome = payments.filter(pay => {
+          const payDate = new Date(pay.paymentDate);
+          return payDate.getMonth() === previousMonth && payDate.getFullYear() === previousMonthYear;
+        }).reduce((sum, pay) => sum + pay.amount, 0);
+
+        let monthlyIncomeGrowth = 0;
+        if (previousMonthlyIncome > 0) {
+          monthlyIncomeGrowth = Math.round(((monthlyIncome - previousMonthlyIncome) / previousMonthlyIncome) * 100);
+        } else if (monthlyIncome > 0) {
+          monthlyIncomeGrowth = 100; // Crecimiento del 100% si el mes pasado fue 0 y este mes hay ingresos
+        }
 
         const upcomingAppointments = appointments
           .filter(app => new Date(app.appointmentDate).getTime() >= today.getTime())
@@ -71,7 +111,11 @@ export class DashboardService {
           activePatients,
           appointmentsToday,
           monthlyIncome,
-          upcomingAppointments
+          upcomingAppointments,
+          attendanceRate,
+          cancelledAppointments,
+          newPatientsThisMonth,
+          monthlyIncomeGrowth
         };
       })
     );

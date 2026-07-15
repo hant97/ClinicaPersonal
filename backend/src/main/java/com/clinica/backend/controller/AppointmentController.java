@@ -4,6 +4,8 @@ import com.clinica.backend.service.AppointmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.format.annotation.DateTimeFormat;
+import java.time.LocalDate;
 import java.util.List;
 @RestController
 @RequestMapping("/api/v1/appointments")
@@ -18,6 +20,16 @@ public class AppointmentController {
     public ResponseEntity<List<AppointmentDto>> getAll() {
         return ResponseEntity.ok(service.getAll());
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<AppointmentDto>> search(
+            @RequestParam(required = false) String searchTerm,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return ResponseEntity.ok(service.searchAppointments(searchTerm, status, startDate, endDate));
+    }
+
     @PostMapping
     public ResponseEntity<AppointmentDto> create(@RequestBody AppointmentDto dto) {
         return ResponseEntity.ok(service.create(dto));

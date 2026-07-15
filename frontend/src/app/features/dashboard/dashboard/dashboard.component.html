@@ -10,7 +10,33 @@
     </div>
     <div class="card stat-card">
       <h3>Ingresos del Mes</h3>
-      <p class="stat-number">{{ stats.monthlyIncome | currency }}</p>
+      <p class="stat-number">{{ stats.monthlyIncome | currency:'PEN':'S/ ' }}</p>
+    </div>
+  </div>
+
+  <div class="dashboard-cards advanced-stats">
+    <div class="card stat-card stat-card-small">
+      <h3>Asistencia / Cancelaciones (Mes)</h3>
+      <div class="stat-content">
+        <p class="stat-number">{{ stats.attendanceRate }}%</p>
+        <span class="stat-subtext">{{ stats.cancelledAppointments }} canceladas/ausencias</span>
+      </div>
+    </div>
+    <div class="card stat-card stat-card-small">
+      <h3>Nuevos Pacientes (Mes)</h3>
+      <div class="stat-content">
+        <p class="stat-number">{{ stats.newPatientsThisMonth }}</p>
+        <span class="stat-subtext">registrados este mes</span>
+      </div>
+    </div>
+    <div class="card stat-card stat-card-small">
+      <h3>Crecimiento Ingresos</h3>
+      <div class="stat-content">
+        <p class="stat-number" [class.positive]="stats.monthlyIncomeGrowth > 0" [class.negative]="stats.monthlyIncomeGrowth < 0">
+          {{ stats.monthlyIncomeGrowth > 0 ? '+' : '' }}{{ stats.monthlyIncomeGrowth }}%
+        </p>
+        <span class="stat-subtext">vs mes anterior</span>
+      </div>
     </div>
   </div>
 

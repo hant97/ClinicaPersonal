@@ -2,6 +2,7 @@ package com.clinica.backend.dto;
 
 import lombok.Data;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 public class PatientDto {
@@ -21,4 +22,5 @@ public class PatientDto {
     private String guardianName;
     private String guardianContact;
     private boolean deleted;
+    private LocalDateTime createdAt;
 }

@@ -16,6 +16,7 @@
           <th>Descripción</th>
           <th>Monto</th>
           <th>Método</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -27,9 +28,19 @@
           <td>
             <span class="method-badge">{{ getPaymentMethodText(payment.paymentMethod) }}</span>
           </td>
+          <td>
+            <div class="d-flex" style="gap: 0.5rem;">
+              <button class="btn-text" (click)="openForm(payment)" title="Editar">
+                <lucide-icon [img]="Edit" [size]="18"></lucide-icon>
+              </button>
+              <button class="btn-text" (click)="deletePayment(payment.id!)" style="color: var(--danger);" title="Eliminar">
+                <lucide-icon [img]="Trash2" [size]="18"></lucide-icon>
+              </button>
+            </div>
+          </td>
         </tr>
         <tr *ngIf="payments.length === 0">
-          <td colspan="5" class="empty-state">No hay pagos registrados.</td>
+          <td colspan="6" class="empty-state">No hay pagos registrados.</td>
         </tr>
       </tbody>
     </table>
@@ -37,6 +48,7 @@
 </div>
 
 <app-payment-form *ngIf="showForm"
+  [payment]="selectedPayment"
   (saved)="onPaymentSaved()"
   (cancelled)="closeForm()">
 </app-payment-form>

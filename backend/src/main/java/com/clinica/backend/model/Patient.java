@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Table(name = "patients")
@@ -61,4 +63,8 @@ public class Patient {
 
     @Column(name = "deleted", nullable = false)
     private boolean deleted = false;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false, nullable = true)
+    private LocalDateTime createdAt;
 }

@@ -1,0 +1,26 @@
+<div class="autocomplete-container">
+  <div class="input-wrapper">
+    <input 
+      type="text" 
+      class="form-control autocomplete-input" 
+      [formControl]="searchControl" 
+      (focus)="onFocus()"
+      placeholder="Buscar paciente por nombre o DNI..."
+      autocomplete="off"
+    >
+    <div class="spinner" *ngIf="isLoading"></div>
+    <button type="button" class="clear-btn" *ngIf="selectedPatientId && !disabled" (click)="onInputClear()">&times;</button>
+  </div>
+
+  <div class="dropdown-menu" *ngIf="showDropdown">
+    <ul class="dropdown-list">
+      <li *ngIf="patients.length === 0 && searchControl.value && searchControl.value.length >= 2 && !isLoading" class="dropdown-item empty">
+        No se encontraron pacientes.
+      </li>
+      <li *ngFor="let p of patients" class="dropdown-item" (click)="selectPatient(p)">
+        <div class="patient-name">{{ p.firstName }} {{ p.lastName }}</div>
+        <div class="patient-doc">DNI: {{ p.identificationDocument }}</div>
+      </li>
+    </ul>
+  </div>
+</div>
