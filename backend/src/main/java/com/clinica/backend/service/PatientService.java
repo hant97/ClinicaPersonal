@@ -44,6 +44,11 @@ public class PatientService {
         patient.setOccupation(patientDto.getOccupation());
         patient.setMaritalStatus(patientDto.getMaritalStatus());
         patient.setEmergencyContact(patientDto.getEmergencyContact());
+        patient.setReasonForConsultation(patientDto.getReasonForConsultation());
+        patient.setGender(patientDto.getGender());
+        patient.setAddress(patientDto.getAddress());
+        patient.setGuardianName(patientDto.getGuardianName());
+        patient.setGuardianContact(patientDto.getGuardianContact());
 
         Patient updatedPatient = patientRepository.save(patient);
         return mapToDto(updatedPatient);
@@ -67,6 +72,11 @@ public class PatientService {
         dto.setOccupation(patient.getOccupation());
         dto.setMaritalStatus(patient.getMaritalStatus());
         dto.setEmergencyContact(patient.getEmergencyContact());
+        dto.setReasonForConsultation(patient.getReasonForConsultation());
+        dto.setGender(patient.getGender());
+        dto.setAddress(patient.getAddress());
+        dto.setGuardianName(patient.getGuardianName());
+        dto.setGuardianContact(patient.getGuardianContact());
         dto.setDeleted(patient.isDeleted());
         return dto;
     }
@@ -82,6 +92,11 @@ public class PatientService {
         patient.setOccupation(dto.getOccupation());
         patient.setMaritalStatus(dto.getMaritalStatus());
         patient.setEmergencyContact(dto.getEmergencyContact());
+        patient.setReasonForConsultation(dto.getReasonForConsultation());
+        patient.setGender(dto.getGender());
+        patient.setAddress(dto.getAddress());
+        patient.setGuardianName(dto.getGuardianName());
+        patient.setGuardianContact(dto.getGuardianContact());
         patient.setDeleted(dto.isDeleted());
         return patient;
     }

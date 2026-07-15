@@ -44,6 +44,21 @@ public class Patient {
     @Column(name = "emergency_contact")
     private String emergencyContact;
 
+    @Column(name = "reason_for_consultation", length = 500)
+    private String reasonForConsultation;
+
+    @Column(name = "gender")
+    private String gender;
+
+    @Column(name = "address")
+    private String address;
+
+    @Column(name = "guardian_name")
+    private String guardianName;
+
+    @Column(name = "guardian_contact")
+    private String guardianContact;
+
     @Column(name = "deleted", nullable = false)
     private boolean deleted = false;
 }

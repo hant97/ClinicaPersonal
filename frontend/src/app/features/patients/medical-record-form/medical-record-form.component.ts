@@ -26,10 +26,10 @@ export class MedicalRecordFormComponent implements OnInit {
   ngOnInit(): void {
     this.recordForm = this.fb.group({
       sessionDate: [new Date().toISOString().substring(0, 16), Validators.required],
-      reasonForConsultation: ['', Validators.required],
-      evolutionNotes: ['', Validators.required],
-      presumptiveDiagnosis: [''],
-      agreementsAndTasks: ['']
+      reasonForConsultation: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]],
+      evolutionNotes: ['', [Validators.required, Validators.minLength(10)]],
+      presumptiveDiagnosis: ['', [Validators.maxLength(200)]],
+      agreementsAndTasks: ['', [Validators.maxLength(500)]]
     });
   }
 

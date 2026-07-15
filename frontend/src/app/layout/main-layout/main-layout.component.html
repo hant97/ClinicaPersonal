@@ -5,13 +5,28 @@
       <h2>Clínica Vida</h2>
     </div>
     <nav class="sidebar-nav">
-      <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">Dashboard</a>
-      <a routerLink="/patients" routerLinkActive="active" class="nav-item">Pacientes</a>
-      <a routerLink="/agenda" routerLinkActive="active" class="nav-item">Agenda</a>
-      <a routerLink="/billing" routerLinkActive="active" class="nav-item">Facturación</a>
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+        <lucide-icon [img]="LayoutDashboard" [size]="20" [strokeWidth]="2"></lucide-icon>
+        Dashboard
+      </a>
+      <a routerLink="/patients" routerLinkActive="active" class="nav-item">
+        <lucide-icon [img]="Users" [size]="20" [strokeWidth]="2"></lucide-icon>
+        Pacientes
+      </a>
+      <a routerLink="/agenda" routerLinkActive="active" class="nav-item">
+        <lucide-icon [img]="CalendarDays" [size]="20" [strokeWidth]="2"></lucide-icon>
+        Agenda
+      </a>
+      <a routerLink="/billing" routerLinkActive="active" class="nav-item">
+        <lucide-icon [img]="Receipt" [size]="20" [strokeWidth]="2"></lucide-icon>
+        Facturación
+      </a>
     </nav>
     <div class="sidebar-footer">
-      <a routerLink="/login" class="nav-item logout-item">Cerrar Sesión</a>
+      <a routerLink="/login" class="nav-item logout-item">
+        <lucide-icon [img]="LogOut" [size]="20" [strokeWidth]="2"></lucide-icon>
+        Cerrar Sesión
+      </a>
     </div>
   </aside>
 

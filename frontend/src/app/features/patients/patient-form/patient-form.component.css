@@ -17,6 +17,8 @@
   background: var(--bg-color);
   padding: 2rem;
   animation: slideDown 0.3s ease-out;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .modal-header {
@@ -58,4 +60,21 @@
 @keyframes slideDown {
   from { transform: translateY(-20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
+}
+
+.btn-secondary {
+  background-color: var(--primary-color);
+  color: var(--text-main);
+  border: 1px solid var(--secondary-color);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background-color: var(--secondary-color);
+  border-color: #d1d5db;
 }

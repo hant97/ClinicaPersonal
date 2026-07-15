@@ -15,5 +15,10 @@ public class PatientDto {
     private String occupation;
     private String maritalStatus;
     private String emergencyContact;
+    private String reasonForConsultation;
+    private String gender;
+    private String address;
+    private String guardianName;
+    private String guardianContact;
     private boolean deleted;
 }

@@ -9,4 +9,9 @@ export interface Patient {
   occupation?: string;
   maritalStatus?: string;
   emergencyContact?: string;
+  reasonForConsultation?: string;
+  gender?: string;
+  address?: string;
+  guardianName?: string;
+  guardianContact?: string;
 }

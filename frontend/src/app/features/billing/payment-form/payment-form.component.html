@@ -8,10 +8,17 @@
         <label for="patientId">Paciente *</label>
         <select id="patientId" formControlName="patientId" class="form-control">
           <option value="" disabled selected>Seleccione un paciente</option>
-          <option *ngFor="let p of patients" [value]="p.id">
-            {{ p.firstName }} {{ p.lastName }} ({{ p.identificationDocument }})
-          </option>
+          @for (p of patients; track p.id) {
+            <option [value]="p.id">
+              {{ p.firstName }} {{ p.lastName }} ({{ p.identificationDocument }})
+            </option>
+          }
         </select>
+        @if (paymentForm.get('patientId')?.invalid && (paymentForm.get('patientId')?.dirty || paymentForm.get('patientId')?.touched)) {
+          <div class="error-messages">
+            @if (paymentForm.get('patientId')?.hasError('required')) { <small class="text-error">El paciente es requerido.</small> }
+          </div>
+        }
       </div>
 
       <div class="form-group">
@@ -20,11 +27,23 @@
           <span class="input-prefix">S/</span>
           <input type="number" id="amount" formControlName="amount" class="form-control" step="0.01" min="0.01">
         </div>
+        @if (paymentForm.get('amount')?.invalid && (paymentForm.get('amount')?.dirty || paymentForm.get('amount')?.touched)) {
+          <div class="error-messages">
+            @if (paymentForm.get('amount')?.hasError('required')) { <small class="text-error">El monto es requerido.</small> }
+            @if (paymentForm.get('amount')?.hasError('min')) { <small class="text-error">El monto debe ser mayor a 0.</small> }
+            @if (paymentForm.get('amount')?.hasError('pattern')) { <small class="text-error">Formato inválido (máximo 2 decimales).</small> }
+          </div>
+        }
       </div>
 
       <div class="form-group">
         <label for="paymentDate">Fecha y Hora *</label>
         <input type="datetime-local" id="paymentDate" formControlName="paymentDate" class="form-control">
+        @if (paymentForm.get('paymentDate')?.invalid && (paymentForm.get('paymentDate')?.dirty || paymentForm.get('paymentDate')?.touched)) {
+          <div class="error-messages">
+            @if (paymentForm.get('paymentDate')?.hasError('required')) { <small class="text-error">La fecha es requerida.</small> }
+          </div>
+        }
       </div>
 
       <div class="form-group">
@@ -34,11 +53,21 @@
           <option value="TRANSFER">Transferencia</option>
           <option value="CARD">Tarjeta</option>
         </select>
+        @if (paymentForm.get('paymentMethod')?.invalid && (paymentForm.get('paymentMethod')?.dirty || paymentForm.get('paymentMethod')?.touched)) {
+          <div class="error-messages">
+            @if (paymentForm.get('paymentMethod')?.hasError('required')) { <small class="text-error">El método de pago es requerido.</small> }
+          </div>
+        }
       </div>
 
       <div class="form-group">
         <label for="description">Descripción / Motivo</label>
         <input type="text" id="description" formControlName="description" class="form-control" placeholder="Ej. Sesión de Terapia">
+        @if (paymentForm.get('description')?.invalid && (paymentForm.get('description')?.dirty || paymentForm.get('description')?.touched)) {
+          <div class="error-messages">
+            @if (paymentForm.get('description')?.hasError('maxlength')) { <small class="text-error">Máximo 255 caracteres.</small> }
+          </div>
+        }
       </div>
 
       <div class="form-actions">

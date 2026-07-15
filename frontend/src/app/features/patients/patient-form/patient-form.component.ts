@@ -24,15 +24,20 @@ export class PatientFormComponent implements OnInit {
     private toastService: ToastService
   ) {
     this.patientForm = this.fb.group({
-      firstName: ['', Validators.required],
-      lastName: ['', Validators.required],
-      identificationDocument: ['', Validators.required],
-      contactNumber: [''],
-      email: [''],
+      firstName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50), Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$/)]],
+      lastName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50), Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$/)]],
+      identificationDocument: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(8), Validators.pattern(/^[0-9]+$/)]],
+      contactNumber: ['', [Validators.pattern(/^[0-9+\\-\\s()]+$/), Validators.minLength(7), Validators.maxLength(15)]],
+      email: ['', [Validators.email]],
       dateOfBirth: [''],
-      occupation: [''],
+      occupation: ['', [Validators.maxLength(100)]],
       maritalStatus: [''],
-      emergencyContact: ['']
+      emergencyContact: ['', [Validators.maxLength(100)]],
+      reasonForConsultation: ['', [Validators.maxLength(500)]],
+      gender: ['', [Validators.required]],
+      address: ['', [Validators.maxLength(255)]],
+      guardianName: ['', [Validators.maxLength(100), Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)]],
+      guardianContact: ['', [Validators.pattern(/^[0-9+\-\s()]+$/), Validators.minLength(7), Validators.maxLength(15)]]
     });
   }
 

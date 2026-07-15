@@ -5,10 +5,29 @@
   </div>
 
   <div class="patient-info card">
-    <h3>Información General</h3>
-    <p><strong>Documento:</strong> {{ patient.identificationDocument }}</p>
-    <p><strong>Email:</strong> {{ patient.email || 'N/A' }}</p>
-    <p><strong>Teléfono:</strong> {{ patient.contactNumber || 'N/A' }}</p>
+    <h3 class="section-title">Datos Personales</h3>
+    <div class="info-grid">
+      <div class="info-item"><strong>Documento</strong><span>{{ patient.identificationDocument }}</span></div>
+      <div class="info-item"><strong>Fecha de Nacimiento</strong><span>{{ patient.dateOfBirth || 'N/A' }}</span></div>
+      <div class="info-item"><strong>Género</strong><span>{{ patient.gender || 'N/A' }}</span></div>
+      <div class="info-item"><strong>Estado Civil</strong><span>{{ patient.maritalStatus || 'N/A' }}</span></div>
+      <div class="info-item"><strong>Ocupación</strong><span>{{ patient.occupation || 'N/A' }}</span></div>
+    </div>
+
+    <h3 class="section-title">Información de Contacto</h3>
+    <div class="info-grid">
+      <div class="info-item"><strong>Email</strong><span>{{ patient.email || 'N/A' }}</span></div>
+      <div class="info-item"><strong>Teléfono</strong><span>{{ patient.contactNumber || 'N/A' }}</span></div>
+      <div class="info-item"><strong>Dirección</strong><span>{{ patient.address || 'N/A' }}</span></div>
+    </div>
+
+    <h3 class="section-title">Atención y Apoderado</h3>
+    <div class="info-grid">
+      <div class="info-item"><strong>Motivo de Consulta</strong><span>{{ patient.reasonForConsultation || 'N/A' }}</span></div>
+      <div class="info-item"><strong>Contacto de Emergencia</strong><span>{{ patient.emergencyContact || 'N/A' }}</span></div>
+      <div class="info-item"><strong>Nombre del Apoderado</strong><span>{{ patient.guardianName || 'N/A' }}</span></div>
+      <div class="info-item"><strong>Teléfono Apoderado</strong><span>{{ patient.guardianContact || 'N/A' }}</span></div>
+    </div>
   </div>
 
   <div class="records-section">

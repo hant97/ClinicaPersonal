@@ -22,4 +22,12 @@ export class AppointmentService {
   create(appointment: Appointment): Observable<Appointment> {
     return this.http.post<Appointment>(this.apiUrl, appointment);
   }
+
+  update(id: number, appointment: Appointment): Observable<Appointment> {
+    return this.http.put<Appointment>(`${this.apiUrl}/${id}`, appointment);
+  }
+
+  updateStatus(id: number, status: string): Observable<Appointment> {
+    return this.http.put<Appointment>(`${this.apiUrl}/${id}/status`, { status });
+  }
 }

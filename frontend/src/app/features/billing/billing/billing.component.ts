@@ -4,15 +4,18 @@ import { PaymentService } from '../../../core/services/payment.service';
 import { Payment } from '../../../core/models/payment.model';
 import { PaymentFormComponent } from '../payment-form/payment-form.component';
 import { PatientService } from '../../../core/services/patient/patient.service';
+import { LucideAngularModule, Plus } from 'lucide-angular';
 
 @Component({
   selector: 'app-billing',
   standalone: true,
-  imports: [CommonModule, PaymentFormComponent],
+  imports: [CommonModule, PaymentFormComponent, LucideAngularModule],
   templateUrl: './billing.component.html',
   styleUrl: './billing.component.css'
 })
 export class BillingComponent implements OnInit {
+  readonly Plus = Plus;
+  
   payments: Payment[] = [];
   showForm = false;
   patientMap = new Map<number, string>();

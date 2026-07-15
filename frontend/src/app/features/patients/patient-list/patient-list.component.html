@@ -1,7 +1,16 @@
 <div class="card">
   <div class="header-actions">
     <h2>Directorio de Pacientes</h2>
-    <button class="btn-primary" (click)="openModal()">+ Nuevo Paciente</button>
+    <div style="display: flex; gap: 1rem; align-items: center;">
+      <div style="position: relative; display: flex; align-items: center;">
+        <lucide-icon [img]="Search" [size]="18" [strokeWidth]="2" style="position: absolute; left: 10px; color: var(--text-muted);"></lucide-icon>
+        <input type="text" class="input-field" placeholder="Buscar por nombre o documento..." (input)="onSearch($event)" style="min-width: 250px; padding: 0.5rem 0.5rem 0.5rem 2.2rem; border: 1px solid var(--border-color); border-radius: 4px;">
+      </div>
+      <button class="btn-primary" (click)="openModal()">
+        <lucide-icon [img]="Plus" [size]="18"></lucide-icon>
+        Nuevo Paciente
+      </button>
+    </div>
   </div>
   
   <div class="table-responsive">
@@ -12,23 +21,42 @@
           <th>Documento</th>
           <th>Contacto</th>
           <th>Email</th>
+          <th>Fecha Nac.</th>
+          <th>Género</th>
+          <th>Dirección</th>
           <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let patient of patients">
-          <td>{{ patient.firstName }} {{ patient.lastName }}</td>
+        <tr *ngFor="let patient of filteredPatients">
+          <td>
+            <div class="d-flex align-items-center">
+              <span class="avatar-initials">{{ getInitials(patient.firstName, patient.lastName) }}</span>
+              <span>{{ patient.firstName }} {{ patient.lastName }}</span>
+            </div>
+          </td>
           <td>{{ patient.identificationDocument }}</td>
           <td>{{ patient.contactNumber }}</td>
           <td>{{ patient.email }}</td>
+          <td>{{ patient.dateOfBirth }}</td>
+          <td>{{ patient.gender }}</td>
+          <td>{{ patient.address }}</td>
           <td>
-            <button class="btn-text" [routerLink]="['/patients', patient.id]">Ver Ficha</button>
-            <button class="btn-text" (click)="openModal(patient.id)" style="margin-left: 8px;">Editar</button>
-            <button class="btn-text" (click)="deletePatient(patient.id!)" style="margin-left: 8px; color: var(--danger-color);">Eliminar</button>
+            <div class="d-flex" style="gap: 0.5rem;">
+              <button class="btn-text" [routerLink]="['/patients', patient.id]" title="Ver Ficha">
+                <lucide-icon [img]="Eye" [size]="18"></lucide-icon>
+              </button>
+              <button class="btn-text" (click)="openModal(patient.id)" title="Editar">
+                <lucide-icon [img]="Edit" [size]="18"></lucide-icon>
+              </button>
+              <button class="btn-text" (click)="deletePatient(patient.id!)" style="color: var(--danger);" title="Eliminar">
+                <lucide-icon [img]="Trash2" [size]="18"></lucide-icon>
+              </button>
+            </div>
           </td>
         </tr>
-        <tr *ngIf="patients.length === 0">
-          <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">No hay pacientes registrados.</td>
+        <tr *ngIf="filteredPatients.length === 0">
+          <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">No hay pacientes que coincidan con la búsqueda.</td>
         </tr>
       </tbody>
     </table>

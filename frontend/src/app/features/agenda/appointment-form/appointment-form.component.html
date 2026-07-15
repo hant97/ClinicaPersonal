@@ -8,15 +8,28 @@
         <label for="patientId">Paciente *</label>
         <select id="patientId" formControlName="patientId" class="form-control">
           <option value="" disabled selected>Seleccione un paciente</option>
-          <option *ngFor="let p of patients" [value]="p.id">
-            {{ p.firstName }} {{ p.lastName }} ({{ p.identificationDocument }})
-          </option>
+          @for (p of patients; track p.id) {
+            <option [value]="p.id">
+              {{ p.firstName }} {{ p.lastName }} ({{ p.identificationDocument }})
+            </option>
+          }
         </select>
+        @if (appointmentForm.get('patientId')?.invalid && (appointmentForm.get('patientId')?.dirty || appointmentForm.get('patientId')?.touched)) {
+          <div class="error-messages">
+            @if (appointmentForm.get('patientId')?.hasError('required')) { <small class="text-error">El paciente es requerido.</small> }
+          </div>
+        }
       </div>
 
       <div class="form-group">
         <label for="appointmentDate">Fecha y Hora *</label>
         <input type="datetime-local" id="appointmentDate" formControlName="appointmentDate" class="form-control">
+        @if (appointmentForm.get('appointmentDate')?.invalid && (appointmentForm.get('appointmentDate')?.dirty || appointmentForm.get('appointmentDate')?.touched)) {
+          <div class="error-messages">
+            @if (appointmentForm.get('appointmentDate')?.hasError('required')) { <small class="text-error">La fecha es requerida.</small> }
+            @if (appointmentForm.get('appointmentDate')?.hasError('pastDate')) { <small class="text-error">La fecha no puede estar en el pasado.</small> }
+          </div>
+        }
       </div>
 
       <div class="form-group">
@@ -27,11 +40,21 @@
           <option value="ATTENDED">Atendida</option>
           <option value="MISSED">No asistió</option>
         </select>
+        @if (appointmentForm.get('status')?.invalid && (appointmentForm.get('status')?.dirty || appointmentForm.get('status')?.touched)) {
+          <div class="error-messages">
+            @if (appointmentForm.get('status')?.hasError('required')) { <small class="text-error">El estado es requerido.</small> }
+          </div>
+        }
       </div>
 
       <div class="form-group">
         <label for="notes">Notas / Motivo</label>
         <textarea id="notes" formControlName="notes" class="form-control" rows="3"></textarea>
+        @if (appointmentForm.get('notes')?.invalid && (appointmentForm.get('notes')?.dirty || appointmentForm.get('notes')?.touched)) {
+          <div class="error-messages">
+            @if (appointmentForm.get('notes')?.hasError('maxlength')) { <small class="text-error">Máximo 255 caracteres.</small> }
+          </div>
+        }
       </div>
 
       <div class="form-actions">

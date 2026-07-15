@@ -19,6 +19,41 @@
   margin-bottom: 20px;
 }
 
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 15px;
+  margin-bottom: 25px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-item strong {
+  font-size: 0.85em;
+  color: var(--text-muted, #666);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.info-item span {
+  font-size: 1rem;
+  color: var(--text-main, #333);
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: var(--accent-color, #5ea99f);
+  border-bottom: 1px solid var(--secondary-color, #eee);
+  padding-bottom: 5px;
+}
+
 .records-header {
   display: flex;
   justify-content: space-between;

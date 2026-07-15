@@ -22,4 +22,14 @@ public class AppointmentController {
     public ResponseEntity<AppointmentDto> create(@RequestBody AppointmentDto dto) {
         return ResponseEntity.ok(service.create(dto));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<AppointmentDto> update(@PathVariable Long id, @RequestBody AppointmentDto dto) {
+        return ResponseEntity.ok(service.update(id, dto));
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<AppointmentDto> updateStatus(@PathVariable Long id, @RequestBody java.util.Map<String, String> payload) {
+        return ResponseEntity.ok(service.updateStatus(id, payload.get("status")));
+    }
 }

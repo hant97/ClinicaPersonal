@@ -5,16 +5,25 @@ import { Patient } from '../../../core/models/patient.model';
 import { PatientFormComponent } from '../patient-form/patient-form.component';
 import { RouterLink } from '@angular/router';
 import { ToastService } from '../../../shared/services/toast/toast.service';
+import { LucideAngularModule, Search, Eye, Edit, Trash2, Plus } from 'lucide-angular';
 
 @Component({
   selector: 'app-patient-list',
   standalone: true,
-  imports: [CommonModule, PatientFormComponent, RouterLink],
+  imports: [CommonModule, PatientFormComponent, RouterLink, LucideAngularModule],
   templateUrl: './patient-list.component.html',
   styleUrls: ['./patient-list.component.css']
 })
 export class PatientListComponent implements OnInit {
+  readonly Search = Search;
+  readonly Eye = Eye;
+  readonly Edit = Edit;
+  readonly Trash2 = Trash2;
+  readonly Plus = Plus;
+
   patients: Patient[] = [];
+  filteredPatients: Patient[] = [];
+  searchTerm: string = '';
   showModal = false;
   selectedPatientId: number | null = null;
 
@@ -30,7 +39,30 @@ export class PatientListComponent implements OnInit {
   loadPatients(): void {
     this.patientService.getAll().subscribe(data => {
       this.patients = data;
+      this.filterPatients();
     });
+  }
+
+  onSearch(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.searchTerm = target.value.toLowerCase();
+    this.filterPatients();
+  }
+
+  filterPatients(): void {
+    if (!this.searchTerm) {
+      this.filteredPatients = [...this.patients];
+    } else {
+      this.filteredPatients = this.patients.filter(patient => {
+        const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
+        const doc = (patient.identificationDocument || '').toLowerCase();
+        return fullName.includes(this.searchTerm) || doc.includes(this.searchTerm);
+      });
+    }
+  }
+
+  getInitials(firstName: string, lastName: string): string {
+    return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
   }
 
   openModal(id?: number): void {

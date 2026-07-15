@@ -3,26 +3,54 @@
   <div class="form-group">
     <label for="sessionDate">Fecha y Hora</label>
     <input type="datetime-local" id="sessionDate" formControlName="sessionDate" class="form-control">
+    @if (recordForm.get('sessionDate')?.invalid && (recordForm.get('sessionDate')?.dirty || recordForm.get('sessionDate')?.touched)) {
+      <div class="error-messages">
+        @if (recordForm.get('sessionDate')?.hasError('required')) { <small class="text-error">La fecha es requerida.</small> }
+      </div>
+    }
   </div>
 
   <div class="form-group">
     <label for="reasonForConsultation">Motivo de Consulta *</label>
     <textarea id="reasonForConsultation" formControlName="reasonForConsultation" class="form-control" rows="3"></textarea>
+    @if (recordForm.get('reasonForConsultation')?.invalid && (recordForm.get('reasonForConsultation')?.dirty || recordForm.get('reasonForConsultation')?.touched)) {
+      <div class="error-messages">
+        @if (recordForm.get('reasonForConsultation')?.hasError('required')) { <small class="text-error">Este campo es requerido.</small> }
+        @if (recordForm.get('reasonForConsultation')?.hasError('minlength')) { <small class="text-error">Mínimo 10 caracteres.</small> }
+        @if (recordForm.get('reasonForConsultation')?.hasError('maxlength')) { <small class="text-error">Máximo 500 caracteres.</small> }
+      </div>
+    }
   </div>
 
   <div class="form-group">
     <label for="evolutionNotes">Notas de Evolución *</label>
     <textarea id="evolutionNotes" formControlName="evolutionNotes" class="form-control" rows="4"></textarea>
+    @if (recordForm.get('evolutionNotes')?.invalid && (recordForm.get('evolutionNotes')?.dirty || recordForm.get('evolutionNotes')?.touched)) {
+      <div class="error-messages">
+        @if (recordForm.get('evolutionNotes')?.hasError('required')) { <small class="text-error">Este campo es requerido.</small> }
+        @if (recordForm.get('evolutionNotes')?.hasError('minlength')) { <small class="text-error">Mínimo 10 caracteres.</small> }
+      </div>
+    }
   </div>
 
   <div class="form-group">
     <label for="presumptiveDiagnosis">Diagnóstico Presuntivo</label>
     <input type="text" id="presumptiveDiagnosis" formControlName="presumptiveDiagnosis" class="form-control">
+    @if (recordForm.get('presumptiveDiagnosis')?.invalid && (recordForm.get('presumptiveDiagnosis')?.dirty || recordForm.get('presumptiveDiagnosis')?.touched)) {
+      <div class="error-messages">
+        @if (recordForm.get('presumptiveDiagnosis')?.hasError('maxlength')) { <small class="text-error">Máximo 200 caracteres.</small> }
+      </div>
+    }
   </div>
 
   <div class="form-group">
     <label for="agreementsAndTasks">Acuerdos y Tareas</label>
     <textarea id="agreementsAndTasks" formControlName="agreementsAndTasks" class="form-control" rows="3"></textarea>
+    @if (recordForm.get('agreementsAndTasks')?.invalid && (recordForm.get('agreementsAndTasks')?.dirty || recordForm.get('agreementsAndTasks')?.touched)) {
+      <div class="error-messages">
+        @if (recordForm.get('agreementsAndTasks')?.hasError('maxlength')) { <small class="text-error">Máximo 500 caracteres.</small> }
+      </div>
+    }
   </div>
 
   <div class="form-actions">

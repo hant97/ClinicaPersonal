@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 public class AppointmentService {
@@ -22,6 +23,7 @@ public class AppointmentService {
                 .map(this::mapToDto).collect(Collectors.toList());
     }
     public AppointmentDto create(AppointmentDto dto) {
+        validateAppointmentTime(dto.getAppointmentDate(), null);
         Patient patient = patientRepository.findById(dto.getPatientId()).orElseThrow();
         Appointment appointment = new Appointment();
         appointment.setPatient(patient);
@@ -38,5 +40,34 @@ public class AppointmentService {
         dto.setStatus(appointment.getStatus());
         dto.setNotes(appointment.getNotes());
         return dto;
+    }
+
+    public AppointmentDto update(Long id, AppointmentDto dto) {
+        validateAppointmentTime(dto.getAppointmentDate(), id);
+        Appointment appointment = appointmentRepository.findById(id).orElseThrow();
+        appointment.setAppointmentDate(dto.getAppointmentDate());
+        appointment.setNotes(dto.getNotes());
+        // Do not update patient or status here, those have their own flow
+        return mapToDto(appointmentRepository.save(appointment));
+    }
+
+    public AppointmentDto updateStatus(Long id, String status) {
+        Appointment appointment = appointmentRepository.findById(id).orElseThrow();
+        appointment.setStatus(status);
+        return mapToDto(appointmentRepository.save(appointment));
+    }
+
+    private void validateAppointmentTime(LocalDateTime newTime, Long excludeId) {
+        if (newTime == null) return;
+        LocalDateTime start = newTime.minusMinutes(29);
+        LocalDateTime end = newTime.plusMinutes(29);
+        List<Appointment> overlapping = appointmentRepository.findByAppointmentDateBetweenAndStatusNot(start, end, "CANCELLED");
+        
+        boolean hasConflict = overlapping.stream()
+                .anyMatch(app -> excludeId == null || !app.getId().equals(excludeId));
+                
+        if (hasConflict) {
+            throw new IllegalArgumentException("Ya existe una cita programada en este horario o con menos de 30 minutos de diferencia.");
+        }
     }
 }

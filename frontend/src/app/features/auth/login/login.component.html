@@ -12,9 +12,11 @@
       <h2>Iniciar Sesión</h2>
       <p class="subtitle">Bienvenida Dra. Ingrese sus credenciales para acceder al sistema.</p>
 
-      <div *ngIf="errorMessage" class="error-message">
-        {{ errorMessage }}
-      </div>
+      @if (errorMessage) {
+        <div class="error-message">
+          {{ errorMessage }}
+        </div>
+      }
 
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <div class="form-group">
@@ -27,6 +29,12 @@
             placeholder="Ej: doctora.ana"
             autocomplete="username"
           >
+          @if (loginForm.get('username')?.invalid && (loginForm.get('username')?.dirty || loginForm.get('username')?.touched)) {
+            <div class="error-messages">
+              @if (loginForm.get('username')?.hasError('required')) { <small class="text-error">El usuario es requerido.</small> }
+              @if (loginForm.get('username')?.hasError('minlength')) { <small class="text-error">Mínimo 4 caracteres.</small> }
+            </div>
+          }
         </div>
 
         <div class="form-group">
@@ -39,11 +47,20 @@
             placeholder="••••••••"
             autocomplete="current-password"
           >
+          @if (loginForm.get('password')?.invalid && (loginForm.get('password')?.dirty || loginForm.get('password')?.touched)) {
+            <div class="error-messages">
+              @if (loginForm.get('password')?.hasError('required')) { <small class="text-error">La contraseña es requerida.</small> }
+              @if (loginForm.get('password')?.hasError('minlength')) { <small class="text-error">Mínimo 6 caracteres.</small> }
+            </div>
+          }
         </div>
 
         <button type="submit" class="btn-primary login-btn" [disabled]="loginForm.invalid || isLoading">
-          <span *ngIf="!isLoading">Ingresar</span>
-          <span *ngIf="isLoading">Verificando...</span>
+          @if (!isLoading) {
+            <span>Ingresar</span>
+          } @else {
+            <span>Verificando...</span>
+          }
         </button>
       </form>
     </div>

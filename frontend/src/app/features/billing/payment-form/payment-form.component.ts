@@ -29,10 +29,10 @@ export class PaymentFormComponent implements OnInit {
   ngOnInit(): void {
     this.paymentForm = this.fb.group({
       patientId: ['', Validators.required],
-      amount: ['', [Validators.required, Validators.min(0.01)]],
+      amount: ['', [Validators.required, Validators.min(0.01), Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
       paymentDate: [new Date().toISOString().substring(0, 16), Validators.required],
       paymentMethod: ['CASH', Validators.required],
-      description: ['']
+      description: ['', [Validators.maxLength(255)]]
     });
 
     this.patientService.getAll().subscribe({
