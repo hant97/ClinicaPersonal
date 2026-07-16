@@ -25,8 +25,8 @@ export class AssessmentFormComponent implements OnInit {
   constructor(private assessmentService: AssessmentService) {}
 
   ngOnInit() {
-    this.assessmentService.getAvailableTests().subscribe(data => {
-      this.tests = data;
+    this.assessmentService.getAvailableTests(0, 100).subscribe(page => {
+      this.tests = page.content;
     });
   }
 

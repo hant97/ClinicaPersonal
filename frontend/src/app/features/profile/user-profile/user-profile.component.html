@@ -1,0 +1,126 @@
+<div class="profile-container">
+  <div class="profile-header">
+    <div class="header-content">
+      <div class="avatar-large">
+        <lucide-icon [img]="UserIcon" [size]="40"></lucide-icon>
+      </div>
+      <div class="header-info">
+        <h2>Mi Perfil</h2>
+        <p>Administra tu información personal y de seguridad</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-content">
+    <div class="tabs-navigation">
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'personal'" 
+        (click)="switchTab('personal')">
+        <lucide-icon [img]="UserIcon" [size]="18"></lucide-icon>
+        Datos Personales
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'password'" 
+        (click)="switchTab('password')">
+        <lucide-icon [img]="KeyIcon" [size]="18"></lucide-icon>
+        Cambio de Contraseña
+      </button>
+    </div>
+
+    <div class="tab-content card" *ngIf="activeTab === 'personal'">
+      <h3 class="tab-title">Información Personal</h3>
+      
+      <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="form-grid">
+        <div class="form-group">
+          <label>Nombres</label>
+          <input type="text" formControlName="firstName" class="form-control" placeholder="Tus nombres">
+          <small class="error-text" *ngIf="profileForm.get('firstName')?.invalid && profileForm.get('firstName')?.touched">
+            El nombre es requerido
+          </small>
+        </div>
+        
+        <div class="form-group">
+          <label>Apellidos</label>
+          <input type="text" formControlName="lastName" class="form-control" placeholder="Tus apellidos">
+          <small class="error-text" *ngIf="profileForm.get('lastName')?.invalid && profileForm.get('lastName')?.touched">
+            El apellido es requerido
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label>Correo Electrónico</label>
+          <div class="input-with-icon">
+            <lucide-icon [img]="MailIcon" [size]="18" class="input-icon"></lucide-icon>
+            <input type="email" formControlName="email" class="form-control pl-10" placeholder="tu@correo.com">
+          </div>
+          <small class="error-text" *ngIf="profileForm.get('email')?.invalid && profileForm.get('email')?.touched">
+            Ingresa un correo válido
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label>Teléfono</label>
+          <div class="input-with-icon">
+            <lucide-icon [img]="PhoneIcon" [size]="18" class="input-icon"></lucide-icon>
+            <input type="text" formControlName="phone" class="form-control pl-10" placeholder="Ej: 999 999 999">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" [disabled]="profileForm.invalid || isLoading">
+            <lucide-icon [img]="SaveIcon" [size]="18"></lucide-icon>
+            Guardar Cambios
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="tab-content card" *ngIf="activeTab === 'password'">
+      <h3 class="tab-title">Seguridad</h3>
+      
+      <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="form-grid single-column">
+        <div class="form-group">
+          <label>Contraseña Actual</label>
+          <div class="input-with-icon">
+            <lucide-icon [img]="ShieldIcon" [size]="18" class="input-icon"></lucide-icon>
+            <input type="password" formControlName="currentPassword" class="form-control pl-10" placeholder="Ingresa tu contraseña actual">
+          </div>
+          <small class="error-text" *ngIf="passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched">
+            Requerido
+          </small>
+        </div>
+        
+        <div class="form-group">
+          <label>Nueva Contraseña</label>
+          <div class="input-with-icon">
+            <lucide-icon [img]="KeyIcon" [size]="18" class="input-icon"></lucide-icon>
+            <input type="password" formControlName="newPassword" class="form-control pl-10" placeholder="Mínimo 6 caracteres">
+          </div>
+          <small class="error-text" *ngIf="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched">
+            Requerido (mínimo 6 caracteres)
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label>Confirmar Nueva Contraseña</label>
+          <div class="input-with-icon">
+            <lucide-icon [img]="KeyIcon" [size]="18" class="input-icon"></lucide-icon>
+            <input type="password" formControlName="confirmPassword" class="form-control pl-10" placeholder="Repite la nueva contraseña">
+          </div>
+          <small class="error-text" *ngIf="passwordForm.errors?.['mismatch'] && passwordForm.get('confirmPassword')?.touched">
+            Las contraseñas no coinciden
+          </small>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" [disabled]="passwordForm.invalid || isLoading">
+            <lucide-icon [img]="SaveIcon" [size]="18"></lucide-icon>
+            Actualizar Contraseña
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

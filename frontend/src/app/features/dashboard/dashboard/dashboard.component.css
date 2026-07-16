@@ -2,28 +2,38 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  padding: 1rem;
 }
 
+/* Grid Layouts */
 .dashboard-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.5rem;
+}
+
+.kpi-row {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.action-row, .insight-row {
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
 }
 
 /* Base Card Styling */
 .card {
-  background: white;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
   border-radius: 16px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   overflow: hidden;
   position: relative;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(0,0,0,0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 .hover-lift:hover {
   transform: translateY(-5px);
-  box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 12px 24px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -5px rgba(0, 0, 0, 0.06);
 }
 
 .stat-card {
@@ -47,7 +57,7 @@
 .stat-info h3 {
   font-size: 0.95rem;
   color: var(--text-muted, #6b7280);
-  font-weight: 500;
+  font-weight: 600;
   margin-bottom: 0.5rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -58,6 +68,10 @@
   font-weight: 700;
   color: var(--text-main, #111827);
   line-height: 1.2;
+}
+
+.small-number {
+  font-size: 1.75rem;
 }
 
 .stat-subtext {
@@ -75,7 +89,7 @@
   align-items: center;
   justify-content: center;
   color: white;
-  background: rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.25);
   backdrop-filter: blur(4px);
 }
 
@@ -85,35 +99,23 @@
 }
 
 .outline-icon {
-  background: rgba(0,0,0,0.04);
+  background: rgba(0,0,0,0.05);
 }
 
 .outline-icon .text-muted {
   color: var(--text-muted, #6b7280);
 }
 
-/* Gradients for Main Stats */
-.gradient-1 {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-}
-.gradient-2 {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-}
-.gradient-3 {
-  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
-}
+/* Minimalist styles for Main Stats */
+.gradient-1 { border-left: 4px solid #10b981; }
+.gradient-2 { border-left: 4px solid #3b82f6; }
+.gradient-3 { border-left: 4px solid #8b5cf6; }
+.gradient-4 { border-left: 4px solid #f59e0b; }
 
-.gradient-1 .stat-info h3, .gradient-1 .stat-number,
-.gradient-2 .stat-info h3, .gradient-2 .stat-number,
-.gradient-3 .stat-info h3, .gradient-3 .stat-number {
-  color: white;
-}
-
-.gradient-1 .stat-info h3,
-.gradient-2 .stat-info h3,
-.gradient-3 .stat-info h3 {
-  color: rgba(255,255,255,0.8);
-}
+.gradient-1 .stat-icon-wrapper { background: rgba(16, 185, 129, 0.15); color: #059669; }
+.gradient-2 .stat-icon-wrapper { background: rgba(59, 130, 246, 0.15); color: #2563eb; }
+.gradient-3 .stat-icon-wrapper { background: rgba(139, 92, 246, 0.15); color: #6d28d9; }
+.gradient-4 .stat-icon-wrapper { background: rgba(245, 158, 11, 0.15); color: #d97706; }
 
 /* Status colors */
 .positive { color: #10b981; }
@@ -121,15 +123,11 @@
 .positive-icon { color: #10b981; }
 .negative-icon { color: #ef4444; }
 
-/* Advanced Stats Row */
-.advanced-stats {
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  margin-top: -0.5rem;
-}
-
-/* Notifications Card */
+/* Notifications & Alert Cards */
 .notifications-card {
-  padding: 2rem;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
 }
 
 .card-header-icon {
@@ -137,6 +135,8 @@
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  padding-bottom: 1rem;
 }
 
 .header-icon {
@@ -144,9 +144,11 @@
   height: 24px;
   color: var(--accent-color, #4aa38c);
 }
+.error-icon { color: #ef4444; }
+.warning-icon { color: #f59e0b; }
 
 .card-header-icon h3 {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   color: var(--text-main, #111827);
   font-weight: 600;
   margin: 0;
@@ -156,51 +158,43 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow-y: auto;
+  max-height: 350px;
 }
 
+/* Common List Items */
 .notification-list li {
   display: flex;
   align-items: center;
   gap: 1.25rem;
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: 10px;
   background: #f9fafb;
-  margin-bottom: 0.75rem;
   transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
 
 .notification-list li:hover {
-  background: #f3f4f6;
+  background: white;
+  border-color: rgba(0,0,0,0.05);
   transform: translateX(4px);
-}
-
-.notification-list li:last-child {
-  margin-bottom: 0;
-}
-
-.appointment-time {
-  flex-shrink: 0;
-}
-
-.time-badge {
-  display: inline-block;
-  padding: 0.4rem 0.75rem;
-  background: var(--accent-color, #4aa38c);
-  color: white;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.85rem;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
 }
 
 .appointment-details {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  flex: 1;
 }
 
 .patient-name {
   font-weight: 600;
   color: var(--text-main, #111827);
+  font-size: 0.95rem;
 }
 
 .appointment-status {
@@ -209,7 +203,79 @@
   font-weight: 500;
 }
 
-/* Empty State */
+/* Badges */
+.time-badge {
+  display: inline-block;
+  padding: 0.4rem 0.75rem;
+  background: var(--accent-color, #4aa38c);
+  color: white;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+.alert-badge { background: #ef4444; text-transform: uppercase; letter-spacing: 0.5px;}
+.warning-badge { background: #f59e0b; }
+
+/* Alert specific styles */
+.alert-card {
+  border-top: 4px solid #ef4444;
+}
+.alert-item {
+  position: relative;
+  overflow: hidden;
+}
+.alert-item.level-alta, .alert-item.level-high { border-left: 4px solid #ef4444; }
+.alert-item.level-media, .alert-item.level-medium { border-left: 4px solid #f59e0b; }
+.alert-item.level-baja, .alert-item.level-low { border-left: 4px solid #3b82f6; }
+
+/* Timeline List (Appointments) */
+.timeline-list {
+  padding-left: 0.5rem;
+}
+.timeline-item {
+  position: relative;
+  background: transparent !important;
+  border: none !important;
+  padding: 0.5rem 0 !important;
+  gap: 1.5rem !important;
+}
+.timeline-item:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 60px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #e5e7eb;
+  z-index: 1;
+}
+.timeline-item:last-child::before { display: none; }
+
+.timeline-time {
+  width: 50px;
+  text-align: right;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+.timeline-content {
+  background: #f9fafb;
+  padding: 1rem;
+  border-radius: 10px;
+  flex: 1;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  border-left: 4px solid var(--accent-color, #4aa38c);
+}
+
+/* Empty States */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -218,14 +284,56 @@
   padding: 3rem 1rem;
   color: var(--text-muted, #6b7280);
   text-align: center;
-  background: #f9fafb;
-  border-radius: 8px;
-  border: 1px dashed #e5e7eb;
+  background: rgba(249, 250, 251, 0.5);
+  border-radius: 10px;
+  border: 1px dashed #d1d5db;
+}
+
+.success-state {
+  border-color: #10b981;
+  color: #059669;
+  background: rgba(16, 185, 129, 0.05);
 }
 
 .empty-icon {
   width: 48px;
   height: 48px;
   margin-bottom: 1rem;
-  opacity: 0.5;
+  opacity: 0.6;
+}
+
+/* Growth Card */
+.growth-card {
+  padding: 1.75rem;
+}
+.growth-stats-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.growth-stat {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background: #f9fafb;
+  padding: 1.25rem;
+  border-radius: 12px;
+}
+.growth-stat h3 { color: var(--text-muted, #6b7280); font-size: 0.9rem; margin:0 0 0.25rem 0;}
+
+@media (max-width: 1024px) {
+  .action-row, .insight-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .kpi-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 480px) {
+  .kpi-row {
+    grid-template-columns: 1fr;
+  }
 }

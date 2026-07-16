@@ -1,7 +1,7 @@
 <div class="card">
   <div class="header-actions">
     <h2>Inventario y Suministros</h2>
-    <div style="display: flex; gap: 1rem; align-items: center;">
+    <div class="header-controls">
       <button class="btn-primary" (click)="openModal()">
         <lucide-icon [img]="Plus" [size]="18"></lucide-icon>
         Nuevo Insumo
@@ -67,6 +67,12 @@
         }
       </tbody>
     </table>
+    
+    <app-pagination 
+      [currentPage]="currentPage" 
+      [totalPages]="totalPages" 
+      (pageChange)="onPageChange($event)">
+    </app-pagination>
   </div>
 </div>
 

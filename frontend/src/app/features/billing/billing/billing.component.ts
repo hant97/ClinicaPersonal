@@ -4,6 +4,7 @@ import { PaymentService } from '../../../core/services/payment.service';
 import { Payment } from '../../../core/models/payment.model';
 import { PaymentFormComponent } from '../payment-form/payment-form.component';
 import { PatientService } from '../../../core/services/patient/patient.service';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { LucideAngularModule, Plus, Edit, Trash2, Download } from 'lucide-angular';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ExportService } from '../../../shared/services/export/export.service';
@@ -12,7 +13,7 @@ import { ToastService } from '../../../shared/services/toast/toast.service';
 @Component({
   selector: 'app-billing',
   standalone: true,
-  imports: [CommonModule, PaymentFormComponent, LucideAngularModule],
+  imports: [CommonModule, PaymentFormComponent, LucideAngularModule, PaginationComponent],
   templateUrl: './billing.component.html',
   styleUrl: './billing.component.css'
 })
@@ -26,6 +27,11 @@ export class BillingComponent implements OnInit {
   showForm = false;
   selectedPayment: Payment | null = null;
   patientMap = new Map<number, string>();
+  
+  currentPage: number = 0;
+  pageSize: number = 10;
+  totalPages: number = 0;
+  totalElements: number = 0;
 
   constructor(
     private paymentService: PaymentService,
@@ -37,9 +43,9 @@ export class BillingComponent implements OnInit {
 
   ngOnInit(): void {
     // Preload patients to map IDs to names
-    this.patientService.getAll().subscribe({
-      next: (patients) => {
-        patients.forEach(p => this.patientMap.set(p.id!, `${p.firstName} ${p.lastName}`));
+    this.patientService.getAll(0, 1000).subscribe({
+      next: (patientsPage) => {
+        patientsPage.content.forEach(p => this.patientMap.set(p.id!, `${p.firstName} ${p.lastName}`));
         this.loadPayments();
       },
       error: (err) => console.error('Error fetching patients', err)
@@ -47,15 +53,22 @@ export class BillingComponent implements OnInit {
   }
 
   loadPayments(): void {
-    this.paymentService.getAll().subscribe({
-      next: (data) => {
-        this.payments = data.map(pay => ({
+    this.paymentService.getAll(this.currentPage, this.pageSize).subscribe({
+      next: (page) => {
+        this.totalPages = page.page.totalPages;
+        this.totalElements = page.page.totalElements;
+        this.payments = page.content.map(pay => ({
           ...pay,
           patientName: this.patientMap.get(pay.patientId) || 'Paciente Desconocido'
         }));
       },
       error: (err) => console.error('Error fetching payments', err)
     });
+  }
+  
+  onPageChange(page: number): void {
+    this.currentPage = page;
+    this.loadPayments();
   }
 
   openForm(payment?: Payment): void {

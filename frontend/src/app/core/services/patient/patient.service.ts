@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Patient } from '../../models/patient.model';
+import { PageResponse } from '../../models/page.model';
 import { environment } from '../../../../environments/environment';
 
 @Injectable({
@@ -12,12 +13,17 @@ export class PatientService {
 
   constructor(private http: HttpClient) { }
 
-  getAll(): Observable<Patient[]> {
-    return this.http.get<Patient[]>(this.apiUrl);
+  getAll(page: number = 0, size: number = 10): Observable<PageResponse<Patient>> {
+    let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+    return this.http.get<PageResponse<Patient>>(this.apiUrl, { params });
   }
 
-  search(query: string): Observable<Patient[]> {
-    return this.http.get<Patient[]>(`${this.apiUrl}/search`, { params: { query } });
+  search(query: string, page: number = 0, size: number = 10): Observable<PageResponse<Patient>> {
+    let params = new HttpParams()
+      .set('query', query)
+      .set('page', page.toString())
+      .set('size', size.toString());
+    return this.http.get<PageResponse<Patient>>(`${this.apiUrl}/search`, { params });
   }
 
   getById(id: number): Observable<Patient> {

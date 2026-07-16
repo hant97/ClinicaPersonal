@@ -5,6 +5,12 @@
   margin-bottom: 20px;
 }
 
+.header-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
 .amount-cell {
   font-weight: bold;
   color: #2a9d8f;
@@ -35,4 +41,24 @@
 
 .btn-text:hover {
   text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .header-controls {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+  
+  .header-controls button,
+  .header-controls a {
+    width: 100%;
+    justify-content: center;
+  }
 }

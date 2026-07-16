@@ -1,5 +1,6 @@
 <div class="dashboard-wrapper" *ngIf="stats$ | async as stats">
-  <div class="dashboard-cards">
+  <!-- Level 1: Core KPIs -->
+  <div class="dashboard-cards kpi-row">
     <div class="card stat-card hover-lift gradient-1">
       <div class="stat-content-wrapper">
         <div class="stat-info">
@@ -35,75 +36,132 @@
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="dashboard-cards advanced-stats">
-    <div class="card stat-card stat-card-small hover-lift">
+    <div class="card stat-card hover-lift gradient-4">
       <div class="stat-content-wrapper">
         <div class="stat-info">
           <h3>Asistencia (Mes)</h3>
           <p class="stat-number">{{ stats.attendanceRate }}%</p>
-          <span class="stat-subtext">{{ stats.cancelledAppointments }} canceladas/ausencias</span>
         </div>
-        <div class="stat-icon-wrapper outline-icon">
-          <lucide-icon [img]="Activity" class="stat-icon text-muted"></lucide-icon>
-        </div>
-      </div>
-    </div>
-    
-    <div class="card stat-card stat-card-small hover-lift">
-      <div class="stat-content-wrapper">
-        <div class="stat-info">
-          <h3>Nuevos Pacientes</h3>
-          <p class="stat-number">{{ stats.newPatientsThisMonth }}</p>
-          <span class="stat-subtext">registrados este mes</span>
-        </div>
-        <div class="stat-icon-wrapper outline-icon">
-          <lucide-icon [img]="UserPlus" class="stat-icon text-muted"></lucide-icon>
-        </div>
-      </div>
-    </div>
-    
-    <div class="card stat-card stat-card-small hover-lift">
-      <div class="stat-content-wrapper">
-        <div class="stat-info">
-          <h3>Crecimiento Ingresos</h3>
-          <p class="stat-number" [class.positive]="stats.monthlyIncomeGrowth > 0" [class.negative]="stats.monthlyIncomeGrowth < 0">
-            {{ stats.monthlyIncomeGrowth > 0 ? '+' : '' }}{{ stats.monthlyIncomeGrowth }}%
-          </p>
-          <span class="stat-subtext">vs mes anterior</span>
-        </div>
-        <div class="stat-icon-wrapper outline-icon">
-          <lucide-icon [img]="stats.monthlyIncomeGrowth >= 0 ? TrendingUp : TrendingDown" 
-                       class="stat-icon"
-                       [class.positive-icon]="stats.monthlyIncomeGrowth >= 0"
-                       [class.negative-icon]="stats.monthlyIncomeGrowth < 0"></lucide-icon>
+        <div class="stat-icon-wrapper">
+          <lucide-icon [img]="Activity" class="stat-icon"></lucide-icon>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="card notifications-card hover-lift">
-    <div class="card-header-icon">
-      <lucide-icon [img]="Clock" class="header-icon"></lucide-icon>
-      <h3>Próximas Citas</h3>
-    </div>
-    <ul class="notification-list" *ngIf="stats.upcomingAppointments.length > 0; else noAppointments">
-      <li *ngFor="let app of stats.upcomingAppointments">
-        <div class="appointment-time">
-          <span class="time-badge">{{ (app.appointmentDate + 'T' + (app.startTime || '00:00:00')) | date:'shortTime' }}</span>
-        </div>
-        <div class="appointment-details">
-          <span class="patient-name">{{ app.patientName || 'Paciente ID: ' + app.patientId }}</span>
-          <span class="appointment-status" [ngClass]="app.status.toLowerCase().replace(' ', '-')">{{ app.status }}</span>
-        </div>
-      </li>
-    </ul>
-    <ng-template #noAppointments>
-      <div class="empty-state">
-        <lucide-icon [img]="Calendar" class="empty-icon"></lucide-icon>
-        <p>No hay citas próximas programadas.</p>
+  <!-- Level 2: Immediate Actions -->
+  <div class="dashboard-cards action-row">
+    <!-- Active Clinical Risk Alerts -->
+    <div class="card notifications-card hover-lift alert-card">
+      <div class="card-header-icon">
+        <lucide-icon [img]="AlertTriangle" class="header-icon error-icon"></lucide-icon>
+        <h3>Alertas Clínicas de Riesgo</h3>
       </div>
-    </ng-template>
+      <ul class="notification-list" *ngIf="stats.activeRiskAlerts && stats.activeRiskAlerts.length > 0; else noAlerts">
+        <li *ngFor="let alert of stats.activeRiskAlerts" class="alert-item" [ngClass]="'level-' + alert.level.toLowerCase()">
+          <div class="alert-indicator"></div>
+          <div class="appointment-details">
+            <span class="patient-name">Paciente ID: {{ alert.patientId }}</span>
+            <span class="appointment-status">{{ alert.type }} - {{ alert.description }}</span>
+          </div>
+          <div class="appointment-time">
+            <span class="time-badge alert-badge">{{ alert.level }}</span>
+          </div>
+        </li>
+      </ul>
+      <ng-template #noAlerts>
+        <div class="empty-state success-state">
+          <lucide-icon [img]="Activity" class="empty-icon"></lucide-icon>
+          <p>No hay alertas clínicas activas. ¡Buen trabajo!</p>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- Upcoming Appointments -->
+    <div class="card notifications-card hover-lift">
+      <div class="card-header-icon">
+        <lucide-icon [img]="Clock" class="header-icon"></lucide-icon>
+        <h3>Próximas Citas</h3>
+      </div>
+      <ul class="notification-list timeline-list" *ngIf="stats.upcomingAppointments.length > 0; else noAppointments">
+        <li *ngFor="let app of stats.upcomingAppointments" class="timeline-item">
+          <div class="timeline-time">
+            <span class="time-text">{{ (app.appointmentDate + 'T' + (app.startTime || '00:00:00')) | date:'shortTime' }}</span>
+          </div>
+          <div class="timeline-content">
+            <span class="patient-name">{{ app.patientName || 'Paciente ID: ' + app.patientId }}</span>
+            <span class="appointment-status" [ngClass]="app.status.toLowerCase().replace(' ', '-')">{{ app.status }}</span>
+          </div>
+        </li>
+      </ul>
+      <ng-template #noAppointments>
+        <div class="empty-state">
+          <lucide-icon [img]="Calendar" class="empty-icon"></lucide-icon>
+          <p>No hay citas próximas programadas.</p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+
+  <!-- Level 3: Operations & Insights -->
+  <div class="dashboard-cards insight-row">
+    <!-- Low Stock Inventory -->
+    <div class="card notifications-card hover-lift">
+      <div class="card-header-icon">
+        <lucide-icon [img]="Package" class="header-icon warning-icon"></lucide-icon>
+        <h3>Inventario Bajo</h3>
+      </div>
+      <ul class="notification-list" *ngIf="stats.lowStockSupplies && stats.lowStockSupplies.length > 0; else noLowStock">
+        <li *ngFor="let item of stats.lowStockSupplies" class="stock-item">
+          <div class="appointment-details">
+            <span class="patient-name">{{ item.name }}</span>
+            <span class="appointment-status">Min: {{ item.minStockLevel }} {{ item.unit }}</span>
+          </div>
+          <div class="appointment-time">
+            <span class="time-badge warning-badge">{{ item.currentStock }} {{ item.unit }}</span>
+          </div>
+        </li>
+      </ul>
+      <ng-template #noLowStock>
+        <div class="empty-state success-state">
+          <lucide-icon [img]="Package" class="empty-icon"></lucide-icon>
+          <p>El inventario está en niveles óptimos.</p>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- Growth Trends -->
+    <div class="card growth-card hover-lift">
+      <div class="card-header-icon">
+        <lucide-icon [img]="TrendingUp" class="header-icon"></lucide-icon>
+        <h3>Crecimiento y Tendencias</h3>
+      </div>
+      <div class="growth-stats-container">
+        <div class="growth-stat">
+          <div class="stat-icon-wrapper outline-icon">
+            <lucide-icon [img]="UserPlus" class="stat-icon text-muted"></lucide-icon>
+          </div>
+          <div class="stat-info">
+            <span class="stat-subtext">Nuevos Pacientes (Mes)</span>
+            <p class="stat-number small-number">{{ stats.newPatientsThisMonth }}</p>
+          </div>
+        </div>
+        <div class="growth-stat">
+          <div class="stat-icon-wrapper outline-icon">
+            <lucide-icon [img]="stats.monthlyIncomeGrowth >= 0 ? TrendingUp : TrendingDown" 
+                         class="stat-icon"
+                         [class.positive-icon]="stats.monthlyIncomeGrowth >= 0"
+                         [class.negative-icon]="stats.monthlyIncomeGrowth < 0"></lucide-icon>
+          </div>
+          <div class="stat-info">
+            <span class="stat-subtext">Crecimiento de Ingresos</span>
+            <p class="stat-number small-number" [class.positive]="stats.monthlyIncomeGrowth > 0" [class.negative]="stats.monthlyIncomeGrowth < 0">
+              {{ stats.monthlyIncomeGrowth > 0 ? '+' : '' }}{{ stats.monthlyIncomeGrowth }}%
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

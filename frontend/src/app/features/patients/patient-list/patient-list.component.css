@@ -5,6 +5,12 @@
   margin-bottom: 2rem;
 }
 
+.header-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
 .header-actions h2 {
   font-size: 1.5rem;
   color: var(--text-main);
@@ -82,4 +88,29 @@
 
 .btn-text:hover {
   text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .header-controls {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+  
+  .header-controls .btn-primary,
+  .header-controls .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .minimal-table th,
+  .minimal-table td {
+    white-space: nowrap;
+  }
 }

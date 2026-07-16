@@ -8,18 +8,22 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final PatientRepository patientRepository;
+    
     public List<PaymentDto> getByPatientId(Long patientId) {
         return paymentRepository.findByPatientIdAndDeletedFalseOrderByPaymentDateDesc(patientId).stream()
                 .map(this::mapToDto).collect(Collectors.toList());
     }
-    public List<PaymentDto> getAll() {
-        return paymentRepository.findAllByDeletedFalseOrderByPaymentDateDesc().stream()
-                .map(this::mapToDto).collect(Collectors.toList());
+    
+    public Page<PaymentDto> getAll(Pageable pageable) {
+        return paymentRepository.findAllByDeletedFalseOrderByPaymentDateDesc(pageable).map(this::mapToDto);
     }
     public PaymentDto create(PaymentDto dto) {
         Patient patient = patientRepository.findById(dto.getPatientId()).orElseThrow();

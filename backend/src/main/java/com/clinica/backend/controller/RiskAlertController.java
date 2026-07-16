@@ -10,7 +10,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/patients/{patientId}/alerts")
-@CrossOrigin(origins = "http://localhost:4200")
 public class RiskAlertController {
 
     @Autowired

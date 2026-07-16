@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AssessmentService } from '../../../core/services/assessment.service';
 import { PsychometricTest } from '../../../core/models/assessment.model';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 
 import { LucideAngularModule, Edit, Trash2 } from 'lucide-angular';
 
 @Component({
   selector: 'app-tests-catalog-list',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, PaginationComponent],
   templateUrl: './tests-catalog-list.component.html',
   styleUrl: './tests-catalog-list.component.css'
 })
@@ -18,6 +19,11 @@ export class TestsCatalogListComponent implements OnInit {
   readonly Trash2 = Trash2;
 
   tests: PsychometricTest[] = [];
+  
+  currentPage: number = 0;
+  pageSize: number = 10;
+  totalPages: number = 0;
+  totalElements: number = 0;
 
   constructor(
     private assessmentService: AssessmentService,
@@ -29,9 +35,16 @@ export class TestsCatalogListComponent implements OnInit {
   }
 
   loadTests() {
-    this.assessmentService.getAvailableTests().subscribe(data => {
-      this.tests = data;
+    this.assessmentService.getAvailableTests(this.currentPage, this.pageSize).subscribe(page => {
+      this.totalPages = page.page.totalPages;
+      this.totalElements = page.page.totalElements;
+      this.tests = page.content;
     });
+  }
+  
+  onPageChange(page: number): void {
+    this.currentPage = page;
+    this.loadTests();
   }
 
   createNewTest() {

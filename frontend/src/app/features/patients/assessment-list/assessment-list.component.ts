@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AssessmentService } from '../../../core/services/assessment.service';
 import { Assessment } from '../../../core/models/assessment.model';
 import { AssessmentFormComponent } from '../assessment-form/assessment-form.component';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 
 Chart.register(...registerables);
@@ -10,7 +11,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-assessment-list',
   standalone: true,
-  imports: [CommonModule, AssessmentFormComponent],
+  imports: [CommonModule, AssessmentFormComponent, PaginationComponent],
   templateUrl: './assessment-list.component.html',
   styleUrl: './assessment-list.component.css'
 })
@@ -21,6 +22,11 @@ export class AssessmentListComponent implements OnInit, OnDestroy {
   assessments: Assessment[] = [];
   showForm: boolean = false;
   chart: Chart | null = null;
+  
+  currentPage: number = 0;
+  pageSize: number = 10;
+  totalPages: number = 0;
+  totalElements: number = 0;
 
   constructor(private assessmentService: AssessmentService) {}
 
@@ -35,15 +41,22 @@ export class AssessmentListComponent implements OnInit, OnDestroy {
   }
 
   loadAssessments() {
-    this.assessmentService.getAssessmentsByPatient(this.patientId).subscribe(data => {
+    this.assessmentService.getAssessmentsByPatient(this.patientId, this.currentPage, this.pageSize).subscribe(page => {
+      this.totalPages = page.page.totalPages;
+      this.totalElements = page.page.totalElements;
       // Sort assessments by date ascending for the chart
-      this.assessments = data.sort((a, b) => {
+      this.assessments = page.content.sort((a, b) => {
         const dateA = a.assessmentDate ? new Date(a.assessmentDate).getTime() : 0;
         const dateB = b.assessmentDate ? new Date(b.assessmentDate).getTime() : 0;
         return dateA - dateB;
       });
       this.renderChart();
     });
+  }
+  
+  onPageChange(page: number): void {
+    this.currentPage = page;
+    this.loadAssessments();
   }
 
   renderChart() {

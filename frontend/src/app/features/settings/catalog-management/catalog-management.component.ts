@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { Catalog, CatalogItem } from '../../../core/models/catalog.model';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-catalog-management',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginationComponent],
   templateUrl: './catalog-management.component.html',
   styleUrls: ['./catalog-management.component.css']
 })
@@ -19,6 +20,11 @@ export class CatalogManagementComponent implements OnInit {
   
   newItemName: string = '';
   newItemCode: string = '';
+  
+  currentPage: number = 0;
+  pageSize: number = 10;
+  totalPages: number = 0;
+  totalElements: number = 0;
 
   constructor(
     private catalogService: CatalogService,
@@ -30,14 +36,21 @@ export class CatalogManagementComponent implements OnInit {
   }
 
   loadCatalogs(): void {
-    this.catalogService.getAllCatalogs().subscribe({
-      next: (data) => {
-        this.catalogs = data;
+    this.catalogService.getAllCatalogs(this.currentPage, this.pageSize).subscribe({
+      next: (page) => {
+        this.totalPages = page.page.totalPages;
+        this.totalElements = page.page.totalElements;
+        this.catalogs = page.content;
       },
       error: (err) => {
         this.notificationService.alert('Error', 'Error al cargar catálogos', 'error');
       }
     });
+  }
+  
+  onPageChange(page: number): void {
+    this.currentPage = page;
+    this.loadCatalogs();
   }
 
   selectCatalog(catalog: Catalog): void {

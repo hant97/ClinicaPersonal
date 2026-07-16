@@ -78,3 +78,22 @@
   background-color: var(--secondary-color);
   border-color: #d1d5db;
 }
+
+@media (max-width: 768px) {
+  .modal-content {
+    padding: 1rem;
+    max-height: 95vh;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  .modal-actions button {
+    width: 100%;
+  }
+}

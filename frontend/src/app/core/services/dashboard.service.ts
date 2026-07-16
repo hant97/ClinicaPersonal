@@ -3,7 +3,10 @@ import { Observable, forkJoin, map } from 'rxjs';
 import { PatientService } from './patient/patient.service';
 import { AppointmentService } from './appointment.service';
 import { PaymentService } from './payment.service';
+import { InventoryService, Supply } from './inventory.service';
+import { RiskAlertService } from './risk-alert.service';
 import { Appointment } from '../models/appointment.model';
+import { RiskAlert } from '../models/risk-alert.model';
 
 export interface DashboardStats {
   activePatients: number;
@@ -14,6 +17,8 @@ export interface DashboardStats {
   cancelledAppointments: number;
   newPatientsThisMonth: number;
   monthlyIncomeGrowth: number;
+  activeRiskAlerts: RiskAlert[];
+  lowStockSupplies: Supply[];
 }
 
 @Injectable({
@@ -24,30 +29,35 @@ export class DashboardService {
   constructor(
     private patientService: PatientService,
     private appointmentService: AppointmentService,
-    private paymentService: PaymentService
+    private paymentService: PaymentService,
+    private inventoryService: InventoryService,
+    private riskAlertService: RiskAlertService
   ) { }
 
   getDashboardStats(): Observable<DashboardStats> {
     return forkJoin({
-      patients: this.patientService.getAll(),
+      patients: this.patientService.getAll(0, 1000), // Usamos 1000 para cargar la mayoría de pacientes para las estadísticas del dashboard
       appointments: this.appointmentService.getAll(),
-      payments: this.paymentService.getAll()
+      payments: this.paymentService.getAll(0, 1000),
+      lowStockSupplies: this.inventoryService.getLowStockSupplies(),
+      activeRiskAlerts: this.riskAlertService.getAllActiveAlerts()
     }).pipe(
-      map(({ patients, appointments, payments }) => {
+      map(({ patients, appointments, payments, lowStockSupplies, activeRiskAlerts }) => {
         const today = new Date();
         const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
         const endOfDay = startOfDay + 24 * 60 * 60 * 1000;
         const currentMonth = today.getMonth();
         const currentYear = today.getFullYear();
 
-        const activePatients = patients.length;
+        const activePatients = patients.page.totalElements;
+        const patientsList = patients.content;
 
         const appointmentsToday = appointments.filter(app => {
           const appDate = new Date(app.appointmentDate + 'T00:00:00').getTime();
           return appDate >= startOfDay && appDate < endOfDay;
         }).length;
 
-        const monthlyIncome = payments.filter(pay => {
+        const monthlyIncome = payments.content.filter(pay => {
           const payDate = new Date(pay.paymentDate);
           return payDate.getMonth() === currentMonth && payDate.getFullYear() === currentYear;
         }).reduce((sum, pay) => sum + pay.amount, 0);
@@ -73,7 +83,7 @@ export class DashboardService {
         const attendanceRate = totalPastThisMonth > 0 ? Math.round((completedThisMonth / totalPastThisMonth) * 100) : 0;
 
         // 2. Nuevos Pacientes
-        const newPatientsThisMonth = patients.filter(p => {
+        const newPatientsThisMonth = patientsList.filter(p => {
           if (!p.createdAt) return false;
           const pDate = new Date(p.createdAt);
           return pDate.getMonth() === currentMonth && pDate.getFullYear() === currentYear;
@@ -83,7 +93,7 @@ export class DashboardService {
         const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
         const previousMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
         
-        const previousMonthlyIncome = payments.filter(pay => {
+        const previousMonthlyIncome = payments.content.filter(pay => {
           const payDate = new Date(pay.paymentDate);
           return payDate.getMonth() === previousMonth && payDate.getFullYear() === previousMonthYear;
         }).reduce((sum, pay) => sum + pay.amount, 0);
@@ -111,7 +121,7 @@ export class DashboardService {
           })
           .slice(0, 5) // top 5 upcoming
           .map(app => {
-            const patient = patients.find(p => p.id === app.patientId);
+            const patient = patientsList.find(p => p.id === app.patientId);
             return {
               ...app,
               patientName: patient ? `${patient.firstName} ${patient.lastName}` : `Paciente ID: ${app.patientId}`,
@@ -127,7 +137,9 @@ export class DashboardService {
           attendanceRate,
           cancelledAppointments,
           newPatientsThisMonth,
-          monthlyIncomeGrowth
+          monthlyIncomeGrowth,
+          activeRiskAlerts,
+          lowStockSupplies
         };
       })
     );

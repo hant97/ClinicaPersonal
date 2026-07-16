@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
 @RestController
 @RequestMapping("/api/catalogs")
 public class CatalogController {
@@ -17,8 +20,10 @@ public class CatalogController {
     private CatalogService catalogService;
 
     @GetMapping
-    public ResponseEntity<List<CatalogDto>> getAllCatalogs() {
-        return ResponseEntity.ok(catalogService.getAllCatalogs());
+    public ResponseEntity<Page<CatalogDto>> getAllCatalogs(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(catalogService.getAllCatalogs(PageRequest.of(page, size)));
     }
 
     @GetMapping("/{code}")

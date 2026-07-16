@@ -29,6 +29,9 @@ export class PatientDetailComponent implements OnInit {
   readonly FileText = FileText;
   readonly Pill = Pill;
   readonly ClipboardList = ClipboardList;
+  readonly User = User;
+  readonly Phone = Phone;
+  readonly Activity = Activity;
   
   patient: Patient | null = null;
   sessions: ClinicalSession[] = [];

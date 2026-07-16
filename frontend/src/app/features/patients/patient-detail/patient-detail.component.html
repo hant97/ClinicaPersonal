@@ -19,32 +19,88 @@
 
   <!-- 7. Datos Personales completos (Acordeón colapsable) -->
   @if (showPersonalDetails) {
-    <div class="patient-info card" style="margin-bottom: 20px; animation: fadeIn 0.3s ease-in-out;">
-      <h3 class="section-title">Datos Personales</h3>
-      <div class="info-grid">
-        <div class="info-item"><strong>Documento</strong><span>{{ patient.identificationDocument }}</span></div>
-        <div class="info-item"><strong>Fecha de Nacimiento</strong><span>{{ patient.dateOfBirth || 'N/A' }}</span></div>
-        <div class="info-item"><strong>Género</strong><span>{{ patient.gender || 'N/A' }}</span></div>
-        <div class="info-item"><strong>Estado Civil</strong><span>{{ patient.maritalStatus || 'N/A' }}</span></div>
-        <div class="info-item"><strong>Ocupación</strong><span>{{ patient.occupation || 'N/A' }}</span></div>
+    <div class="patient-info-container" style="animation: fadeIn 0.4s ease-out; margin-bottom: 25px;">
+      
+      <!-- Datos Personales -->
+      <div class="info-section personal">
+        <div class="section-header">
+          <lucide-icon [img]="User" [size]="20" class="section-icon"></lucide-icon>
+          <h3 class="section-title-modern">Datos Personales</h3>
+        </div>
+        <div class="info-grid-modern">
+          <div class="info-item-modern">
+            <span class="info-label">Documento</span>
+            <span class="info-value">{{ patient.identificationDocument || 'N/A' }}</span>
+          </div>
+          <div class="info-item-modern">
+            <span class="info-label">Fecha Nac.</span>
+            <span class="info-value">{{ patient.dateOfBirth || 'N/A' }}</span>
+          </div>
+          <div class="info-item-modern">
+            <span class="info-label">Género</span>
+            <span class="info-value">{{ patient.gender || 'N/A' }}</span>
+          </div>
+          <div class="info-item-modern">
+            <span class="info-label">Estado Civil</span>
+            <span class="info-value">{{ patient.maritalStatus || 'N/A' }}</span>
+          </div>
+          <div class="info-item-modern occupation-field">
+            <span class="info-label">Ocupación</span>
+            <span class="info-value">{{ patient.occupation || 'N/A' }}</span>
+          </div>
+        </div>
       </div>
 
-      <h3 class="section-title">Información de Contacto</h3>
-      <div class="info-grid">
-        <div class="info-item"><strong>Email</strong><span>{{ patient.email || 'N/A' }}</span></div>
-        <div class="info-item"><strong>Teléfono</strong><span>{{ patient.contactNumber || 'N/A' }}</span></div>
-        <div class="info-item"><strong>Dirección</strong><span>{{ patient.address || 'N/A' }}</span></div>
+      <!-- Información de Contacto -->
+      <div class="info-section contact">
+        <div class="section-header">
+          <lucide-icon [img]="Phone" [size]="20" class="section-icon"></lucide-icon>
+          <h3 class="section-title-modern">Contacto</h3>
+        </div>
+        <div class="info-grid-modern">
+          <div class="info-item-modern full-width">
+            <span class="info-label">Email</span>
+            <span class="info-value">{{ patient.email || 'N/A' }}</span>
+          </div>
+          <div class="info-item-modern full-width">
+            <span class="info-label">Teléfono</span>
+            <span class="info-value">{{ patient.contactNumber || 'N/A' }}</span>
+          </div>
+          <div class="info-item-modern full-width">
+            <span class="info-label">Dirección</span>
+            <span class="info-value">{{ patient.address || 'N/A' }}</span>
+          </div>
+        </div>
       </div>
 
-      <h3 class="section-title">Atención y Apoderado</h3>
-      <div class="info-grid">
-        <div class="info-item"><strong>Motivo de Consulta</strong><span>{{ patient.reasonForConsultation || 'N/A' }}</span></div>
-        <div class="info-item"><strong>Contacto de Emergencia</strong><span>{{ patient.emergencyContact || 'N/A' }}</span></div>
-        @if (esMenorEdad || patient.hasLegalGuardian) {
-          <div class="info-item"><strong>Nombre del Apoderado</strong><span>{{ patient.guardianName || 'N/A' }}</span></div>
-          <div class="info-item"><strong>Teléfono Apoderado</strong><span>{{ patient.guardianContact || 'N/A' }}</span></div>
-        }
+      <!-- Atención y Apoderado -->
+      <div class="info-section attention">
+        <div class="section-header">
+          <lucide-icon [img]="Activity" [size]="20" class="section-icon"></lucide-icon>
+          <h3 class="section-title-modern">Atención</h3>
+        </div>
+        <div class="info-grid-modern">
+          <div class="info-item-modern full-width">
+            <span class="info-label">Motivo Consulta</span>
+            <span class="info-value">{{ patient.reasonForConsultation || 'N/A' }}</span>
+          </div>
+          <div class="info-item-modern full-width">
+            <span class="info-label">Contacto Emergencia</span>
+            <span class="info-value">{{ patient.emergencyContact || 'N/A' }}</span>
+          </div>
+          @if (esMenorEdad || patient.hasLegalGuardian) {
+            <div class="info-item-modern full-width">
+              <span class="info-label">Apoderado</span>
+              <span class="info-value">{{ patient.guardianName || 'N/A' }}</span>
+            </div>
+            <div class="info-item-modern full-width">
+              <span class="info-label">Teléfono Apoderado</span>
+              <span class="info-value">{{ patient.guardianContact || 'N/A' }}</span>
+            </div>
+          }
+        </div>
       </div>
+
     </div>
   }
 

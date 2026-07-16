@@ -1,7 +1,7 @@
 <div class="card">
   <div class="header-actions">
     <h2>Directorio de Pacientes</h2>
-    <div style="display: flex; gap: 1rem; align-items: center;">
+    <div class="header-controls">
       <button class="btn-secondary" (click)="exportPatients()" title="Exportar a Excel">
         <lucide-icon [img]="Download" [size]="18"></lucide-icon>
         Exportar
@@ -35,7 +35,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let patient of filteredPatients">
+        <tr *ngFor="let patient of patients">
           <td>
             <div class="d-flex align-items-center">
               <span class="avatar-initials">{{ getInitials(patient.firstName, patient.lastName) }}</span>
@@ -63,12 +63,18 @@
             </div>
           </td>
         </tr>
-        <tr *ngIf="filteredPatients.length === 0">
+        <tr *ngIf="patients.length === 0">
           <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">No hay pacientes que coincidan con la búsqueda.</td>
         </tr>
       </tbody>
     </table>
   </div>
+  
+  <app-pagination 
+    [currentPage]="currentPage" 
+    [totalPages]="totalPages" 
+    (pageChange)="onPageChange($event)">
+  </app-pagination>
 </div>
 
 <app-patient-form *ngIf="showModal" [patientId]="selectedPatientId" (closeModal)="closeModal($event)"></app-patient-form>

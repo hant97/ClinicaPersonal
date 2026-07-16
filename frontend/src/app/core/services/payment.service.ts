@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Payment } from '../models/payment.model';
+import { PageResponse } from '../models/page.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -12,8 +13,9 @@ export class PaymentService {
 
   constructor(private http: HttpClient) { }
 
-  getAll(): Observable<Payment[]> {
-    return this.http.get<Payment[]>(this.apiUrl);
+  getAll(page: number = 0, size: number = 10): Observable<PageResponse<Payment>> {
+    let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+    return this.http.get<PageResponse<Payment>>(this.apiUrl, { params });
   }
 
   getByPatientId(patientId: number): Observable<Payment[]> {

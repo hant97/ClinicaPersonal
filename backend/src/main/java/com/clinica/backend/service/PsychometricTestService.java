@@ -11,6 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 @Service
 public class PsychometricTestService {
 
@@ -20,8 +23,8 @@ public class PsychometricTestService {
     @Autowired
     private AssessmentRepository assessmentRepository;
 
-    public List<PsychometricTestDto> getAllTests() {
-        return psychometricTestRepository.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
+    public Page<PsychometricTestDto> getAllTests(Pageable pageable) {
+        return psychometricTestRepository.findAll(pageable).map(this::mapToDto);
     }
 
     public PsychometricTestDto getTestById(Long id) {

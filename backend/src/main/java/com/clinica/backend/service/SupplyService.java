@@ -9,16 +9,20 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 @Service
 @RequiredArgsConstructor
 public class SupplyService {
 
     private final SupplyRepository supplyRepository;
 
-    public List<SupplyDto> getAllSupplies() {
-        return supplyRepository.findByDeletedFalse().stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
+    public Page<SupplyDto> getAllSupplies(String name, Pageable pageable) {
+        if (name != null && !name.trim().isEmpty()) {
+            return supplyRepository.findByNameContainingIgnoreCaseAndDeletedFalse(name, pageable).map(this::mapToDto);
+        }
+        return supplyRepository.findByDeletedFalse(pageable).map(this::mapToDto);
     }
 
     public SupplyDto getSupplyById(Long id) {

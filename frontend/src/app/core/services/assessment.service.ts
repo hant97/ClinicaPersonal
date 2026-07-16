@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Assessment, PsychometricTest } from '../models/assessment.model';
+import { PageResponse } from '../models/page.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -12,12 +13,14 @@ export class AssessmentService {
 
   constructor(private http: HttpClient) { }
 
-  getAvailableTests(): Observable<PsychometricTest[]> {
-    return this.http.get<PsychometricTest[]>(`${this.apiUrl}/tests`);
+  getAvailableTests(page: number = 0, size: number = 10): Observable<PageResponse<PsychometricTest>> {
+    let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+    return this.http.get<PageResponse<PsychometricTest>>(`${this.apiUrl}/tests`, { params });
   }
 
-  getAssessmentsByPatient(patientId: number): Observable<Assessment[]> {
-    return this.http.get<Assessment[]>(`${this.apiUrl}/assessments/patient/${patientId}`);
+  getAssessmentsByPatient(patientId: number, page: number = 0, size: number = 10): Observable<PageResponse<Assessment>> {
+    let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+    return this.http.get<PageResponse<Assessment>>(`${this.apiUrl}/assessments/patient/${patientId}`, { params });
   }
 
   saveAssessment(assessment: Assessment): Observable<Assessment> {

@@ -1,7 +1,7 @@
 <div class="card">
   <div class="header-actions">
     <h2>Facturación Básica</h2>
-    <div style="display: flex; gap: 1rem;">
+    <div class="header-controls">
       <button class="btn-secondary" (click)="exportPayments()" title="Exportar a Excel">
         <lucide-icon [img]="Download" [size]="18"></lucide-icon>
         Exportar
@@ -50,6 +50,12 @@
         </tr>
       </tbody>
     </table>
+    
+    <app-pagination 
+      [currentPage]="currentPage" 
+      [totalPages]="totalPages" 
+      (pageChange)="onPageChange($event)">
+    </app-pagination>
   </div>
 </div>
 

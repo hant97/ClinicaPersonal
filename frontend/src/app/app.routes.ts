@@ -12,6 +12,7 @@ import { TestsCatalogListComponent } from './features/tests-catalog/tests-catalo
 import { TestsCatalogFormComponent } from './features/tests-catalog/tests-catalog-form/tests-catalog-form.component';
 import { InventoryListComponent } from './features/inventory/inventory-list/inventory-list.component';
 import { CatalogManagementComponent } from './features/settings/catalog-management/catalog-management.component';
+import { UserProfileComponent } from './features/profile/user-profile/user-profile.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -30,7 +31,8 @@ export const routes: Routes = [
       { path: 'tests-catalog/new', component: TestsCatalogFormComponent },
       { path: 'tests-catalog/edit/:id', component: TestsCatalogFormComponent },
       { path: 'inventory', component: InventoryListComponent },
-      { path: 'settings/catalogs', component: CatalogManagementComponent }
+      { path: 'settings/catalogs', component: CatalogManagementComponent },
+      { path: 'profile', component: UserProfileComponent }
     ]
   }
 ];

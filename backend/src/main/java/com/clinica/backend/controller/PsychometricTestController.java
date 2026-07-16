@@ -8,6 +8,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
 @RestController
 @RequestMapping("/api/tests")
 @CrossOrigin(origins = "*")
@@ -17,8 +20,10 @@ public class PsychometricTestController {
     private PsychometricTestService psychometricTestService;
 
     @GetMapping
-    public ResponseEntity<List<PsychometricTestDto>> getAllTests() {
-        return ResponseEntity.ok(psychometricTestService.getAllTests());
+    public ResponseEntity<Page<PsychometricTestDto>> getAllTests(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(psychometricTestService.getAllTests(PageRequest.of(page, size)));
     }
 
     @GetMapping("/{id}")

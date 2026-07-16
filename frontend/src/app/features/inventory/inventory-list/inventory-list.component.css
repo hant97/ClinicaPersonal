@@ -6,6 +6,12 @@
   margin-bottom: 2rem;
 }
 
+.header-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
 .search-container {
   margin-bottom: 1.5rem;
 }
@@ -57,4 +63,23 @@
 
 .fw-bold {
   font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .header-controls {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+  
+  .header-controls button {
+    width: 100%;
+    justify-content: center;
+  }
 }

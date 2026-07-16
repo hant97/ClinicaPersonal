@@ -22,6 +22,11 @@
           No hay catálogos disponibles
         </li>
       </ul>
+      <app-pagination 
+        [currentPage]="currentPage" 
+        [totalPages]="totalPages" 
+        (pageChange)="onPageChange($event)">
+      </app-pagination>
     </div>
 
     <!-- Detalles del Catálogo Seleccionado -->
@@ -54,8 +59,8 @@
         </div>
 
         <!-- Lista de Opciones -->
-        <div class="table-container">
-          <h3>Opciones Actuales</h3>
+        <div class="table-responsive">
+          <h3 style="margin-bottom: 1rem;">Opciones Actuales</h3>
           <table class="minimal-table">
             <thead>
               <tr>

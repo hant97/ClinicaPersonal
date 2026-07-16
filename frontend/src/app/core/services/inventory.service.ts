@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { PageResponse } from '../models/page.model';
 
 export interface Supply {
   id?: number;
@@ -22,8 +23,12 @@ export class InventoryService {
 
   constructor(private http: HttpClient) { }
 
-  getAllSupplies(): Observable<Supply[]> {
-    return this.http.get<Supply[]>(this.apiUrl);
+  getAllSupplies(searchTerm: string = '', page: number = 0, size: number = 10): Observable<PageResponse<Supply>> {
+    let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+    if (searchTerm) {
+      params = params.set('name', searchTerm);
+    }
+    return this.http.get<PageResponse<Supply>>(this.apiUrl, { params });
   }
 
   getLowStockSupplies(): Observable<Supply[]> {

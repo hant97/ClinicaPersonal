@@ -3,10 +3,10 @@ package com.clinica.backend.controller;
 import com.clinica.backend.dto.PatientDto;
 import com.clinica.backend.service.PatientService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/patients")
@@ -16,13 +16,18 @@ public class PatientController {
     private final PatientService patientService;
 
     @GetMapping
-    public ResponseEntity<List<PatientDto>> getAllPatients() {
-        return ResponseEntity.ok(patientService.getAllPatients());
+    public ResponseEntity<Page<PatientDto>> getAllPatients(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(patientService.getAllPatients(PageRequest.of(page, size)));
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<PatientDto>> searchPatients(@RequestParam String query) {
-        return ResponseEntity.ok(patientService.searchPatients(query));
+    public ResponseEntity<Page<PatientDto>> searchPatients(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(patientService.searchPatients(query, PageRequest.of(page, size)));
     }
 
     @GetMapping("/{id}")

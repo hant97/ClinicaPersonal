@@ -20,6 +20,10 @@ export class RiskAlertService {
     return this.http.get<RiskAlert[]>(`${this.apiUrl}/${patientId}/alerts`, { params });
   }
 
+  getAllActiveAlerts(): Observable<RiskAlert[]> {
+    return this.http.get<RiskAlert[]>(`${environment.apiUrl}/alerts/active`);
+  }
+
   createAlert(patientId: number, alert: RiskAlert): Observable<RiskAlert> {
     return this.http.post<RiskAlert>(`${this.apiUrl}/${patientId}/alerts`, alert);
   }

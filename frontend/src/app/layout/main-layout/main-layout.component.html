@@ -1,35 +1,38 @@
 <div class="layout-container">
-  <aside class="sidebar">
+  <!-- Mobile Overlay -->
+  <div class="mobile-overlay" *ngIf="isSidebarOpen" (click)="closeSidebar()"></div>
+
+  <aside class="sidebar" [class.open]="isSidebarOpen">
     <div class="sidebar-header">
       <div class="logo-icon">🌿</div>
       <h2>Clínica Vida</h2>
     </div>
     <nav class="sidebar-nav">
-      <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
         <lucide-icon [img]="LayoutDashboard" [size]="20" [strokeWidth]="2"></lucide-icon>
         Dashboard
       </a>
-      <a routerLink="/patients" routerLinkActive="active" class="nav-item">
+      <a routerLink="/patients" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
         <lucide-icon [img]="Users" [size]="20" [strokeWidth]="2"></lucide-icon>
         Pacientes
       </a>
-      <a routerLink="/agenda" routerLinkActive="active" class="nav-item">
+      <a routerLink="/agenda" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
         <lucide-icon [img]="CalendarDays" [size]="20" [strokeWidth]="2"></lucide-icon>
         Agenda
       </a>
-      <a routerLink="/billing" routerLinkActive="active" class="nav-item">
+      <a routerLink="/billing" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
         <lucide-icon [img]="Receipt" [size]="20" [strokeWidth]="2"></lucide-icon>
         Facturación
       </a>
-      <a routerLink="/tests-catalog" routerLinkActive="active" class="nav-item">
+      <a routerLink="/tests-catalog" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
         <lucide-icon [img]="ClipboardList" [size]="20" [strokeWidth]="2"></lucide-icon>
         Catálogo Pruebas
       </a>
-      <a routerLink="/inventory" routerLinkActive="active" class="nav-item">
+      <a routerLink="/inventory" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
         <lucide-icon [img]="Package" [size]="20" [strokeWidth]="2"></lucide-icon>
         Inventario
       </a>
-      <a routerLink="/settings/catalogs" routerLinkActive="active" class="nav-item">
+      <a routerLink="/settings/catalogs" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
         <lucide-icon [img]="Settings" [size]="20" [strokeWidth]="2"></lucide-icon>
         Configuración
       </a>
@@ -44,11 +47,18 @@
 
   <main class="main-content">
     <header class="top-header">
-      <div class="header-title">
-        <h1>Bienvenida, Dra.</h1>
+      <div class="header-left">
+        <button class="mobile-menu-btn" (click)="toggleSidebar()">
+          <lucide-icon [img]="Menu" [size]="24"></lucide-icon>
+        </button>
+        <div class="header-title">
+          <h1>Bienvenida(o), {{ greetingName }}</h1>
+        </div>
       </div>
       <div class="header-profile">
-        <div class="avatar">D</div>
+        <a routerLink="/profile" class="profile-link" title="Mi Perfil">
+          <div class="avatar">{{ avatarLetter }}</div>
+        </a>
       </div>
     </header>
     <div class="content-wrapper">

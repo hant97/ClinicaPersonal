@@ -24,6 +24,11 @@ public class RiskAlertService {
         return alerts.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
+    public List<RiskAlertDto> getAllActiveAlerts() {
+        List<RiskAlert> alerts = riskAlertRepository.findByActiveTrueOrderByCreatedAtDesc();
+        return alerts.stream().map(this::mapToDto).collect(Collectors.toList());
+    }
+
     public RiskAlertDto createAlert(RiskAlertDto dto) {
         RiskAlert alert = new RiskAlert();
         alert.setPatientId(dto.getPatientId());

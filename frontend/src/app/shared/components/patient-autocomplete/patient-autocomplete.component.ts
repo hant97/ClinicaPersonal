@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { PatientService } from '../../../core/services/patient/patient.service';
 import { Patient } from '../../../core/models/patient.model';
-import { debounceTime, distinctUntilChanged, Subject, switchMap, takeUntil, tap, of } from 'rxjs';
+import { debounceTime, distinctUntilChanged, Subject, switchMap, takeUntil, tap, of, map } from 'rxjs';
 
 @Component({
   selector: 'app-patient-autocomplete',
@@ -58,7 +58,9 @@ export class PatientAutocompleteComponent implements OnInit, OnDestroy, ControlV
                 return of([]);
             }
         }
-        return this.patientService.search(query);
+        return this.patientService.search(query).pipe(
+          map(page => page.content)
+        );
       }),
       tap(() => this.isLoading = false)
     ).subscribe(results => {

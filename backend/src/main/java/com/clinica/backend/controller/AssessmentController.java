@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
 @RestController
 @RequestMapping("/api")
 @CrossOrigin(origins = "*") // Assuming CORS is handled globally, but keeping it safe
@@ -18,8 +21,11 @@ public class AssessmentController {
     private AssessmentService assessmentService;
 
     @GetMapping("/assessments/patient/{patientId}")
-    public ResponseEntity<List<AssessmentDto>> getAssessmentsByPatientId(@PathVariable Long patientId) {
-        return ResponseEntity.ok(assessmentService.getAssessmentsByPatientId(patientId));
+    public ResponseEntity<Page<AssessmentDto>> getAssessmentsByPatientId(
+            @PathVariable Long patientId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(assessmentService.getAssessmentsByPatientId(patientId, PageRequest.of(page, size)));
     }
 
     @PostMapping("/assessments")

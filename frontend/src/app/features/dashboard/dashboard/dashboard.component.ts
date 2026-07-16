@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardService, DashboardStats } from '../../../core/services/dashboard.service';
 import { Observable } from 'rxjs';
-import { LucideAngularModule, Users, Calendar, DollarSign, Activity, UserPlus, TrendingUp, TrendingDown, Clock } from 'lucide-angular';
+import { LucideAngularModule, Users, Calendar, DollarSign, Activity, UserPlus, TrendingUp, TrendingDown, Clock, AlertTriangle, Package } from 'lucide-angular';
 
 @Component({
   selector: 'app-dashboard',
@@ -22,6 +22,8 @@ export class DashboardComponent implements OnInit {
   readonly TrendingUp = TrendingUp;
   readonly TrendingDown = TrendingDown;
   readonly Clock = Clock;
+  readonly AlertTriangle = AlertTriangle;
+  readonly Package = Package;
 
   constructor(private dashboardService: DashboardService) {}
 

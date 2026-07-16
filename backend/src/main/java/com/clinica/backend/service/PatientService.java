@@ -5,7 +5,8 @@ import com.clinica.backend.model.Patient;
 import com.clinica.backend.repository.PatientRepository;
 import com.clinica.backend.repository.RiskAlertRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,19 +19,17 @@ public class PatientService {
     private final PatientRepository patientRepository;
     private final RiskAlertRepository riskAlertRepository;
 
-    public List<PatientDto> getAllPatients() {
-        return patientRepository.findByDeletedFalse().stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
+    public Page<PatientDto> getAllPatients(Pageable pageable) {
+        return patientRepository.findByDeletedFalse(pageable)
+                .map(this::mapToDto);
     }
 
-    public List<PatientDto> searchPatients(String query) {
+    public Page<PatientDto> searchPatients(String query, Pageable pageable) {
         if (query == null || query.trim().isEmpty()) {
-            return List.of();
+            return Page.empty();
         }
-        return patientRepository.searchPatients(query, PageRequest.of(0, 15)).stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
+        return patientRepository.searchPatients(query, pageable)
+                .map(this::mapToDto);
     }
 
     public PatientDto getPatientById(Long id) {

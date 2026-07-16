@@ -5,6 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
 @RestController
 @RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
@@ -15,8 +18,10 @@ public class PaymentController {
         return ResponseEntity.ok(service.getByPatientId(patientId));
     }
     @GetMapping
-    public ResponseEntity<List<PaymentDto>> getAll() {
-        return ResponseEntity.ok(service.getAll());
+    public ResponseEntity<Page<PaymentDto>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(service.getAll(PageRequest.of(page, size)));
     }
     @PostMapping
     public ResponseEntity<PaymentDto> create(@RequestBody PaymentDto dto) {

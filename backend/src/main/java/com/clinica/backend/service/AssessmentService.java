@@ -15,6 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 @Service
 public class AssessmentService {
 
@@ -27,8 +30,8 @@ public class AssessmentService {
     @Autowired
     private PatientRepository patientRepository;
 
-    public List<AssessmentDto> getAssessmentsByPatientId(Long patientId) {
-        return assessmentRepository.findByPatientIdOrderByAssessmentDateDesc(patientId).stream().map(this::mapToDto).collect(Collectors.toList());
+    public Page<AssessmentDto> getAssessmentsByPatientId(Long patientId, Pageable pageable) {
+        return assessmentRepository.findByPatientIdOrderByAssessmentDateDesc(patientId, pageable).map(this::mapToDto);
     }
 
     @Transactional

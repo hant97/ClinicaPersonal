@@ -108,3 +108,21 @@
   border-radius: 8px;
   border: 1px dashed #ccc;
 }
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .header button {
+    width: 100%;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+  
+  .table th, .table td {
+    white-space: nowrap;
+  }
+}

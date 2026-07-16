@@ -1,5 +1,5 @@
 /* Base Design System - White / Minimalist / Peace */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,300;6..12,400;6..12,600;6..12,700&display=swap');
 
 :root {
   --primary-color: #f8f9fa; /* Off-white for subtle contrasts */
@@ -28,7 +28,7 @@
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Nunito Sans', sans-serif;
   background-color: var(--bg-color);
   color: var(--text-main);
   line-height: 1.6;
@@ -40,6 +40,12 @@ body {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 2rem;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1rem;
+  }
 }
 
 .card {
@@ -54,6 +60,12 @@ body {
 .card:hover {
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: 1.25rem;
+  }
 }
 
 .btn-primary {
@@ -114,7 +126,7 @@ body {
   border: 1px solid var(--secondary-color);
   border-radius: var(--radius-sm);
   font-size: 1rem;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Nunito Sans', sans-serif;
   color: var(--text-main);
   background-color: var(--primary-color);
   transition: border-color 0.2s, background-color 0.2s;
@@ -167,6 +179,20 @@ body {
 
 .minimal-table tbody tr:hover {
   background-color: var(--primary-color);
+}
+
+@media (max-width: 768px) {
+  .minimal-table th,
+  .minimal-table td {
+    padding: 1rem 0.5rem;
+    white-space: nowrap;
+  }
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Avatar Initials */

@@ -65,9 +65,9 @@ export class AgendaComponent implements OnInit, OnDestroy {
     this.initFilterForm();
     this.initCalendar();
 
-    this.patientService.getAll().subscribe({
-      next: (patients) => {
-        patients.forEach(p => {
+    this.patientService.getAll(0, 1000).subscribe({
+      next: (patientsPage) => {
+        patientsPage.content.forEach(p => {
           if (p.id) {
             this.patientMap.set(Number(p.id), `${p.firstName} ${p.lastName}`);
           }

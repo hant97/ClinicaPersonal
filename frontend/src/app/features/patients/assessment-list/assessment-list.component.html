@@ -4,7 +4,7 @@
     <button class="btn btn-primary" (click)="openForm()">+ Registrar Evaluación</button>
   </div>
 
-  <div class="table-container">
+  <div class="table-responsive">
     <ng-container *ngIf="assessments.length > 0; else noData">
       <div class="chart-container" style="position: relative; height: 300px; width: 100%; margin-bottom: 20px;">
         <canvas #chartCanvas></canvas>
@@ -28,6 +28,12 @@
         </tr>
       </tbody>
       </table>
+      
+      <app-pagination 
+        [currentPage]="currentPage" 
+        [totalPages]="totalPages" 
+        (pageChange)="onPageChange($event)">
+      </app-pagination>
     </ng-container>
     <ng-template #noData>
       <div class="empty-state">
