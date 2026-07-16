@@ -3,6 +3,7 @@ package com.clinica.backend.service;
 import com.clinica.backend.dto.PatientDto;
 import com.clinica.backend.model.Patient;
 import com.clinica.backend.repository.PatientRepository;
+import com.clinica.backend.repository.RiskAlertRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 public class PatientService {
 
     private final PatientRepository patientRepository;
+    private final RiskAlertRepository riskAlertRepository;
 
     public List<PatientDto> getAllPatients() {
         return patientRepository.findByDeletedFalse().stream()
@@ -59,6 +61,7 @@ public class PatientService {
         patient.setAddress(patientDto.getAddress());
         patient.setGuardianName(patientDto.getGuardianName());
         patient.setGuardianContact(patientDto.getGuardianContact());
+        patient.setHasLegalGuardian(patientDto.isHasLegalGuardian());
 
         Patient updatedPatient = patientRepository.save(patient);
         return mapToDto(updatedPatient);
@@ -87,7 +90,9 @@ public class PatientService {
         dto.setAddress(patient.getAddress());
         dto.setGuardianName(patient.getGuardianName());
         dto.setGuardianContact(patient.getGuardianContact());
+        dto.setHasLegalGuardian(patient.isHasLegalGuardian());
         dto.setDeleted(patient.isDeleted());
+        dto.setHasActiveAlerts(riskAlertRepository.existsByPatientIdAndActiveTrue(patient.getId()));
         return dto;
     }
 
@@ -107,6 +112,7 @@ public class PatientService {
         patient.setAddress(dto.getAddress());
         patient.setGuardianName(dto.getGuardianName());
         patient.setGuardianContact(dto.getGuardianContact());
+        patient.setHasLegalGuardian(dto.isHasLegalGuardian());
         patient.setDeleted(dto.isDeleted());
         return patient;
     }

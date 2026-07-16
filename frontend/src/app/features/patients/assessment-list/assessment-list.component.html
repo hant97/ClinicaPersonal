@@ -5,7 +5,12 @@
   </div>
 
   <div class="table-container">
-    <table class="table" *ngIf="assessments.length > 0; else noData">
+    <ng-container *ngIf="assessments.length > 0; else noData">
+      <div class="chart-container" style="position: relative; height: 300px; width: 100%; margin-bottom: 20px;">
+        <canvas #chartCanvas></canvas>
+      </div>
+
+      <table class="table">
       <thead>
         <tr>
           <th>Fecha</th>
@@ -22,7 +27,8 @@
           <td class="notes-col">{{ assessment.notes || '-' }}</td>
         </tr>
       </tbody>
-    </table>
+      </table>
+    </ng-container>
     <ng-template #noData>
       <div class="empty-state">
         <p>No hay evaluaciones registradas para este paciente.</p>

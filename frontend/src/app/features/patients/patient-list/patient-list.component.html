@@ -40,6 +40,7 @@
             <div class="d-flex align-items-center">
               <span class="avatar-initials">{{ getInitials(patient.firstName, patient.lastName) }}</span>
               <span>{{ patient.firstName }} {{ patient.lastName }}</span>
+              <lucide-icon *ngIf="patient.hasActiveAlerts" [img]="AlertTriangle" [size]="16" style="color: #e53e3e; margin-left: 8px;" title="Tiene alertas de riesgo activas"></lucide-icon>
             </div>
           </td>
           <td>{{ patient.identificationDocument }}</td>

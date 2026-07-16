@@ -7,7 +7,7 @@ import { RouterLink } from '@angular/router';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ExportService } from '../../../shared/services/export/export.service';
-import { LucideAngularModule, Search, Eye, Edit, Trash2, Plus, Download } from 'lucide-angular';
+import { LucideAngularModule, Search, Eye, Edit, Trash2, Plus, Download, AlertTriangle } from 'lucide-angular';
 
 @Component({
   selector: 'app-patient-list',
@@ -23,6 +23,7 @@ export class PatientListComponent implements OnInit {
   readonly Trash2 = Trash2;
   readonly Plus = Plus;
   readonly Download = Download;
+  readonly AlertTriangle = AlertTriangle;
 
   patients: Patient[] = [];
   filteredPatients: Patient[] = [];

@@ -61,6 +61,9 @@ public class Patient {
     @Column(name = "guardian_contact")
     private String guardianContact;
 
+    @Column(name = "has_legal_guardian", nullable = false)
+    private boolean hasLegalGuardian = false;
+
     @Column(name = "deleted", nullable = false)
     private boolean deleted = false;
 

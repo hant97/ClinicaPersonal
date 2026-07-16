@@ -21,6 +21,8 @@ public class PatientDto {
     private String address;
     private String guardianName;
     private String guardianContact;
+    private boolean hasLegalGuardian;
+    private boolean hasActiveAlerts;
     private boolean deleted;
     private LocalDateTime createdAt;
 }

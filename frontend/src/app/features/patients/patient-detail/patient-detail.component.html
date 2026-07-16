@@ -1,34 +1,145 @@
 <div class="patient-detail-container" *ngIf="patient">
-  <div class="header">
-    <button class="btn btn-secondary" (click)="goBack()">&larr; Volver</button>
-    <h2>Perfil del Paciente: {{ patient.firstName }} {{ patient.lastName }}</h2>
+  <div class="header-actions" style="margin-bottom: 20px;">
+    <button class="btn btn-secondary" (click)="goBack()">&larr; Volver al listado</button>
   </div>
 
-  <div class="patient-info card">
-    <h3 class="section-title">Datos Personales</h3>
-    <div class="info-grid">
-      <div class="info-item"><strong>Documento</strong><span>{{ patient.identificationDocument }}</span></div>
-      <div class="info-item"><strong>Fecha de Nacimiento</strong><span>{{ patient.dateOfBirth || 'N/A' }}</span></div>
-      <div class="info-item"><strong>Género</strong><span>{{ patient.gender || 'N/A' }}</span></div>
-      <div class="info-item"><strong>Estado Civil</strong><span>{{ patient.maritalStatus || 'N/A' }}</span></div>
-      <div class="info-item"><strong>Ocupación</strong><span>{{ patient.occupation || 'N/A' }}</span></div>
+  <!-- 1. Header principal del paciente -->
+  <div class="card header-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <h2 style="margin: 0; color: #2c3e50; font-size: 1.5rem;">{{ patient.firstName }} {{ patient.lastName }}</h2>
+      <div style="color: #7f8c8d; font-size: 0.95rem; margin-top: 5px;">
+        <span *ngIf="patient.identificationDocument">Doc: {{ patient.identificationDocument }}</span>
+        <span *ngIf="age !== null" style="margin-left: 15px;">Edad: {{ age }} años</span>
+      </div>
     </div>
-
-    <h3 class="section-title">Información de Contacto</h3>
-    <div class="info-grid">
-      <div class="info-item"><strong>Email</strong><span>{{ patient.email || 'N/A' }}</span></div>
-      <div class="info-item"><strong>Teléfono</strong><span>{{ patient.contactNumber || 'N/A' }}</span></div>
-      <div class="info-item"><strong>Dirección</strong><span>{{ patient.address || 'N/A' }}</span></div>
-    </div>
-
-    <h3 class="section-title">Atención y Apoderado</h3>
-    <div class="info-grid">
-      <div class="info-item"><strong>Motivo de Consulta</strong><span>{{ patient.reasonForConsultation || 'N/A' }}</span></div>
-      <div class="info-item"><strong>Contacto de Emergencia</strong><span>{{ patient.emergencyContact || 'N/A' }}</span></div>
-      <div class="info-item"><strong>Nombre del Apoderado</strong><span>{{ patient.guardianName || 'N/A' }}</span></div>
-      <div class="info-item"><strong>Teléfono Apoderado</strong><span>{{ patient.guardianContact || 'N/A' }}</span></div>
-    </div>
+    <button class="btn btn-secondary" (click)="togglePersonalDetails()">
+      {{ showPersonalDetails ? 'Ocultar Datos Personales' : 'Ver Datos Personales' }}
+    </button>
   </div>
+
+  <!-- 7. Datos Personales completos (Acordeón colapsable) -->
+  @if (showPersonalDetails) {
+    <div class="patient-info card" style="margin-bottom: 20px; animation: fadeIn 0.3s ease-in-out;">
+      <h3 class="section-title">Datos Personales</h3>
+      <div class="info-grid">
+        <div class="info-item"><strong>Documento</strong><span>{{ patient.identificationDocument }}</span></div>
+        <div class="info-item"><strong>Fecha de Nacimiento</strong><span>{{ patient.dateOfBirth || 'N/A' }}</span></div>
+        <div class="info-item"><strong>Género</strong><span>{{ patient.gender || 'N/A' }}</span></div>
+        <div class="info-item"><strong>Estado Civil</strong><span>{{ patient.maritalStatus || 'N/A' }}</span></div>
+        <div class="info-item"><strong>Ocupación</strong><span>{{ patient.occupation || 'N/A' }}</span></div>
+      </div>
+
+      <h3 class="section-title">Información de Contacto</h3>
+      <div class="info-grid">
+        <div class="info-item"><strong>Email</strong><span>{{ patient.email || 'N/A' }}</span></div>
+        <div class="info-item"><strong>Teléfono</strong><span>{{ patient.contactNumber || 'N/A' }}</span></div>
+        <div class="info-item"><strong>Dirección</strong><span>{{ patient.address || 'N/A' }}</span></div>
+      </div>
+
+      <h3 class="section-title">Atención y Apoderado</h3>
+      <div class="info-grid">
+        <div class="info-item"><strong>Motivo de Consulta</strong><span>{{ patient.reasonForConsultation || 'N/A' }}</span></div>
+        <div class="info-item"><strong>Contacto de Emergencia</strong><span>{{ patient.emergencyContact || 'N/A' }}</span></div>
+        @if (esMenorEdad || patient.hasLegalGuardian) {
+          <div class="info-item"><strong>Nombre del Apoderado</strong><span>{{ patient.guardianName || 'N/A' }}</span></div>
+          <div class="info-item"><strong>Teléfono Apoderado</strong><span>{{ patient.guardianContact || 'N/A' }}</span></div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- 3. Historial de Tratamientos (Medical Records) -->
+  <div class="records-section" style="margin-bottom: 20px;">
+    <div class="records-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+      <h3 style="margin: 0; color: #2c3e50;">Historial de Tratamientos</h3>
+      <button class="btn btn-primary" (click)="openMedicalRecordForm()">+ Nuevo Registro</button>
+    </div>
+
+    @if (medicalRecords.length > 0) {
+      <div class="timeline">
+        @for (record of medicalRecords; track record.id) {
+          <div class="timeline-item card" style="cursor: default;">
+            <div class="timeline-summary" style="display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="time" style="font-weight: bold; color: #4a5568;">{{ record.createdAt | date:'mediumDate' }}</span>
+                <span class="status-badge" [ngClass]="{
+                  'status-active': record.treatmentStatus === 'Activo' || !record.treatmentStatus,
+                  'status-paused': record.treatmentStatus === 'Pausado',
+                  'status-discharged': record.treatmentStatus === 'Alta',
+                  'status-abandoned': record.treatmentStatus === 'Abandonado'
+                }">{{ record.treatmentStatus || 'Activo' }}</span>
+              </div>
+              
+              <div class="soap-grid" style="margin-top: 10px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+                <div class="soap-item" *ngIf="record.diagnosis">
+                  <h4 style="color: #2b6cb0; display: flex; align-items: center; gap: 5px;">
+                    <lucide-icon [img]="FileText" [size]="16"></lucide-icon> Diagnóstico
+                  </h4>
+                  <p style="white-space: pre-wrap; margin-top: 5px;">{{ record.diagnosis }}</p>
+                </div>
+                <div class="soap-item" *ngIf="record.currentMedication">
+                  <h4 style="color: #2f855a; display: flex; align-items: center; gap: 5px;">
+                    <lucide-icon [img]="Pill" [size]="16"></lucide-icon> Medicación
+                  </h4>
+                  <p style="white-space: pre-wrap; margin-top: 5px;">{{ record.currentMedication }}</p>
+                </div>
+                <div class="soap-item" *ngIf="record.treatmentPlan" style="grid-column: 1 / -1;">
+                  <h4 style="color: #6b46c1; display: flex; align-items: center; gap: 5px;">
+                    <lucide-icon [img]="ClipboardList" [size]="16"></lucide-icon> Plan de Tratamiento
+                  </h4>
+                  <p style="white-space: pre-wrap; margin-top: 5px;">{{ record.treatmentPlan }}</p>
+                </div>
+              </div>
+
+              <div class="timeline-actions" style="margin-top: 10px; justify-content: flex-end;">
+                <button class="btn-icon btn-edit" (click)="openMedicalRecordForm(record)" title="Editar">✏️</button>
+                <button class="btn-icon btn-delete" (click)="deleteMedicalRecord(record.id!, $event)" title="Eliminar">🗑️</button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="card" style="padding: 15px; text-align: center; color: #718096; font-style: italic; background-color: #f7fafc;">
+        No hay registros médicos para este paciente.
+      </div>
+    }
+  </div>
+
+  <!-- 2. Alertas de riesgo (Fase 3) -->
+  <div class="alerts-section" style="margin-bottom: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <h3 style="margin: 0; color: #e53e3e; font-size: 1.25rem;">Alertas de Riesgo Activas</h3>
+      <button class="btn" style="background-color: #fee2e2; color: #e53e3e; border: 1px solid #fecaca; font-weight: bold;" (click)="openAlertForm()">
+        + Añadir Alerta
+      </button>
+    </div>
+    
+    @if (activeAlerts.length > 0) {
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        @for (alert of activeAlerts; track alert.id) {
+          <div class="card" style="border-left: 5px solid #e53e3e; padding: 15px; display: flex; justify-content: space-between; align-items: flex-start; background-color: #fff5f5;">
+            <div>
+              <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
+                <span style="font-weight: bold; color: #c53030;">{{ alert.type }}</span>
+                <span style="background-color: #fed7d7; color: #c53030; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">{{ alert.level }}</span>
+              </div>
+              <p style="margin: 0; color: #4a5568; font-size: 0.95rem;">{{ alert.description }}</p>
+            </div>
+            <button class="btn btn-secondary" style="font-size: 0.8rem; padding: 5px 10px;" (click)="resolveAlert(alert.id!, $event)">
+              Resolver
+            </button>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="card" style="padding: 15px; text-align: center; color: #718096; font-style: italic; background-color: #f7fafc;">
+        No hay alertas de riesgo activas para este paciente.
+      </div>
+    }
+  </div>
+
+  <!-- 4. Historia Clínica (Sesiones) -->
 
   <div class="records-section">
     <div class="records-header">
@@ -107,6 +218,27 @@
         </app-clinical-session-form>
       </div>
     </div>
+  }
+
+  <!-- Modal para nuevo registro medico -->
+  @if (showMedicalRecordForm) {
+    <div class="modal-overlay">
+      <app-medical-record-form 
+        [patientId]="patient.id!" 
+        [record]="selectedMedicalRecord"
+        (saved)="onMedicalRecordSaved()"
+        (cancelled)="closeMedicalRecordForm()">
+      </app-medical-record-form>
+    </div>
+  }
+
+  <!-- Modal para nueva alerta -->
+  @if (showAlertForm) {
+    <app-risk-alert-form 
+      [patientId]="patient.id!"
+      (saved)="onAlertSaved()"
+      (cancelled)="closeAlertForm()">
+    </app-risk-alert-form>
   }
 </div>
 

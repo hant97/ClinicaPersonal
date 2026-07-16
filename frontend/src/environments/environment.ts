@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://localhost:8080/api'
+  apiUrl: 'https://TU-BACKEND.onrender.com/api' // Reemplazar con la URL real de Render
 };

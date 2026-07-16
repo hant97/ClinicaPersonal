@@ -45,24 +45,65 @@ export class PatientFormComponent implements OnInit {
       reasonForConsultation: ['', [Validators.maxLength(500)]],
       gender: ['', [Validators.required]],
       address: ['', [Validators.maxLength(255)]],
+      hasLegalGuardian: [false],
       guardianName: ['', [Validators.maxLength(100), Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)]],
       guardianContact: ['', [Validators.pattern(/^[0-9+\-\s()]+$/), Validators.minLength(7), Validators.maxLength(15)]]
     });
   }
 
+  esMenorEdad = false;
+
   ngOnInit(): void {
     this.loadCatalogs();
     this.setupDocumentValidation();
+    this.setupAgeValidation();
 
     if (this.patientId) {
       this.patientService.getById(this.patientId).subscribe({
         next: (patient) => {
           this.patientForm.patchValue(patient);
+          this.checkAge(patient.dateOfBirth);
         },
         error: () => {
           this.toastService.show('Error al cargar datos del paciente', 'error');
         }
       });
+    }
+  }
+
+  setupAgeValidation(): void {
+    this.patientForm.get('dateOfBirth')?.valueChanges.subscribe(date => {
+      this.checkAge(date);
+    });
+    this.patientForm.get('hasLegalGuardian')?.valueChanges.subscribe(() => {
+      this.updateGuardianValidators();
+    });
+  }
+
+  checkAge(dateOfBirth: string | undefined): void {
+    if (dateOfBirth) {
+      const birthDate = new Date(dateOfBirth);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      this.esMenorEdad = age < 18;
+    } else {
+      this.esMenorEdad = false;
+    }
+    this.updateGuardianValidators();
+  }
+
+  updateGuardianValidators(): void {
+    const hasLegalGuardian = this.patientForm.get('hasLegalGuardian')?.value;
+    const gName = this.patientForm.get('guardianName');
+    const gContact = this.patientForm.get('guardianContact');
+
+    if (!this.esMenorEdad && !hasLegalGuardian) {
+      gName?.setValue('');
+      gContact?.setValue('');
     }
   }
 
