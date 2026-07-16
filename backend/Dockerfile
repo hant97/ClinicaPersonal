@@ -6,8 +6,8 @@ COPY .mvn .mvn
 COPY mvnw .
 COPY mvnw.cmd .
 COPY src src
-# Utilizamos el wrapper de maven en caso de incompatibilidad con la imagen base
-RUN ./mvnw clean package -DskipTests
+# Utilizamos el maven nativo de la imagen para evitar problemas de permisos con el wrapper en linux
+RUN mvn clean package -DskipTests
 
 # Run stage
 FROM eclipse-temurin:17-jre-alpine
