@@ -3,8 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { AppointmentService } from '../../../core/services/appointment.service';
 import { PatientService } from '../../../core/services/patient/patient.service';
+import { CatalogService } from '../../../core/services/catalog.service';
 import { Patient } from '../../../core/models/patient.model';
 import { Appointment } from '../../../core/models/appointment.model';
+import { CatalogItem } from '../../../core/models/catalog.model';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { PatientAutocompleteComponent } from '../../../shared/components/patient-autocomplete/patient-autocomplete.component';
@@ -32,16 +34,21 @@ export class AppointmentFormComponent implements OnInit {
 
   appointmentForm!: FormGroup;
   isSubmitting = false;
+  
+  appointmentModalities: CatalogItem[] = [];
 
   constructor(
     private fb: FormBuilder,
     private appointmentService: AppointmentService,
     private patientService: PatientService,
+    private catalogService: CatalogService,
     private notificationService: NotificationService,
     private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
+    this.loadCatalogs();
+
     const now = new Date();
     const tzOffset = now.getTimezoneOffset() * 60000;
     const localISO = new Date(now.getTime() - tzOffset).toISOString();
@@ -67,6 +74,17 @@ export class AppointmentFormComponent implements OnInit {
         // Podría ser opcional, el requerimiento dice "opcional si es virtual", así que lo dejamos normal.
       } else {
         linkControl?.setValue('');
+      }
+    });
+  }
+
+  loadCatalogs(): void {
+    this.catalogService.getActiveItemsByCatalogCode('APPOINTMENT_MODALITY').subscribe({
+      next: (items) => {
+        this.appointmentModalities = items;
+      },
+      error: () => {
+        this.toastService.show('Error al cargar modalidades', 'error');
       }
     });
   }

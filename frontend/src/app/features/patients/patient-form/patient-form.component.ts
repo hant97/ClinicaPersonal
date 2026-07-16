@@ -1,8 +1,11 @@
 import { Component, EventEmitter, Output, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { forkJoin } from 'rxjs';
 import { PatientService } from '../../../core/services/patient/patient.service';
+import { CatalogService } from '../../../core/services/catalog.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
+import { CatalogItem } from '../../../core/models/catalog.model';
 
 @Component({
   selector: 'app-patient-form',
@@ -18,16 +21,22 @@ export class PatientFormComponent implements OnInit {
   patientForm: FormGroup;
   isSaving = false;
 
+  documentTypes: CatalogItem[] = [];
+  genders: CatalogItem[] = [];
+  maritalStatuses: CatalogItem[] = [];
+
   constructor(
     private fb: FormBuilder,
     private patientService: PatientService,
+    private catalogService: CatalogService,
     private toastService: ToastService
   ) {
     this.patientForm = this.fb.group({
-      firstName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50), Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$/)]],
-      lastName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50), Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$/)]],
+      firstName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50), Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)]],
+      lastName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50), Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)]],
+      documentType: ['', [Validators.required]],
       identificationDocument: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(8), Validators.pattern(/^[0-9]+$/)]],
-      contactNumber: ['', [Validators.pattern(/^[0-9+\\-\\s()]+$/), Validators.minLength(7), Validators.maxLength(15)]],
+      contactNumber: ['', [Validators.pattern(/^[0-9+\-\s()]+$/), Validators.minLength(7), Validators.maxLength(15)]],
       email: ['', [Validators.email]],
       dateOfBirth: [''],
       occupation: ['', [Validators.maxLength(100)]],
@@ -42,6 +51,9 @@ export class PatientFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadCatalogs();
+    this.setupDocumentValidation();
+
     if (this.patientId) {
       this.patientService.getById(this.patientId).subscribe({
         next: (patient) => {
@@ -52,6 +64,37 @@ export class PatientFormComponent implements OnInit {
         }
       });
     }
+  }
+
+  loadCatalogs(): void {
+    forkJoin({
+      docTypes: this.catalogService.getActiveItemsByCatalogCode('DOCUMENT_TYPE'),
+      genders: this.catalogService.getActiveItemsByCatalogCode('GENDER'),
+      maritalStatuses: this.catalogService.getActiveItemsByCatalogCode('MARITAL_STATUS')
+    }).subscribe({
+      next: (results) => {
+        this.documentTypes = results.docTypes;
+        this.genders = results.genders;
+        this.maritalStatuses = results.maritalStatuses;
+      },
+      error: () => {
+        this.toastService.show('Error al cargar los catálogos', 'error');
+      }
+    });
+  }
+
+  setupDocumentValidation(): void {
+    this.patientForm.get('documentType')?.valueChanges.subscribe(type => {
+      const docControl = this.patientForm.get('identificationDocument');
+      docControl?.setValue('');
+      
+      if (type === 'DNI') {
+        docControl?.setValidators([Validators.required, Validators.minLength(8), Validators.maxLength(8), Validators.pattern(/^[0-9]+$/)]);
+      } else {
+        docControl?.setValidators([Validators.required, Validators.minLength(4), Validators.maxLength(20), Validators.pattern(/^[a-zA-Z0-9]+$/)]);
+      }
+      docControl?.updateValueAndValidity();
+    });
   }
 
   onSubmit(): void {

@@ -73,7 +73,8 @@ export class CatalogManagementComponent implements OnInit {
   }
 
   toggleActive(item: CatalogItem): void {
-    const updatedItem = { ...item, isActive: !item.isActive };
+    // Como usamos ngModel, item.isActive ya tiene el nuevo valor deseado.
+    const updatedItem = { ...item };
     this.catalogService.updateCatalogItem(item.id!, updatedItem).subscribe({
       next: (saved) => {
         item.isActive = saved.isActive;
@@ -81,6 +82,8 @@ export class CatalogManagementComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
+        // Si hay error, revertimos el estado en la interfaz
+        item.isActive = !item.isActive;
         this.notificationService.alert('Error', 'Error al actualizar ítem', 'error');
       }
     });

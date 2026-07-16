@@ -101,6 +101,7 @@
         <button class="close-btn" (click)="closeForm()">&times;</button>
         <app-clinical-session-form 
           [patientId]="patient.id!" 
+          [session]="selectedSession"
           (saved)="onSessionSaved()"
           (cancelled)="closeForm()">
         </app-clinical-session-form>

@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "catalog_items")
@@ -28,8 +29,9 @@ public class CatalogItem {
     @Column(name = "item_name", nullable = false)
     private String itemName;
 
+    @JsonProperty("isActive")
     @Column(name = "is_active", nullable = false)
-    private boolean isActive = true;
+    private boolean active = true;
 
     @Column(name = "order_index")
     private Integer orderIndex = 0;

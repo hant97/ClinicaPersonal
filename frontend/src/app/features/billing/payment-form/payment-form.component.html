@@ -40,11 +40,12 @@
       </div>
 
       <div class="form-group">
-        <label for="paymentMethod">Método de Pago *</label>
-        <select id="paymentMethod" formControlName="paymentMethod" class="form-control">
-          <option value="CASH">Efectivo</option>
-          <option value="TRANSFER">Transferencia</option>
-          <option value="CARD">Tarjeta</option>
+        <label>Método de Pago *</label>
+        <select formControlName="paymentMethod" class="form-control">
+          <option value="">Seleccione</option>
+          @for (method of paymentMethods; track method.id) {
+            <option [value]="method.itemCode">{{ method.itemName }}</option>
+          }
         </select>
         @if (paymentForm.get('paymentMethod')?.invalid && (paymentForm.get('paymentMethod')?.dirty || paymentForm.get('paymentMethod')?.touched)) {
           <div class="error-messages">

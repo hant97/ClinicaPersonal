@@ -33,8 +33,10 @@
         <div class="form-group" style="flex: 1;">
           <label for="modality">Modalidad *</label>
           <select id="modality" formControlName="modality" class="form-control">
-            <option value="PRESENCIAL">Presencial</option>
-            <option value="VIRTUAL">Virtual</option>
+            <option value="">Seleccione</option>
+            @for (modality of appointmentModalities; track modality.id) {
+              <option [value]="modality.itemCode">{{ modality.itemName }}</option>
+            }
           </select>
         </div>
         <div class="form-group" style="flex: 1;">

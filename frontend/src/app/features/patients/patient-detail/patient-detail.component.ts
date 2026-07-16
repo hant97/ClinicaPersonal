@@ -22,6 +22,7 @@ export class PatientDetailComponent implements OnInit {
   sessions: ClinicalSession[] = [];
   showForm = false;
   expandedSessionId: number | null = null;
+  selectedSession: ClinicalSession | undefined;
 
   constructor(
     private route: ActivatedRoute,
@@ -61,16 +62,18 @@ export class PatientDetailComponent implements OnInit {
     });
   }
 
-  openForm(): void {
+  openForm(session?: ClinicalSession): void {
+    this.selectedSession = session;
     this.showForm = true;
   }
 
   closeForm(): void {
     this.showForm = false;
+    this.selectedSession = undefined;
   }
 
   onSessionSaved(): void {
-    this.showForm = false;
+    this.closeForm();
     if (this.patient?.id) {
       this.loadSessions(this.patient.id);
     }
@@ -114,7 +117,9 @@ export class PatientDetailComponent implements OnInit {
 
   editSession(id: number, event: Event): void {
     event.stopPropagation();
-    // TODO: Implement edit logic
-    this.toastService.show('Funcionalidad de edición pendiente de implementar.', 'info');
+    const session = this.sessions.find(s => s.id === id);
+    if (session) {
+      this.openForm(session);
+    }
   }
 }

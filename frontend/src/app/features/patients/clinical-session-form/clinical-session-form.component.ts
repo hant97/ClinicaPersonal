@@ -2,7 +2,10 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ClinicalSessionService } from '../../../core/services/clinical-session.service';
+import { CatalogService } from '../../../core/services/catalog.service';
 import { ClinicalSession } from '../../../core/models/clinical-session.model';
+import { CatalogItem } from '../../../core/models/catalog.model';
+import { ToastService } from '../../../shared/services/toast/toast.service';
 
 @Component({
   selector: 'app-clinical-session-form',
@@ -13,36 +16,66 @@ import { ClinicalSession } from '../../../core/models/clinical-session.model';
 })
 export class ClinicalSessionFormComponent implements OnInit {
   @Input() patientId!: number;
+  @Input() session?: ClinicalSession;
   @Output() saved = new EventEmitter<void>();
   @Output() cancelled = new EventEmitter<void>();
 
   sessionForm!: FormGroup;
+  appointmentModalities: CatalogItem[] = [];
 
   constructor(
     private fb: FormBuilder,
-    private sessionService: ClinicalSessionService
+    private sessionService: ClinicalSessionService,
+    private catalogService: CatalogService,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
-    const now = new Date();
-    const tzOffset = now.getTimezoneOffset() * 60000;
-    const localISO = new Date(now.getTime() - tzOffset).toISOString();
-    const dateStr = localISO.split('T')[0];
-    const timeStr = localISO.split('T')[1].substring(0, 5);
+    this.loadCatalogs();
+
+    let dateStr = '';
+    let startTimeStr = '';
+    let endTimeStr = '';
+
+    if (this.session) {
+      dateStr = this.session.sessionDate;
+      if (dateStr.includes('T')) {
+        dateStr = dateStr.split('T')[0];
+      }
+      startTimeStr = this.session.startTime.substring(0, 5);
+      endTimeStr = this.session.endTime ? this.session.endTime.substring(0, 5) : '';
+    } else {
+      const now = new Date();
+      const tzOffset = now.getTimezoneOffset() * 60000;
+      const localISO = new Date(now.getTime() - tzOffset).toISOString();
+      dateStr = localISO.split('T')[0];
+      startTimeStr = localISO.split('T')[1].substring(0, 5);
+    }
 
     this.sessionForm = this.fb.group({
       sessionDate: [dateStr, Validators.required],
-      startTime: [timeStr, Validators.required],
-      endTime: ['', Validators.required],
-      sessionType: ['INDIVIDUAL', Validators.required],
-      modality: ['PRESENCIAL', Validators.required],
-      status: ['COMPLETADA', Validators.required],
-      subjective: [''],
-      objective: [''],
-      analysis: [''],
-      plan: [''],
-      isConfidential: [false]
+      startTime: [startTimeStr, Validators.required],
+      endTime: [endTimeStr, Validators.required],
+      sessionType: [this.session?.sessionType || 'INDIVIDUAL', Validators.required],
+      modality: [this.session?.modality || 'PRESENCIAL', Validators.required],
+      status: [this.session?.status || 'COMPLETADA', Validators.required],
+      subjective: [this.session?.subjective || ''],
+      objective: [this.session?.objective || ''],
+      analysis: [this.session?.analysis || ''],
+      plan: [this.session?.plan || ''],
+      isConfidential: [this.session?.isConfidential || false]
     }, { validators: this.soapValidator });
+  }
+
+  loadCatalogs(): void {
+    this.catalogService.getActiveItemsByCatalogCode('APPOINTMENT_MODALITY').subscribe({
+      next: (items) => {
+        this.appointmentModalities = items;
+      },
+      error: () => {
+        this.toastService.show('Error al cargar modalidades', 'error');
+      }
+    });
   }
 
   // Validador custom: Al menos un campo SOAP debe estar lleno
@@ -69,10 +102,29 @@ export class ClinicalSessionFormComponent implements OnInit {
       patientId: this.patientId
     };
 
-    this.sessionService.createSession(sessionData).subscribe({
-      next: () => this.saved.emit(),
-      error: (err) => console.error('Error saving session', err)
-    });
+    if (this.session && this.session.id) {
+      this.sessionService.updateSession(this.session.id, sessionData).subscribe({
+        next: () => {
+          this.toastService.show('Sesión actualizada exitosamente', 'success');
+          this.saved.emit();
+        },
+        error: (err) => {
+          console.error('Error updating session', err);
+          this.toastService.show('Error al actualizar la sesión', 'error');
+        }
+      });
+    } else {
+      this.sessionService.createSession(sessionData).subscribe({
+        next: () => {
+          this.toastService.show('Sesión guardada exitosamente', 'success');
+          this.saved.emit();
+        },
+        error: (err) => {
+          console.error('Error saving session', err);
+          this.toastService.show('Error al guardar la sesión', 'error');
+        }
+      });
+    }
   }
 
   onCancel(): void {

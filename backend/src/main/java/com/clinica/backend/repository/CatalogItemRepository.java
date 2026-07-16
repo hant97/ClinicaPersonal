@@ -10,5 +10,5 @@ import java.util.List;
 public interface CatalogItemRepository extends JpaRepository<CatalogItem, Long> {
     List<CatalogItem> findByCatalogIdOrderByOrderIndexAsc(Long catalogId);
     List<CatalogItem> findByCatalogCodeOrderByOrderIndexAsc(String catalogCode);
-    List<CatalogItem> findByCatalogCodeAndIsActiveTrueOrderByOrderIndexAsc(String catalogCode);
+    List<CatalogItem> findByCatalogCodeAndActiveTrueOrderByOrderIndexAsc(String catalogCode);
 }

@@ -47,14 +47,10 @@
         <div class="form-group">
           <label for="unit" class="form-label">Unidad de Medida <span class="required">*</span></label>
           <select id="unit" formControlName="unit" class="input-field" [class.is-invalid]="form.get('unit')?.invalid && form.get('unit')?.touched">
-            <option value="">Seleccionar...</option>
-            <option value="Unidad">Unidad</option>
-            <option value="Caja">Caja</option>
-            <option value="Blister">Blister</option>
-            <option value="Frasco">Frasco</option>
-            <option value="Paquete">Paquete</option>
-            <option value="Galón">Galón</option>
-            <option value="Litro">Litro</option>
+            <option value="">Seleccione</option>
+            @for (unit of supplyUnits; track unit.id) {
+              <option [value]="unit.itemCode">{{ unit.itemName }}</option>
+            }
           </select>
           @if (form.get('unit')?.invalid && form.get('unit')?.touched) {
             <div class="error-messages">

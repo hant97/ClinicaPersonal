@@ -1,4 +1,4 @@
-<div class="container catalog-container">
+<div class="catalog-container">
   <div class="header-section">
     <h1>Administración de Catálogos</h1>
   </div>
@@ -78,10 +78,11 @@
                     {{ item.isActive ? 'Activo' : 'Inactivo' }}
                   </span>
                 </td>
-                <td style="text-align: right;">
-                  <button (click)="toggleActive(item)" class="action-btn" [class.text-danger]="item.isActive" [class.text-success]="!item.isActive">
-                    {{ item.isActive ? 'Desactivar' : 'Activar' }}
-                  </button>
+                <td style="text-align: right; vertical-align: middle;">
+                  <label class="switch" title="{{ item.isActive ? 'Desactivar' : 'Activar' }}">
+                    <input type="checkbox" [(ngModel)]="item.isActive" (change)="toggleActive(item)">
+                    <span class="slider round"></span>
+                  </label>
                 </td>
               </tr>
               <tr *ngIf="items.length === 0">

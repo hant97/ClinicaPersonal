@@ -32,13 +32,27 @@
           }
         </div>
         <div class="form-group">
-          <label class="form-label">Documento de Identidad</label>
+          <label class="form-label">Tipo de Documento</label>
+          <select formControlName="documentType" class="input-field">
+            <option value="">Seleccione</option>
+            @for (doc of documentTypes; track doc.id) {
+              <option [value]="doc.itemCode">{{ doc.itemName }}</option>
+            }
+          </select>
+          @if (patientForm.get('documentType')?.invalid && (patientForm.get('documentType')?.dirty || patientForm.get('documentType')?.touched)) {
+            <div class="error-messages">
+              <small class="text-error">Este campo es requerido.</small>
+            </div>
+          }
+        </div>
+        <div class="form-group">
+          <label class="form-label">Número de Documento</label>
           <input type="text" formControlName="identificationDocument" class="input-field" maxlength="8">
           @if (patientForm.get('identificationDocument')?.invalid && (patientForm.get('identificationDocument')?.dirty || patientForm.get('identificationDocument')?.touched)) {
             <div class="error-messages">
               @if (patientForm.get('identificationDocument')?.hasError('required')) { <small class="text-error">Este campo es requerido.</small> }
-              @if (patientForm.get('identificationDocument')?.hasError('minlength') || patientForm.get('identificationDocument')?.hasError('maxlength')) { <small class="text-error">Debe tener exactamente 8 dígitos.</small> }
-              @if (patientForm.get('identificationDocument')?.hasError('pattern')) { <small class="text-error">Solo se permiten números.</small> }
+              @if (patientForm.get('identificationDocument')?.hasError('minlength') || patientForm.get('identificationDocument')?.hasError('maxlength')) { <small class="text-error">Longitud inválida.</small> }
+              @if (patientForm.get('identificationDocument')?.hasError('pattern')) { <small class="text-error">Formato inválido.</small> }
             </div>
           }
         </div>
@@ -70,9 +84,9 @@
           <label class="form-label">Género</label>
           <select formControlName="gender" class="input-field">
             <option value="">Seleccione</option>
-            <option value="Masculino">Masculino</option>
-            <option value="Femenino">Femenino</option>
-            <option value="Otro">Otro</option>
+            @for (gender of genders; track gender.id) {
+              <option [value]="gender.itemCode">{{ gender.itemName }}</option>
+            }
           </select>
           @if (patientForm.get('gender')?.invalid && (patientForm.get('gender')?.dirty || patientForm.get('gender')?.touched)) {
             <div class="error-messages">
@@ -84,10 +98,9 @@
           <label class="form-label">Estado Civil</label>
           <select formControlName="maritalStatus" class="input-field">
             <option value="">Seleccione</option>
-            <option value="Soltero">Soltero/a</option>
-            <option value="Casado">Casado/a</option>
-            <option value="Divorciado">Divorciado/a</option>
-            <option value="Viudo">Viudo/a</option>
+            @for (status of maritalStatuses; track status.id) {
+              <option [value]="status.itemCode">{{ status.itemName }}</option>
+            }
           </select>
         </div>
         <div class="form-group">

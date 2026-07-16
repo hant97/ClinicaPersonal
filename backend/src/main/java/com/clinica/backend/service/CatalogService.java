@@ -35,7 +35,7 @@ public class CatalogService {
     }
 
     public List<CatalogItemDto> getActiveItemsByCatalogCode(String code) {
-        return catalogItemRepository.findByCatalogCodeAndIsActiveTrueOrderByOrderIndexAsc(code)
+        return catalogItemRepository.findByCatalogCodeAndActiveTrueOrderByOrderIndexAsc(code)
                 .stream()
                 .map(this::mapItemToDto)
                 .collect(Collectors.toList());

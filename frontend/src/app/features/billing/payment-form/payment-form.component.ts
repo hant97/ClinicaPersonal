@@ -3,8 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PaymentService } from '../../../core/services/payment.service';
 import { PatientService } from '../../../core/services/patient/patient.service';
+import { CatalogService } from '../../../core/services/catalog.service';
 import { Patient } from '../../../core/models/patient.model';
 import { Payment } from '../../../core/models/payment.model';
+import { CatalogItem } from '../../../core/models/catalog.model';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { PatientAutocompleteComponent } from '../../../shared/components/patient-autocomplete/patient-autocomplete.component';
 
@@ -22,15 +24,19 @@ export class PaymentFormComponent implements OnInit {
 
   paymentForm!: FormGroup;
   isSubmitting = false;
+  paymentMethods: CatalogItem[] = [];
 
   constructor(
     private fb: FormBuilder,
     private paymentService: PaymentService,
     private patientService: PatientService,
+    private catalogService: CatalogService,
     private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
+    this.loadCatalogs();
+
     const now = new Date();
     const tzOffset = now.getTimezoneOffset() * 60000;
     const localISO = new Date(now.getTime() - tzOffset).toISOString().substring(0, 16);
@@ -41,6 +47,17 @@ export class PaymentFormComponent implements OnInit {
       paymentDate: [this.payment ? this.payment.paymentDate.substring(0, 16) : localISO, Validators.required],
       paymentMethod: [this.payment?.paymentMethod || 'CASH', Validators.required],
       description: [this.payment?.description || '', [Validators.maxLength(255)]]
+    });
+  }
+
+  loadCatalogs(): void {
+    this.catalogService.getActiveItemsByCatalogCode('PAYMENT_METHOD').subscribe({
+      next: (items) => {
+        this.paymentMethods = items;
+      },
+      error: () => {
+        this.toastService.show('Error al cargar métodos de pago', 'error');
+      }
     });
   }
 

@@ -2,6 +2,8 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { InventoryService } from '../../../core/services/inventory.service';
+import { CatalogService } from '../../../core/services/catalog.service';
+import { CatalogItem } from '../../../core/models/catalog.model';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { LucideAngularModule, X } from 'lucide-angular';
 
@@ -21,16 +23,19 @@ export class InventoryFormComponent implements OnInit {
   form!: FormGroup;
   isSubmitting = false;
   isEditMode = false;
+  supplyUnits: CatalogItem[] = [];
 
   constructor(
     private fb: FormBuilder,
     private inventoryService: InventoryService,
+    private catalogService: CatalogService,
     private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
     this.isEditMode = !!this.supplyId;
     this.initForm();
+    this.loadCatalogs();
     if (this.isEditMode) {
       this.loadSupply();
     }
@@ -44,6 +49,17 @@ export class InventoryFormComponent implements OnInit {
       minStockLevel: [0, [Validators.required, Validators.min(0)]],
       unit: ['', [Validators.required]],
       expirationDate: ['']
+    });
+  }
+
+  loadCatalogs(): void {
+    this.catalogService.getActiveItemsByCatalogCode('SUPPLY_UNIT').subscribe({
+      next: (items) => {
+        this.supplyUnits = items;
+      },
+      error: () => {
+        this.toastService.show('Error al cargar unidades de medida', 'error');
+      }
     });
   }
 
