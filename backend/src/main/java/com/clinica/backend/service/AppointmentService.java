@@ -12,7 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -21,24 +22,27 @@ public class AppointmentService {
     private final PatientRepository patientRepository;
 
     @Transactional(readOnly = true)
-    public List<AppointmentDto> getByPatientId(Long patientId) {
-        return appointmentRepository.findByPatientIdOrderByAppointmentDateDescStartTimeDesc(patientId).stream()
-                .map(this::mapToDto).collect(Collectors.toList());
+    public Page<AppointmentDto> getByPatientId(Long patientId, Pageable pageable) {
+        return appointmentRepository.findByPatientIdOrderByAppointmentDateDescStartTimeDesc(patientId, pageable)
+                .map(this::mapToDto);
     }
 
     @Transactional(readOnly = true)
-    public List<AppointmentDto> getAll() {
-        return appointmentRepository.findAllByOrderByAppointmentDateAscStartTimeAsc().stream()
-                .map(this::mapToDto).collect(Collectors.toList());
+    public Page<AppointmentDto> getAll(Pageable pageable) {
+        return appointmentRepository.findAllByOrderByAppointmentDateAscStartTimeAsc(pageable)
+                .map(this::mapToDto);
     }
 
     @Transactional(readOnly = true)
-    public List<AppointmentDto> searchAppointments(String searchTerm, String status, LocalDate startDate, LocalDate endDate) {
-        if (searchTerm == null) searchTerm = "";
-        if (status != null && status.trim().isEmpty()) status = null;
-        
-        return appointmentRepository.searchAppointments(searchTerm, status, startDate, endDate).stream()
-                .map(this::mapToDto).collect(Collectors.toList());
+    public Page<AppointmentDto> searchAppointments(String searchTerm, String status, LocalDate startDate,
+            LocalDate endDate, Pageable pageable) {
+        if (searchTerm == null)
+            searchTerm = "";
+        if (status != null && status.trim().isEmpty())
+            status = null;
+
+        return appointmentRepository.searchAppointments(searchTerm, status, startDate, endDate, pageable)
+                .map(this::mapToDto);
     }
 
     @Transactional
@@ -47,7 +51,7 @@ public class AppointmentService {
         Patient patient = patientRepository.findById(dto.getPatientId()).orElseThrow();
         Appointment appointment = new Appointment();
         appointment.setPatient(patient);
-        
+
         appointment.setAppointmentDate(dto.getAppointmentDate());
         appointment.setStartTime(dto.getStartTime());
         appointment.setEndTime(dto.getEndTime());
@@ -58,7 +62,7 @@ public class AppointmentService {
         appointment.setFirstTime(dto.isFirstTime());
         appointment.setClinicalSessionId(dto.getClinicalSessionId());
         appointment.setNotes(dto.getNotes());
-        
+
         return mapToDto(appointmentRepository.save(appointment));
     }
 
@@ -66,7 +70,7 @@ public class AppointmentService {
     public AppointmentDto update(Long id, AppointmentDto dto) {
         validateAppointmentTime(dto.getAppointmentDate(), dto.getStartTime(), dto.getEndTime(), id);
         Appointment appointment = appointmentRepository.findById(id).orElseThrow();
-        
+
         appointment.setAppointmentDate(dto.getAppointmentDate());
         appointment.setStartTime(dto.getStartTime());
         appointment.setEndTime(dto.getEndTime());
@@ -75,7 +79,7 @@ public class AppointmentService {
         appointment.setProfessionalId(dto.getProfessionalId());
         appointment.setFirstTime(dto.isFirstTime());
         appointment.setNotes(dto.getNotes());
-        
+
         return mapToDto(appointmentRepository.save(appointment));
     }
 
@@ -83,11 +87,11 @@ public class AppointmentService {
     public AppointmentDto updateStatus(Long id, String newStatus) {
         Appointment appointment = appointmentRepository.findById(id).orElseThrow();
         String currentStatus = appointment.getStatus();
-        
+
         if (newStatus.equals(currentStatus)) {
             return mapToDto(appointment);
         }
-        
+
         // Máquina de estados
         if ("PROGRAMADA".equals(currentStatus)) {
             if (!"CONFIRMADA".equals(newStatus) && !"CANCELADA".equals(newStatus)) {
@@ -97,19 +101,21 @@ public class AppointmentService {
             if (!"COMPLETADA".equals(newStatus) && !"CANCELADA".equals(newStatus) && !"NO_ASISTIO".equals(newStatus)) {
                 throw new IllegalArgumentException("Transición no válida desde CONFIRMADA");
             }
-        } else if ("COMPLETADA".equals(currentStatus) || "CANCELADA".equals(currentStatus) || "NO_ASISTIO".equals(currentStatus)) {
+        } else if ("COMPLETADA".equals(currentStatus) || "CANCELADA".equals(currentStatus)
+                || "NO_ASISTIO".equals(currentStatus)) {
             throw new IllegalArgumentException("La cita está en un estado final y no puede cambiar.");
         }
-        
+
         appointment.setStatus(newStatus);
         return mapToDto(appointmentRepository.save(appointment));
     }
 
     private void validateAppointmentTime(LocalDate date, LocalTime start, LocalTime end, Long excludeId) {
-        if (date == null || start == null || end == null) return;
-        
+        if (date == null || start == null || end == null)
+            return;
+
         List<Appointment> overlapping = appointmentRepository.findByAppointmentDateAndStatusNot(date, "CANCELADA");
-        
+
         boolean hasConflict = overlapping.stream()
                 .filter(app -> excludeId == null || !app.getId().equals(excludeId))
                 .anyMatch(app -> {
@@ -117,7 +123,7 @@ public class AppointmentService {
                     // Y el fin propuesto está estrictamente después del inicio existente
                     return start.isBefore(app.getEndTime()) && end.isAfter(app.getStartTime());
                 });
-                
+
         if (hasConflict) {
             throw new IllegalArgumentException("Ya existe una cita programada en este horario.");
         }

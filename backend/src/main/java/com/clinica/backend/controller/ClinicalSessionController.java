@@ -6,7 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 @RestController
 @RequestMapping("/api/clinical-sessions")
@@ -16,8 +17,11 @@ public class ClinicalSessionController {
     private final ClinicalSessionService sessionService;
 
     @GetMapping("/patient/{patientId}")
-    public ResponseEntity<List<ClinicalSessionDto>> getSessionsByPatientId(@PathVariable Long patientId) {
-        return ResponseEntity.ok(sessionService.getSessionsByPatientId(patientId));
+    public ResponseEntity<Page<ClinicalSessionDto>> getSessionsByPatientId(
+            @PathVariable Long patientId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(sessionService.getSessionsByPatientId(patientId, PageRequest.of(page, size)));
     }
 
     @GetMapping("/{id}")
@@ -31,7 +35,8 @@ public class ClinicalSessionController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ClinicalSessionDto> updateSession(@PathVariable Long id, @RequestBody ClinicalSessionDto dto) {
+    public ResponseEntity<ClinicalSessionDto> updateSession(@PathVariable Long id,
+            @RequestBody ClinicalSessionDto dto) {
         return ResponseEntity.ok(sessionService.updateSession(id, dto));
     }
 

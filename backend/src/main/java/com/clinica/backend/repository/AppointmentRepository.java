@@ -7,9 +7,12 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
-    List<Appointment> findByPatientIdOrderByAppointmentDateDescStartTimeDesc(Long patientId);
-    List<Appointment> findAllByOrderByAppointmentDateAscStartTimeAsc();
+    Page<Appointment> findByPatientIdOrderByAppointmentDateDescStartTimeDesc(Long patientId, Pageable pageable);
+    Page<Appointment> findAllByOrderByAppointmentDateAscStartTimeAsc(Pageable pageable);
     List<Appointment> findByAppointmentDateAndStatusNot(LocalDate date, String status);
 
     @Query("SELECT a FROM Appointment a " +
@@ -18,9 +21,10 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
            "AND (cast(:startDate as date) IS NULL OR a.appointmentDate >= :startDate) " +
            "AND (cast(:endDate as date) IS NULL OR a.appointmentDate <= :endDate) " +
            "ORDER BY a.appointmentDate ASC, a.startTime ASC")
-    List<Appointment> searchAppointments(
+    Page<Appointment> searchAppointments(
             @Param("searchTerm") String searchTerm,
             @Param("status") String status,
             @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate);
+            @Param("endDate") LocalDate endDate,
+            Pageable pageable);
 }

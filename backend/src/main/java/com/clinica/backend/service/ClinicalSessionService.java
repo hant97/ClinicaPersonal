@@ -9,8 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -20,14 +20,13 @@ public class ClinicalSessionService {
     private final PatientRepository patientRepository;
 
     @Transactional(readOnly = true)
-    public List<ClinicalSessionDto> getSessionsByPatientId(Long patientId) {
+    public Page<ClinicalSessionDto> getSessionsByPatientId(Long patientId, Pageable pageable) {
         // TODO: Para la fase de confidencialidad, aquí se debería filtrar la lista
-        // para asegurar que las sesiones confidenciales solo se devuelvan si el 
-        // usuario logueado es un profesional médico (ej. comprobando el rol del usuario en SecurityContextHolder).
-        return sessionRepository.findByPatientIdOrderBySessionDateDescStartTimeDesc(patientId)
-                .stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
+        // para asegurar que las sesiones confidenciales solo se devuelvan si el
+        // usuario logueado es un profesional médico (ej. comprobando el rol del usuario
+        // en SecurityContextHolder).
+        return sessionRepository.findByPatientIdOrderBySessionDateDescStartTimeDesc(patientId, pageable)
+                .map(this::mapToDto);
     }
 
     @Transactional(readOnly = true)
@@ -49,8 +48,8 @@ public class ClinicalSessionService {
     public ClinicalSessionDto updateSession(Long id, ClinicalSessionDto dto) {
         ClinicalSession session = sessionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Session not found"));
-        
-        // TODO: Validar permisos de edición si session.isConfidential() es true 
+
+        // TODO: Validar permisos de edición si session.isConfidential() es true
         // o si el usuario actual no es el creador de la sesión.
 
         session.setSessionDate(dto.getSessionDate());
@@ -107,7 +106,7 @@ public class ClinicalSessionService {
         Patient patient = patientRepository.findById(dto.getPatientId())
                 .orElseThrow(() -> new RuntimeException("Patient not found"));
         entity.setPatient(patient);
-        
+
         entity.setSessionDate(dto.getSessionDate());
         entity.setStartTime(dto.getStartTime());
         entity.setEndTime(dto.getEndTime());

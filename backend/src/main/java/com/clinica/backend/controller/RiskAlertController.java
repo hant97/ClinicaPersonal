@@ -6,7 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 @RestController
 @RequestMapping("/api/patients/{patientId}/alerts")
@@ -16,10 +17,13 @@ public class RiskAlertController {
     private RiskAlertService riskAlertService;
 
     @GetMapping
-    public ResponseEntity<List<RiskAlertDto>> getAlerts(
+    public ResponseEntity<Page<RiskAlertDto>> getAlerts(
             @PathVariable Long patientId,
-            @RequestParam(required = false, defaultValue = "false") boolean onlyActive) {
-        return ResponseEntity.ok(riskAlertService.getAlertsByPatientId(patientId, onlyActive));
+            @RequestParam(required = false, defaultValue = "false") boolean onlyActive,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity
+                .ok(riskAlertService.getAlertsByPatientId(patientId, onlyActive, PageRequest.of(page, size)));
     }
 
     @PostMapping

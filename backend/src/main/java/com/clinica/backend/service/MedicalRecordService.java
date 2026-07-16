@@ -9,8 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -20,11 +20,9 @@ public class MedicalRecordService {
     private final PatientRepository patientRepository;
 
     @Transactional(readOnly = true)
-    public List<MedicalRecordDto> getRecordsByPatientId(Long patientId) {
-        return medicalRecordRepository.findByPatientIdOrderByCreatedAtDesc(patientId)
-                .stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
+    public Page<MedicalRecordDto> getRecordsByPatientId(Long patientId, Pageable pageable) {
+        return medicalRecordRepository.findByPatientIdOrderByCreatedAtDesc(patientId, pageable)
+                .map(this::mapToDto);
     }
 
     @Transactional

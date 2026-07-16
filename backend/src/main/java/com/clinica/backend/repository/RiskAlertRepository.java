@@ -3,13 +3,16 @@ package com.clinica.backend.repository;
 import com.clinica.backend.model.RiskAlert;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface RiskAlertRepository extends JpaRepository<RiskAlert, Long> {
-    List<RiskAlert> findByPatientIdOrderByCreatedAtDesc(Long patientId);
-    List<RiskAlert> findByPatientIdAndActiveTrueOrderByCreatedAtDesc(Long patientId);
+    Page<RiskAlert> findByPatientIdOrderByCreatedAtDesc(Long patientId, Pageable pageable);
+
+    Page<RiskAlert> findByPatientIdAndActiveTrueOrderByCreatedAtDesc(Long patientId, Pageable pageable);
+
     boolean existsByPatientIdAndActiveTrue(Long patientId);
-    List<RiskAlert> findByActiveTrueOrderByCreatedAtDesc();
+
+    Page<RiskAlert> findByActiveTrueOrderByCreatedAtDesc(Pageable pageable);
 }

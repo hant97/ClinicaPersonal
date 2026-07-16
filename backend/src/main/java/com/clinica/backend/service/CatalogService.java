@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.cache.annotation.Cacheable;
 
 @Service
 public class CatalogService {
@@ -35,6 +36,7 @@ public class CatalogService {
         return mapToDto(catalog);
     }
 
+    @Cacheable("catalogItems")
     public List<CatalogItemDto> getActiveItemsByCatalogCode(String code) {
         return catalogItemRepository.findByCatalogCodeAndActiveTrueOrderByOrderIndexAsc(code)
                 .stream()

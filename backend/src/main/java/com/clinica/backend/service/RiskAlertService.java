@@ -7,8 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class RiskAlertService {
@@ -16,17 +16,17 @@ public class RiskAlertService {
     @Autowired
     private RiskAlertRepository riskAlertRepository;
 
-    public List<RiskAlertDto> getAlertsByPatientId(Long patientId, boolean onlyActive) {
-        List<RiskAlert> alerts = onlyActive 
-            ? riskAlertRepository.findByPatientIdAndActiveTrueOrderByCreatedAtDesc(patientId)
-            : riskAlertRepository.findByPatientIdOrderByCreatedAtDesc(patientId);
-        
-        return alerts.stream().map(this::mapToDto).collect(Collectors.toList());
+    public Page<RiskAlertDto> getAlertsByPatientId(Long patientId, boolean onlyActive, Pageable pageable) {
+        Page<RiskAlert> alerts = onlyActive
+                ? riskAlertRepository.findByPatientIdAndActiveTrueOrderByCreatedAtDesc(patientId, pageable)
+                : riskAlertRepository.findByPatientIdOrderByCreatedAtDesc(patientId, pageable);
+
+        return alerts.map(this::mapToDto);
     }
 
-    public List<RiskAlertDto> getAllActiveAlerts() {
-        List<RiskAlert> alerts = riskAlertRepository.findByActiveTrueOrderByCreatedAtDesc();
-        return alerts.stream().map(this::mapToDto).collect(Collectors.toList());
+    public Page<RiskAlertDto> getAllActiveAlerts(Pageable pageable) {
+        Page<RiskAlert> alerts = riskAlertRepository.findByActiveTrueOrderByCreatedAtDesc(pageable);
+        return alerts.map(this::mapToDto);
     }
 
     public RiskAlertDto createAlert(RiskAlertDto dto) {
@@ -36,7 +36,7 @@ public class RiskAlertService {
         alert.setLevel(dto.getLevel());
         alert.setDescription(dto.getDescription());
         alert.setActive(true);
-        
+
         RiskAlert saved = riskAlertRepository.save(alert);
         return mapToDto(saved);
     }
@@ -46,7 +46,7 @@ public class RiskAlertService {
                 .orElseThrow(() -> new RuntimeException("Alert not found"));
         alert.setActive(false);
         alert.setResolvedAt(LocalDateTime.now());
-        
+
         RiskAlert saved = riskAlertRepository.save(alert);
         return mapToDto(saved);
     }

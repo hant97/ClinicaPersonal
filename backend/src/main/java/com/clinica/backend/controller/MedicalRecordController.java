@@ -6,7 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 @RestController
 @RequestMapping("/api/medical-records")
@@ -17,8 +18,11 @@ public class MedicalRecordController {
     private final MedicalRecordService medicalRecordService;
 
     @GetMapping("/patient/{patientId}")
-    public ResponseEntity<List<MedicalRecordDto>> getRecordsByPatient(@PathVariable Long patientId) {
-        return ResponseEntity.ok(medicalRecordService.getRecordsByPatientId(patientId));
+    public ResponseEntity<Page<MedicalRecordDto>> getRecordsByPatient(
+            @PathVariable Long patientId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(medicalRecordService.getRecordsByPatientId(patientId, PageRequest.of(page, size)));
     }
 
     @PostMapping
