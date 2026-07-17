@@ -238,7 +238,7 @@ export class AgendaComponent implements OnInit, OnDestroy {
 
     this.appointmentService.search(filters.searchTerm, filters.status, startDate, endDate).subscribe({
       next: (data) => {
-        this.appointments = data.map(app => ({
+        this.appointments = data.content.map(app => ({
           ...app,
           patientName: this.patientMap.get(Number(app.patientId)) || 'Paciente Desconocido'
         }));

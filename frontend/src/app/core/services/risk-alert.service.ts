@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { RiskAlert } from '../models/risk-alert.model';
+import { PageResponse } from '../models/page.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -20,8 +21,9 @@ export class RiskAlertService {
     return this.http.get<RiskAlert[]>(`${this.apiUrl}/${patientId}/alerts`, { params });
   }
 
-  getAllActiveAlerts(): Observable<RiskAlert[]> {
-    return this.http.get<RiskAlert[]>(`${environment.apiUrl}/alerts/active`);
+  getAllActiveAlerts(page: number = 0, size: number = 1000): Observable<PageResponse<RiskAlert>> {
+    const params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+    return this.http.get<PageResponse<RiskAlert>>(`${environment.apiUrl}/alerts/active`, { params });
   }
 
   createAlert(patientId: number, alert: RiskAlert): Observable<RiskAlert> {

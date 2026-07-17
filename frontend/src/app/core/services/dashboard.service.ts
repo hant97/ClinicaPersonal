@@ -37,10 +37,10 @@ export class DashboardService {
   getDashboardStats(): Observable<DashboardStats> {
     return forkJoin({
       patients: this.patientService.getAll(0, 1000), // Usamos 1000 para cargar la mayoría de pacientes para las estadísticas del dashboard
-      appointments: this.appointmentService.getAll(),
+      appointments: this.appointmentService.getAll(0, 1000),
       payments: this.paymentService.getAll(0, 1000),
       lowStockSupplies: this.inventoryService.getLowStockSupplies(),
-      activeRiskAlerts: this.riskAlertService.getAllActiveAlerts()
+      activeRiskAlerts: this.riskAlertService.getAllActiveAlerts(0, 100)
     }).pipe(
       map(({ patients, appointments, payments, lowStockSupplies, activeRiskAlerts }) => {
         const today = new Date();
@@ -51,8 +51,10 @@ export class DashboardService {
 
         const activePatients = patients.page.totalElements;
         const patientsList = patients.content;
+        const appointmentsList = appointments.content;
+        const activeRiskAlertsList = activeRiskAlerts.content;
 
-        const appointmentsToday = appointments.filter(app => {
+        const appointmentsToday = appointmentsList.filter(app => {
           const appDate = new Date(app.appointmentDate + 'T00:00:00').getTime();
           return appDate >= startOfDay && appDate < endOfDay;
         }).length;
@@ -72,7 +74,7 @@ export class DashboardService {
 
         // Nuevos cálculos
         // 1. Tasa de Asistencia y Cancelaciones (Mes Actual)
-        const appointmentsThisMonth = appointments.filter(app => {
+        const appointmentsThisMonth = appointmentsList.filter(app => {
           const appDate = new Date(app.appointmentDate + 'T00:00:00');
           return appDate.getMonth() === currentMonth && appDate.getFullYear() === currentYear;
         });
@@ -105,7 +107,7 @@ export class DashboardService {
           monthlyIncomeGrowth = 100; // Crecimiento del 100% si el mes pasado fue 0 y este mes hay ingresos
         }
 
-        const upcomingAppointments = appointments
+        const upcomingAppointments = appointmentsList
           .filter(app => {
             const appDateTimeStr = app.startTime ? `${app.appointmentDate}T${app.startTime}` : `${app.appointmentDate}T00:00:00`;
             const appDateTime = new Date(appDateTimeStr);
@@ -138,7 +140,7 @@ export class DashboardService {
           cancelledAppointments,
           newPatientsThisMonth,
           monthlyIncomeGrowth,
-          activeRiskAlerts,
+          activeRiskAlerts: activeRiskAlertsList,
           lowStockSupplies
         };
       })

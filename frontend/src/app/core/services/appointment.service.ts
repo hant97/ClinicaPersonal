@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Appointment } from '../models/appointment.model';
+import { PageResponse } from '../models/page.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -12,21 +13,23 @@ export class AppointmentService {
 
   constructor(private http: HttpClient) { }
 
-  getAll(): Observable<Appointment[]> {
-    return this.http.get<Appointment[]>(this.apiUrl);
+  getAll(page: number = 0, size: number = 1000): Observable<PageResponse<Appointment>> {
+    const params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+    return this.http.get<PageResponse<Appointment>>(this.apiUrl, { params });
   }
 
-  search(searchTerm?: string, status?: string, startDate?: string, endDate?: string): Observable<Appointment[]> {
-    let params = new HttpParams();
+  search(searchTerm?: string, status?: string, startDate?: string, endDate?: string, page: number = 0, size: number = 1000): Observable<PageResponse<Appointment>> {
+    let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
     if (searchTerm) params = params.set('searchTerm', searchTerm);
     if (status && status !== 'ALL') params = params.set('status', status);
     if (startDate) params = params.set('startDate', startDate);
     if (endDate) params = params.set('endDate', endDate);
-    return this.http.get<Appointment[]>(`${this.apiUrl}/search`, { params });
+    return this.http.get<PageResponse<Appointment>>(`${this.apiUrl}/search`, { params });
   }
 
-  getByPatientId(patientId: number): Observable<Appointment[]> {
-    return this.http.get<Appointment[]>(`${this.apiUrl}/patient/${patientId}`);
+  getByPatientId(patientId: number, page: number = 0, size: number = 1000): Observable<PageResponse<Appointment>> {
+    const params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+    return this.http.get<PageResponse<Appointment>>(`${this.apiUrl}/patient/${patientId}`, { params });
   }
 
   create(appointment: Appointment): Observable<Appointment> {
