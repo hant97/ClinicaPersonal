@@ -35,6 +35,12 @@ public class CatalogDataInitializer implements CommandLineRunner {
             
         initializeCatalogIfNotFound("SUPPLY_UNIT", "Unidad de Medida", "Unidades para el inventario", 
             Arrays.asList("Unidades", "Cajas", "Paquetes", "Litros", "Mililitros"));
+            
+        initializeCatalogIfNotFound("RISK_ALERT_TYPE", "Tipo de Alerta de Riesgo", "Tipos de riesgo para pacientes", 
+            Arrays.asList("Ideación Suicida", "Autolesión", "Violencia Familiar", "Abuso de Sustancias", "Riesgo de Fuga", "Deserción del Tratamiento", "Otro"));
+            
+        initializeCatalogIfNotFound("RISK_ALERT_LEVEL", "Nivel de Riesgo", "Niveles de gravedad de riesgo", 
+            Arrays.asList("Bajo", "Moderado", "Alto", "Crítico"));
     }
 
     private void initializeCatalogIfNotFound(String code, String name, String description, List<String> itemNames) {

@@ -8,6 +8,8 @@ public class PaymentDto {
     private Long patientId;
     private BigDecimal amount;
     private LocalDateTime paymentDate;
-    private String paymentMethod;
+    private String paymentMethod; // CASH, TRANSFER, CARD
     private String description;
+    
+    private java.util.List<PaymentItemDto> items;
 }

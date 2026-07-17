@@ -32,6 +32,7 @@ export class PatientDetailComponent implements OnInit {
   readonly User = User;
   readonly Phone = Phone;
   readonly Activity = Activity;
+  readonly Calendar = Calendar;
   
   patient: Patient | null = null;
   sessions: ClinicalSession[] = [];
@@ -78,8 +79,8 @@ export class PatientDetailComponent implements OnInit {
 
   loadAlerts(patientId: number): void {
     this.riskAlertService.getAlertsByPatientId(patientId, true).subscribe({
-      next: (data) => {
-        this.activeAlerts = data;
+      next: (data: any) => {
+        this.activeAlerts = data.content || data || [];
         this.resolveAlertLabels();
       },
       error: (err) => console.error('Error fetching alerts', err)
@@ -87,15 +88,21 @@ export class PatientDetailComponent implements OnInit {
   }
 
   resolveAlertLabels(): void {
-    this.catalogService.getActiveItemsByCatalogCode('RISK_ALERT_TYPE').subscribe(types => {
-      this.catalogService.getActiveItemsByCatalogCode('RISK_ALERT_LEVEL').subscribe(levels => {
-        this.activeAlerts.forEach(alert => {
-          const typeItem = types.find(t => t.itemCode === alert.type);
-          const levelItem = levels.find(l => l.itemCode === alert.level);
-          alert.type = typeItem ? typeItem.itemName : alert.type;
-          alert.level = levelItem ? levelItem.itemName : alert.level;
+    this.catalogService.getActiveItemsByCatalogCode('RISK_ALERT_TYPE').subscribe({
+      next: (types) => {
+        this.catalogService.getActiveItemsByCatalogCode('RISK_ALERT_LEVEL').subscribe({
+          next: (levels) => {
+            this.activeAlerts.forEach(alert => {
+              const typeItem = types.find(t => t.itemCode === alert.type);
+              const levelItem = levels.find(l => l.itemCode === alert.level);
+              alert.type = typeItem ? typeItem.itemName : alert.type;
+              alert.level = levelItem ? levelItem.itemName : alert.level;
+            });
+          },
+          error: (err) => console.error('Error fetching RISK_ALERT_LEVEL', err)
         });
-      });
+      },
+      error: (err) => console.error('Error fetching RISK_ALERT_TYPE', err)
     });
   }
 
@@ -135,7 +142,7 @@ export class PatientDetailComponent implements OnInit {
 
   loadMedicalRecords(patientId: number): void {
     this.medicalRecordService.getRecordsByPatientId(patientId).subscribe({
-      next: (data) => this.medicalRecords = data,
+      next: (data: any) => this.medicalRecords = data.content || data || [],
       error: (err) => console.error('Error fetching medical records', err)
     });
   }
@@ -211,7 +218,7 @@ export class PatientDetailComponent implements OnInit {
 
   loadSessions(patientId: number): void {
     this.sessionService.getSessionsByPatientId(patientId).subscribe({
-      next: (data) => this.sessions = data,
+      next: (data: any) => this.sessions = data.content || data || [],
       error: (err) => console.error('Error fetching sessions', err)
     });
   }

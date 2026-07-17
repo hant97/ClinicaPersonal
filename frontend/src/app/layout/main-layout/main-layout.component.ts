@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, LayoutDashboard, Users, CalendarDays, Receipt, LogOut, ClipboardList, Package, Settings, Menu, X, User } from 'lucide-angular';
+import { LucideAngularModule, LayoutDashboard, Users, CalendarDays, Receipt, LogOut, ClipboardList, Package, Settings, Menu, X, User, Activity } from 'lucide-angular';
 import { UserService } from '../../core/services/user.service';
 import { UserProfile } from '../../core/models/user-profile.model';
 
@@ -24,6 +24,7 @@ export class MainLayoutComponent implements OnInit {
   readonly Menu = Menu;
   readonly X = X;
   readonly User = User;
+  readonly Activity = Activity;
 
   isSidebarOpen = false;
   userProfile: UserProfile | null = null;

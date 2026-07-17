@@ -48,6 +48,7 @@ export class InventoryFormComponent implements OnInit {
       currentStock: [0, [Validators.required, Validators.min(0)]],
       minStockLevel: [0, [Validators.required, Validators.min(0)]],
       unit: ['', [Validators.required]],
+      price: [0, [Validators.min(0)]],
       expirationDate: ['']
     });
   }

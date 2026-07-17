@@ -14,19 +14,110 @@
         }
       </div>
 
+      <!-- Servicios -->
+      <div class="form-group items-section">
+        <div class="items-header">
+          <h4>Servicios Clínicos (Obligatorio)</h4>
+          <button type="button" class="btn btn-sm btn-secondary" (click)="addService()">+ Agregar Servicio</button>
+        </div>
+        
+        <div formArrayName="services" class="items-list">
+          @for (item of services.controls; track $index) {
+            <div [formGroupName]="$index" class="item-row">
+              <div class="item-col supply-col">
+                <label>Servicio *</label>
+                <select formControlName="clinicalServiceId" class="form-control" (change)="onClinicalServiceSelect($index, $event)">
+                  <option [ngValue]="null">--- Seleccione Servicio ---</option>
+                  @for (service of clinicalServices; track service.id) {
+                    <option [value]="service.id">{{ service.name }}</option>
+                  }
+                </select>
+              </div>
+              
+              <div class="item-col desc-col">
+                <label>Descripción *</label>
+                <input type="text" formControlName="description" class="form-control">
+              </div>
+              
+              <div class="item-col qty-col">
+                <label>Cant. *</label>
+                <input type="number" formControlName="quantity" class="form-control" min="1">
+              </div>
+              
+              <div class="item-col price-col">
+                <label>Precio Unit. *</label>
+                <input type="number" formControlName="unitPrice" class="form-control" step="0.01" min="0">
+              </div>
+              
+              <div class="item-col total-col">
+                <label>Total</label>
+                <input type="number" formControlName="totalPrice" class="form-control readonly-input">
+              </div>
+              
+              <div class="item-col actions-col">
+                <label>&nbsp;</label>
+                <button type="button" class="btn btn-danger btn-sm" (click)="removeService($index)" [disabled]="services.length === 1">X</button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Insumos -->
+      <div class="form-group items-section">
+        <div class="items-header">
+          <h4>Insumos Adicionales (Opcional)</h4>
+          <button type="button" class="btn btn-sm btn-secondary" (click)="addSupply()">+ Agregar Insumo</button>
+        </div>
+        
+        <div formArrayName="supplies" class="items-list">
+          @for (item of supplies.controls; track $index) {
+            <div [formGroupName]="$index" class="item-row">
+              <div class="item-col supply-col">
+                <label>Insumo *</label>
+                <select formControlName="supplyId" class="form-control" (change)="onSupplySelect($index, $event)">
+                  <option [ngValue]="null">--- Seleccione Insumo ---</option>
+                  @for (supply of suppliesList; track supply.id) {
+                    <option [value]="supply.id">{{ supply.name }} (Stock: {{ supply.currentStock }})</option>
+                  }
+                </select>
+              </div>
+              
+              <div class="item-col desc-col">
+                <label>Descripción *</label>
+                <input type="text" formControlName="description" class="form-control">
+              </div>
+              
+              <div class="item-col qty-col">
+                <label>Cant. *</label>
+                <input type="number" formControlName="quantity" class="form-control" min="1">
+              </div>
+              
+              <div class="item-col price-col">
+                <label>Precio Unit. *</label>
+                <input type="number" formControlName="unitPrice" class="form-control" step="0.01" min="0">
+              </div>
+              
+              <div class="item-col total-col">
+                <label>Total</label>
+                <input type="number" formControlName="totalPrice" class="form-control readonly-input">
+              </div>
+              
+              <div class="item-col actions-col">
+                <label>&nbsp;</label>
+                <button type="button" class="btn btn-danger btn-sm" (click)="removeSupply($index)">X</button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
       <div class="form-group">
-        <label for="amount">Monto (S/) *</label>
+        <label for="amount">Monto Total (S/) *</label>
         <div class="input-group">
           <span class="input-prefix">S/</span>
-          <input type="number" id="amount" formControlName="amount" class="form-control" step="0.01" min="0.01">
+          <input type="number" id="amount" formControlName="amount" class="form-control readonly-input" readonly>
         </div>
-        @if (paymentForm.get('amount')?.invalid && (paymentForm.get('amount')?.dirty || paymentForm.get('amount')?.touched)) {
-          <div class="error-messages">
-            @if (paymentForm.get('amount')?.hasError('required')) { <small class="text-error">El monto es requerido.</small> }
-            @if (paymentForm.get('amount')?.hasError('min')) { <small class="text-error">El monto debe ser mayor a 0.</small> }
-            @if (paymentForm.get('amount')?.hasError('pattern')) { <small class="text-error">Formato inválido (máximo 2 decimales).</small> }
-          </div>
-        }
       </div>
 
       <div class="form-group">

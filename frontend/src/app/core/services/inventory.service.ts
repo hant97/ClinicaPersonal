@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { PageResponse } from '../models/page.model';
+import { InventoryTransaction } from '../models/inventory-transaction.model';
 
 export interface Supply {
   id?: number;
@@ -11,6 +12,7 @@ export interface Supply {
   currentStock: number;
   minStockLevel: number;
   unit: string;
+  price?: number;
   expirationDate: string;
 }
 
@@ -20,6 +22,7 @@ export interface Supply {
 export class InventoryService {
 
   private apiUrl = `${environment.apiUrl}/supplies`;
+  private transactionApiUrl = `${environment.apiUrl}/inventory-transactions`;
 
   constructor(private http: HttpClient) { }
 
@@ -49,5 +52,14 @@ export class InventoryService {
 
   deleteSupply(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  // Transaction History
+  getTransactionsBySupply(supplyId: number): Observable<InventoryTransaction[]> {
+    return this.http.get<InventoryTransaction[]>(`${this.transactionApiUrl}/supply/${supplyId}`);
+  }
+
+  recordTransaction(transaction: InventoryTransaction): Observable<InventoryTransaction> {
+    return this.http.post<InventoryTransaction>(this.transactionApiUrl, transaction);
   }
 }

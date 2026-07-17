@@ -41,16 +41,21 @@ export class AssessmentListComponent implements OnInit, OnDestroy {
   }
 
   loadAssessments() {
-    this.assessmentService.getAssessmentsByPatient(this.patientId, this.currentPage, this.pageSize).subscribe(page => {
-      this.totalPages = page.page.totalPages;
-      this.totalElements = page.page.totalElements;
-      // Sort assessments by date ascending for the chart
-      this.assessments = page.content.sort((a, b) => {
-        const dateA = a.assessmentDate ? new Date(a.assessmentDate).getTime() : 0;
-        const dateB = b.assessmentDate ? new Date(b.assessmentDate).getTime() : 0;
-        return dateA - dateB;
-      });
-      this.renderChart();
+    this.assessmentService.getAssessmentsByPatient(this.patientId, this.currentPage, this.pageSize).subscribe({
+      next: (page) => {
+        this.totalPages = page.page.totalPages;
+        this.totalElements = page.page.totalElements;
+        // Sort assessments by date ascending for the chart
+        this.assessments = page.content.sort((a, b) => {
+          const dateA = a.assessmentDate ? new Date(a.assessmentDate).getTime() : 0;
+          const dateB = b.assessmentDate ? new Date(b.assessmentDate).getTime() : 0;
+          return dateA - dateB;
+        });
+        this.renderChart();
+      },
+      error: (err) => {
+        console.error('Error fetching assessments', err);
+      }
     });
   }
   

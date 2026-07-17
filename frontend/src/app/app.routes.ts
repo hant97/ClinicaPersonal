@@ -11,6 +11,7 @@ import { authGuard } from './core/guards/auth.guard';
 import { TestsCatalogListComponent } from './features/tests-catalog/tests-catalog-list/tests-catalog-list.component';
 import { TestsCatalogFormComponent } from './features/tests-catalog/tests-catalog-form/tests-catalog-form.component';
 import { InventoryListComponent } from './features/inventory/inventory-list/inventory-list.component';
+import { ClinicalServicesListComponent } from './features/clinical-services/clinical-services-list/clinical-services-list.component';
 import { CatalogManagementComponent } from './features/settings/catalog-management/catalog-management.component';
 import { UserProfileComponent } from './features/profile/user-profile/user-profile.component';
 
@@ -31,6 +32,7 @@ export const routes: Routes = [
       { path: 'tests-catalog/new', component: TestsCatalogFormComponent },
       { path: 'tests-catalog/edit/:id', component: TestsCatalogFormComponent },
       { path: 'inventory', component: InventoryListComponent },
+      { path: 'services', component: ClinicalServicesListComponent },
       { path: 'settings/catalogs', component: CatalogManagementComponent },
       { path: 'profile', component: UserProfileComponent }
     ]

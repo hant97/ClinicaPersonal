@@ -4,17 +4,16 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
-@Table(name = "supplies")
+@Table(name = "clinical_services")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Supply {
+public class ClinicalService {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,25 +25,13 @@ public class Supply {
     @Column(name = "description", length = 500)
     private String description;
 
-    @Column(name = "current_stock", nullable = false)
-    private Integer currentStock;
-
-    @Column(name = "min_stock_level", nullable = false)
-    private Integer minStockLevel;
-
-    @Column(name = "unit")
-    private String unit;
-
-    @Column(name = "price", precision = 10, scale = 2)
+    @Column(name = "price", nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
-
-    @Column(name = "expiration_date")
-    private LocalDate expirationDate;
 
     @Column(name = "deleted", nullable = false)
     private boolean deleted = false;
 
     @CreationTimestamp
-    @Column(name = "created_at", updatable = false, nullable = true)
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 }

@@ -1,0 +1,76 @@
+<div class="card">
+  <div class="header-actions">
+    <h2>Catálogo de Servicios Clínicos</h2>
+    <div class="header-controls">
+      <button class="btn-primary" (click)="openModal()">
+        <lucide-icon [img]="Plus" [size]="18"></lucide-icon>
+        Nuevo Servicio
+      </button>
+    </div>
+  </div>
+
+  <div class="search-container">
+    <div class="search-wrapper">
+      <lucide-icon [img]="Search" [size]="20" [strokeWidth]="2" class="search-icon"></lucide-icon>
+      <input type="text" class="search-input" placeholder="Buscar servicio por nombre..." (input)="onSearch($event)">
+    </div>
+  </div>
+  
+  <div class="table-responsive">
+    <table class="minimal-table">
+      <thead>
+        <tr>
+          <th>Nombre del Servicio</th>
+          <th>Descripción</th>
+          <th>Precio Base (S/)</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (service of services; track service.id) {
+          <tr>
+            <td>
+              <div class="d-flex align-items-center" style="gap: 0.5rem">
+                <div class="avatar-circle avatar-sm">
+                  <lucide-icon [img]="Activity" [size]="14"></lucide-icon>
+                </div>
+                <span class="fw-medium">{{ service.name }}</span>
+              </div>
+            </td>
+            <td>{{ service.description || '-' }}</td>
+            <td class="fw-bold text-primary">S/ {{ service.price | number:'1.2-2' }}</td>
+            <td>
+              <div class="d-flex" style="gap: 0.5rem;">
+                <button class="btn-text" (click)="openModal(service.id!)" title="Editar">
+                  <lucide-icon [img]="Edit" [size]="18"></lucide-icon>
+                </button>
+                <button class="btn-text" (click)="deleteService(service.id!)" style="color: var(--danger);" title="Eliminar">
+                  <lucide-icon [img]="Trash2" [size]="18"></lucide-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">
+              <lucide-icon [img]="Activity" [size]="48" style="opacity: 0.2; margin-bottom: 1rem; display: block; margin-left: auto; margin-right: auto;"></lucide-icon>
+              No hay servicios registrados.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    
+    @if (totalPages > 1) {
+      <app-pagination 
+        [currentPage]="currentPage" 
+        [totalPages]="totalPages" 
+        (pageChange)="onPageChange($event)">
+      </app-pagination>
+    }
+  </div>
+</div>
+
+@if (showModal) {
+  <app-clinical-services-form [serviceId]="selectedServiceId" (closeModal)="closeModal($event)"></app-clinical-services-form>
+}

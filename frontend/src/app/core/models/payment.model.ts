@@ -1,3 +1,14 @@
+export interface PaymentItem {
+  id?: number;
+  paymentId?: number;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  supplyId?: number;
+  clinicalServiceId?: number;
+}
+
 export interface Payment {
   id?: number;
   patientId: number;
@@ -7,4 +18,5 @@ export interface Payment {
   description?: string;
   // Para UI
   patientName?: string;
+  items?: PaymentItem[];
 }

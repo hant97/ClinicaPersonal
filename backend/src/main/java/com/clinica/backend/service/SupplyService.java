@@ -54,6 +54,7 @@ public class SupplyService {
         supply.setCurrentStock(supplyDto.getCurrentStock());
         supply.setMinStockLevel(supplyDto.getMinStockLevel());
         supply.setUnit(supplyDto.getUnit());
+        supply.setPrice(supplyDto.getPrice());
         supply.setExpirationDate(supplyDto.getExpirationDate());
 
         Supply updatedSupply = supplyRepository.save(supply);
@@ -75,6 +76,7 @@ public class SupplyService {
         dto.setCurrentStock(supply.getCurrentStock());
         dto.setMinStockLevel(supply.getMinStockLevel());
         dto.setUnit(supply.getUnit());
+        dto.setPrice(supply.getPrice());
         dto.setExpirationDate(supply.getExpirationDate());
         return dto;
     }
@@ -87,6 +89,7 @@ public class SupplyService {
         supply.setCurrentStock(dto.getCurrentStock());
         supply.setMinStockLevel(dto.getMinStockLevel());
         supply.setUnit(dto.getUnit());
+        supply.setPrice(dto.getPrice());
         supply.setExpirationDate(dto.getExpirationDate());
         return supply;
     }

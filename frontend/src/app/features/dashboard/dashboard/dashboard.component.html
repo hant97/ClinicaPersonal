@@ -62,7 +62,7 @@
         <li *ngFor="let alert of stats.activeRiskAlerts" class="alert-item" [ngClass]="'level-' + alert.level.toLowerCase()">
           <div class="alert-indicator"></div>
           <div class="appointment-details">
-            <span class="patient-name">Paciente ID: {{ alert.patientId }}</span>
+            <span class="patient-name">{{ alert.patientName || 'Paciente ID: ' + alert.patientId }}</span>
             <span class="appointment-status">{{ alert.type }} - {{ alert.description }}</span>
           </div>
           <div class="appointment-time">

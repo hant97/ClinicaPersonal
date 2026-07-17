@@ -25,6 +25,7 @@
           <th>Stock Actual</th>
           <th>Unidad</th>
           <th>Nivel Mínimo</th>
+          <th>Precio Base (S/)</th>
           <th>Fecha Caducidad</th>
           <th>Acciones</th>
         </tr>
@@ -48,6 +49,7 @@
             </td>
             <td>{{ supply.unit }}</td>
             <td>{{ supply.minStockLevel }}</td>
+            <td>{{ supply.price !== null ? (supply.price | number:'1.2-2') : '-' }}</td>
             <td>{{ supply.expirationDate }}</td>
             <td>
               <div class="d-flex" style="gap: 0.5rem;">
@@ -62,7 +64,7 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">No hay insumos que coincidan con la búsqueda.</td>
+            <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">No hay insumos que coincidan con la búsqueda.</td>
           </tr>
         }
       </tbody>

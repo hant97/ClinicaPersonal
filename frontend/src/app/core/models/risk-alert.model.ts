@@ -1,6 +1,7 @@
 export interface RiskAlert {
   id?: number;
   patientId: number;
+  patientName?: string;
   type: string;
   level: string;
   description?: string;

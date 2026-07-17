@@ -53,12 +53,11 @@ export class AppointmentFormComponent implements OnInit {
     const tzOffset = now.getTimezoneOffset() * 60000;
     const localISO = new Date(now.getTime() - tzOffset).toISOString();
     const today = localISO.split('T')[0];
-    const currentTime = localISO.split('T')[1].substring(0, 5);
 
     this.appointmentForm = this.fb.group({
       patientId: [{ value: this.appointment?.patientId || '', disabled: !!this.appointment }, Validators.required],
       appointmentDate: [this.appointment?.appointmentDate || today, [Validators.required, futureDateValidator()]],
-      startTime: [this.appointment?.startTime || currentTime, Validators.required],
+      startTime: [this.appointment?.startTime || '', Validators.required],
       endTime: [this.appointment?.endTime || '', Validators.required],
       status: [this.appointment?.status || 'PROGRAMADA', Validators.required],
       modality: [this.appointment?.modality || 'PRESENCIAL', Validators.required],

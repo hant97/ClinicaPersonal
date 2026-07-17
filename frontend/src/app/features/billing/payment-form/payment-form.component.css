@@ -195,3 +195,72 @@ label {
 .modal-content::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* Items Styles */
+.modal-content {
+  max-width: 800px; /* Wider modal for items table */
+}
+
+.items-section {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.items-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.items-header h4 {
+  margin: 0;
+  color: #334155;
+  font-size: 1.1rem;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.item-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  align-items: flex-end;
+}
+
+.item-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.supply-col { flex: 2; min-width: 160px; }
+.desc-col { flex: 2; min-width: 160px; }
+.qty-col { flex: 0 0 70px; }
+.price-col { flex: 0 0 95px; }
+.total-col { flex: 0 0 95px; }
+.actions-col { flex: 0 0 35px; }
+
+select.form-control {
+  padding-right: 30px; /* Make room for the dropdown arrow */
+  text-overflow: ellipsis;
+}
+
+.readonly-input {
+  background-color: #e2e8f0;
+  cursor: not-allowed;
+}

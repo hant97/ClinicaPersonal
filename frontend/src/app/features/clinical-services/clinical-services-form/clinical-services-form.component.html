@@ -1,0 +1,46 @@
+<div class="modal-overlay" (click)="close()">
+  <div class="modal-content card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ isEditMode ? 'Editar' : 'Nuevo' }} Servicio Clínico</h2>
+      <button class="close-btn" (click)="close()">
+        <lucide-icon [img]="X" [size]="20"></lucide-icon>
+      </button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="form-grid">
+        <div class="form-group" style="grid-column: span 2;">
+          <label for="name" class="form-label">Nombre del Servicio <span class="required">*</span></label>
+          <input type="text" id="name" formControlName="name" class="input-field" placeholder="Ej. Terapia Psicológica Individual" [class.is-invalid]="form.get('name')?.invalid && form.get('name')?.touched">
+          @if (form.get('name')?.invalid && form.get('name')?.touched) {
+            <div class="error-messages">
+              <small class="text-error">El nombre es requerido</small>
+            </div>
+          }
+        </div>
+
+        <div class="form-group" style="grid-column: span 2;">
+          <label for="description" class="form-label">Descripción</label>
+          <textarea id="description" formControlName="description" class="input-field" rows="3" placeholder="Detalles adicionales sobre el servicio..."></textarea>
+        </div>
+
+        <div class="form-group" style="grid-column: span 1;">
+          <label for="price" class="form-label">Precio Base (S/) <span class="required">*</span></label>
+          <input type="number" id="price" formControlName="price" class="input-field" step="0.01" min="0" [class.is-invalid]="form.get('price')?.invalid && form.get('price')?.touched">
+          @if (form.get('price')?.invalid && form.get('price')?.touched) {
+            <div class="error-messages">
+              <small class="text-error">Precio inválido</small>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="close()">Cancelar</button>
+        <button type="submit" class="btn-primary" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

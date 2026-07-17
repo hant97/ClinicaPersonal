@@ -60,6 +60,16 @@
         </div>
 
         <div class="form-group">
+          <label for="price" class="form-label">Precio Base (S/)</label>
+          <input type="number" id="price" formControlName="price" class="input-field" step="0.01" min="0" [class.is-invalid]="form.get('price')?.invalid && form.get('price')?.touched">
+          @if (form.get('price')?.invalid && form.get('price')?.touched) {
+            <div class="error-messages">
+              <small class="text-error">Precio inválido</small>
+            </div>
+          }
+        </div>
+
+        <div class="form-group">
           <label for="expirationDate" class="form-label">Fecha de Caducidad</label>
           <input type="date" id="expirationDate" formControlName="expirationDate" class="input-field">
         </div>

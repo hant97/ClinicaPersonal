@@ -65,9 +65,9 @@ export class DashboardService {
         }).reduce((sum, pay) => sum + pay.amount, 0);
 
         const statusTranslations: { [key: string]: string } = {
-          'SCHEDULED': 'Programada',
-          'COMPLETED': 'Completada',
-          'CANCELLED': 'Cancelada',
+          'PROGRAMADA': 'Programada',
+          'COMPLETADA': 'Completada',
+          'CANCELADA': 'Cancelada',
           'NO_ASISTIO': 'No Asistió',
           'CONFIRMADA': 'Confirmada'
         };
@@ -79,8 +79,8 @@ export class DashboardService {
           return appDate.getMonth() === currentMonth && appDate.getFullYear() === currentYear;
         });
         
-        const completedThisMonth = appointmentsThisMonth.filter(app => app.status === 'COMPLETED').length;
-        const cancelledAppointments = appointmentsThisMonth.filter(app => app.status === 'CANCELLED' || app.status === 'NO_ASISTIO').length;
+        const completedThisMonth = appointmentsThisMonth.filter(app => app.status === 'COMPLETADA').length;
+        const cancelledAppointments = appointmentsThisMonth.filter(app => app.status === 'CANCELADA' || app.status === 'NO_ASISTIO').length;
         const totalPastThisMonth = completedThisMonth + cancelledAppointments;
         const attendanceRate = totalPastThisMonth > 0 ? Math.round((completedThisMonth / totalPastThisMonth) * 100) : 0;
 
@@ -111,10 +111,10 @@ export class DashboardService {
           .filter(app => {
             const appDateTimeStr = app.startTime ? `${app.appointmentDate}T${app.startTime}` : `${app.appointmentDate}T00:00:00`;
             const appDateTime = new Date(appDateTimeStr);
-            return appDateTime.getTime() >= today.getTime() && 
-                   app.status !== 'CANCELLED' && 
+            return appDateTime.getTime() >= startOfDay && 
+                   app.status !== 'CANCELADA' && 
                    app.status !== 'NO_ASISTIO' && 
-                   app.status !== 'COMPLETED';
+                   app.status !== 'COMPLETADA';
           })
           .sort((a, b) => {
             const dateA = new Date(a.startTime ? `${a.appointmentDate}T${a.startTime}` : `${a.appointmentDate}T00:00:00`).getTime();
@@ -131,6 +131,14 @@ export class DashboardService {
             };
           });
 
+        const mappedRiskAlerts = activeRiskAlertsList.map(alert => {
+          const patient = patientsList.find(p => p.id === alert.patientId);
+          return {
+            ...alert,
+            patientName: patient ? `${patient.firstName} ${patient.lastName}` : `Paciente ID: ${alert.patientId}`
+          };
+        });
+
         return {
           activePatients,
           appointmentsToday,
@@ -140,7 +148,7 @@ export class DashboardService {
           cancelledAppointments,
           newPatientsThisMonth,
           monthlyIncomeGrowth,
-          activeRiskAlerts: activeRiskAlertsList,
+          activeRiskAlerts: mappedRiskAlerts,
           lowStockSupplies
         };
       })

@@ -49,7 +49,7 @@ export class ClinicalSessionFormComponent implements OnInit {
       const tzOffset = now.getTimezoneOffset() * 60000;
       const localISO = new Date(now.getTime() - tzOffset).toISOString();
       dateStr = localISO.split('T')[0];
-      startTimeStr = localISO.split('T')[1].substring(0, 5);
+      startTimeStr = '';
     }
 
     this.sessionForm = this.fb.group({

@@ -217,3 +217,20 @@ body {
 .align-items-center {
   align-items: center;
 }
+
+/* Button Text (Icon Buttons) */
+.btn-text {
+  background: none;
+  border: none;
+  color: var(--accent-color);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-text:hover {
+  text-decoration: underline;
+}
