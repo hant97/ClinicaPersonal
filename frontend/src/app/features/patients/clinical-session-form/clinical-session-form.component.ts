@@ -52,11 +52,16 @@ export class ClinicalSessionFormComponent implements OnInit {
       startTimeStr = '';
     }
 
+    let sType = this.session?.sessionType || 'INDIVIDUAL';
+    if (sType === 'Terapia Individual') {
+      sType = 'INDIVIDUAL';
+    }
+
     this.sessionForm = this.fb.group({
       sessionDate: [dateStr, Validators.required],
       startTime: [startTimeStr, Validators.required],
       endTime: [endTimeStr, Validators.required],
-      sessionType: [this.session?.sessionType || 'INDIVIDUAL', Validators.required],
+      sessionType: [sType, Validators.required],
       modality: [this.session?.modality || 'PRESENCIAL', Validators.required],
       status: [this.session?.status || 'COMPLETADA', Validators.required],
       subjective: [this.session?.subjective || ''],

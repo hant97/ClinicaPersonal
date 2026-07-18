@@ -218,7 +218,7 @@
             </div>
             <div class="timeline-badges">
               <span class="badge" [ngClass]="'badge-' + session.status.toLowerCase()">{{ session.status }}</span>
-              <span class="badge badge-type">{{ session.sessionType }}</span>
+              <span class="badge badge-type">{{ session.sessionType | uppercase }}</span>
               <span class="badge badge-modality">{{ session.modality }}</span>
               @if (session.isConfidential) {
                 <span class="badge badge-confidential" title="Confidencial">🔒</span>
