@@ -33,8 +33,8 @@ public class PaymentService {
                 .map(this::mapToDto);
     }
 
-    public Page<PaymentDto> getAll(Pageable pageable) {
-        return paymentRepository.findAllByDeletedFalseOrderByPaymentDateDesc(pageable).map(this::mapToDto);
+    public Page<PaymentDto> getAll(String searchTerm, Pageable pageable) {
+        return paymentRepository.findAllWithSearch(searchTerm, pageable).map(this::mapToDto);
     }
 
     public PaymentDto create(PaymentDto dto) {

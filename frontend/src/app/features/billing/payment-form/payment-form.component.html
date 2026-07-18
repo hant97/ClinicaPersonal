@@ -7,10 +7,12 @@
       <div class="form-group">
         <label for="patientId">Paciente *</label>
         <app-patient-autocomplete id="patientId" formControlName="patientId"></app-patient-autocomplete>
-        @if (paymentForm.get('patientId')?.invalid && (paymentForm.get('patientId')?.dirty || paymentForm.get('patientId')?.touched)) {
-          <div class="error-messages">
-            @if (paymentForm.get('patientId')?.hasError('required')) { <small class="text-error">El paciente es requerido.</small> }
-          </div>
+        @if (paymentForm.get('patientId')?.invalid && (paymentForm.get('patientId')?.dirty ||
+        paymentForm.get('patientId')?.touched)) {
+        <div class="error-messages">
+          @if (paymentForm.get('patientId')?.hasError('required')) { <small class="text-error">El paciente es
+            requerido.</small> }
+        </div>
         }
       </div>
 
@@ -20,45 +22,47 @@
           <h4>Servicios Clínicos (Obligatorio)</h4>
           <button type="button" class="btn btn-sm btn-secondary" (click)="addService()">+ Agregar Servicio</button>
         </div>
-        
+
         <div formArrayName="services" class="items-list">
           @for (item of services.controls; track $index) {
-            <div [formGroupName]="$index" class="item-row">
-              <div class="item-col supply-col">
-                <label>Servicio *</label>
-                <select formControlName="clinicalServiceId" class="form-control" (change)="onClinicalServiceSelect($index, $event)">
-                  <option [ngValue]="null">--- Seleccione Servicio ---</option>
-                  @for (service of clinicalServices; track service.id) {
-                    <option [value]="service.id">{{ service.name }}</option>
-                  }
-                </select>
-              </div>
-              
-              <div class="item-col desc-col">
-                <label>Descripción *</label>
-                <input type="text" formControlName="description" class="form-control">
-              </div>
-              
-              <div class="item-col qty-col">
-                <label>Cant. *</label>
-                <input type="number" formControlName="quantity" class="form-control" min="1">
-              </div>
-              
-              <div class="item-col price-col">
-                <label>Precio Unit. *</label>
-                <input type="number" formControlName="unitPrice" class="form-control" step="0.01" min="0">
-              </div>
-              
-              <div class="item-col total-col">
-                <label>Total</label>
-                <input type="number" formControlName="totalPrice" class="form-control readonly-input">
-              </div>
-              
-              <div class="item-col actions-col">
-                <label>&nbsp;</label>
-                <button type="button" class="btn btn-danger btn-sm" (click)="removeService($index)" [disabled]="services.length === 1">X</button>
-              </div>
+          <div [formGroupName]="$index" class="item-row">
+            <div class="item-col supply-col">
+              <label>Servicio *</label>
+              <select formControlName="clinicalServiceId" class="form-control"
+                (change)="onClinicalServiceSelect($index, $event)">
+                <option [ngValue]="null">Seleccione</option>
+                @for (service of clinicalServices; track service.id) {
+                <option [value]="service.id">{{ service.name }}</option>
+                }
+              </select>
             </div>
+
+            <div class="item-col desc-col">
+              <label>Descripción *</label>
+              <input type="text" formControlName="description" class="form-control">
+            </div>
+
+            <div class="item-col qty-col">
+              <label>Cant. *</label>
+              <input type="number" formControlName="quantity" class="form-control" min="1">
+            </div>
+
+            <div class="item-col price-col">
+              <label>Precio Unit. *</label>
+              <input type="number" formControlName="unitPrice" class="form-control" step="0.01" min="0">
+            </div>
+
+            <div class="item-col total-col">
+              <label>Total</label>
+              <input type="number" formControlName="totalPrice" class="form-control readonly-input">
+            </div>
+
+            <div class="item-col actions-col">
+              <label>&nbsp;</label>
+              <button type="button" class="btn btn-danger btn-remove" (click)="removeService($index)"
+                [disabled]="services.length === 1">X</button>
+            </div>
+          </div>
           }
         </div>
       </div>
@@ -69,45 +73,45 @@
           <h4>Insumos Adicionales (Opcional)</h4>
           <button type="button" class="btn btn-sm btn-secondary" (click)="addSupply()">+ Agregar Insumo</button>
         </div>
-        
+
         <div formArrayName="supplies" class="items-list">
           @for (item of supplies.controls; track $index) {
-            <div [formGroupName]="$index" class="item-row">
-              <div class="item-col supply-col">
-                <label>Insumo *</label>
-                <select formControlName="supplyId" class="form-control" (change)="onSupplySelect($index, $event)">
-                  <option [ngValue]="null">--- Seleccione Insumo ---</option>
-                  @for (supply of suppliesList; track supply.id) {
-                    <option [value]="supply.id">{{ supply.name }} (Stock: {{ supply.currentStock }})</option>
-                  }
-                </select>
-              </div>
-              
-              <div class="item-col desc-col">
-                <label>Descripción *</label>
-                <input type="text" formControlName="description" class="form-control">
-              </div>
-              
-              <div class="item-col qty-col">
-                <label>Cant. *</label>
-                <input type="number" formControlName="quantity" class="form-control" min="1">
-              </div>
-              
-              <div class="item-col price-col">
-                <label>Precio Unit. *</label>
-                <input type="number" formControlName="unitPrice" class="form-control" step="0.01" min="0">
-              </div>
-              
-              <div class="item-col total-col">
-                <label>Total</label>
-                <input type="number" formControlName="totalPrice" class="form-control readonly-input">
-              </div>
-              
-              <div class="item-col actions-col">
-                <label>&nbsp;</label>
-                <button type="button" class="btn btn-danger btn-sm" (click)="removeSupply($index)">X</button>
-              </div>
+          <div [formGroupName]="$index" class="item-row">
+            <div class="item-col supply-col">
+              <label>Insumo *</label>
+              <select formControlName="supplyId" class="form-control" (change)="onSupplySelect($index, $event)">
+                <option [ngValue]="null">--- Seleccione Insumo ---</option>
+                @for (supply of suppliesList; track supply.id) {
+                <option [value]="supply.id">{{ supply.name }} (Stock: {{ supply.currentStock }})</option>
+                }
+              </select>
             </div>
+
+            <div class="item-col desc-col">
+              <label>Descripción *</label>
+              <input type="text" formControlName="description" class="form-control">
+            </div>
+
+            <div class="item-col qty-col">
+              <label>Cant. *</label>
+              <input type="number" formControlName="quantity" class="form-control" min="1">
+            </div>
+
+            <div class="item-col price-col">
+              <label>Precio Unit. *</label>
+              <input type="number" formControlName="unitPrice" class="form-control" step="0.01" min="0">
+            </div>
+
+            <div class="item-col total-col">
+              <label>Total</label>
+              <input type="number" formControlName="totalPrice" class="form-control readonly-input">
+            </div>
+
+            <div class="item-col actions-col">
+              <label>&nbsp;</label>
+              <button type="button" class="btn btn-danger btn-remove" (click)="removeSupply($index)">X</button>
+            </div>
+          </div>
           }
         </div>
       </div>
@@ -123,10 +127,12 @@
       <div class="form-group">
         <label for="paymentDate">Fecha y Hora *</label>
         <input type="datetime-local" id="paymentDate" formControlName="paymentDate" class="form-control">
-        @if (paymentForm.get('paymentDate')?.invalid && (paymentForm.get('paymentDate')?.dirty || paymentForm.get('paymentDate')?.touched)) {
-          <div class="error-messages">
-            @if (paymentForm.get('paymentDate')?.hasError('required')) { <small class="text-error">La fecha es requerida.</small> }
-          </div>
+        @if (paymentForm.get('paymentDate')?.invalid && (paymentForm.get('paymentDate')?.dirty ||
+        paymentForm.get('paymentDate')?.touched)) {
+        <div class="error-messages">
+          @if (paymentForm.get('paymentDate')?.hasError('required')) { <small class="text-error">La fecha es
+            requerida.</small> }
+        </div>
         }
       </div>
 
@@ -135,23 +141,28 @@
         <select formControlName="paymentMethod" class="form-control">
           <option value="">Seleccione</option>
           @for (method of paymentMethods; track method.id) {
-            <option [value]="method.itemCode">{{ method.itemName }}</option>
+          <option [value]="method.itemCode">{{ method.itemName }}</option>
           }
         </select>
-        @if (paymentForm.get('paymentMethod')?.invalid && (paymentForm.get('paymentMethod')?.dirty || paymentForm.get('paymentMethod')?.touched)) {
-          <div class="error-messages">
-            @if (paymentForm.get('paymentMethod')?.hasError('required')) { <small class="text-error">El método de pago es requerido.</small> }
-          </div>
+        @if (paymentForm.get('paymentMethod')?.invalid && (paymentForm.get('paymentMethod')?.dirty ||
+        paymentForm.get('paymentMethod')?.touched)) {
+        <div class="error-messages">
+          @if (paymentForm.get('paymentMethod')?.hasError('required')) { <small class="text-error">El método de pago es
+            requerido.</small> }
+        </div>
         }
       </div>
 
       <div class="form-group">
         <label for="description">Descripción / Motivo</label>
-        <input type="text" id="description" formControlName="description" class="form-control" placeholder="Ej. Sesión de Terapia">
-        @if (paymentForm.get('description')?.invalid && (paymentForm.get('description')?.dirty || paymentForm.get('description')?.touched)) {
-          <div class="error-messages">
-            @if (paymentForm.get('description')?.hasError('maxlength')) { <small class="text-error">Máximo 255 caracteres.</small> }
-          </div>
+        <input type="text" id="description" formControlName="description" class="form-control"
+          placeholder="Ej. Sesión de Terapia">
+        @if (paymentForm.get('description')?.invalid && (paymentForm.get('description')?.dirty ||
+        paymentForm.get('description')?.touched)) {
+        <div class="error-messages">
+          @if (paymentForm.get('description')?.hasError('maxlength')) { <small class="text-error">Máximo 255
+            caracteres.</small> }
+        </div>
         }
       </div>
 

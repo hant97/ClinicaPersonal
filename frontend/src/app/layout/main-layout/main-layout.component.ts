@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { LucideAngularModule, LayoutDashboard, Users, CalendarDays, Receipt, LogOut, ClipboardList, Package, Settings, Menu, X, User, Activity } from 'lucide-angular';
 import { UserService } from '../../core/services/user.service';
 import { UserProfile } from '../../core/models/user-profile.model';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-main-layout',
@@ -12,7 +13,7 @@ import { UserProfile } from '../../core/models/user-profile.model';
   templateUrl: './main-layout.component.html',
   styleUrls: ['./main-layout.component.css']
 })
-export class MainLayoutComponent implements OnInit {
+export class MainLayoutComponent implements OnInit, OnDestroy {
   readonly LayoutDashboard = LayoutDashboard;
   readonly Users = Users;
   readonly CalendarDays = CalendarDays;
@@ -31,24 +32,39 @@ export class MainLayoutComponent implements OnInit {
   greetingName = 'Usuario';
   avatarLetter = 'U';
 
+  private profileSubscription?: Subscription;
+
   constructor(private userService: UserService) {}
 
   ngOnInit(): void {
+    this.loadProfile();
+    this.profileSubscription = this.userService.profileUpdated$.subscribe(
+      profile => this.updateHeaderProfile(profile)
+    );
+  }
+
+  ngOnDestroy(): void {
+    if (this.profileSubscription) {
+      this.profileSubscription.unsubscribe();
+    }
+  }
+
+  private loadProfile(): void {
     this.userService.getCurrentUserProfile().subscribe({
-      next: (profile) => {
-        this.userProfile = profile;
-        if (profile.firstName) {
-          this.greetingName = profile.firstName;
-          this.avatarLetter = profile.firstName.charAt(0).toUpperCase();
-        } else if (profile.username) {
-          this.greetingName = profile.username;
-          this.avatarLetter = profile.username.charAt(0).toUpperCase();
-        }
-      },
-      error: () => {
-        console.error('No se pudo cargar el perfil del usuario');
-      }
+      next: (profile) => this.updateHeaderProfile(profile),
+      error: () => console.error('No se pudo cargar el perfil del usuario')
     });
+  }
+
+  private updateHeaderProfile(profile: UserProfile): void {
+    this.userProfile = profile;
+    if (profile.firstName) {
+      this.greetingName = profile.firstName;
+      this.avatarLetter = profile.firstName.charAt(0).toUpperCase();
+    } else if (profile.username) {
+      this.greetingName = profile.username;
+      this.avatarLetter = profile.username.charAt(0).toUpperCase();
+    }
   }
 
   toggleSidebar() {

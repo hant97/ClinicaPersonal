@@ -13,6 +13,13 @@
     </div>
   </div>
   
+  <div class="search-container">
+    <div class="search-wrapper">
+      <lucide-icon [img]="Search" [size]="20" [strokeWidth]="2" class="search-icon"></lucide-icon>
+      <input type="text" class="search-input" placeholder="Buscar por paciente o motivo..." (input)="onSearch($event)">
+    </div>
+  </div>
+
   <div class="table-responsive">
     <table class="minimal-table">
       <thead>
@@ -36,6 +43,9 @@
           </td>
           <td>
             <div class="d-flex" style="gap: 0.5rem;">
+              <button class="btn-text" (click)="viewPayment(payment)" title="Ver Detalle">
+                <lucide-icon [img]="Eye" [size]="18"></lucide-icon>
+              </button>
               <button class="btn-text" (click)="openForm(payment)" title="Editar">
                 <lucide-icon [img]="Edit" [size]="18"></lucide-icon>
               </button>
@@ -64,3 +74,9 @@
   (saved)="onPaymentSaved()"
   (cancelled)="closeForm()">
 </app-payment-form>
+
+<app-payment-detail *ngIf="viewingPayment"
+  [payment]="viewingPayment"
+  [paymentMethodText]="getPaymentMethodText(viewingPayment.paymentMethod)"
+  (close)="closeView()">
+</app-payment-detail>

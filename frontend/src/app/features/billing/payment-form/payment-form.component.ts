@@ -53,7 +53,7 @@ export class PaymentFormComponent implements OnInit {
       patientId: [{ value: this.payment?.patientId || '', disabled: !!this.payment }, Validators.required],
       amount: [this.payment?.amount || 0, [Validators.required, Validators.min(0.01)]],
       paymentDate: [this.payment ? this.payment.paymentDate.substring(0, 16) : localISO, Validators.required],
-      paymentMethod: [this.payment?.paymentMethod || 'CASH', Validators.required],
+      paymentMethod: [this.payment?.paymentMethod || '', Validators.required],
       description: [this.payment?.description || '', [Validators.maxLength(255)]],
       services: this.fb.array([]),
       supplies: this.fb.array([])

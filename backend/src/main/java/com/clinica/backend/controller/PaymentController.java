@@ -24,9 +24,10 @@ public class PaymentController {
 
     @GetMapping
     public ResponseEntity<Page<PaymentDto>> getAll(
+            @RequestParam(required = false) String searchTerm,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(service.getAll(PageRequest.of(page, size)));
+        return ResponseEntity.ok(service.getAll(searchTerm, PageRequest.of(page, size)));
     }
 
     @PostMapping

@@ -1,0 +1,84 @@
+<div class="modal-overlay" (click)="onClose()">
+  <div class="modal-content receipt-container" (click)="$event.stopPropagation()">
+    <!-- Header with actions (non-printable) -->
+    <div class="receipt-actions no-print">
+      <button class="btn-icon print-btn" (click)="printReceipt()" title="Imprimir Recibo">
+        <lucide-icon [img]="Printer" [size]="20"></lucide-icon>
+      </button>
+      <button class="btn-icon close-btn" (click)="onClose()" title="Cerrar">
+        <lucide-icon [img]="X" [size]="20"></lucide-icon>
+      </button>
+    </div>
+
+    <!-- Printable Receipt Content -->
+    <div class="receipt-body">
+      <div class="receipt-header">
+        <div class="clinic-logo">
+          <h2>🌿 Clínica Vida</h2>
+        </div>
+        <div class="receipt-meta">
+          <p class="receipt-title">RECIBO DE PAGO</p>
+          <p><strong>N°:</strong> #{{ payment.id?.toString()?.padStart(6, '0') || 'S/N' }}</p>
+          <p><strong>Fecha:</strong> {{ payment.paymentDate | date:'dd/MM/yyyy HH:mm' }}</p>
+        </div>
+      </div>
+
+      <div class="receipt-info">
+        <div class="info-block">
+          <p class="label">Paciente:</p>
+          <p class="value patient-name">{{ payment.patientName || 'Paciente' }}</p>
+        </div>
+        <div class="info-block align-right">
+          <p class="label">Método de Pago:</p>
+          <p class="value">{{ paymentMethodText || payment.paymentMethod }}</p>
+        </div>
+      </div>
+
+      <div class="receipt-description" *ngIf="payment.description">
+        <p><strong>Concepto:</strong> {{ payment.description }}</p>
+      </div>
+
+      <table class="receipt-table">
+        <thead>
+          <tr>
+            <th class="col-desc">Descripción</th>
+            <th class="col-qty">Cant.</th>
+            <th class="col-price">P. Unit.</th>
+            <th class="col-total">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Check if there are items, otherwise show a generic row -->
+          @if (payment.items && payment.items.length > 0) {
+            @for (item of payment.items; track item.id || $index) {
+              <tr>
+                <td class="col-desc">{{ item.description }}</td>
+                <td class="col-qty">{{ item.quantity }}</td>
+                <td class="col-price">{{ item.unitPrice | currency:'PEN':'S/ ':'1.2-2' }}</td>
+                <td class="col-total">{{ item.totalPrice | currency:'PEN':'S/ ':'1.2-2' }}</td>
+              </tr>
+            }
+          } @else {
+            <tr>
+              <td class="col-desc">{{ payment.description || 'Servicios Varios' }}</td>
+              <td class="col-qty">1</td>
+              <td class="col-price">{{ payment.amount | currency:'PEN':'S/ ':'1.2-2' }}</td>
+              <td class="col-total">{{ payment.amount | currency:'PEN':'S/ ':'1.2-2' }}</td>
+            </tr>
+          }
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3" class="total-label">TOTAL</td>
+            <td class="total-amount">{{ payment.amount | currency:'PEN':'S/ ':'1.2-2' }}</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="receipt-footer">
+        <p>¡Gracias por su confianza!</p>
+        <p class="footer-note">Este documento es un comprobante de pago interno.</p>
+      </div>
+    </div>
+  </div>
+</div>

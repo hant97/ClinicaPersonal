@@ -13,8 +13,11 @@ export class PaymentService {
 
   constructor(private http: HttpClient) { }
 
-  getAll(page: number = 0, size: number = 10): Observable<PageResponse<Payment>> {
+  getAll(page: number = 0, size: number = 10, searchTerm?: string): Observable<PageResponse<Payment>> {
     let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+    if (searchTerm) {
+      params = params.set('searchTerm', searchTerm);
+    }
     return this.http.get<PageResponse<Payment>>(this.apiUrl, { params });
   }
 

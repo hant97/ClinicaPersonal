@@ -1,0 +1,242 @@
+/* Modal Base (similar to existing, but tailored for receipt) */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content.receipt-container {
+  background: #ffffff;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 12px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Actions Header */
+.receipt-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 15px 20px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6c757d;
+  padding: 8px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon:hover {
+  background: #e9ecef;
+  color: #343a40;
+}
+
+.print-btn:hover {
+  color: #2a9d8f;
+  background: rgba(42, 157, 143, 0.1);
+}
+
+.close-btn:hover {
+  color: #e63946;
+  background: rgba(230, 57, 70, 0.1);
+}
+
+/* Receipt Body */
+.receipt-body {
+  padding: 30px;
+  color: #333;
+}
+
+.receipt-header {
+  text-align: center;
+  margin-bottom: 25px;
+  border-bottom: 2px dashed #dee2e6;
+  padding-bottom: 20px;
+}
+
+.clinic-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.clinic-logo h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #2a9d8f;
+  font-weight: 700;
+}
+
+.receipt-meta {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.receipt-title {
+  font-weight: 700;
+  color: #495057;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.receipt-meta p {
+  margin: 4px 0;
+}
+
+/* Info Section */
+.receipt-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.info-block .label {
+  font-size: 0.8rem;
+  color: #868e96;
+  text-transform: uppercase;
+  margin: 0 0 4px 0;
+}
+
+.info-block .value {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  color: #343a40;
+}
+
+.align-right {
+  text-align: right;
+}
+
+.receipt-description {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.receipt-description p {
+  margin: 0;
+}
+
+/* Table */
+.receipt-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.receipt-table th {
+  text-align: left;
+  border-bottom: 2px solid #343a40;
+  padding: 8px 4px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  color: #495057;
+}
+
+.receipt-table td {
+  padding: 12px 4px;
+  border-bottom: 1px solid #e9ecef;
+  font-size: 0.95rem;
+}
+
+.col-desc { width: 45%; }
+.col-qty { width: 15%; text-align: center; }
+.col-price { width: 20%; text-align: right; }
+.col-total { width: 20%; text-align: right; font-weight: 600; }
+
+.receipt-table th.col-qty, .receipt-table th.col-price, .receipt-table th.col-total {
+  text-align: inherit;
+}
+.receipt-table th.col-qty { text-align: center; }
+.receipt-table th.col-price, .receipt-table th.col-total { text-align: right; }
+
+.receipt-table tfoot td {
+  padding-top: 15px;
+  border-bottom: none;
+}
+
+.total-label {
+  text-align: right;
+  font-weight: 700;
+  font-size: 1.1rem;
+  padding-right: 15px;
+}
+
+.total-amount {
+  text-align: right;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: #2a9d8f;
+}
+
+/* Footer */
+.receipt-footer {
+  text-align: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 2px dashed #dee2e6;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.footer-note {
+  font-size: 0.75rem;
+  margin-top: 5px;
+  font-style: italic;
+}
+
+/* Print Styles */
+@media print {
+  .modal-overlay {
+    position: static;
+    background: transparent;
+    backdrop-filter: none;
+    display: block;
+  }
+  
+  .modal-content.receipt-container {
+    box-shadow: none;
+    border: none;
+    width: 100%;
+    max-width: none;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+  
+  .receipt-body {
+    padding: 0;
+  }
+}

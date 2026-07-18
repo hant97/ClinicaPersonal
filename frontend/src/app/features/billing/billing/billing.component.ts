@@ -1,47 +1,78 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { PaymentService } from '../../../core/services/payment.service';
 import { Payment } from '../../../core/models/payment.model';
 import { PaymentFormComponent } from '../payment-form/payment-form.component';
+import { PaymentDetailComponent } from '../payment-detail/payment-detail.component';
 import { PatientService } from '../../../core/services/patient/patient.service';
+import { CatalogService } from '../../../core/services/catalog.service';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
-import { LucideAngularModule, Plus, Edit, Trash2, Download } from 'lucide-angular';
+import { LucideAngularModule, Plus, Edit, Trash2, Download, Eye, Search } from 'lucide-angular';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ExportService } from '../../../shared/services/export/export.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-billing',
   standalone: true,
-  imports: [CommonModule, PaymentFormComponent, LucideAngularModule, PaginationComponent],
+  imports: [CommonModule, PaymentFormComponent, PaymentDetailComponent, LucideAngularModule, PaginationComponent],
   templateUrl: './billing.component.html',
   styleUrl: './billing.component.css'
 })
-export class BillingComponent implements OnInit {
+export class BillingComponent implements OnInit, OnDestroy {
   readonly Plus = Plus;
   readonly Edit = Edit;
   readonly Trash2 = Trash2;
   readonly Download = Download;
+  readonly Eye = Eye;
+  readonly Search = Search;
   
   payments: Payment[] = [];
   showForm = false;
   selectedPayment: Payment | null = null;
+  viewingPayment: Payment | null = null;
   patientMap = new Map<number, string>();
+  paymentMethodMap = new Map<string, string>();
   
   currentPage: number = 0;
   pageSize: number = 10;
   totalPages: number = 0;
   totalElements: number = 0;
 
+  searchTerm: string = '';
+  private searchSubject = new Subject<string>();
+  private searchSubscription?: Subscription;
+
   constructor(
     private paymentService: PaymentService,
     private patientService: PatientService,
+    private catalogService: CatalogService,
     private notificationService: NotificationService,
     private toastService: ToastService,
     private exportService: ExportService
   ) {}
 
   ngOnInit(): void {
+    // Debounce search
+    this.searchSubscription = this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(term => {
+      this.searchTerm = term;
+      this.currentPage = 0;
+      this.loadPayments();
+    });
+
+    // Load payment methods from catalog
+    this.catalogService.getActiveItemsByCatalogCode('PAYMENT_METHOD').subscribe({
+      next: (items) => {
+        items.forEach(item => this.paymentMethodMap.set(item.itemCode, item.itemName));
+      },
+      error: (err) => console.error('Error fetching payment methods', err)
+    });
+
     // Preload patients to map IDs to names
     this.patientService.getAll(0, 1000).subscribe({
       next: (patientsPage) => {
@@ -52,8 +83,19 @@ export class BillingComponent implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    if (this.searchSubscription) {
+      this.searchSubscription.unsubscribe();
+    }
+  }
+
+  onSearch(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.searchSubject.next(target.value);
+  }
+
   loadPayments(): void {
-    this.paymentService.getAll(this.currentPage, this.pageSize).subscribe({
+    this.paymentService.getAll(this.currentPage, this.pageSize, this.searchTerm).subscribe({
       next: (page) => {
         this.totalPages = page.page.totalPages;
         this.totalElements = page.page.totalElements;
@@ -78,6 +120,14 @@ export class BillingComponent implements OnInit {
 
   closeForm(): void {
     this.showForm = false;
+  }
+
+  viewPayment(payment: Payment): void {
+    this.viewingPayment = payment;
+  }
+
+  closeView(): void {
+    this.viewingPayment = null;
   }
 
   onPaymentSaved(): void {
@@ -109,12 +159,7 @@ export class BillingComponent implements OnInit {
   }
 
   getPaymentMethodText(method: string): string {
-    switch (method) {
-      case 'CASH': return 'Efectivo';
-      case 'TRANSFER': return 'Transferencia';
-      case 'CARD': return 'Tarjeta';
-      default: return method;
-    }
+    return this.paymentMethodMap.get(method) || method;
   }
 
   exportPayments(): void {
