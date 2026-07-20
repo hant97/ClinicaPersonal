@@ -34,7 +34,7 @@
 .form-control {
   padding: 0.75rem;
   border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-size: 1rem;
   transition: border-color 0.3s;
 }
@@ -52,7 +52,7 @@ textarea.form-control {
 .soap-section {
   background-color: #f9f9f9;
   padding: 1.5rem;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   margin-bottom: 1rem;
   border: 1px solid #eee;
 }

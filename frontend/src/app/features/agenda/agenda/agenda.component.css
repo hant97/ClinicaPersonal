@@ -28,7 +28,7 @@
 .search-icon, .filter-icon {
   position: absolute;
   left: 1.25rem;
-  color: var(--text-muted, #6b7280);
+  color: var(--text-muted, var(--text-muted));
   transition: color 0.3s ease;
   pointer-events: none;
 }
@@ -37,10 +37,10 @@
   width: 100%;
   padding: 1rem 1rem 1rem 3.25rem;
   font-size: 1rem;
-  border: 1px solid var(--border-color, #e5e7eb);
-  border-radius: 12px;
-  background-color: #f9fafb;
-  color: var(--text-main, #111827);
+  border: 1px solid var(--border-color, var(--border-color));
+  border-radius: var(--radius-md);
+  background-color: var(--card-bg);
+  color: var(--text-main, var(--text-main));
   transition: all 0.3s ease;
   box-shadow: 0 2px 4px rgba(0,0,0,0.02) inset;
 }
@@ -50,8 +50,8 @@
 }
 
 .filter-input:hover {
-  background-color: #f3f4f6;
-  border-color: #d1d5db;
+  background-color: var(--bg-color);
+  border-color: var(--border-color);
 }
 
 .filter-input:focus {
@@ -79,7 +79,7 @@
   align-items: center;
   padding: 15px;
   background-color: #f8f9fa;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   border-left: 4px solid var(--primary-color, #2a9d8f);
 }
 
@@ -231,7 +231,7 @@
   display: inline-flex;
   align-items: center;
   padding: 3px 8px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   font-size: 0.8em;
   font-weight: 500;
   margin-right: 10px;
@@ -293,7 +293,7 @@
 .calendar-container {
   background: white;
   border: 1px solid #dee2e6;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
@@ -399,7 +399,7 @@
   font-size: 0.75em;
   overflow: hidden;
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-subtle);
   border-left: 3px solid rgba(0,0,0,0.2);
   transition: transform 0.1s;
   min-height: 42px;

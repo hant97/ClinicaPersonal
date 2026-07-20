@@ -36,7 +36,7 @@
 .search-icon {
   position: absolute;
   left: 1.25rem;
-  color: var(--text-muted, #6b7280);
+  color: var(--text-muted, var(--text-muted));
   transition: color 0.3s ease;
   pointer-events: none;
 }
@@ -45,10 +45,10 @@
   width: 100%;
   padding: 1rem 1rem 1rem 3.25rem;
   font-size: 1rem;
-  border: 1px solid var(--border-color, #e5e7eb);
-  border-radius: 12px;
-  background-color: #f9fafb;
-  color: var(--text-main, #111827);
+  border: 1px solid var(--border-color, var(--border-color));
+  border-radius: var(--radius-md);
+  background-color: var(--card-bg);
+  color: var(--text-main, var(--text-main));
   transition: all 0.3s ease;
   box-shadow: 0 2px 4px rgba(0,0,0,0.02) inset;
 }
@@ -58,20 +58,20 @@
 }
 
 .search-input:hover {
-  background-color: #f3f4f6;
-  border-color: #d1d5db;
+  background-color: var(--bg-color);
+  border-color: var(--border-color);
 }
 
 .search-input:focus {
   outline: none;
   background-color: #ffffff;
-  border-color: var(--accent-color, #4aa38c);
+  border-color: var(--accent-color, var(--accent-color));
   box-shadow: 0 0 0 4px rgba(74, 163, 140, 0.15);
 }
 
 .search-input:focus + .search-icon, 
 .search-wrapper:focus-within .search-icon {
-  color: var(--accent-color, #4aa38c);
+  color: var(--accent-color, var(--accent-color));
 }
 
 .table-responsive {

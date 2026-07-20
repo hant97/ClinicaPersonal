@@ -15,7 +15,7 @@
 .modal-content {
   background: white;
   padding: 30px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   width: 100%;
   max-width: 500px;
   position: relative;

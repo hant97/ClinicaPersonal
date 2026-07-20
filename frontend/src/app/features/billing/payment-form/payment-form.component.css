@@ -21,7 +21,7 @@
 .modal-content {
   background: #ffffff;
   padding: 32px;
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   width: 100%;
   max-width: 480px;
   position: relative;
@@ -85,7 +85,7 @@ label {
   height: 42px;
   padding: 10px 14px;
   border: 1px solid #cbd5e1;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   box-sizing: border-box;
   font-family: inherit;
   font-size: 1rem;
@@ -114,7 +114,7 @@ label {
   background-color: #f1f5f9;
   border: 1px solid #cbd5e1;
   border-right: none;
-  border-radius: 8px 0 0 8px;
+  border-radius: var(--radius-sm) 0 0 8px;
   color: #475569;
   font-weight: 600;
   font-size: 1rem;
@@ -129,7 +129,7 @@ label {
 }
 
 .text-error {
-  color: #ef4444;
+  color: var(--error-color);
   font-size: 0.8rem;
   font-weight: 500;
   display: block;
@@ -147,7 +147,7 @@ label {
 .btn {
   padding: 10px 24px;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-weight: 600;
   font-size: 0.95rem;
@@ -162,7 +162,7 @@ label {
 
 .btn-primary:hover:not(:disabled) {
   background: #1d4ed8;
-  box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
+  box-shadow: var(--shadow-subtle);
   transform: translateY(-1px);
 }
 
@@ -205,7 +205,7 @@ label {
 .items-section {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 16px;
   margin-bottom: 24px;
 }
@@ -229,7 +229,7 @@ label {
 }
 
 .btn-danger {
-  background: #ef4444;
+  background: var(--error-color);
   color: white;
 }
 

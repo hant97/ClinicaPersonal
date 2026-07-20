@@ -13,7 +13,7 @@
   width: 100%;
   padding: 10px 30px 10px 14px; /* extra right padding for spinner/clear btn */
   border: 1px solid #cbd5e1;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   box-sizing: border-box;
   font-family: inherit;
   font-size: 1rem;
@@ -64,7 +64,7 @@
   background: white;
   border: 1px solid #ccc;
   border-radius: 4px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-subtle);
   max-height: 250px;
   overflow-y: auto;
   z-index: 1000;

@@ -76,7 +76,7 @@
 
 .btn-secondary:hover {
   background-color: var(--secondary-color);
-  border-color: #d1d5db;
+  border-color: var(--border-color);
 }
 
 @media (max-width: 768px) {

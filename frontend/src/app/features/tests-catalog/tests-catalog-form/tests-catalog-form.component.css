@@ -18,7 +18,7 @@
 
 .card {
   background: white;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 30px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
@@ -98,7 +98,7 @@
 .question-card {
   background: #f8f9fa;
   border: 1px solid #e1e8ed;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 20px;
 }
 

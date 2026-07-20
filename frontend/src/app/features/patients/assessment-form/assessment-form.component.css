@@ -14,14 +14,14 @@
 .modal-content {
   background: white;
   padding: 30px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   width: 90%;
   max-width: 800px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
   position: relative;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-subtle);
 }
 
 .close-btn {

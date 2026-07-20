@@ -7,7 +7,7 @@
 .modal-content {
   background: white;
   padding: 30px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
@@ -36,7 +36,7 @@
   transition: color 0.2s ease;
 }
 .close-btn:hover {
-  color: #ef4444;
+  color: var(--error-color);
 }
 .form-group {
   margin-bottom: 20px;
