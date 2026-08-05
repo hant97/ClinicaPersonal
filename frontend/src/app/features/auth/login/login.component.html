@@ -1,19 +1,19 @@
-<div class="split-layout">
-  <div class="hero-section">
-    <div class="hero-content">
-      <div class="logo-icon-large">🌿</div>
-      <h1>Clínica Vida</h1>
-      <p class="tagline">Gestión integral y eficiente para su consultorio.</p>
+<div class="flex min-h-screen flex-col overflow-y-auto md:h-screen md:flex-row md:overflow-hidden">
+  <section class="flex shrink-0 flex-col items-center justify-center bg-gradient-to-br from-clinic-500 to-clinic-700 px-6 py-12 text-white md:flex-1">
+    <div class="max-w-sm text-center">
+      <div class="mb-4 text-6xl md:text-7xl" aria-hidden="true">🌿</div>
+      <h1 class="mb-4 text-4xl font-semibold text-white md:text-5xl">Clínica Vida</h1>
+      <p class="text-lg text-white/90">Gestión integral y eficiente para su consultorio.</p>
     </div>
-  </div>
+  </section>
   
-  <div class="form-section">
-    <div class="form-container">
-      <h2>Iniciar Sesión</h2>
-      <p class="subtitle">Bienvenida Dra. Ingrese sus credenciales para acceder al sistema.</p>
+  <main class="flex flex-1 items-start justify-center bg-canvas px-4 py-8 sm:px-6 md:items-center md:px-8">
+    <div class="w-full max-w-md py-4 md:p-8">
+      <h2 class="mb-2 text-3xl font-semibold">Iniciar Sesión</h2>
+      <p class="mb-8 text-muted">Bienvenida Dra. Ingrese sus credenciales para acceder al sistema.</p>
 
       @if (errorMessage) {
-        <div class="error-message">
+        <div class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 font-medium text-danger" role="alert">
           {{ errorMessage }}
         </div>
       }
@@ -30,9 +30,9 @@
             autocomplete="username"
           >
           @if (loginForm.get('username')?.invalid && (loginForm.get('username')?.dirty || loginForm.get('username')?.touched)) {
-            <div class="error-messages">
-              @if (loginForm.get('username')?.hasError('required')) { <small class="text-error">El usuario es requerido.</small> }
-              @if (loginForm.get('username')?.hasError('minlength')) { <small class="text-error">Mínimo 4 caracteres.</small> }
+            <div class="mt-1.5 space-y-1">
+              @if (loginForm.get('username')?.hasError('required')) { <small class="block text-danger">El usuario es requerido.</small> }
+              @if (loginForm.get('username')?.hasError('minlength')) { <small class="block text-danger">Mínimo 4 caracteres.</small> }
             </div>
           }
         </div>
@@ -48,14 +48,14 @@
             autocomplete="current-password"
           >
           @if (loginForm.get('password')?.invalid && (loginForm.get('password')?.dirty || loginForm.get('password')?.touched)) {
-            <div class="error-messages">
-              @if (loginForm.get('password')?.hasError('required')) { <small class="text-error">La contraseña es requerida.</small> }
-              @if (loginForm.get('password')?.hasError('minlength')) { <small class="text-error">Mínimo 6 caracteres.</small> }
+            <div class="mt-1.5 space-y-1">
+              @if (loginForm.get('password')?.hasError('required')) { <small class="block text-danger">La contraseña es requerida.</small> }
+              @if (loginForm.get('password')?.hasError('minlength')) { <small class="block text-danger">Mínimo 6 caracteres.</small> }
             </div>
           }
         </div>
 
-        <button type="submit" class="btn-primary login-btn" [disabled]="loginForm.invalid || isLoading">
+        <button type="submit" class="btn-primary mt-4 w-full py-4 text-base" [disabled]="loginForm.invalid || isLoading">
           @if (!isLoading) {
             <span>Ingresar</span>
           } @else {
@@ -64,5 +64,5 @@
         </button>
       </form>
     </div>
-  </div>
+  </main>
 </div>

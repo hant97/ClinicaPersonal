@@ -1,101 +1,83 @@
-<div class="patient-detail-container" *ngIf="patient">
-  <div class="header-actions" style="margin-bottom: 20px;">
+<div class="space-y-6 p-1 md:p-2" *ngIf="patient">
+  <div>
     <button class="btn btn-secondary" (click)="goBack()">&larr; Volver al listado</button>
   </div>
 
   <!-- 1. Header principal del paciente -->
-  <div class="card header-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
-    <div style="display: flex; align-items: center; gap: 15px;">
-      <h2 style="margin: 0; color: #2c3e50; font-size: 1.5rem;">{{ patient.firstName }} {{ patient.lastName }}</h2>
-      <div style="color: #7f8c8d; font-size: 0.95rem; margin-top: 5px;">
+  <div class="card flex flex-wrap items-center justify-between gap-4">
+    <div class="flex flex-wrap items-center gap-4">
+      <h2 class="text-2xl font-bold text-ink">{{ patient.firstName }} {{ patient.lastName }}</h2>
+      <div class="mt-1 text-sm text-muted">
         <span *ngIf="patient.identificationDocument">Doc: {{ patient.identificationDocument }}</span>
-        <span *ngIf="age !== null" style="margin-left: 15px;">Edad: {{ age }} años</span>
+        <span *ngIf="age !== null" class="ml-4">Edad: {{ age }} años</span>
       </div>
     </div>
-    <button class="btn btn-secondary" (click)="togglePersonalDetails()">
-      {{ showPersonalDetails ? 'Ocultar Datos Personales' : 'Ver Datos Personales' }}
-    </button>
+    <div class="flex flex-wrap items-center gap-2.5">
+      <button class="btn btn-primary flex items-center gap-2 shadow-sm" (click)="scheduleAppointment()">
+        <lucide-icon [img]="Calendar" [size]="16"></lucide-icon>
+        <span>Agendar Cita</span>
+      </button>
+      <button class="btn btn-secondary" (click)="togglePersonalDetails()">
+        {{ showPersonalDetails ? 'Ocultar Datos' : 'Ver Datos Personales' }}
+      </button>
+    </div>
   </div>
 
   <!-- 7. Datos Personales completos (Acordeón colapsable) -->
   @if (showPersonalDetails) {
-    <div class="patient-info-container" style="animation: fadeIn 0.4s ease-out; margin-bottom: 25px;">
+    <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
       
       <!-- Datos Personales -->
-      <div class="info-section personal">
-        <div class="section-header">
-          <lucide-icon [img]="User" [size]="20" class="section-icon"></lucide-icon>
-          <h3 class="section-title-modern">Datos Personales</h3>
+      <div class="rounded-xl border border-line border-t-4 border-t-clinic-500 bg-surface p-5 shadow-card">
+        <div class="mb-5 flex items-center gap-3 border-b border-line pb-4">
+          <lucide-icon [img]="User" [size]="20" class="text-clinic-600"></lucide-icon>
+          <h3 class="text-lg font-semibold">Datos Personales</h3>
         </div>
-        <div class="info-grid-modern">
-          <div class="info-item-modern">
-            <span class="info-label">Documento</span>
-            <span class="info-value">{{ patient.identificationDocument || 'N/A' }}</span>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-muted">Documento</span><span class="text-sm text-ink">{{ patient.identificationDocument || 'N/A' }}</span>
           </div>
-          <div class="info-item-modern">
-            <span class="info-label">Fecha Nac.</span>
-            <span class="info-value">{{ patient.dateOfBirth || 'N/A' }}</span>
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-muted">Fecha Nac.</span><span class="text-sm text-ink">{{ patient.dateOfBirth || 'N/A' }}</span>
           </div>
-          <div class="info-item-modern">
-            <span class="info-label">Género</span>
-            <span class="info-value">{{ patient.gender || 'N/A' }}</span>
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-muted">Género</span><span class="text-sm text-ink">{{ patient.gender || 'N/A' }}</span>
           </div>
-          <div class="info-item-modern">
-            <span class="info-label">Estado Civil</span>
-            <span class="info-value">{{ patient.maritalStatus || 'N/A' }}</span>
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-muted">Estado Civil</span><span class="text-sm text-ink">{{ patient.maritalStatus || 'N/A' }}</span>
           </div>
-          <div class="info-item-modern occupation-field">
-            <span class="info-label">Ocupación</span>
-            <span class="info-value">{{ patient.occupation || 'N/A' }}</span>
+          <div class="flex flex-col gap-1 sm:col-span-2"><span class="text-xs font-semibold uppercase tracking-wide text-muted">Ocupación</span><span class="text-sm text-ink">{{ patient.occupation || 'N/A' }}</span>
           </div>
         </div>
       </div>
 
       <!-- Información de Contacto -->
-      <div class="info-section contact">
-        <div class="section-header">
-          <lucide-icon [img]="Phone" [size]="20" class="section-icon"></lucide-icon>
-          <h3 class="section-title-modern">Contacto</h3>
+      <div class="rounded-xl border border-line border-t-4 border-t-clinic-500 bg-surface p-5 shadow-card">
+        <div class="mb-5 flex items-center gap-3 border-b border-line pb-4">
+          <lucide-icon [img]="Phone" [size]="20" class="text-clinic-600"></lucide-icon>
+          <h3 class="text-lg font-semibold">Contacto</h3>
         </div>
-        <div class="info-grid-modern">
-          <div class="info-item-modern full-width">
-            <span class="info-label">Email</span>
-            <span class="info-value">{{ patient.email || 'N/A' }}</span>
+        <div class="grid gap-4">
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-muted">Email</span><span class="text-sm text-ink">{{ patient.email || 'N/A' }}</span>
           </div>
-          <div class="info-item-modern full-width">
-            <span class="info-label">Teléfono</span>
-            <span class="info-value">{{ patient.contactNumber || 'N/A' }}</span>
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-muted">Teléfono</span><span class="text-sm text-ink">{{ patient.contactNumber || 'N/A' }}</span>
           </div>
-          <div class="info-item-modern full-width">
-            <span class="info-label">Dirección</span>
-            <span class="info-value">{{ patient.address || 'N/A' }}</span>
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-muted">Dirección</span><span class="text-sm text-ink">{{ patient.address || 'N/A' }}</span>
           </div>
         </div>
       </div>
 
       <!-- Atención y Apoderado -->
-      <div class="info-section attention">
-        <div class="section-header">
-          <lucide-icon [img]="Activity" [size]="20" class="section-icon"></lucide-icon>
-          <h3 class="section-title-modern">Atención</h3>
+      <div class="rounded-xl border border-line border-t-4 border-t-clinic-500 bg-surface p-5 shadow-card">
+        <div class="mb-5 flex items-center gap-3 border-b border-line pb-4">
+          <lucide-icon [img]="Activity" [size]="20" class="text-clinic-600"></lucide-icon>
+          <h3 class="text-lg font-semibold">Atención</h3>
         </div>
-        <div class="info-grid-modern">
-          <div class="info-item-modern full-width">
-            <span class="info-label">Motivo Consulta</span>
-            <span class="info-value">{{ patient.reasonForConsultation || 'N/A' }}</span>
+        <div class="grid gap-4">
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-muted">Motivo Consulta</span><span class="text-sm text-ink">{{ patient.reasonForConsultation || 'N/A' }}</span>
           </div>
-          <div class="info-item-modern full-width">
-            <span class="info-label">Contacto Emergencia</span>
-            <span class="info-value">{{ patient.emergencyContact || 'N/A' }}</span>
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-muted">Contacto Emergencia</span><span class="text-sm text-ink">{{ patient.emergencyContact || 'N/A' }}</span>
           </div>
           @if (esMenorEdad || patient.hasLegalGuardian) {
-            <div class="info-item-modern full-width">
-              <span class="info-label">Apoderado</span>
-              <span class="info-value">{{ patient.guardianName || 'N/A' }}</span>
+            <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-muted">Apoderado</span><span class="text-sm text-ink">{{ patient.guardianName || 'N/A' }}</span>
             </div>
-            <div class="info-item-modern full-width">
-              <span class="info-label">Teléfono Apoderado</span>
-              <span class="info-value">{{ patient.guardianContact || 'N/A' }}</span>
+            <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-muted">Teléfono Apoderado</span><span class="text-sm text-ink">{{ patient.guardianContact || 'N/A' }}</span>
             </div>
           }
         </div>
@@ -105,94 +87,94 @@
   }
 
   <!-- 3. Historial de Tratamientos (Medical Records) -->
-  <div class="records-section" style="margin-bottom: 20px;">
-    <div class="records-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-      <h3 style="margin: 0; color: #2c3e50;">Historial de Tratamientos</h3>
+  <div class="space-y-4">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <h3 class="text-xl">Historial de Tratamientos</h3>
       <button class="btn btn-primary" (click)="openMedicalRecordForm()">+ Nuevo Registro</button>
     </div>
 
     @if (medicalRecords.length > 0) {
-      <div class="timeline">
+      <div class="space-y-4">
         @for (record of medicalRecords; track record.id) {
-          <div class="timeline-item card" style="cursor: default;">
-            <div style="display: flex; flex-direction: column; gap: 15px; align-items: stretch;">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span class="time" style="font-weight: bold; color: #4a5568; display: flex; align-items: center; gap: 8px;">
-                  <lucide-icon [img]="Calendar" [size]="16" style="color: #718096;"></lucide-icon>
+          <div class="card border-l-4 border-clinic-500">
+            <div class="flex flex-col gap-4">
+              <div class="flex items-center justify-between gap-3">
+                <span class="flex items-center gap-2 font-semibold text-muted">
+                  <lucide-icon [img]="Calendar" [size]="16" class="text-muted"></lucide-icon>
                   {{ record.createdAt | date:'longDate' }}
                 </span>
-                <span class="status-badge" [ngClass]="{
-                  'status-active': record.treatmentStatus === 'Activo' || !record.treatmentStatus,
-                  'status-paused': record.treatmentStatus === 'Pausado',
-                  'status-discharged': record.treatmentStatus === 'Alta',
-                  'status-abandoned': record.treatmentStatus === 'Abandonado'
+                <span class="rounded-full px-2.5 py-1 text-xs font-semibold" [ngClass]="{
+                  'bg-clinic-100 text-clinic-700': record.treatmentStatus === 'Activo' || !record.treatmentStatus,
+                  'bg-amber-100 text-amber-800': record.treatmentStatus === 'Pausado',
+                  'bg-blue-100 text-blue-800': record.treatmentStatus === 'Alta',
+                  'bg-red-100 text-danger': record.treatmentStatus === 'Abandonado'
                 }">{{ record.treatmentStatus || 'Activo' }}</span>
               </div>
               
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 5px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
-                <div *ngIf="record.diagnosis" style="display: flex; flex-direction: column; gap: 8px;">
-                  <h4 style="color: #2b6cb0; display: flex; align-items: center; gap: 6px; margin: 0; font-size: 0.95rem; font-weight: 600;">
+              <div class="mt-1 grid gap-5 border-t border-line pt-5 md:grid-cols-2">
+                <div *ngIf="record.diagnosis" class="flex flex-col gap-2">
+                  <h4 class="flex items-center gap-1.5 text-sm font-semibold text-clinic-700">
                     <lucide-icon [img]="FileText" [size]="16"></lucide-icon> Diagnóstico
                   </h4>
-                  <div style="background-color: #ebf8ff; padding: 12px 16px; border-radius: 8px; border-left: 4px solid #4299e1; color: #2d3748; white-space: pre-wrap; font-size: 0.95rem; line-height: 1.5; flex: 1;">{{ record.diagnosis }}</div>
+                  <div class="flex-1 whitespace-pre-wrap rounded-lg border-l-4 border-clinic-500 bg-clinic-50 p-3 text-sm leading-6 text-ink">{{ record.diagnosis }}</div>
                 </div>
-                <div *ngIf="record.currentMedication" style="display: flex; flex-direction: column; gap: 8px;">
-                  <h4 style="color: #2f855a; display: flex; align-items: center; gap: 6px; margin: 0; font-size: 0.95rem; font-weight: 600;">
+                <div *ngIf="record.currentMedication" class="flex flex-col gap-2">
+                  <h4 class="flex items-center gap-1.5 text-sm font-semibold text-success">
                     <lucide-icon [img]="Pill" [size]="16"></lucide-icon> Medicación
                   </h4>
-                  <div style="background-color: #f0fff4; padding: 12px 16px; border-radius: 8px; border-left: 4px solid #48bb78; color: #2d3748; white-space: pre-wrap; font-size: 0.95rem; line-height: 1.5; flex: 1;">{{ record.currentMedication }}</div>
+                  <div class="flex-1 whitespace-pre-wrap rounded-lg border-l-4 border-success bg-clinic-50 p-3 text-sm leading-6 text-ink">{{ record.currentMedication }}</div>
                 </div>
-                <div *ngIf="record.treatmentPlan" style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 8px;">
-                  <h4 style="color: #6b46c1; display: flex; align-items: center; gap: 6px; margin: 0; font-size: 0.95rem; font-weight: 600;">
+                <div *ngIf="record.treatmentPlan" class="flex flex-col gap-2 md:col-span-2">
+                  <h4 class="flex items-center gap-1.5 text-sm font-semibold text-clinic-700">
                     <lucide-icon [img]="ClipboardList" [size]="16"></lucide-icon> Plan de Tratamiento
                   </h4>
-                  <div style="background-color: #faf5ff; padding: 12px 16px; border-radius: 8px; border-left: 4px solid #9f7aea; color: #2d3748; white-space: pre-wrap; font-size: 0.95rem; line-height: 1.5;">{{ record.treatmentPlan }}</div>
+                  <div class="whitespace-pre-wrap rounded-lg border-l-4 border-clinic-500 bg-clinic-50 p-3 text-sm leading-6 text-ink">{{ record.treatmentPlan }}</div>
                 </div>
               </div>
 
-              <div class="timeline-actions" style="margin-top: 10px; justify-content: flex-end; border-top: 1px solid #e2e8f0; padding-top: 15px;">
-                <button class="btn-icon btn-edit" (click)="openMedicalRecordForm(record)" title="Editar">✏️</button>
-                <button class="btn-icon btn-delete" (click)="deleteMedicalRecord(record.id!, $event)" title="Eliminar">🗑️</button>
+              <div class="mt-2 flex justify-end gap-1 border-t border-line pt-4">
+                <button class="btn-text" (click)="openMedicalRecordForm(record)" title="Editar" aria-label="Editar registro">✏️</button>
+                <button class="btn-text text-danger hover:bg-red-50" (click)="deleteMedicalRecord(record.id!, $event)" title="Eliminar" aria-label="Eliminar registro">🗑️</button>
               </div>
             </div>
           </div>
         }
       </div>
     } @else {
-      <div class="card" style="padding: 15px; text-align: center; color: #718096; font-style: italic; background-color: #f7fafc;">
+      <div class="card bg-canvas p-4 text-center text-sm italic text-muted">
         No hay registros médicos para este paciente.
       </div>
     }
   </div>
 
   <!-- 2. Alertas de riesgo (Fase 3) -->
-  <div class="alerts-section" style="margin-bottom: 20px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-      <h3 style="margin: 0; color: #e53e3e; font-size: 1.25rem;">Alertas de Riesgo Activas</h3>
-      <button class="btn" style="background-color: #fee2e2; color: #e53e3e; border: 1px solid #fecaca; font-weight: bold;" (click)="openAlertForm()">
+  <div class="space-y-3">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <h3 class="text-xl text-danger">Alertas de Riesgo Activas</h3>
+      <button class="inline-flex min-h-11 items-center justify-center rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-danger transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2" (click)="openAlertForm()">
         + Añadir Alerta
       </button>
     </div>
     
     @if (activeAlerts.length > 0) {
-      <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div class="flex flex-col gap-3">
         @for (alert of activeAlerts; track alert.id) {
-          <div class="card" style="border-left: 5px solid #e53e3e; padding: 15px; display: flex; justify-content: space-between; align-items: flex-start; background-color: #fff5f5;">
+          <div class="card flex items-start justify-between gap-4 border-l-4 border-l-danger bg-red-50/60 p-4">
             <div>
-              <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
-                <span style="font-weight: bold; color: #c53030;">{{ alert.type }}</span>
-                <span style="background-color: #fed7d7; color: #c53030; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">{{ alert.level }}</span>
+              <div class="mb-2 flex items-center gap-2">
+                <span class="font-semibold text-danger">{{ alert.type }}</span>
+                <span class="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-danger">{{ alert.level }}</span>
               </div>
-              <p style="margin: 0; color: #4a5568; font-size: 0.95rem;">{{ alert.description }}</p>
+              <p class="text-sm text-muted">{{ alert.description }}</p>
             </div>
-            <button class="btn btn-secondary" style="font-size: 0.8rem; padding: 5px 10px;" (click)="resolveAlert(alert.id!, $event)">
+            <button class="btn-secondary shrink-0 px-3 py-1.5 text-xs" (click)="resolveAlert(alert.id!, $event)">
               Resolver
             </button>
           </div>
         }
       </div>
     } @else {
-      <div class="card" style="padding: 15px; text-align: center; color: #718096; font-style: italic; background-color: #f7fafc;">
+      <div class="card bg-canvas p-4 text-center text-sm italic text-muted">
         No hay alertas de riesgo activas para este paciente.
       </div>
     }
@@ -200,75 +182,77 @@
 
   <!-- 4. Historia Clínica (Sesiones) -->
 
-  <div class="records-section">
-    <div class="records-header">
+  <div class="space-y-4">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <h3>Historia Clínica (Sesiones)</h3>
       <button class="btn btn-primary" (click)="openForm()">+ Nueva Sesión</button>
     </div>
 
-    <div class="timeline">
+    <div class="space-y-3">
       @for (session of sessions; track session.id) {
-        <div class="timeline-item card" (click)="toggleSessionExpand(session.id!)" [class.expanded]="expandedSessionId === session.id">
+        <div class="card cursor-pointer border-l-4 border-clinic-500 transition hover:shadow-raised" (click)="toggleSessionExpand(session.id!)">
           
           <!-- Vista Colapsada -->
-          <div class="timeline-summary">
-            <div class="timeline-date-time">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex min-w-36 flex-col">
               <strong>{{ session.sessionDate | date:'mediumDate' }}</strong>
-              <span class="time">{{ session.startTime }} - {{ session.endTime }}</span>
+              <span class="text-sm text-muted">{{ session.startTime }} - {{ session.endTime }}</span>
             </div>
-            <div class="timeline-badges">
-              <span class="badge" [ngClass]="'badge-' + session.status.toLowerCase()">{{ session.status }}</span>
-              <span class="badge badge-type">{{ session.sessionType | uppercase }}</span>
-              <span class="badge badge-modality">{{ session.modality }}</span>
+            <div class="flex flex-1 flex-wrap items-center gap-2">
+              <span class="rounded-full bg-clinic-100 px-2.5 py-1 text-xs font-semibold text-clinic-700">{{ session.status }}</span>
+              <span class="rounded-full border border-line bg-surface px-2.5 py-1 text-xs font-semibold text-muted">{{ session.sessionType | uppercase }}</span>
+              <span class="rounded-full border border-line bg-surface px-2.5 py-1 text-xs font-semibold text-muted">{{ session.modality }}</span>
               @if (session.isConfidential) {
-                <span class="badge badge-confidential" title="Confidencial">🔒</span>
+                <span class="rounded-full bg-clinic-100 px-2.5 py-1 text-xs" title="Confidencial">🔒</span>
               }
             </div>
-            <div class="timeline-actions">
-              <button class="btn-icon btn-edit" (click)="editSession(session.id!, $event)" title="Editar">✏️</button>
-              <button class="btn-icon btn-delete" (click)="deleteSession(session.id!, $event)" title="Eliminar">🗑️</button>
+            <div class="flex gap-1">
+              <button class="btn-text" (click)="editSession(session.id!, $event)" title="Editar" aria-label="Editar sesión">✏️</button>
+              <button class="btn-text text-danger hover:bg-red-50" (click)="deleteSession(session.id!, $event)" title="Eliminar" aria-label="Eliminar sesión">🗑️</button>
             </div>
           </div>
 
           <!-- Vista Expandida -->
           @if (expandedSessionId === session.id) {
-            <div class="timeline-details">
+            <div class="mt-4 border-t border-line pt-4">
               <hr>
-              <div class="soap-grid">
-                <div class="soap-item" *ngIf="session.subjective">
-                  <h4>Subjetivo</h4>
-                  <p>{{ session.subjective }}</p>
+              <div class="grid gap-3">
+                <div class="rounded-lg bg-clinic-50 p-3" *ngIf="session.subjective">
+                  <h4 class="text-sm font-semibold">Subjetivo</h4>
+                  <p class="mt-1 text-sm text-muted">{{ session.subjective }}</p>
                 </div>
-                <div class="soap-item" *ngIf="session.objective">
-                  <h4>Objetivo</h4>
-                  <p>{{ session.objective }}</p>
+                <div class="rounded-lg bg-clinic-50 p-3" *ngIf="session.objective">
+                  <h4 class="text-sm font-semibold">Objetivo</h4>
+                  <p class="mt-1 text-sm text-muted">{{ session.objective }}</p>
                 </div>
-                <div class="soap-item" *ngIf="session.analysis">
-                  <h4>Análisis</h4>
-                  <p>{{ session.analysis }}</p>
+                <div class="rounded-lg bg-clinic-50 p-3" *ngIf="session.analysis">
+                  <h4 class="text-sm font-semibold">Análisis</h4>
+                  <p class="mt-1 text-sm text-muted">{{ session.analysis }}</p>
                 </div>
-                <div class="soap-item" *ngIf="session.plan">
-                  <h4>Plan</h4>
-                  <p>{{ session.plan }}</p>
+                <div class="rounded-lg bg-clinic-50 p-3" *ngIf="session.plan">
+                  <h4 class="text-sm font-semibold">Plan</h4>
+                  <p class="mt-1 text-sm text-muted">{{ session.plan }}</p>
                 </div>
               </div>
             </div>
           }
         </div>
       } @empty {
-        <p class="empty-state">Aún no hay sesiones registradas para este paciente.</p>
+        <p class="rounded-lg border border-dashed border-line bg-canvas p-5 text-center text-sm text-muted">Aún no hay sesiones registradas para este paciente.</p>
       }
     </div>
   </div>
 
   <!-- Evaluaciones Psicométricas -->
-  <app-assessment-list [patientId]="patient.id!"></app-assessment-list>
+  <div class="mt-8">
+    <app-assessment-list [patientId]="patient.id!"></app-assessment-list>
+  </div>
 
   <!-- Modal superpuesto para nueva sesión -->
   @if (showForm) {
-    <div class="modal-overlay">
-      <div class="modal-content">
-        <button class="close-btn" (click)="closeForm()">&times;</button>
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div class="card relative max-h-[90vh] w-full max-w-4xl overflow-y-auto p-5 md:p-7">
+        <button class="btn-text absolute right-3 top-3" (click)="closeForm()" aria-label="Cerrar formulario">&times;</button>
         <app-clinical-session-form 
           [patientId]="patient.id!" 
           [session]="selectedSession"
@@ -281,7 +265,7 @@
 
   <!-- Modal para nuevo registro medico -->
   @if (showMedicalRecordForm) {
-    <div class="modal-overlay">
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <app-medical-record-form 
         [patientId]="patient.id!" 
         [record]="selectedMedicalRecord"
@@ -302,7 +286,7 @@
 </div>
 
 @if (!patient) {
-  <div class="loading">
+  <div class="card text-center text-muted">
     Cargando información del paciente...
   </div>
 }

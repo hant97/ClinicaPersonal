@@ -18,8 +18,7 @@ import { PatientAutocompleteComponent } from '../../../shared/components/patient
   selector: 'app-payment-form',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, PatientAutocompleteComponent],
-  templateUrl: './payment-form.component.html',
-  styleUrls: ['./payment-form.component.css']
+  templateUrl: './payment-form.component.html'
 })
 export class PaymentFormComponent implements OnInit {
   @Input() payment: Payment | null = null;

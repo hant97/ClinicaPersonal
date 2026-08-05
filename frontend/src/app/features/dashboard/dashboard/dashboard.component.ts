@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardService, DashboardStats } from '../../../core/services/dashboard.service';
-import { Observable } from 'rxjs';
 import { LucideAngularModule, Users, Calendar, DollarSign, Activity, UserPlus, TrendingUp, TrendingDown, Clock, AlertTriangle, Package } from 'lucide-angular';
 
 @Component({
@@ -9,10 +8,11 @@ import { LucideAngularModule, Users, Calendar, DollarSign, Activity, UserPlus, T
   standalone: true,
   imports: [CommonModule, LucideAngularModule],
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent implements OnInit {
-  stats$!: Observable<DashboardStats>;
+  stats: DashboardStats | null = null;
+  isLoading = true;
+  loadError = false;
   
   readonly Users = Users;
   readonly Calendar = Calendar;
@@ -28,6 +28,22 @@ export class DashboardComponent implements OnInit {
   constructor(private dashboardService: DashboardService) {}
 
   ngOnInit(): void {
-    this.stats$ = this.dashboardService.getDashboardStats();
+    this.loadStats();
+  }
+
+  loadStats(): void {
+    this.isLoading = true;
+    this.loadError = false;
+    this.dashboardService.getDashboardStats().subscribe({
+      next: (stats) => {
+        this.stats = stats;
+        this.isLoading = false;
+      },
+      error: () => {
+        this.stats = null;
+        this.isLoading = false;
+        this.loadError = true;
+      }
+    });
   }
 }

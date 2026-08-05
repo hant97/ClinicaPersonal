@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 import { AppointmentService } from '../../../core/services/appointment.service';
@@ -17,7 +17,6 @@ import { LucideAngularModule, Plus, Calendar, MoreVertical, Check, X, Clock, Vid
   standalone: true,
   imports: [CommonModule, AppointmentFormComponent, LucideAngularModule, ReactiveFormsModule],
   templateUrl: './agenda.component.html',
-  styleUrl: './agenda.component.css'
 })
 export class AgendaComponent implements OnInit, OnDestroy {
   readonly Plus = Plus;
@@ -40,13 +39,14 @@ export class AgendaComponent implements OnInit, OnDestroy {
   showForm = false;
   openMenuId: number | null = null;
   appointmentToEdit: Appointment | null = null;
+  initialAppointmentData: Partial<Appointment> | null = null;
   patientMap = new Map<number, string>();
 
   filterForm!: FormGroup;
   private destroy$ = new Subject<void>();
 
   // Calendar State
-  currentView: 'list' | 'calendar' = 'list';
+  currentView: 'list' | 'calendar' = 'calendar';
   currentWeekStart!: Date;
   weekDays: Date[] = [];
   hours: string[] = [];
@@ -55,6 +55,7 @@ export class AgendaComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private appointmentService: AppointmentService,
     private patientService: PatientService,
+    private route: ActivatedRoute,
     private router: Router,
     private notificationService: NotificationService,
     private toastService: ToastService,
@@ -72,9 +73,25 @@ export class AgendaComponent implements OnInit, OnDestroy {
             this.patientMap.set(Number(p.id), `${p.firstName} ${p.lastName}`);
           }
         });
-        this.loadAppointments();
+        if (this.appointments.length > 0) {
+          this.appointments = this.appointments.map(app => ({
+            ...app,
+            patientName: this.patientMap.get(Number(app.patientId)) || 'Paciente Desconocido'
+          }));
+        } else {
+          this.loadAppointments();
+        }
       },
       error: (err) => console.error('Error fetching patients', err)
+    });
+
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      if (params['newAppointment'] === 'true' || params['patientId']) {
+        const patientId = params['patientId'] ? Number(params['patientId']) : undefined;
+        this.openForm(undefined, {
+          patientId: patientId
+        });
+      }
     });
   }
 
@@ -96,7 +113,20 @@ export class AgendaComponent implements OnInit, OnDestroy {
         distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
         takeUntil(this.destroy$)
       )
-      .subscribe(() => {
+      .subscribe((filters) => {
+        if (this.currentView === 'calendar') {
+          if (filters.dateRange === 'TODAY' || filters.dateRange === 'WEEK') {
+            this.currentWeekStart = this.getStartOfWeek(new Date());
+            this.updateWeekDays(false);
+          } else if (filters.dateRange === 'MONTH') {
+            const today = new Date();
+            this.currentWeekStart = this.getStartOfWeek(new Date(today.getFullYear(), today.getMonth(), 1));
+            this.updateWeekDays(false);
+          } else if (filters.dateRange === 'ALL') {
+            this.currentWeekStart = this.getStartOfWeek(new Date());
+            this.updateWeekDays(false);
+          }
+        }
         this.loadAppointments();
       });
   }
@@ -153,17 +183,11 @@ export class AgendaComponent implements OnInit, OnDestroy {
 
   toggleView(view: 'list' | 'calendar'): void {
     this.currentView = view;
-    if (view === 'calendar') {
-      this.filterForm.get('dateRange')?.disable({emitEvent: false});
-    } else {
-      this.filterForm.get('dateRange')?.enable({emitEvent: false});
-    }
     this.loadAppointments();
   }
 
   // Helper for calendar rendering
   getAppointmentsForDayAndHour(day: Date, hourString: string): Appointment[] {
-    // Para asegurar la misma zona horaria y formato ISO local
     const y = day.getFullYear();
     const m = String(day.getMonth() + 1).padStart(2, '0');
     const d = String(day.getDate()).padStart(2, '0');
@@ -206,7 +230,6 @@ export class AgendaComponent implements OnInit, OnDestroy {
     let endDate: string | undefined = undefined;
 
     if (this.currentView === 'calendar') {
-      // Ajuste timezone local a ISO
       const s = this.weekDays[0];
       startDate = `${s.getFullYear()}-${String(s.getMonth()+1).padStart(2, '0')}-${String(s.getDate()).padStart(2, '0')}`;
       
@@ -247,19 +270,46 @@ export class AgendaComponent implements OnInit, OnDestroy {
     });
   }
 
-  openForm(): void {
+  openForm(appointment?: Appointment, initialData?: Partial<Appointment>): void {
+    this.appointmentToEdit = appointment || null;
+    this.initialAppointmentData = initialData || null;
+    this.showForm = true;
+  }
+
+  onSlotClick(day: Date, hourString: string): void {
+    const y = day.getFullYear();
+    const m = String(day.getMonth() + 1).padStart(2, '0');
+    const d = String(day.getDate()).padStart(2, '0');
+    const dateStr = `${y}-${m}-${d}`;
+
+    const startTime = hourString.length === 5 ? hourString : hourString.substring(0, 5);
+    
+    // Default 30 min duration
+    const [h, min] = startTime.split(':').map(Number);
+    const endMinutes = h * 60 + min + 30;
+    const endH = Math.floor(endMinutes / 60);
+    const endM = endMinutes % 60;
+    const endTime = `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+
     this.appointmentToEdit = null;
+    this.initialAppointmentData = {
+      appointmentDate: dateStr,
+      startTime: startTime,
+      endTime: endTime
+    };
     this.showForm = true;
   }
 
   closeForm(): void {
     this.showForm = false;
     this.appointmentToEdit = null;
+    this.initialAppointmentData = null;
   }
 
   onAppointmentSaved(): void {
     this.showForm = false;
     this.appointmentToEdit = null;
+    this.initialAppointmentData = null;
     this.loadAppointments();
   }
 
@@ -275,7 +325,6 @@ export class AgendaComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Cierra el menu si se hace clic fuera del popover (requeriria host listener, por ahora cerramos manual)
   closeMenu(): void {
     this.openMenuId = null;
   }
@@ -320,6 +369,7 @@ export class AgendaComponent implements OnInit, OnDestroy {
   openRescheduleForm(appointment: Appointment): void {
     this.openMenuId = null;
     this.appointmentToEdit = appointment;
+    this.initialAppointmentData = null;
     this.showForm = true;
   }
 

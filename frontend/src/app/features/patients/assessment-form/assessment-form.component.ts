@@ -9,7 +9,6 @@ import { Assessment, PsychometricTest, Question } from '../../../core/models/ass
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './assessment-form.component.html',
-  styleUrl: './assessment-form.component.css'
 })
 export class AssessmentFormComponent implements OnInit {
   @Input() patientId!: number;

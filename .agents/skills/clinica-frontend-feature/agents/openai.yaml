@@ -1,0 +1,4 @@
+interface:
+  display_name: "Clinica Frontend"
+  short_description: "Extiende el frontend Angular de la clinica"
+  default_prompt: "Use $clinica-frontend-feature para implementar una funcionalidad Angular coherente con ClinicaPersonal."

@@ -12,8 +12,7 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
   selector: 'app-inventory-list',
   standalone: true,
   imports: [CommonModule, InventoryFormComponent, LucideAngularModule, PaginationComponent],
-  templateUrl: './inventory-list.component.html',
-  styleUrls: ['./inventory-list.component.css']
+  templateUrl: './inventory-list.component.html'
 })
 export class InventoryListComponent implements OnInit, OnDestroy {
   readonly Search = Search;

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Clinica Full-stack"
+  short_description: "Sincroniza contratos entre backend y frontend"
+  default_prompt: "Use $clinica-fullstack-contract para implementar un flujo completo manteniendo sincronizados backend y frontend."

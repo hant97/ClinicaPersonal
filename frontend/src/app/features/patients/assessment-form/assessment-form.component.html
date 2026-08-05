@@ -1,23 +1,23 @@
-<div class="modal-overlay">
-  <div class="modal-content">
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true">
+  <div class="card relative flex max-h-[90vh] w-full max-w-3xl flex-col p-5 md:p-7">
     <button class="close-btn" (click)="cancel()">&times;</button>
     <h3 class="modal-title">Registrar Evaluación</h3>
 
-    <div class="form-body">
+    <div class="overflow-y-auto pr-1">
       <div class="form-group">
         <label>Seleccionar Prueba</label>
-        <select class="form-control" (change)="onTestSelect($event)">
+        <select class="input-field" (change)="onTestSelect($event)">
           <option value="" disabled selected>-- Elige una prueba --</option>
           <option *ngFor="let test of tests" [value]="test.id">{{ test.name }}</option>
         </select>
-        <small class="help-text" *ngIf="selectedTest">{{ selectedTest.description }}</small>
+        <small class="mt-2 block text-sm text-muted" *ngIf="selectedTest">{{ selectedTest.description }}</small>
       </div>
 
       <div *ngIf="selectedTest && questions.length > 0" class="questions-container">
-        <div *ngFor="let question of questions; let i = index" class="question-card">
-          <p class="question-text">{{ i + 1 }}. {{ question.text }}</p>
-          <div class="options-list">
-            <label *ngFor="let option of question.options" class="option-label">
+        <div *ngFor="let question of questions; let i = index" class="mb-4 rounded-lg border border-line bg-clinic-50/50 p-4">
+          <p class="mb-3 font-medium text-clinic-900">{{ i + 1 }}. {{ question.text }}</p>
+          <div class="space-y-1">
+            <label *ngFor="let option of question.options" class="flex cursor-pointer items-center gap-3 rounded-lg p-2 text-sm hover:bg-clinic-100">
               <input type="radio" 
                      [name]="'question_' + question.id" 
                      [value]="option.score" 
@@ -30,17 +30,17 @@
 
       <div *ngIf="selectedTest" class="form-group mt-4">
         <label>Notas / Conclusiones Adicionales</label>
-        <textarea class="form-control" rows="4" placeholder="Observaciones..." [(ngModel)]="notes"></textarea>
+        <textarea class="input-field" rows="4" placeholder="Observaciones..." [(ngModel)]="notes"></textarea>
       </div>
     </div>
 
-    <div class="modal-footer">
-      <div class="score-display" *ngIf="selectedTest">
+    <div class="mt-5 flex flex-col gap-4 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-between">
+      <div class="text-sm text-ink" *ngIf="selectedTest">
         Puntaje Total Calculado: <strong>{{ calculateTotalScore() }}</strong>
       </div>
       <div *ngIf="!selectedTest"></div>
       
-      <div class="actions">
+      <div class="flex gap-3">
         <button class="btn btn-secondary" (click)="cancel()">Cancelar</button>
         <button class="btn btn-primary" 
                 [disabled]="!isValid() || isSaving" 

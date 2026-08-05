@@ -10,7 +10,6 @@ import { MedicalRecord } from '../../../core/models/medical-record.model';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './medical-record-form.component.html',
-  styleUrls: ['./medical-record-form.component.css']
 })
 export class MedicalRecordFormComponent implements OnInit {
   @Input() patientId!: number;

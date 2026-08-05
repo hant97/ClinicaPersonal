@@ -1,0 +1,4 @@
+interface:
+  display_name: "Clinica Backend"
+  short_description: "Extiende el backend Spring de la clinica"
+  default_prompt: "Use $clinica-backend-feature para implementar una funcionalidad backend coherente con la arquitectura de ClinicaPersonal."

@@ -1,82 +1,16 @@
-<div class="card">
-  <div class="header-actions">
-    <h2>Facturación Básica</h2>
-    <div class="header-controls">
-      <button class="btn-secondary" (click)="exportPayments()" title="Exportar a Excel">
-        <lucide-icon [img]="Download" [size]="18"></lucide-icon>
-        Exportar
-      </button>
-      <button class="btn-primary" (click)="openForm()">
-        <lucide-icon [img]="Plus" [size]="18"></lucide-icon>
-        Registrar Pago
-      </button>
+<section class="card">
+  <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div><p class="text-sm text-muted">Administración</p><h2 class="text-xl font-semibold">Facturación básica</h2></div>
+    <div class="flex flex-col gap-2 sm:flex-row">
+      <button class="btn-secondary min-h-11" (click)="exportPayments()" title="Exportar a Excel"><lucide-icon [img]="Download" [size]="18"></lucide-icon>Exportar</button>
+      <button class="btn-primary min-h-11" (click)="openForm()"><lucide-icon [img]="Plus" [size]="18"></lucide-icon>Registrar pago</button>
     </div>
   </div>
-  
-  <div class="search-container">
-    <div class="search-wrapper">
-      <lucide-icon [img]="Search" [size]="20" [strokeWidth]="2" class="search-icon"></lucide-icon>
-      <input type="text" class="search-input" placeholder="Buscar por paciente o motivo..." (input)="onSearch($event)">
-    </div>
-  </div>
-
-  <div class="table-responsive">
-    <table class="minimal-table">
-      <thead>
-        <tr>
-          <th>Fecha</th>
-          <th>Paciente</th>
-          <th>Descripción</th>
-          <th>Monto</th>
-          <th>Método</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let payment of payments">
-          <td>{{ payment.paymentDate | date:'medium' }}</td>
-          <td>{{ payment.patientName }}</td>
-          <td>{{ payment.description || '-' }}</td>
-          <td class="amount-cell">{{ payment.amount | currency:'PEN':'S/ ':'1.2-2' }}</td>
-          <td>
-            <span class="method-badge">{{ getPaymentMethodText(payment.paymentMethod) }}</span>
-          </td>
-          <td>
-            <div class="d-flex" style="gap: 0.5rem;">
-              <button class="btn-text" (click)="viewPayment(payment)" title="Ver Detalle">
-                <lucide-icon [img]="Eye" [size]="18"></lucide-icon>
-              </button>
-              <button class="btn-text" (click)="openForm(payment)" title="Editar">
-                <lucide-icon [img]="Edit" [size]="18"></lucide-icon>
-              </button>
-              <button class="btn-text" (click)="deletePayment(payment.id!)" style="color: var(--danger);" title="Eliminar">
-                <lucide-icon [img]="Trash2" [size]="18"></lucide-icon>
-              </button>
-            </div>
-          </td>
-        </tr>
-        <tr *ngIf="payments.length === 0">
-          <td colspan="6" class="empty-state">No hay pagos registrados.</td>
-        </tr>
-      </tbody>
-    </table>
-    
-    <app-pagination 
-      [currentPage]="currentPage" 
-      [totalPages]="totalPages" 
-      (pageChange)="onPageChange($event)">
-    </app-pagination>
-  </div>
-</div>
-
-<app-payment-form *ngIf="showForm"
-  [payment]="selectedPayment"
-  (saved)="onPaymentSaved()"
-  (cancelled)="closeForm()">
-</app-payment-form>
-
-<app-payment-detail *ngIf="viewingPayment"
-  [payment]="viewingPayment"
-  [paymentMethodText]="getPaymentMethodText(viewingPayment.paymentMethod)"
-  (close)="closeView()">
-</app-payment-detail>
+  <div class="relative mb-6 max-w-2xl"><lucide-icon [img]="Search" [size]="20" class="input-leading-icon"></lucide-icon><input type="text" class="input-field input-with-leading-icon" placeholder="Buscar por paciente o motivo..." (input)="onSearch($event)"></div>
+  <div class="table-responsive"><table class="minimal-table min-w-[720px]"><thead><tr><th>Fecha</th><th>Paciente</th><th>Descripción</th><th>Monto</th><th>Método</th><th><span class="sr-only">Acciones</span></th></tr></thead><tbody>
+    @for (payment of payments; track payment.id) { <tr><td>{{ payment.paymentDate | date:'medium' }}</td><td class="font-medium">{{ payment.patientName }}</td><td>{{ payment.description || '-' }}</td><td class="font-semibold text-clinic-700">{{ payment.amount | currency:'PEN':'S/ ':'1.2-2' }}</td><td><span class="rounded-full border border-line bg-clinic-50 px-2.5 py-1 text-xs font-medium text-clinic-700">{{ getPaymentMethodText(payment.paymentMethod) }}</span></td><td><div class="flex gap-1"><button class="btn-text" (click)="viewPayment(payment)" title="Ver detalle"><lucide-icon [img]="Eye" [size]="18"></lucide-icon></button><button class="btn-text" (click)="openForm(payment)" title="Editar"><lucide-icon [img]="Edit" [size]="18"></lucide-icon></button><button class="inline-flex items-center justify-center rounded-lg p-2 text-danger transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-danger" (click)="deletePayment(payment.id!)" title="Eliminar"><lucide-icon [img]="Trash2" [size]="18"></lucide-icon></button></div></td></tr> }
+    @empty { <tr><td colspan="6" class="py-12 text-center text-muted">No hay pagos registrados.</td></tr> }
+  </tbody></table><app-pagination [currentPage]="currentPage" [totalPages]="totalPages" (pageChange)="onPageChange($event)"></app-pagination></div>
+</section>
+@if (showForm) { <app-payment-form [payment]="selectedPayment" (saved)="onPaymentSaved()" (cancelled)="closeForm()"></app-payment-form> }
+@if (viewingPayment) { <app-payment-detail [payment]="viewingPayment" [paymentMethodText]="getPaymentMethodText(viewingPayment.paymentMethod)" (close)="closeView()"></app-payment-detail> }

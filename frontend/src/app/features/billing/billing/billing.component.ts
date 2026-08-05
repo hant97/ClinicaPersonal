@@ -18,8 +18,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
   selector: 'app-billing',
   standalone: true,
   imports: [CommonModule, PaymentFormComponent, PaymentDetailComponent, LucideAngularModule, PaginationComponent],
-  templateUrl: './billing.component.html',
-  styleUrl: './billing.component.css'
+  templateUrl: './billing.component.html'
 })
 export class BillingComponent implements OnInit, OnDestroy {
   readonly Plus = Plus;

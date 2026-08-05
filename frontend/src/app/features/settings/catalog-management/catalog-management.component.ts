@@ -11,7 +11,6 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
   standalone: true,
   imports: [CommonModule, FormsModule, PaginationComponent],
   templateUrl: './catalog-management.component.html',
-  styleUrls: ['./catalog-management.component.css']
 })
 export class CatalogManagementComponent implements OnInit {
   catalogs: Catalog[] = [];

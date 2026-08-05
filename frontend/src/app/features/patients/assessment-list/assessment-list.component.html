@@ -1,37 +1,34 @@
-<div class="card assessments-card">
-  <div class="header">
-    <h3 class="section-title">Evaluaciones Psicométricas</h3>
+<div class="card">
+  <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h3 class="text-lg font-semibold">Evaluaciones Psicométricas</h3>
     <button class="btn btn-primary" (click)="openForm()">+ Registrar Evaluación</button>
   </div>
 
   <div class="table-responsive">
     <ng-container *ngIf="assessments.length > 0; else noData">
-      <div *ngIf="assessments.length > 1" class="chart-container" style="position: relative; height: 300px; width: 100%; margin-bottom: 25px; padding: 15px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+      <div *ngIf="assessments.length > 1" class="relative mb-6 h-72 w-full rounded-xl border border-line bg-clinic-50/50 p-4">
         <canvas #chartCanvas></canvas>
       </div>
 
-      <div style="border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
-        <table class="table" style="margin: 0;">
-        <thead style="background-color: #edf2f7;">
+      <div class="overflow-hidden rounded-xl border border-line">
+        <table class="minimal-table">
+        <thead class="bg-clinic-50">
           <tr>
-            <th style="color: #4a5568; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; padding: 16px;">Fecha</th>
-            <th style="color: #4a5568; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; padding: 16px;">Test</th>
-            <th style="color: #4a5568; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; padding: 16px;">Puntaje Total</th>
-            <th style="color: #4a5568; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; padding: 16px;">Notas</th>
+            <th>Fecha</th><th>Test</th><th>Puntaje Total</th><th>Notas</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let assessment of assessments" style="transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f7fafc'" onmouseout="this.style.backgroundColor='transparent'">
-            <td style="padding: 16px; color: #4a5568; font-weight: 500;">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 0.95rem;">{{ assessment.assessmentDate | date:'dd/MM/yyyy HH:mm' }}</span>
+          <tr *ngFor="let assessment of assessments">
+            <td class="font-medium text-muted">
+              <div class="flex items-center gap-2">
+                <span>{{ assessment.assessmentDate | date:'dd/MM/yyyy HH:mm' }}</span>
               </div>
             </td>
-            <td style="padding: 16px; color: #2d3748; font-weight: 600;">{{ assessment.testName }}</td>
-            <td style="padding: 16px;">
-              <span class="score-badge" style="background-color: #805ad5; box-shadow: 0 2px 4px rgba(128,90,213,0.3);">{{ assessment.totalScore }}</span>
+            <td class="font-semibold">{{ assessment.testName }}</td>
+            <td>
+              <span class="inline-flex rounded-full bg-clinic-700 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">{{ assessment.totalScore }}</span>
             </td>
-            <td class="notes-col" style="padding: 16px; color: #718096; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" [title]="assessment.notes || ''">{{ assessment.notes || '-' }}</td>
+            <td class="max-w-xs truncate text-muted" [title]="assessment.notes || ''">{{ assessment.notes || '-' }}</td>
           </tr>
         </tbody>
         </table>
@@ -44,7 +41,7 @@
       </app-pagination>
     </ng-container>
     <ng-template #noData>
-      <div class="empty-state">
+      <div class="rounded-lg border border-dashed border-line bg-canvas p-6 text-center text-sm text-muted">
         <p>No hay evaluaciones registradas para este paciente.</p>
       </div>
     </ng-template>

@@ -1,47 +1,103 @@
-<div class="modal-overlay">
-  <div class="modal-content">
-    <button class="close-btn" (click)="onCancel()">&times;</button>
-    <h3>{{ appointment ? 'Reprogramar / Editar Cita' : 'Agendar Nueva Cita' }}</h3>
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-clinic-900/45 p-4" role="dialog" aria-modal="true" aria-labelledby="appointment-form-title">
+  <div class="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-surface p-5 shadow-raised sm:p-7">
+    <button type="button" class="btn-text absolute right-3 top-3 text-muted hover:text-ink text-xl font-bold" aria-label="Cerrar" (click)="onCancel()">✕</button>
+    <div class="mb-6 pr-9">
+      <p class="text-sm font-medium text-clinic-600">Agenda</p>
+      <h2 id="appointment-form-title" class="mt-1 text-xl font-semibold">{{ appointment ? 'Reprogramar o editar cita' : 'Agendar nueva cita' }}</h2>
+    </div>
 
-    <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()">
-      <div class="form-group">
-        <label for="patientId">Paciente *</label>
+    <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()" class="space-y-5">
+      <div>
+        <label for="patientId" class="form-label">Paciente <span aria-hidden="true" class="text-danger">*</span></label>
         <app-patient-autocomplete id="patientId" formControlName="patientId"></app-patient-autocomplete>
         @if (appointmentForm.get('patientId')?.invalid && (appointmentForm.get('patientId')?.dirty || appointmentForm.get('patientId')?.touched)) {
-          <div class="error-messages">
-            @if (appointmentForm.get('patientId')?.hasError('required')) { <small class="text-error">El paciente es requerido.</small> }
-          </div>
+          <p class="mt-2 text-sm text-danger">El paciente es requerido.</p>
         }
       </div>
 
-      <div class="form-row" style="display: flex; gap: 10px;">
-        <div class="form-group" style="flex: 1;">
-          <label for="appointmentDate">Fecha *</label>
-          <input type="date" id="appointmentDate" formControlName="appointmentDate" class="form-control">
+      <div class="grid gap-4 sm:grid-cols-3">
+        <div>
+          <label for="appointmentDate" class="form-label">Fecha <span aria-hidden="true" class="text-danger">*</span></label>
+          <input type="date" id="appointmentDate" formControlName="appointmentDate" class="input-field">
+          @if (appointmentForm.get('appointmentDate')?.hasError('pastDate') && appointmentForm.get('appointmentDate')?.touched) {
+            <p class="mt-2 text-sm text-danger">La fecha no puede ser anterior a hoy.</p>
+          }
         </div>
-        <div class="form-group" style="flex: 1;">
-          <label for="startTime">Hora Inicio *</label>
-          <input type="time" id="startTime" formControlName="startTime" class="form-control">
+        <div>
+          <label for="startTime" class="form-label">Hora de inicio <span aria-hidden="true" class="text-danger">*</span></label>
+          <input type="time" id="startTime" formControlName="startTime" class="input-field">
         </div>
-        <div class="form-group" style="flex: 1;">
-          <label for="endTime">Hora Fin *</label>
-          <input type="time" id="endTime" formControlName="endTime" class="form-control">
+        <div>
+          <label for="endTime" class="form-label">Hora de fin <span aria-hidden="true" class="text-danger">*</span></label>
+          <input type="time" id="endTime" formControlName="endTime" class="input-field">
         </div>
       </div>
 
-      <div class="form-row" style="display: flex; gap: 10px;">
-        <div class="form-group" style="flex: 1;">
-          <label for="modality">Modalidad *</label>
-          <select id="modality" formControlName="modality" class="form-control">
+      <!-- Selector de Duración Rápida -->
+      <div class="rounded-xl border border-line bg-canvas/70 p-3.5 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="flex items-center gap-1.5 text-xs font-semibold text-ink">
+            <lucide-icon [img]="Clock" [size]="14" class="text-clinic-600"></lucide-icon>
+            Duración de la cita
+          </span>
+          <span class="text-xs font-medium px-2 py-0.5 rounded-md" [ngClass]="selectedDuration ? 'bg-clinic-100 text-clinic-800' : 'bg-stone-200 text-stone-700'">
+            {{ selectedDuration ? (selectedDuration + ' min calculados') : 'Duración personalizada' }}
+          </span>
+        </div>
+        <div class="flex flex-wrap gap-2 pt-1">
+          @for (dur of durationOptions; track dur.value) {
+            <button type="button"
+              (click)="selectDuration(dur.value)"
+              [class]="selectedDuration === dur.value ? 'bg-clinic-600 text-white font-semibold shadow-sm ring-2 ring-clinic-600/30' : 'bg-surface hover:bg-clinic-50 text-ink border border-line hover:border-clinic-300'"
+              class="inline-flex items-center rounded-lg px-3 py-1.5 text-xs transition-all cursor-pointer">
+              {{ dur.label }}
+            </button>
+          }
+        </div>
+        @if (appointmentForm.hasError('invalidTimeOrder') && (appointmentForm.get('endTime')?.touched || appointmentForm.get('startTime')?.touched)) {
+          <p class="text-xs text-danger font-medium pt-1">
+            ⚠ La hora de fin debe ser posterior a la hora de inicio.
+          </p>
+        }
+      </div>
+
+      <!-- Banner Preventivo de Conflictos de Horario -->
+      @if (conflicts.length > 0) {
+        <div class="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900 shadow-sm animate-fadeIn">
+          <div class="flex items-start gap-3">
+            <lucide-icon [img]="AlertTriangle" [size]="20" class="text-amber-600 shrink-0 mt-0.5"></lucide-icon>
+            <div class="space-y-1">
+              <p class="text-sm font-semibold text-amber-950">Conflicto de horario detectado</p>
+              <p class="text-xs text-amber-800">El horario seleccionado coincide con las siguientes citas registradas:</p>
+              <ul class="mt-2 space-y-1 text-xs">
+                @for (c of conflicts; track c.id) {
+                  <li class="flex flex-wrap items-center gap-2 font-medium">
+                    <span class="inline-block h-1.5 w-1.5 rounded-full bg-amber-600"></span>
+                    <span>{{ patientMap.get(c.patientId) || ('Paciente #' + c.patientId) }}:</span>
+                    <span class="font-bold text-amber-950">{{ c.startTime.substring(0,5) }} - {{ c.endTime.substring(0,5) }}</span>
+                    <span class="rounded bg-amber-200/80 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900">{{ c.status }}</span>
+                  </li>
+                }
+              </ul>
+              <p class="mt-2 text-[11px] text-amber-700 font-medium">Ajusta la hora de inicio, fin o duración para resolver la colisión.</p>
+            </div>
+          </div>
+        </div>
+      }
+
+      <div class="grid gap-5 sm:grid-cols-2">
+        <div>
+          <label for="modality" class="form-label">Modalidad <span aria-hidden="true" class="text-danger">*</span></label>
+          <select id="modality" formControlName="modality" class="input-field">
             <option value="">Seleccione</option>
             @for (modality of appointmentModalities; track modality.id) {
               <option [value]="modality.itemCode">{{ modality.itemName }}</option>
             }
           </select>
         </div>
-        <div class="form-group" style="flex: 1;">
-          <label for="status">Estado *</label>
-          <select id="status" formControlName="status" class="form-control">
+        <div>
+          <label for="status" class="form-label">Estado <span aria-hidden="true" class="text-danger">*</span></label>
+          <select id="status" formControlName="status" class="input-field">
             <option value="PROGRAMADA">Programada</option>
             <option value="CONFIRMADA">Confirmada</option>
             <option value="COMPLETADA">Completada</option>
@@ -52,32 +108,29 @@
       </div>
 
       @if (appointmentForm.get('modality')?.value === 'VIRTUAL') {
-        <div class="form-group">
-          <label for="videoCallLink">Enlace de Videollamada</label>
-          <input type="text" id="videoCallLink" formControlName="videoCallLink" class="form-control" placeholder="https://meet.google.com/xxx">
+        <div>
+          <label for="videoCallLink" class="form-label">Enlace de videollamada</label>
+          <input type="url" id="videoCallLink" formControlName="videoCallLink" class="input-field" placeholder="https://meet.google.com/xxx">
         </div>
       }
 
-      <div class="form-group" style="margin-top: 10px; margin-bottom: 10px;">
-        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-          <input type="checkbox" formControlName="isFirstTime"> Es evaluación de primera vez
-        </label>
-      </div>
+      <label class="flex cursor-pointer items-center gap-3 rounded-lg bg-canvas p-3 text-sm font-medium text-ink">
+        <input type="checkbox" formControlName="isFirstTime" class="h-4 w-4 rounded border-line text-clinic-600 focus:ring-clinic-500">
+        Es evaluación de primera vez
+      </label>
 
-      <div class="form-group">
-        <label for="notes">Notas / Motivo</label>
-        <textarea id="notes" formControlName="notes" class="form-control" rows="3"></textarea>
+      <div>
+        <label for="notes" class="form-label">Notas o motivo</label>
+        <textarea id="notes" formControlName="notes" class="input-field min-h-24" rows="3"></textarea>
         @if (appointmentForm.get('notes')?.invalid && (appointmentForm.get('notes')?.dirty || appointmentForm.get('notes')?.touched)) {
-          <div class="error-messages">
-            @if (appointmentForm.get('notes')?.hasError('maxlength')) { <small class="text-error">Máximo 255 caracteres.</small> }
-          </div>
+          <p class="mt-2 text-sm text-danger">Máximo 255 caracteres.</p>
         }
       </div>
 
-      <div class="form-actions">
-        <button type="button" class="btn btn-secondary" (click)="onCancel()" style="padding: 8px 16px; border-radius: 4px; border: none; background: #e0e0e0;">Cancelar</button>
-        <button type="submit" class="btn btn-primary" [disabled]="isSubmitting" style="padding: 8px 16px; border-radius: 4px; border: none; background: #4CAF50; color: white; margin-left: 10px;">
-          {{ isSubmitting ? 'Guardando...' : (appointment ? 'Guardar Cambios' : 'Agendar') }}
+      <div class="flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end">
+        <button type="button" class="btn-secondary" (click)="onCancel()">Cancelar</button>
+        <button type="submit" class="btn-primary" [disabled]="isSubmitting || conflicts.length > 0">
+          {{ isSubmitting ? 'Guardando…' : (appointment ? 'Guardar cambios' : 'Agendar cita') }}
         </button>
       </div>
     </form>

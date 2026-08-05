@@ -11,8 +11,7 @@ import { LucideAngularModule, Edit, Trash2 } from 'lucide-angular';
   selector: 'app-tests-catalog-list',
   standalone: true,
   imports: [CommonModule, LucideAngularModule, PaginationComponent],
-  templateUrl: './tests-catalog-list.component.html',
-  styleUrl: './tests-catalog-list.component.css'
+  templateUrl: './tests-catalog-list.component.html'
 })
 export class TestsCatalogListComponent implements OnInit {
   readonly Edit = Edit;

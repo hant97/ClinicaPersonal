@@ -9,8 +9,7 @@ import { PsychometricTest } from '../../../core/models/assessment.model';
   selector: 'app-tests-catalog-form',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './tests-catalog-form.component.html',
-  styleUrl: './tests-catalog-form.component.css'
+  templateUrl: './tests-catalog-form.component.html'
 })
 export class TestsCatalogFormComponent implements OnInit {
   testForm!: FormGroup;

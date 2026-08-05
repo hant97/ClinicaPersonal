@@ -9,8 +9,7 @@ import { LucideAngularModule, X } from 'lucide-angular';
   selector: 'app-clinical-services-form',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
-  templateUrl: './clinical-services-form.component.html',
-  styleUrls: ['./clinical-services-form.component.css']
+  templateUrl: './clinical-services-form.component.html'
 })
 export class ClinicalServicesFormComponent implements OnInit {
   @Input() serviceId: number | null = null;

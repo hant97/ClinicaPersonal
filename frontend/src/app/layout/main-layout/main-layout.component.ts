@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, LayoutDashboard, Users, CalendarDays, Receipt, LogOut, ClipboardList, Package, Settings, Menu, X, User, Activity } from 'lucide-angular';
+import { LucideAngularModule, LayoutDashboard, Users, CalendarDays, Receipt, LogOut, ClipboardList, Package, Settings, Menu, Activity, Stethoscope } from 'lucide-angular';
 import { UserService } from '../../core/services/user.service';
 import { ClinicSettingsService, ClinicSettings } from '../../core/services/clinic-settings.service';
 import { UserProfile } from '../../core/models/user-profile.model';
@@ -12,7 +12,6 @@ import { Subscription } from 'rxjs';
   standalone: true,
   imports: [CommonModule, RouterModule, LucideAngularModule],
   templateUrl: './main-layout.component.html',
-  styleUrls: ['./main-layout.component.css']
 })
 export class MainLayoutComponent implements OnInit, OnDestroy {
   readonly LayoutDashboard = LayoutDashboard;
@@ -24,9 +23,8 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   readonly Package = Package;
   readonly Settings = Settings;
   readonly Menu = Menu;
-  readonly X = X;
-  readonly User = User;
   readonly Activity = Activity;
+  readonly Stethoscope = Stethoscope;
 
   isSidebarOpen = false;
   userProfile: UserProfile | null = null;
@@ -79,11 +77,11 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     }
   }
 
-  toggleSidebar() {
+  toggleSidebar(): void {
     this.isSidebarOpen = !this.isSidebarOpen;
   }
   
-  closeSidebar() {
+  closeSidebar(): void {
     this.isSidebarOpen = false;
   }
 

@@ -12,7 +12,6 @@ import { ToastService } from '../../../shared/services/toast/toast.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './clinical-session-form.component.html',
-  styleUrls: ['./clinical-session-form.component.css']
 })
 export class ClinicalSessionFormComponent implements OnInit {
   @Input() patientId!: number;

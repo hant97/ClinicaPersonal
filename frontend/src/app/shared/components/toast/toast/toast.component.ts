@@ -7,7 +7,6 @@ import { ToastService, ToastMessage } from '../../../services/toast/toast.servic
   standalone: true,
   imports: [CommonModule],
   templateUrl: './toast.component.html',
-  styleUrls: ['./toast.component.css']
 })
 export class ToastComponent {
   message: ToastMessage | null = null;

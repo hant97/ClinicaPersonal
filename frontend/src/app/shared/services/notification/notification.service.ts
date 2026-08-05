@@ -7,9 +7,6 @@ import Swal, { SweetAlertIcon } from 'sweetalert2';
 export class NotificationService {
 
   // Colores extraídos del styles.css para mantener coherencia visual
-  private readonly primaryColor = '#5ea99f';
-  private readonly dangerColor = '#e57373';
-
   constructor() { }
 
   /**
@@ -31,11 +28,18 @@ export class NotificationService {
       text,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: this.primaryColor,
-      cancelButtonColor: this.dangerColor,
       confirmButtonText,
       cancelButtonText,
-      focusCancel: true
+      focusCancel: true,
+      buttonsStyling: false,
+      customClass: {
+        popup: 'rounded-xl border border-line bg-surface p-6 shadow-raised',
+        title: 'font-display text-xl font-semibold text-clinic-900',
+        htmlContainer: 'text-sm text-muted',
+        actions: 'gap-3',
+        confirmButton: 'btn !bg-clinic-600 hover:!bg-clinic-700',
+        cancelButton: 'btn-secondary'
+      }
     });
 
     return result.isConfirmed;
@@ -52,8 +56,14 @@ export class NotificationService {
       title,
       text,
       icon,
-      confirmButtonColor: this.primaryColor,
-      confirmButtonText: 'Aceptar'
+      confirmButtonText: 'Aceptar',
+      buttonsStyling: false,
+      customClass: {
+        popup: 'rounded-xl border border-line bg-surface p-6 shadow-raised',
+        title: 'font-display text-xl font-semibold text-clinic-900',
+        htmlContainer: 'text-sm text-muted',
+        confirmButton: 'btn !bg-clinic-600 hover:!bg-clinic-700'
+      }
     });
   }
 }

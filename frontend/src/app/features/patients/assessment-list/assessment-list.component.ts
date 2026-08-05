@@ -13,7 +13,6 @@ Chart.register(...registerables);
   standalone: true,
   imports: [CommonModule, AssessmentFormComponent, PaginationComponent],
   templateUrl: './assessment-list.component.html',
-  styleUrl: './assessment-list.component.css'
 })
 export class AssessmentListComponent implements OnInit, OnDestroy {
   @Input() patientId!: number;

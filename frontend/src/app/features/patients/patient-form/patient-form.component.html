@@ -1,12 +1,12 @@
-<div class="modal-overlay">
-  <div class="modal-content card">
-    <div class="modal-header">
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true">
+  <div class="card max-h-[90vh] w-full max-w-3xl overflow-y-auto p-5 md:p-7">
+    <div class="mb-6 flex items-center justify-between border-b border-line pb-4">
       <h2>{{ patientId ? 'Editar Paciente' : 'Nuevo Paciente' }}</h2>
       <button class="close-btn" (click)="cancel()">×</button>
     </div>
 
     <form [formGroup]="patientForm" (ngSubmit)="onSubmit()">
-      <div class="form-grid">
+      <div class="grid grid-cols-1 gap-x-5 md:grid-cols-2">
         <div class="form-group">
           <label class="form-label">Nombres</label>
           <input type="text" formControlName="firstName" class="input-field">
@@ -149,7 +149,7 @@
           </div>
           }
         </div>
-        <div class="form-group" style="grid-column: 1 / -1;">
+        <div class="form-group md:col-span-2">
           <label class="form-label">Motivo de Consulta</label>
           <textarea formControlName="reasonForConsultation" class="input-field" rows="3"></textarea>
           @if (patientForm.get('reasonForConsultation')?.invalid && (patientForm.get('reasonForConsultation')?.dirty ||
@@ -172,9 +172,8 @@
           }
         </div>
         @if (!esMenorEdad) {
-        <div class="form-group" style="grid-column: 1 / -1;">
-          <label class="form-label"
-            style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+        <div class="form-group md:col-span-2">
+          <label class="flex cursor-pointer items-center gap-2 text-sm font-normal text-ink">
             <input type="checkbox" formControlName="hasLegalGuardian">
             ¿Tiene tutor legal? (Aplica para adultos con curatela, discapacidad, etc.)
           </label>
@@ -215,7 +214,7 @@
 
 
 
-      <div class="modal-actions">
+      <div class="mt-7 flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end">
         <button type="button" class="btn-secondary" (click)="cancel()">Cancelar</button>
         <button type="submit" class="btn-primary" [disabled]="patientForm.invalid || isSaving">
           {{ patientId ? 'Guardar Cambios' : 'Guardar Paciente' }}

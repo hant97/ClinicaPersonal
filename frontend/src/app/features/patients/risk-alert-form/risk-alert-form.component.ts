@@ -12,7 +12,6 @@ import { forkJoin } from 'rxjs';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './risk-alert-form.component.html',
-  styleUrls: ['./risk-alert-form.component.css']
 })
 export class RiskAlertFormComponent implements OnInit {
   @Input() patientId!: number;

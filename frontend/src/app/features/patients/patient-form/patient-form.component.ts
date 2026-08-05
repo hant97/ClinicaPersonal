@@ -12,7 +12,6 @@ import { CatalogItem } from '../../../core/models/catalog.model';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './patient-form.component.html',
-  styleUrls: ['./patient-form.component.css']
 })
 export class PatientFormComponent implements OnInit {
   @Input() patientId: number | null = null;

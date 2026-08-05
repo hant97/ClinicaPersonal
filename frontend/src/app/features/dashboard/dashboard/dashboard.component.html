@@ -1,167 +1,35 @@
-<div class="dashboard-wrapper" *ngIf="stats$ | async as stats">
-  <!-- Level 1: Core KPIs -->
-  <div class="dashboard-cards kpi-row">
-    <div class="card stat-card hover-lift gradient-1">
-      <div class="stat-content-wrapper">
-        <div class="stat-info">
-          <h3>Pacientes Activos</h3>
-          <p class="stat-number">{{ stats.activePatients }}</p>
-        </div>
-        <div class="stat-icon-wrapper">
-          <lucide-icon [img]="Users" class="stat-icon"></lucide-icon>
-        </div>
-      </div>
-    </div>
-    
-    <div class="card stat-card hover-lift gradient-2">
-      <div class="stat-content-wrapper">
-        <div class="stat-info">
-          <h3>Citas Hoy</h3>
-          <p class="stat-number">{{ stats.appointmentsToday }}</p>
-        </div>
-        <div class="stat-icon-wrapper">
-          <lucide-icon [img]="Calendar" class="stat-icon"></lucide-icon>
-        </div>
-      </div>
-    </div>
-    
-    <div class="card stat-card hover-lift gradient-3">
-      <div class="stat-content-wrapper">
-        <div class="stat-info">
-          <h3>Ingresos del Mes</h3>
-          <p class="stat-number">{{ stats.monthlyIncome | currency:'PEN':'S/ ' }}</p>
-        </div>
-        <div class="stat-icon-wrapper">
-          <lucide-icon [img]="DollarSign" class="stat-icon"></lucide-icon>
-        </div>
-      </div>
-    </div>
-
-    <div class="card stat-card hover-lift gradient-4">
-      <div class="stat-content-wrapper">
-        <div class="stat-info">
-          <h3>Asistencia (Mes)</h3>
-          <p class="stat-number">{{ stats.attendanceRate }}%</p>
-        </div>
-        <div class="stat-icon-wrapper">
-          <lucide-icon [img]="Activity" class="stat-icon"></lucide-icon>
-        </div>
-      </div>
-    </div>
+<section class="space-y-6 p-1 sm:p-2" aria-labelledby="dashboard-title">
+  <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+    <div><p class="text-sm font-medium text-clinic-600">Resumen operativo</p><h1 id="dashboard-title" class="text-2xl font-semibold">Inicio</h1></div>
+    <p class="text-sm text-muted">Prioriza la próxima atención y los pendientes clínicos.</p>
   </div>
 
-  <!-- Level 2: Immediate Actions -->
-  <div class="dashboard-cards action-row">
-    <!-- Active Clinical Risk Alerts -->
-    <div class="card notifications-card hover-lift alert-card">
-      <div class="card-header-icon">
-        <lucide-icon [img]="AlertTriangle" class="header-icon error-icon"></lucide-icon>
-        <h3>Alertas Clínicas de Riesgo</h3>
-      </div>
-      <ul class="notification-list" *ngIf="stats.activeRiskAlerts && stats.activeRiskAlerts.length > 0; else noAlerts">
-        <li *ngFor="let alert of stats.activeRiskAlerts" class="alert-item" [ngClass]="'level-' + alert.level.toLowerCase()">
-          <div class="alert-indicator"></div>
-          <div class="appointment-details">
-            <span class="patient-name">{{ alert.patientName || 'Paciente ID: ' + alert.patientId }}</span>
-            <span class="appointment-status">{{ alert.type }} - {{ alert.description }}</span>
-          </div>
-          <div class="appointment-time">
-            <span class="time-badge alert-badge">{{ alert.level }}</span>
-          </div>
-        </li>
-      </ul>
-      <ng-template #noAlerts>
-        <div class="empty-state success-state">
-          <lucide-icon [img]="Activity" class="empty-icon"></lucide-icon>
-          <p>No hay alertas clínicas activas. ¡Buen trabajo!</p>
-        </div>
-      </ng-template>
+  @if (isLoading) {
+    <div class="card flex min-h-56 items-center justify-center" role="status"><div class="text-center text-muted"><lucide-icon [img]="Activity" class="mx-auto mb-3 h-8 w-8 animate-pulse text-clinic-600"></lucide-icon><p>Cargando resumen operativo…</p></div></div>
+  } @else if (loadError) {
+    <div class="card flex min-h-56 flex-col items-center justify-center gap-4 text-center"><lucide-icon [img]="AlertTriangle" class="h-9 w-9 text-danger"></lucide-icon><div><h2 class="text-lg font-semibold">No se pudo cargar el dashboard</h2><p class="mt-1 text-sm text-muted">Verifica tu conexión e inténtalo nuevamente.</p></div><button type="button" class="btn-primary" (click)="loadStats()">Reintentar</button></div>
+  } @else if (stats) {
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="rounded-xl border border-line border-l-4 border-l-clinic-500 bg-surface p-5 shadow-card"><div class="flex items-start justify-between gap-4"><div><h2 class="text-sm font-medium text-muted">Pacientes activos</h2><p class="mt-2 font-display text-3xl font-semibold text-ink">{{ stats.activePatients }}</p></div><div class="flex h-12 w-12 items-center justify-center rounded-xl bg-clinic-100 text-clinic-700"><lucide-icon [img]="Users" class="h-6 w-6"></lucide-icon></div></div></div>
+      <div class="rounded-xl border border-line border-l-4 border-l-sky-500 bg-surface p-5 shadow-card"><div class="flex items-start justify-between gap-4"><div><h2 class="text-sm font-medium text-muted">Citas de hoy</h2><p class="mt-2 font-display text-3xl font-semibold text-ink">{{ stats.appointmentsToday }}</p></div><div class="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-700"><lucide-icon [img]="Calendar" class="h-6 w-6"></lucide-icon></div></div></div>
+      <div class="rounded-xl border border-line border-l-4 border-l-violet-500 bg-surface p-5 shadow-card"><div class="flex items-start justify-between gap-4"><div><h2 class="text-sm font-medium text-muted">Cobros del mes</h2><p class="mt-2 font-display text-3xl font-semibold text-ink">{{ stats.monthlyIncome | currency:'PEN':'S/ ' }}</p></div><div class="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-50 text-violet-700"><lucide-icon [img]="DollarSign" class="h-6 w-6"></lucide-icon></div></div></div>
+      <div class="rounded-xl border border-line border-l-4 border-l-amber-500 bg-surface p-5 shadow-card"><div class="flex items-start justify-between gap-4"><div><h2 class="text-sm font-medium text-muted">Asistencia mensual</h2><p class="mt-2 font-display text-3xl font-semibold text-ink">{{ stats.attendanceRate }}%</p></div><div class="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50 text-amber-700"><lucide-icon [img]="Activity" class="h-6 w-6"></lucide-icon></div></div></div>
     </div>
 
-    <!-- Upcoming Appointments -->
-    <div class="card notifications-card hover-lift">
-      <div class="card-header-icon">
-        <lucide-icon [img]="Clock" class="header-icon"></lucide-icon>
-        <h3>Próximas Citas</h3>
+    <div class="grid gap-6 xl:grid-cols-2">
+      <div class="card border-t-4 border-t-danger"><div class="mb-4 flex items-center gap-3 border-b border-line pb-4"><lucide-icon [img]="AlertTriangle" class="h-6 w-6 text-danger"></lucide-icon><h2 class="text-lg font-semibold">Alertas clínicas de riesgo</h2></div>
+        @if (stats.activeRiskAlerts.length > 0) {<ul class="max-h-80 space-y-2 overflow-y-auto">@for (alert of stats.activeRiskAlerts; track alert.id) {<li class="flex items-center gap-3 rounded-lg border border-line border-l-4 p-3" [ngClass]="{'border-l-danger': alert.level.toLowerCase() === 'alta' || alert.level.toLowerCase() === 'high', 'border-l-amber-500': alert.level.toLowerCase() === 'media' || alert.level.toLowerCase() === 'medium', 'border-l-sky-500': alert.level.toLowerCase() === 'baja' || alert.level.toLowerCase() === 'low'}"><div class="min-w-0 flex-1"><p class="font-semibold text-ink">{{ alert.patientName || 'Paciente ID: ' + alert.patientId }}</p><p class="text-sm text-muted">{{ alert.type }} · {{ alert.description }}</p></div><span class="rounded-full bg-danger px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-white">{{ alert.level }}</span></li>}</ul>} @else {<div class="flex min-h-40 flex-col items-center justify-center rounded-lg border border-dashed border-clinic-200 bg-clinic-50/50 p-5 text-center text-clinic-700"><lucide-icon [img]="Activity" class="mb-2 h-8 w-8"></lucide-icon><p>No hay alertas clínicas activas.</p></div>}
       </div>
-      <ul class="notification-list timeline-list" *ngIf="stats.upcomingAppointments.length > 0; else noAppointments">
-        <li *ngFor="let app of stats.upcomingAppointments" class="timeline-item">
-          <div class="timeline-time">
-            <span class="time-text">{{ (app.appointmentDate + 'T' + (app.startTime || '00:00:00')) | date:'shortTime' }}</span>
-          </div>
-          <div class="timeline-content">
-            <span class="patient-name">{{ app.patientName || 'Paciente ID: ' + app.patientId }}</span>
-            <span class="appointment-status" [ngClass]="app.status.toLowerCase().replace(' ', '-')">{{ app.status }}</span>
-          </div>
-        </li>
-      </ul>
-      <ng-template #noAppointments>
-        <div class="empty-state">
-          <lucide-icon [img]="Calendar" class="empty-icon"></lucide-icon>
-          <p>No hay citas próximas programadas.</p>
-        </div>
-      </ng-template>
-    </div>
-  </div>
-
-  <!-- Level 3: Operations & Insights -->
-  <div class="dashboard-cards insight-row">
-    <!-- Low Stock Inventory -->
-    <div class="card notifications-card hover-lift">
-      <div class="card-header-icon">
-        <lucide-icon [img]="Package" class="header-icon warning-icon"></lucide-icon>
-        <h3>Inventario Bajo</h3>
+      <div class="card"><div class="mb-4 flex items-center gap-3 border-b border-line pb-4"><lucide-icon [img]="Clock" class="h-6 w-6 text-clinic-600"></lucide-icon><h2 class="text-lg font-semibold">Próximas citas</h2></div>
+        @if (stats.upcomingAppointments.length > 0) {<ul class="space-y-3">@for (app of stats.upcomingAppointments; track app.id) {<li class="flex gap-3"><time class="w-14 pt-3 text-right text-sm font-semibold text-clinic-700">{{ (app.appointmentDate + 'T' + (app.startTime || '00:00:00')) | date:'shortTime' }}</time><div class="flex-1 rounded-lg border-l-4 border-clinic-500 bg-clinic-50/60 p-3"><p class="font-semibold text-ink">{{ app.patientName || 'Paciente ID: ' + app.patientId }}</p><p class="text-sm text-muted">Estado: {{ app.status }}</p></div></li>}</ul>} @else {<div class="flex min-h-40 flex-col items-center justify-center rounded-lg border border-dashed border-line p-5 text-center text-muted"><lucide-icon [img]="Calendar" class="mb-2 h-8 w-8"></lucide-icon><p>No hay citas próximas programadas.</p></div>}
       </div>
-      <ul class="notification-list" *ngIf="stats.lowStockSupplies && stats.lowStockSupplies.length > 0; else noLowStock">
-        <li *ngFor="let item of stats.lowStockSupplies" class="stock-item">
-          <div class="appointment-details">
-            <span class="patient-name">{{ item.name }}</span>
-            <span class="appointment-status">Min: {{ item.minStockLevel }} {{ item.unit }}</span>
-          </div>
-          <div class="appointment-time">
-            <span class="time-badge warning-badge">{{ item.currentStock }} {{ item.unit }}</span>
-          </div>
-        </li>
-      </ul>
-      <ng-template #noLowStock>
-        <div class="empty-state success-state">
-          <lucide-icon [img]="Package" class="empty-icon"></lucide-icon>
-          <p>El inventario está en niveles óptimos.</p>
-        </div>
-      </ng-template>
     </div>
 
-    <!-- Growth Trends -->
-    <div class="card growth-card hover-lift">
-      <div class="card-header-icon">
-        <lucide-icon [img]="TrendingUp" class="header-icon"></lucide-icon>
-        <h3>Crecimiento y Tendencias</h3>
+    <div class="grid gap-6 xl:grid-cols-2">
+      <div class="card"><div class="mb-4 flex items-center gap-3 border-b border-line pb-4"><lucide-icon [img]="Package" class="h-6 w-6 text-amber-600"></lucide-icon><h2 class="text-lg font-semibold">Inventario bajo</h2></div>
+        @if (stats.lowStockSupplies.length > 0) {<ul class="max-h-80 space-y-2 overflow-y-auto">@for (item of stats.lowStockSupplies; track item.id) {<li class="flex items-center gap-3 rounded-lg border border-line p-3"><div class="flex-1"><p class="font-semibold text-ink">{{ item.name }}</p><p class="text-sm text-muted">Mínimo: {{ item.minStockLevel }} {{ item.unit }}</p></div><span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">{{ item.currentStock }} {{ item.unit }}</span></li>}</ul>} @else {<div class="flex min-h-40 flex-col items-center justify-center rounded-lg border border-dashed border-clinic-200 bg-clinic-50/50 p-5 text-center text-clinic-700"><lucide-icon [img]="Package" class="mb-2 h-8 w-8"></lucide-icon><p>El inventario está en niveles óptimos.</p></div>}
       </div>
-      <div class="growth-stats-container">
-        <div class="growth-stat">
-          <div class="stat-icon-wrapper outline-icon">
-            <lucide-icon [img]="UserPlus" class="stat-icon text-muted"></lucide-icon>
-          </div>
-          <div class="stat-info">
-            <span class="stat-subtext">Nuevos Pacientes (Mes)</span>
-            <p class="stat-number small-number">{{ stats.newPatientsThisMonth }}</p>
-          </div>
-        </div>
-        <div class="growth-stat">
-          <div class="stat-icon-wrapper outline-icon">
-            <lucide-icon [img]="stats.monthlyIncomeGrowth >= 0 ? TrendingUp : TrendingDown" 
-                         class="stat-icon"
-                         [class.positive-icon]="stats.monthlyIncomeGrowth >= 0"
-                         [class.negative-icon]="stats.monthlyIncomeGrowth < 0"></lucide-icon>
-          </div>
-          <div class="stat-info">
-            <span class="stat-subtext">Crecimiento de Ingresos</span>
-            <p class="stat-number small-number" [class.positive]="stats.monthlyIncomeGrowth > 0" [class.negative]="stats.monthlyIncomeGrowth < 0">
-              {{ stats.monthlyIncomeGrowth > 0 ? '+' : '' }}{{ stats.monthlyIncomeGrowth }}%
-            </p>
-          </div>
-        </div>
-      </div>
+      <div class="card"><div class="mb-4 flex items-center gap-3 border-b border-line pb-4"><lucide-icon [img]="TrendingUp" class="h-6 w-6 text-clinic-600"></lucide-icon><h2 class="text-lg font-semibold">Tendencias del mes</h2></div><div class="grid gap-3 sm:grid-cols-2"><div class="flex items-center gap-3 rounded-lg bg-canvas p-4"><div class="flex h-10 w-10 items-center justify-center rounded-lg bg-clinic-100 text-clinic-700"><lucide-icon [img]="UserPlus" class="h-5 w-5"></lucide-icon></div><div><p class="text-sm text-muted">Nuevos pacientes</p><p class="font-display text-2xl font-semibold text-ink">{{ stats.newPatientsThisMonth }}</p></div></div><div class="flex items-center gap-3 rounded-lg bg-canvas p-4"><div class="flex h-10 w-10 items-center justify-center rounded-lg" [ngClass]="stats.monthlyIncomeGrowth >= 0 ? 'bg-clinic-100 text-clinic-700' : 'bg-red-50 text-danger'"><lucide-icon [img]="stats.monthlyIncomeGrowth >= 0 ? TrendingUp : TrendingDown" class="h-5 w-5"></lucide-icon></div><div><p class="text-sm text-muted">Crecimiento de cobros</p><p class="font-display text-2xl font-semibold" [ngClass]="stats.monthlyIncomeGrowth >= 0 ? 'text-success' : 'text-danger'">{{ stats.monthlyIncomeGrowth > 0 ? '+' : '' }}{{ stats.monthlyIncomeGrowth }}%</p></div></div></div></div>
     </div>
-  </div>
-</div>
+  }
+</section>

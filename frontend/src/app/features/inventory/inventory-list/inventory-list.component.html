@@ -1,83 +1,9 @@
-<div class="card">
-  <div class="header-actions">
-    <h2>Inventario y Suministros</h2>
-    <div class="header-controls">
-      <button class="btn-primary" (click)="openModal()">
-        <lucide-icon [img]="Plus" [size]="18"></lucide-icon>
-        Nuevo Insumo
-      </button>
-    </div>
-  </div>
-
-  <div class="search-container">
-    <div class="search-wrapper">
-      <lucide-icon [img]="Search" [size]="20" [strokeWidth]="2" class="search-icon"></lucide-icon>
-      <input type="text" class="search-input" placeholder="Buscar insumos por nombre..." (input)="onSearch($event)">
-    </div>
-  </div>
-  
-  <div class="table-responsive">
-    <table class="minimal-table">
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Descripción</th>
-          <th>Stock Actual</th>
-          <th>Unidad</th>
-          <th>Nivel Mínimo</th>
-          <th>Precio Base (S/)</th>
-          <th>Fecha Caducidad</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (supply of filteredSupplies; track supply.id) {
-          <tr>
-            <td>
-              <div class="d-flex align-items-center" style="gap: 0.5rem">
-                <span>{{ supply.name }}</span>
-                @if (supply.currentStock <= supply.minStockLevel) {
-                  <span class="badge badge-danger d-flex align-items-center" style="gap: 4px;" title="Stock Bajo">
-                    <lucide-icon [img]="AlertTriangle" [size]="14"></lucide-icon> Bajo
-                  </span>
-                }
-              </div>
-            </td>
-            <td>{{ supply.description }}</td>
-            <td [ngClass]="{'text-danger': supply.currentStock <= supply.minStockLevel, 'fw-bold': supply.currentStock <= supply.minStockLevel}">
-              {{ supply.currentStock }}
-            </td>
-            <td>{{ supply.unit }}</td>
-            <td>{{ supply.minStockLevel }}</td>
-            <td>{{ supply.price !== null ? (supply.price | number:'1.2-2') : '-' }}</td>
-            <td>{{ supply.expirationDate }}</td>
-            <td>
-              <div class="d-flex" style="gap: 0.5rem;">
-                <button class="btn-text" (click)="openModal(supply.id)" title="Editar">
-                  <lucide-icon [img]="Edit" [size]="18"></lucide-icon>
-                </button>
-                <button class="btn-text" (click)="deleteSupply(supply.id!)" style="color: var(--danger);" title="Eliminar">
-                  <lucide-icon [img]="Trash2" [size]="18"></lucide-icon>
-                </button>
-              </div>
-            </td>
-          </tr>
-        } @empty {
-          <tr>
-            <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">No hay insumos que coincidan con la búsqueda.</td>
-          </tr>
-        }
-      </tbody>
-    </table>
-    
-    <app-pagination 
-      [currentPage]="currentPage" 
-      [totalPages]="totalPages" 
-      (pageChange)="onPageChange($event)">
-    </app-pagination>
-  </div>
-</div>
-
-@if (showModal) {
-  <app-inventory-form [supplyId]="selectedSupplyId" (closeModal)="closeModal($event)"></app-inventory-form>
-}
+<section class="card">
+  <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p class="text-sm text-muted">Administración</p><h2 class="text-xl font-semibold">Inventario y suministros</h2></div><button class="btn-primary min-h-11" (click)="openModal()"><lucide-icon [img]="Plus" [size]="18"></lucide-icon>Nuevo insumo</button></div>
+  <div class="relative mb-6 max-w-2xl"><lucide-icon [img]="Search" [size]="20" class="input-leading-icon"></lucide-icon><input type="text" class="input-field input-with-leading-icon" placeholder="Buscar insumos por nombre..." (input)="onSearch($event)"></div>
+  <div class="table-responsive"><table class="minimal-table min-w-[900px]"><thead><tr><th>Nombre</th><th>Descripción</th><th>Stock actual</th><th>Unidad</th><th>Nivel mínimo</th><th>Precio base</th><th>Caducidad</th><th><span class="sr-only">Acciones</span></th></tr></thead><tbody>
+    @for (supply of filteredSupplies; track supply.id) { <tr><td><div class="flex items-center gap-2"><span class="font-medium">{{ supply.name }}</span>@if (supply.currentStock <= supply.minStockLevel) { <span class="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-1 text-xs font-semibold text-danger"><lucide-icon [img]="AlertTriangle" [size]="14"></lucide-icon>Stock bajo</span> }</div></td><td>{{ supply.description || '-' }}</td><td [class]="supply.currentStock <= supply.minStockLevel ? 'font-bold text-danger' : ''">{{ supply.currentStock }}</td><td>{{ supply.unit }}</td><td>{{ supply.minStockLevel }}</td><td>{{ supply.price !== null ? (supply.price | number:'1.2-2') : '-' }}</td><td>{{ supply.expirationDate || '-' }}</td><td><div class="flex gap-1"><button class="btn-text" (click)="openModal(supply.id)" title="Editar"><lucide-icon [img]="Edit" [size]="18"></lucide-icon></button><button class="inline-flex items-center justify-center rounded-lg p-2 text-danger hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-danger" (click)="deleteSupply(supply.id!)" title="Eliminar"><lucide-icon [img]="Trash2" [size]="18"></lucide-icon></button></div></td></tr> }
+    @empty { <tr><td colspan="8" class="py-12 text-center text-muted">No hay insumos que coincidan con la búsqueda.</td></tr> }
+  </tbody></table><app-pagination [currentPage]="currentPage" [totalPages]="totalPages" (pageChange)="onPageChange($event)"></app-pagination></div>
+</section>
+@if (showModal) { <app-inventory-form [supplyId]="selectedSupplyId" (closeModal)="closeModal($event)"></app-inventory-form> }

@@ -4,12 +4,12 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractContro
 import { AppointmentService } from '../../../core/services/appointment.service';
 import { PatientService } from '../../../core/services/patient/patient.service';
 import { CatalogService } from '../../../core/services/catalog.service';
-import { Patient } from '../../../core/models/patient.model';
 import { Appointment } from '../../../core/models/appointment.model';
 import { CatalogItem } from '../../../core/models/catalog.model';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { PatientAutocompleteComponent } from '../../../shared/components/patient-autocomplete/patient-autocomplete.component';
+import { LucideAngularModule, Clock, Calendar, Video, User, AlertTriangle } from 'lucide-angular';
 
 export function futureDateValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -20,22 +20,49 @@ export function futureDateValidator(): ValidatorFn {
   };
 }
 
+export function timeOrderValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const start = control.get('startTime')?.value;
+    const end = control.get('endTime')?.value;
+    if (!start || !end) return null;
+    return end > start ? null : { invalidTimeOrder: true };
+  };
+}
+
 @Component({
   selector: 'app-appointment-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PatientAutocompleteComponent],
+  imports: [CommonModule, ReactiveFormsModule, PatientAutocompleteComponent, LucideAngularModule],
   templateUrl: './appointment-form.component.html',
-  styleUrls: ['./appointment-form.component.css']
 })
 export class AppointmentFormComponent implements OnInit {
+  readonly Clock = Clock;
+  readonly Calendar = Calendar;
+  readonly Video = Video;
+  readonly User = User;
+  readonly AlertTriangle = AlertTriangle;
+
   @Output() saved = new EventEmitter<void>();
   @Output() cancelled = new EventEmitter<void>();
   @Input() appointment: Appointment | null = null;
+  @Input() initialData: Partial<Appointment> | null = null;
 
   appointmentForm!: FormGroup;
   isSubmitting = false;
   
   appointmentModalities: CatalogItem[] = [];
+  patientMap = new Map<number, string>();
+  dayAppointments: Appointment[] = [];
+  conflicts: Appointment[] = [];
+
+  durationOptions = [
+    { label: '15 min', value: 15 },
+    { label: '30 min', value: 30 },
+    { label: '45 min', value: 45 },
+    { label: '1 hora', value: 60 },
+    { label: '1.5 h', value: 90 },
+  ];
+  selectedDuration: number | null = 30;
 
   constructor(
     private fb: FormBuilder,
@@ -48,33 +75,148 @@ export class AppointmentFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadCatalogs();
+    this.loadPatients();
 
     const now = new Date();
     const tzOffset = now.getTimezoneOffset() * 60000;
     const localISO = new Date(now.getTime() - tzOffset).toISOString();
     const today = localISO.split('T')[0];
 
+    const initialDate = this.appointment?.appointmentDate || this.initialData?.appointmentDate || today;
+    const initialStartTime = this.appointment?.startTime || this.initialData?.startTime || '';
+    const initialEndTime = this.appointment?.endTime || this.initialData?.endTime || '';
+    const initialPatientId = this.appointment?.patientId || this.initialData?.patientId || '';
+
+    if (initialStartTime && initialEndTime) {
+      this.selectedDuration = this.calculateDurationFromTimes(initialStartTime, initialEndTime);
+    } else {
+      this.selectedDuration = 30;
+    }
+
     this.appointmentForm = this.fb.group({
-      patientId: [{ value: this.appointment?.patientId || '', disabled: !!this.appointment }, Validators.required],
-      appointmentDate: [this.appointment?.appointmentDate || today, [Validators.required, futureDateValidator()]],
-      startTime: [this.appointment?.startTime || '', Validators.required],
-      endTime: [this.appointment?.endTime || '', Validators.required],
+      patientId: [{ value: initialPatientId, disabled: !!this.appointment }, Validators.required],
+      appointmentDate: [initialDate, [Validators.required, futureDateValidator()]],
+      startTime: [initialStartTime, Validators.required],
+      endTime: [initialEndTime, Validators.required],
       status: [this.appointment?.status || 'PROGRAMADA', Validators.required],
       modality: [this.appointment?.modality || 'PRESENCIAL', Validators.required],
       videoCallLink: [this.appointment?.videoCallLink || ''],
       isFirstTime: [this.appointment ? this.appointment.isFirstTime : false],
       notes: [this.appointment?.notes || '', [Validators.maxLength(255)]]
+    }, { validators: [timeOrderValidator()] });
+
+    // Cargar citas del día inicial para validación de colisiones
+    this.loadDayAppointments(initialDate);
+
+    // Reaccionar a cambios en fecha
+    this.appointmentForm.get('appointmentDate')?.valueChanges.subscribe(date => {
+      if (date) {
+        this.loadDayAppointments(date);
+      }
+    });
+
+    // Reactively compute endTime when startTime changes
+    this.appointmentForm.get('startTime')?.valueChanges.subscribe(val => {
+      if (val && this.selectedDuration) {
+        const newEndTime = this.addMinutesToTime(val, this.selectedDuration);
+        this.appointmentForm.patchValue({ endTime: newEndTime }, { emitEvent: false });
+        this.appointmentForm.updateValueAndValidity();
+      } else if (val && this.appointmentForm.get('endTime')?.value) {
+        this.selectedDuration = this.calculateDurationFromTimes(val, this.appointmentForm.get('endTime')?.value);
+      }
+      this.checkCollisions();
+    });
+
+    // Detect manual changes in endTime to update chip selection
+    this.appointmentForm.get('endTime')?.valueChanges.subscribe(val => {
+      const start = this.appointmentForm.get('startTime')?.value;
+      if (start && val) {
+        this.selectedDuration = this.calculateDurationFromTimes(start, val);
+      }
+      this.checkCollisions();
     });
 
     // Validar requerimiento de link si es virtual
     this.appointmentForm.get('modality')?.valueChanges.subscribe(val => {
       const linkControl = this.appointmentForm.get('videoCallLink');
       if (val === 'VIRTUAL') {
-        // Podría ser opcional, el requerimiento dice "opcional si es virtual", así que lo dejamos normal.
+        // Opcional si es virtual
       } else {
         linkControl?.setValue('');
       }
     });
+  }
+
+  loadPatients(): void {
+    this.patientService.getAll(0, 1000).subscribe({
+      next: (page) => {
+        page.content.forEach(p => {
+          if (p.id) {
+            this.patientMap.set(Number(p.id), `${p.firstName} ${p.lastName}`);
+          }
+        });
+      }
+    });
+  }
+
+  loadDayAppointments(dateStr: string): void {
+    if (!dateStr) return;
+    this.appointmentService.search(undefined, 'ALL', dateStr, dateStr).subscribe({
+      next: (page) => {
+        this.dayAppointments = page.content.filter(app => 
+          app.status !== 'CANCELADA' && 
+          (!this.appointment || app.id !== this.appointment.id)
+        );
+        this.checkCollisions();
+      },
+      error: (err) => console.error('Error loading day appointments', err)
+    });
+  }
+
+  checkCollisions(): void {
+    const start = this.appointmentForm.get('startTime')?.value;
+    const end = this.appointmentForm.get('endTime')?.value;
+    if (!start || !end || start >= end) {
+      this.conflicts = [];
+      return;
+    }
+
+    const startNorm = start.length === 5 ? start + ':00' : start;
+    const endNorm = end.length === 5 ? end + ':00' : end;
+
+    this.conflicts = this.dayAppointments.filter(app => {
+      const appStart = app.startTime.length === 5 ? app.startTime + ':00' : app.startTime;
+      const appEnd = app.endTime.length === 5 ? app.endTime + ':00' : app.endTime;
+      // Overlap condition: startNorm < appEnd && appStart < endNorm
+      return startNorm < appEnd && appStart < endNorm;
+    });
+  }
+
+  selectDuration(minutes: number): void {
+    this.selectedDuration = minutes;
+    const start = this.appointmentForm.get('startTime')?.value;
+    if (start) {
+      const newEndTime = this.addMinutesToTime(start, minutes);
+      this.appointmentForm.patchValue({ endTime: newEndTime }, { emitEvent: false });
+      this.appointmentForm.updateValueAndValidity();
+      this.checkCollisions();
+    }
+  }
+
+  private calculateDurationFromTimes(start: string, end: string): number | null {
+    if (!start || !end) return null;
+    const [sh, sm] = start.split(':').map(Number);
+    const [eh, em] = end.split(':').map(Number);
+    const diff = (eh * 60 + em) - (sh * 60 + sm);
+    return diff > 0 ? diff : null;
+  }
+
+  private addMinutesToTime(start: string, minutes: number): string {
+    const [sh, sm] = start.split(':').map(Number);
+    const total = sh * 60 + sm + minutes;
+    const h = Math.floor(total / 60) % 24;
+    const m = total % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
   }
 
   loadCatalogs(): void {
@@ -92,20 +234,22 @@ export class AppointmentFormComponent implements OnInit {
     if (this.appointmentForm.invalid) {
       this.appointmentForm.markAllAsTouched();
       
-      // Para depuración:
-      Object.keys(this.appointmentForm.controls).forEach(key => {
-        const controlErrors = this.appointmentForm.get(key)?.errors;
-        if (controlErrors != null) {
-          console.error(`Campo ${key} es inválido:`, controlErrors);
-        }
-      });
+      if (this.appointmentForm.hasError('invalidTimeOrder')) {
+        this.toastService.show('La hora de fin debe ser posterior a la hora de inicio.', 'error');
+        return;
+      }
 
       this.toastService.show('Por favor, complete todos los campos obligatorios o corrija los errores (revise que la fecha no sea pasada).', 'error');
       return;
     }
 
+    if (this.conflicts.length > 0) {
+      this.toastService.show('Existe un conflicto de horario con otra cita en este horario.', 'error');
+      return;
+    }
+
     this.isSubmitting = true;
-    const formValue = this.appointmentForm.getRawValue(); // Obtiene incluso los disabled
+    const formValue = this.appointmentForm.getRawValue();
     const newAppointment: Appointment = {
       ...formValue,
       patientId: Number(formValue.patientId)

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Buenas practicas Clinica"
+  short_description: "Orienta cambios coherentes en todo el proyecto"
+  default_prompt: "Use $buenas-practicas-proyecto-personalizado para aplicar las guias adecuadas al cambio solicitado."

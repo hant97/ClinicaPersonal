@@ -17,7 +17,6 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
   standalone: true,
   imports: [CommonModule, PatientFormComponent, PaginationComponent, RouterLink, LucideAngularModule],
   templateUrl: './patient-list.component.html',
-  styleUrls: ['./patient-list.component.css']
 })
 export class PatientListComponent implements OnInit {
   readonly Search = Search;

@@ -23,7 +23,6 @@ import { LucideAngularModule, FileText, Pill, ClipboardList, Activity, Calendar,
   standalone: true,
   imports: [CommonModule, ClinicalSessionFormComponent, AssessmentListComponent, RiskAlertFormComponent, MedicalRecordFormComponent, LucideAngularModule],
   templateUrl: './patient-detail.component.html',
-  styleUrls: ['./patient-detail.component.css']
 })
 export class PatientDetailComponent implements OnInit {
   readonly FileText = FileText;
@@ -281,6 +280,14 @@ export class PatientDetailComponent implements OnInit {
     const session = this.sessions.find(s => s.id === id);
     if (session) {
       this.openForm(session);
+    }
+  }
+
+  scheduleAppointment(): void {
+    if (this.patient?.id) {
+      this.router.navigate(['/agenda'], {
+        queryParams: { newAppointment: 'true', patientId: this.patient.id }
+      });
     }
   }
 }

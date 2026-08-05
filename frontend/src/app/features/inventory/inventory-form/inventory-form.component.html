@@ -1,86 +1,13 @@
-<div class="modal-overlay" (click)="close()">
-  <div class="modal-content card" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h2>{{ isEditMode ? 'Editar' : 'Nuevo' }} Insumo</h2>
-      <button class="close-btn" (click)="close()">
-        <lucide-icon [img]="X" [size]="20"></lucide-icon>
-      </button>
-    </div>
-
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
-      <div class="form-grid">
-        <div class="form-group" style="grid-column: span 2;">
-          <label for="name" class="form-label">Nombre del Insumo <span class="required">*</span></label>
-          <input type="text" id="name" formControlName="name" class="input-field" placeholder="Ej. Paracetamol 500mg" [class.is-invalid]="form.get('name')?.invalid && form.get('name')?.touched">
-          @if (form.get('name')?.invalid && form.get('name')?.touched) {
-            <div class="error-messages">
-              <small class="text-error">El nombre es requerido</small>
-            </div>
-          }
-        </div>
-
-        <div class="form-group" style="grid-column: span 2;">
-          <label for="description" class="form-label">Descripción</label>
-          <textarea id="description" formControlName="description" class="input-field" rows="2" placeholder="Detalles adicionales..."></textarea>
-        </div>
-
-        <div class="form-group">
-          <label for="currentStock" class="form-label">Stock Actual <span class="required">*</span></label>
-          <input type="number" id="currentStock" formControlName="currentStock" class="input-field" min="0" [class.is-invalid]="form.get('currentStock')?.invalid && form.get('currentStock')?.touched">
-          @if (form.get('currentStock')?.invalid && form.get('currentStock')?.touched) {
-            <div class="error-messages">
-              <small class="text-error">Stock inválido</small>
-            </div>
-          }
-        </div>
-
-        <div class="form-group">
-          <label for="minStockLevel" class="form-label">Nivel Mínimo <span class="required">*</span></label>
-          <input type="number" id="minStockLevel" formControlName="minStockLevel" class="input-field" min="0" [class.is-invalid]="form.get('minStockLevel')?.invalid && form.get('minStockLevel')?.touched">
-          @if (form.get('minStockLevel')?.invalid && form.get('minStockLevel')?.touched) {
-            <div class="error-messages">
-              <small class="text-error">Nivel mínimo inválido</small>
-            </div>
-          }
-        </div>
-
-        <div class="form-group">
-          <label for="unit" class="form-label">Unidad de Medida <span class="required">*</span></label>
-          <select id="unit" formControlName="unit" class="input-field" [class.is-invalid]="form.get('unit')?.invalid && form.get('unit')?.touched">
-            <option value="">Seleccione</option>
-            @for (unit of supplyUnits; track unit.id) {
-              <option [value]="unit.itemCode">{{ unit.itemName }}</option>
-            }
-          </select>
-          @if (form.get('unit')?.invalid && form.get('unit')?.touched) {
-            <div class="error-messages">
-              <small class="text-error">La unidad es requerida</small>
-            </div>
-          }
-        </div>
-
-        <div class="form-group">
-          <label for="price" class="form-label">Precio Base (S/)</label>
-          <input type="number" id="price" formControlName="price" class="input-field" step="0.01" min="0" [class.is-invalid]="form.get('price')?.invalid && form.get('price')?.touched">
-          @if (form.get('price')?.invalid && form.get('price')?.touched) {
-            <div class="error-messages">
-              <small class="text-error">Precio inválido</small>
-            </div>
-          }
-        </div>
-
-        <div class="form-group">
-          <label for="expirationDate" class="form-label">Fecha de Caducidad</label>
-          <input type="date" id="expirationDate" formControlName="expirationDate" class="input-field">
-        </div>
-      </div>
-
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary" (click)="close()">Cancelar</button>
-        <button type="submit" class="btn-primary" [disabled]="isSubmitting">
-          {{ isSubmitting ? 'Guardando...' : 'Guardar' }}
-        </button>
-      </div>
-    </form>
-  </div>
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm" (click)="close()">
+  <section class="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-line bg-surface p-5 shadow-raised sm:p-6" (click)="$event.stopPropagation()"><div class="mb-6 flex items-center justify-between border-b border-line pb-4"><h2 class="text-xl font-semibold">{{ isEditMode ? 'Editar' : 'Nuevo' }} insumo</h2><button class="btn-text text-muted hover:text-danger" (click)="close()" title="Cerrar"><lucide-icon [img]="X" [size]="20"></lucide-icon></button></div>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()"><div class="grid gap-5 sm:grid-cols-2">
+      <div class="sm:col-span-2"><label for="name" class="form-label">Nombre del insumo <span class="text-danger">*</span></label><input type="text" id="name" formControlName="name" class="input-field" placeholder="Ej. Paracetamol 500mg" [class.border-danger]="form.get('name')?.invalid && form.get('name')?.touched">@if (form.get('name')?.invalid && form.get('name')?.touched) { <small class="mt-1 block text-sm text-danger">El nombre es requerido.</small> }</div>
+      <div class="sm:col-span-2"><label for="description" class="form-label">Descripción</label><textarea id="description" formControlName="description" class="input-field" rows="2" placeholder="Detalles adicionales..."></textarea></div>
+      <div><label for="currentStock" class="form-label">Stock actual <span class="text-danger">*</span></label><input type="number" id="currentStock" formControlName="currentStock" class="input-field" min="0" [class.border-danger]="form.get('currentStock')?.invalid && form.get('currentStock')?.touched">@if (form.get('currentStock')?.invalid && form.get('currentStock')?.touched) { <small class="mt-1 block text-sm text-danger">Stock inválido.</small> }</div>
+      <div><label for="minStockLevel" class="form-label">Nivel mínimo <span class="text-danger">*</span></label><input type="number" id="minStockLevel" formControlName="minStockLevel" class="input-field" min="0" [class.border-danger]="form.get('minStockLevel')?.invalid && form.get('minStockLevel')?.touched">@if (form.get('minStockLevel')?.invalid && form.get('minStockLevel')?.touched) { <small class="mt-1 block text-sm text-danger">Nivel mínimo inválido.</small> }</div>
+      <div><label for="unit" class="form-label">Unidad de medida <span class="text-danger">*</span></label><select id="unit" formControlName="unit" class="input-field" [class.border-danger]="form.get('unit')?.invalid && form.get('unit')?.touched"><option value="">Seleccione</option>@for (unit of supplyUnits; track unit.id) { <option [value]="unit.itemCode">{{ unit.itemName }}</option> }</select>@if (form.get('unit')?.invalid && form.get('unit')?.touched) { <small class="mt-1 block text-sm text-danger">La unidad es requerida.</small> }</div>
+      <div><label for="price" class="form-label">Precio base (S/)</label><input type="number" id="price" formControlName="price" class="input-field" step="0.01" min="0" [class.border-danger]="form.get('price')?.invalid && form.get('price')?.touched">@if (form.get('price')?.invalid && form.get('price')?.touched) { <small class="mt-1 block text-sm text-danger">Precio inválido.</small> }</div>
+      <div><label for="expirationDate" class="form-label">Fecha de caducidad</label><input type="date" id="expirationDate" formControlName="expirationDate" class="input-field"></div>
+    </div><div class="mt-7 flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end"><button type="button" class="btn-secondary" (click)="close()">Cancelar</button><button type="submit" class="btn-primary" [disabled]="isSubmitting">{{ isSubmitting ? 'Guardando...' : 'Guardar' }}</button></div></form>
+  </section>
 </div>

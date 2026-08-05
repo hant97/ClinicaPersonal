@@ -6,8 +6,7 @@ import { ToastComponent } from './shared/components/toast/toast/toast.component'
   selector: 'app-root',
   standalone: true,
   imports: [RouterOutlet, ToastComponent],
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  templateUrl: './app.component.html'
 })
 export class AppComponent {
   title = 'frontend';

@@ -1,26 +1,132 @@
-<div class="autocomplete-container">
-  <div class="input-wrapper">
-    <input 
-      type="text" 
-      class="form-control autocomplete-input" 
-      [formControl]="searchControl" 
-      (focus)="onFocus()"
-      placeholder="Buscar paciente por nombre o DNI..."
-      autocomplete="off"
-    >
-    <div class="spinner" *ngIf="isLoading"></div>
-    <button type="button" class="clear-btn" *ngIf="selectedPatientId && !disabled" (click)="onInputClear()">&times;</button>
+<div class="relative w-full">
+  <div class="flex items-center gap-2">
+    <div class="relative flex-1 items-center">
+      <input type="text" 
+        class="input-field pr-10" 
+        [formControl]="searchControl" 
+        (focus)="onFocus()" 
+        placeholder="Buscar paciente por nombre o DNI..." 
+        autocomplete="off">
+      @if (isLoading) {
+        <span class="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin rounded-full border-2 border-clinic-100 border-l-clinic-600" aria-label="Buscando"></span>
+      } @else if (selectedPatientId && !disabled) {
+        <button type="button" class="btn-text absolute right-1 top-1/2 -translate-y-1/2 !p-2 text-muted hover:text-clinic-900" aria-label="Limpiar paciente seleccionado" (click)="onInputClear()">✕</button>
+      }
+    </div>
+
+    @if (enableQuickAdd && !disabled) {
+      <button type="button" 
+        (click)="openQuickAdd()"
+        class="inline-flex items-center gap-1.5 rounded-lg border border-clinic-300 bg-clinic-50 px-3 py-2 text-xs font-semibold text-clinic-700 hover:bg-clinic-100 transition-colors shrink-0 shadow-sm"
+        title="Crear paciente nuevo rápidamente">
+        <lucide-icon [img]="UserPlus" [size]="14"></lucide-icon>
+        <span>+ Nuevo</span>
+      </button>
+    }
   </div>
 
-  <div class="dropdown-menu" *ngIf="showDropdown">
-    <ul class="dropdown-list">
-      <li *ngIf="patients.length === 0 && searchControl.value && searchControl.value.length >= 2 && !isLoading" class="dropdown-item empty">
-        No se encontraron pacientes.
-      </li>
-      <li *ngFor="let p of patients" class="dropdown-item" (click)="selectPatient(p)">
-        <div class="patient-name">{{ p.firstName }} {{ p.lastName }}</div>
-        <div class="patient-doc">DNI: {{ p.identificationDocument }}</div>
-      </li>
+  @if (showDropdown) {
+    <ul class="absolute z-50 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-line bg-surface py-1 shadow-raised" role="listbox">
+      @if (patients.length === 0 && searchControl.value && searchControl.value.length >= 2 && !isLoading) {
+        <li class="px-4 py-3 text-sm text-muted">
+          <p class="italic">No se encontraron pacientes para "{{ searchControl.value }}".</p>
+          @if (enableQuickAdd && !disabled) {
+            <button type="button" 
+              (click)="openQuickAdd()"
+              class="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-clinic-600 hover:text-clinic-800">
+              <lucide-icon [img]="UserPlus" [size]="14"></lucide-icon>
+              Registrar como nuevo paciente rápido
+            </button>
+          }
+        </li>
+      }
+      @for (patient of patients; track patient.id) {
+        <li>
+          <button type="button" 
+            class="w-full border-b border-line px-4 py-3 text-left last:border-b-0 hover:bg-clinic-50 focus:bg-clinic-50 focus:outline-none transition-colors" 
+            (click)="selectPatient(patient)">
+            <span class="block text-sm font-semibold text-clinic-900">{{ patient.firstName }} {{ patient.lastName }}</span>
+            <span class="mt-0.5 block text-xs text-muted">DNI / Documento: {{ patient.identificationDocument || 'Sin DNI' }}</span>
+          </button>
+        </li>
+      }
+      @if (patients.length > 0 && enableQuickAdd && !disabled) {
+        <li class="border-t border-line bg-canvas/60 p-2 text-center">
+          <button type="button" 
+            (click)="openQuickAdd()"
+            class="inline-flex items-center gap-1.5 text-xs font-medium text-clinic-600 hover:text-clinic-800 py-1">
+            <lucide-icon [img]="UserPlus" [size]="13"></lucide-icon>
+            ¿No encuentras al paciente? Registrar nuevo
+          </button>
+        </li>
+      }
     </ul>
-  </div>
+  }
 </div>
+
+<!-- Modal de Alta Rápida de Pacientes -->
+@if (showQuickAddModal) {
+  <div class="fixed inset-0 z-[70] flex items-center justify-center bg-clinic-900/60 p-4 backdrop-blur-xs" role="dialog" aria-modal="true">
+    <div class="relative w-full max-w-lg overflow-y-auto rounded-xl bg-surface p-6 shadow-raised sm:p-7 border border-line animate-fadeIn">
+      <button type="button" class="btn-text absolute right-3 top-3 text-muted hover:text-ink text-xl font-bold" aria-label="Cerrar" (click)="closeQuickAdd()">✕</button>
+      
+      <div class="mb-5 flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-clinic-100 text-clinic-700">
+          <lucide-icon [img]="UserPlus" [size]="20"></lucide-icon>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-ink">Alta Rápida de Paciente</h3>
+          <p class="text-xs text-muted">Registra los datos esenciales para continuar agendando</p>
+        </div>
+      </div>
+
+      <form [formGroup]="quickAddForm" (ngSubmit)="saveQuickPatient()" class="space-y-4">
+        <div class="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label for="qa-firstName" class="form-label text-xs">Nombres <span class="text-danger">*</span></label>
+            <input type="text" id="qa-firstName" formControlName="firstName" class="input-field text-sm" placeholder="Ej: Juan">
+            @if (quickAddForm.get('firstName')?.invalid && (quickAddForm.get('firstName')?.dirty || quickAddForm.get('firstName')?.touched)) {
+              <p class="mt-1 text-xs text-danger">El nombre es requerido.</p>
+            }
+          </div>
+          <div>
+            <label for="qa-lastName" class="form-label text-xs">Apellidos <span class="text-danger">*</span></label>
+            <input type="text" id="qa-lastName" formControlName="lastName" class="input-field text-sm" placeholder="Ej: Pérez García">
+            @if (quickAddForm.get('lastName')?.invalid && (quickAddForm.get('lastName')?.dirty || quickAddForm.get('lastName')?.touched)) {
+              <p class="mt-1 text-xs text-danger">Los apellidos son requeridos.</p>
+            }
+          </div>
+        </div>
+
+        <div>
+          <label for="qa-doc" class="form-label text-xs">DNI / Documento <span class="text-danger">*</span></label>
+          <input type="text" id="qa-doc" formControlName="identificationDocument" class="input-field text-sm" placeholder="Ej: 71234567">
+          @if (quickAddForm.get('identificationDocument')?.invalid && (quickAddForm.get('identificationDocument')?.dirty || quickAddForm.get('identificationDocument')?.touched)) {
+            <p class="mt-1 text-xs text-danger">El documento de identidad es requerido.</p>
+          }
+        </div>
+
+        <div class="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label for="qa-phone" class="form-label text-xs">Teléfono / Celular</label>
+            <input type="tel" id="qa-phone" formControlName="contactNumber" class="input-field text-sm" placeholder="Ej: 999888777">
+          </div>
+          <div>
+            <label for="qa-email" class="form-label text-xs">Correo electrónico</label>
+            <input type="email" id="qa-email" formControlName="email" class="input-field text-sm" placeholder="correo@ejemplo.com">
+            @if (quickAddForm.get('email')?.hasError('email') && quickAddForm.get('email')?.touched) {
+              <p class="mt-1 text-xs text-danger">Correo inválido.</p>
+            }
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 border-t border-line pt-4 mt-2">
+          <button type="button" class="btn-secondary text-xs px-4 py-2" (click)="closeQuickAdd()">Cancelar</button>
+          <button type="submit" class="btn-primary text-xs px-4 py-2" [disabled]="isSavingQuickPatient">
+            {{ isSavingQuickPatient ? 'Registrando…' : 'Guardar y Seleccionar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

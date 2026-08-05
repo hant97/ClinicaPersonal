@@ -11,8 +11,7 @@ import { LucideAngularModule, X } from 'lucide-angular';
   selector: 'app-inventory-form',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
-  templateUrl: './inventory-form.component.html',
-  styleUrls: ['./inventory-form.component.css']
+  templateUrl: './inventory-form.component.html'
 })
 export class InventoryFormComponent implements OnInit {
   @Input() supplyId: number | null = null;

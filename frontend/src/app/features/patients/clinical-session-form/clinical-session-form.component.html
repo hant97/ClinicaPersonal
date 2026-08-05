@@ -1,8 +1,8 @@
-<div class="form-container">
+<div class="p-1 md:p-2">
   <h3>{{ session ? 'Editar Sesión (S.O.A.P.)' : 'Nueva Sesión (S.O.A.P.)' }}</h3>
   
   <form [formGroup]="sessionForm" (ngSubmit)="onSubmit()">
-    <div class="form-row">
+    <div class="mb-5 grid grid-cols-1 gap-4 md:grid-cols-3">
       <div class="form-group">
         <label>Fecha de la Sesión</label>
         <input type="date" formControlName="sessionDate" class="form-control">
@@ -17,7 +17,7 @@
       </div>
     </div>
 
-    <div class="form-row">
+    <div class="mb-5 grid grid-cols-1 gap-4 md:grid-cols-3">
       <div class="form-group">
         <label>Tipo de Sesión</label>
         <select formControlName="sessionType" class="form-control">
@@ -27,7 +27,7 @@
           <option value="GRUPAL">Grupal</option>
         </select>
       </div>
-        <div class="form-group" style="flex: 1;">
+        <div class="form-group">
           <label for="modality">Modalidad *</label>
           <select id="modality" formControlName="modality" class="form-control">
             <option value="">Seleccione</option>
@@ -46,7 +46,7 @@
       </div>
     </div>
 
-    <div class="soap-section">
+    <fieldset class="mb-5 rounded-xl border border-line bg-clinic-50/50 p-4 md:p-5">
       <div class="form-group">
         <label>Subjetivo (S)</label>
         <textarea formControlName="subjective" class="form-control" rows="3" 
@@ -70,20 +70,20 @@
         <textarea formControlName="plan" class="form-control" rows="3" 
           placeholder="Tareas asignadas, próximos pasos o derivaciones."></textarea>
       </div>
-    </div>
+    </fieldset>
 
-    <div *ngIf="sessionForm.hasError('soapRequired')" class="error-msg text-danger mb-3">
+    <div *ngIf="sessionForm.hasError('soapRequired')" class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-danger">
       Debe llenar al menos uno de los campos S.O.A.P.
     </div>
 
-    <div class="form-group checkbox-group">
-      <label class="checkbox-label">
+    <div class="form-group">
+      <label class="flex cursor-pointer items-center gap-2 text-sm font-medium text-danger">
         <input type="checkbox" formControlName="isConfidential">
         Contiene información sensible/confidencial
       </label>
     </div>
 
-    <div class="form-actions">
+    <div class="mt-7 flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end">
       <button type="button" class="btn btn-secondary" (click)="onCancel()">Cancelar</button>
       <button type="submit" class="btn btn-primary" [disabled]="sessionForm.invalid">Guardar Sesión</button>
     </div>

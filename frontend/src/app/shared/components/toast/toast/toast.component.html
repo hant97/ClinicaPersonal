@@ -1,3 +1,5 @@
-<div class="toast-container" *ngIf="message" [ngClass]="message.type">
-  {{ message.text }}
-</div>
+@if (message) {
+  <div class="fixed bottom-5 right-5 z-[9999] max-w-sm rounded-xl px-5 py-4 text-sm font-semibold text-white shadow-raised" [ngClass]="{'bg-success': message.type === 'success', 'bg-danger': message.type === 'error', 'bg-muted': message.type === 'info'}" role="status" aria-live="polite">
+    {{ message.text }}
+  </div>
+}

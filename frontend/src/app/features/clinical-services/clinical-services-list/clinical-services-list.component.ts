@@ -11,8 +11,7 @@ import { ClinicalServicesFormComponent } from '../clinical-services-form/clinica
   selector: 'app-clinical-services-list',
   standalone: true,
   imports: [CommonModule, LucideAngularModule, PaginationComponent, ClinicalServicesFormComponent, DecimalPipe],
-  templateUrl: './clinical-services-list.component.html',
-  styleUrls: ['./clinical-services-list.component.css']
+  templateUrl: './clinical-services-list.component.html'
 })
 export class ClinicalServicesListComponent implements OnInit {
   services: ClinicalService[] = [];

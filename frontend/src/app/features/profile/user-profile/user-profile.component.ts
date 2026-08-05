@@ -11,7 +11,6 @@ import { LucideAngularModule, User, Key, Save, Mail, Phone, Shield, Building2, I
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
   templateUrl: './user-profile.component.html',
-  styleUrls: ['./user-profile.component.css']
 })
 export class UserProfileComponent implements OnInit {
   readonly UserIcon = User;
