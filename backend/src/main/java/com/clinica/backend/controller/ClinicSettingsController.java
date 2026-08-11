@@ -8,6 +8,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,7 +16,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @RestController
-@RequestMapping("/api/settings/clinic")
+@RequestMapping({"/api/v1/settings/clinic", "/api/settings/clinic"})
 @RequiredArgsConstructor
 public class ClinicSettingsController {
 
@@ -27,11 +28,13 @@ public class ClinicSettingsController {
     }
 
     @PutMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ClinicSettingsDto> updateSettings(@RequestBody ClinicSettingsDto dto) {
         return ResponseEntity.ok(service.updateSettings(dto));
     }
 
     @PostMapping(value = "/logo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ClinicSettingsDto> uploadLogo(@RequestParam("file") MultipartFile file) {
         return ResponseEntity.ok(service.uploadLogo(file));
     }
@@ -39,15 +42,28 @@ public class ClinicSettingsController {
     @GetMapping("/logo/{filename:.+}")
     public ResponseEntity<Resource> serveLogo(@PathVariable String filename) {
         try {
-            Path file = Paths.get("uploads/logos/").resolve(filename);
-            Resource resource = new UrlResource(file.toUri());
+            if (filename == null || filename.contains("..") || filename.contains("/") || filename.contains("\\")) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            Path basePath = Paths.get("uploads/logos/").toAbsolutePath().normalize();
+            Path filePath = basePath.resolve(filename).normalize();
             
-            if (resource.exists() || resource.isReadable()) {
+            if (!filePath.startsWith(basePath)) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            Resource resource = new UrlResource(filePath.toUri());
+            
+            if (resource.exists() && resource.isReadable()) {
                 String contentType = "image/jpeg";
-                if (filename.toLowerCase().endsWith(".png")) {
+                String lower = filename.toLowerCase();
+                if (lower.endsWith(".png")) {
                     contentType = "image/png";
-                } else if (filename.toLowerCase().endsWith(".svg")) {
+                } else if (lower.endsWith(".svg")) {
                     contentType = "image/svg+xml";
+                } else if (lower.endsWith(".webp")) {
+                    contentType = "image/webp";
                 }
                 
                 return ResponseEntity.ok()

@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 
 @Service
 public class CatalogService {
@@ -56,6 +57,7 @@ public class CatalogService {
     }
 
     @Transactional
+    @CacheEvict(value = "catalogItems", allEntries = true)
     public CatalogItemDto addCatalogItem(String catalogCode, CatalogItemDto itemDto) {
         Catalog catalog = catalogRepository.findByCode(catalogCode)
                 .orElseThrow(() -> new RuntimeException("Catalog not found"));
@@ -72,6 +74,7 @@ public class CatalogService {
     }
 
     @Transactional
+    @CacheEvict(value = "catalogItems", allEntries = true)
     public CatalogItemDto updateCatalogItem(Long itemId, CatalogItemDto itemDto) {
         CatalogItem item = catalogItemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Catalog item not found"));

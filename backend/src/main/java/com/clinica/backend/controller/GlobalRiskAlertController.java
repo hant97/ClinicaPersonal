@@ -13,7 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
-@RequestMapping("/api/alerts")
+@RequestMapping({"/api/v1/alerts", "/api/alerts"})
 public class GlobalRiskAlertController {
 
     @Autowired

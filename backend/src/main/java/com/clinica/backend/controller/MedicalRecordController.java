@@ -10,9 +10,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 @RestController
-@RequestMapping("/api/medical-records")
+@RequestMapping({"/api/v1/medical-records", "/api/medical-records"})
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class MedicalRecordController {
 
     private final MedicalRecordService medicalRecordService;

@@ -1,35 +1,32 @@
 package com.clinica.backend.service;
 
 import com.clinica.backend.dto.PsychometricTestDto;
+import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.PsychometricTest;
 import com.clinica.backend.repository.AssessmentRepository;
 import com.clinica.backend.repository.PsychometricTestRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
 @Service
+@RequiredArgsConstructor
 public class PsychometricTestService {
 
-    @Autowired
-    private PsychometricTestRepository psychometricTestRepository;
+    private final PsychometricTestRepository psychometricTestRepository;
+    private final AssessmentRepository assessmentRepository;
 
-    @Autowired
-    private AssessmentRepository assessmentRepository;
-
+    @Transactional(readOnly = true)
     public Page<PsychometricTestDto> getAllTests(Pageable pageable) {
         return psychometricTestRepository.findAll(pageable).map(this::mapToDto);
     }
 
+    @Transactional(readOnly = true)
     public PsychometricTestDto getTestById(Long id) {
         PsychometricTest test = psychometricTestRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Test no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Test psicométrico", "id", id));
         return mapToDto(test);
     }
 
@@ -47,7 +44,7 @@ public class PsychometricTestService {
     @Transactional
     public PsychometricTestDto updateTest(Long id, PsychometricTestDto dto) {
         PsychometricTest test = psychometricTestRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Test no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Test psicométrico", "id", id));
                 
         test.setName(dto.getName());
         test.setDescription(dto.getDescription());
@@ -59,16 +56,13 @@ public class PsychometricTestService {
 
     @Transactional
     public void deleteTest(Long id) {
-        // Verificar si existen evaluaciones asociadas
-        long count = assessmentRepository.findAll().stream()
-                .filter(a -> a.getPsychometricTest().getId().equals(id))
-                .count();
-                
-        if (count > 0) {
-            throw new RuntimeException("No se puede eliminar el test porque ya tiene evaluaciones registradas por pacientes.");
+        if (assessmentRepository.existsByPsychometricTestId(id)) {
+            throw new IllegalArgumentException("No se puede eliminar el test porque ya tiene evaluaciones registradas por pacientes.");
         }
         
-        psychometricTestRepository.deleteById(id);
+        PsychometricTest test = psychometricTestRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Test psicométrico", "id", id));
+        psychometricTestRepository.delete(test);
     }
 
     private PsychometricTestDto mapToDto(PsychometricTest test) {

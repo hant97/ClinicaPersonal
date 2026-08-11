@@ -10,7 +10,7 @@ import { ClinicalService } from '../models/clinical-service.model';
 })
 export class ClinicalServiceService {
 
-  private apiUrl = `${environment.apiUrl}/clinical-services`;
+  private apiUrl = `${environment.apiUrl}/v1/clinical-services`;
 
   constructor(private http: HttpClient) { }
 

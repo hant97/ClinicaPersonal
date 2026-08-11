@@ -21,7 +21,7 @@ export class LoginComponent {
     private router: Router
   ) {
     this.loginForm = this.fb.group({
-      username: ['', [Validators.required, Validators.minLength(4)]],
+      username: ['', [Validators.required, Validators.minLength(3)]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
@@ -32,13 +32,20 @@ export class LoginComponent {
       this.errorMessage = '';
       const { username, password } = this.loginForm.value;
       
-      this.authService.login({username, password}).subscribe({
+      this.authService.login({ username: username.trim(), password }).subscribe({
         next: () => {
+          this.isLoading = false;
           this.router.navigate(['/dashboard']);
         },
         error: (err) => {
-          this.errorMessage = 'Credenciales inválidas. Por favor intente nuevamente.';
           this.isLoading = false;
+          if (err.error && err.error.message) {
+            this.errorMessage = err.error.message;
+          } else if (err.status === 401) {
+            this.errorMessage = 'Usuario o contraseña incorrectos.';
+          } else {
+            this.errorMessage = 'No se pudo conectar con el servidor. Intente nuevamente.';
+          }
         }
       });
     }

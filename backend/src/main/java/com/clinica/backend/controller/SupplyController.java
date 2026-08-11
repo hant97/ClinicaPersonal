@@ -5,6 +5,7 @@ import com.clinica.backend.service.SupplyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,7 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 @RestController
-@RequestMapping("/api/supplies")
+@RequestMapping({"/api/v1/supplies", "/api/supplies"})
 @RequiredArgsConstructor
 public class SupplyController {
 
@@ -38,16 +39,19 @@ public class SupplyController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SupplyDto> createSupply(@RequestBody SupplyDto supplyDto) {
         return new ResponseEntity<>(supplyService.createSupply(supplyDto), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SupplyDto> updateSupply(@PathVariable Long id, @RequestBody SupplyDto supplyDto) {
         return ResponseEntity.ok(supplyService.updateSupply(id, supplyDto));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteSupply(@PathVariable Long id) {
         supplyService.deleteSupply(id);
         return ResponseEntity.noContent().build();

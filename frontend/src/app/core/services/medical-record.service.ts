@@ -8,7 +8,7 @@ import { MedicalRecord } from '../models/medical-record.model';
   providedIn: 'root'
 })
 export class MedicalRecordService {
-  private apiUrl = `${environment.apiUrl}/medical-records`;
+  private apiUrl = `${environment.apiUrl}/v1/medical-records`;
 
   constructor(private http: HttpClient) { }
 

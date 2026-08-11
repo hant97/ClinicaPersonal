@@ -5,6 +5,7 @@ import com.clinica.backend.dto.CatalogItemDto;
 import com.clinica.backend.service.CatalogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,7 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 @RestController
-@RequestMapping("/api/catalogs")
+@RequestMapping({"/api/v1/catalogs", "/api/catalogs"})
 public class CatalogController {
 
     @Autowired
@@ -37,16 +38,19 @@ public class CatalogController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CatalogDto> createCatalog(@RequestBody CatalogDto dto) {
         return ResponseEntity.ok(catalogService.createCatalog(dto));
     }
 
     @PostMapping("/{code}/items")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CatalogItemDto> addCatalogItem(@PathVariable String code, @RequestBody CatalogItemDto itemDto) {
         return ResponseEntity.ok(catalogService.addCatalogItem(code, itemDto));
     }
 
     @PutMapping("/items/{itemId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CatalogItemDto> updateCatalogItem(@PathVariable Long itemId, @RequestBody CatalogItemDto itemDto) {
         return ResponseEntity.ok(catalogService.updateCatalogItem(itemId, itemDto));
     }

@@ -1,5 +1,6 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.dto.CreateUserRequest;
 import com.clinica.backend.dto.UpdatePasswordRequest;
 import com.clinica.backend.dto.UpdateProfileRequest;
 import com.clinica.backend.dto.UserProfileDTO;
@@ -9,12 +10,34 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    public UserProfileDTO createUser(CreateUserRequest request) {
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+            throw new IllegalArgumentException("El nombre de usuario ya está registrado");
+        }
+
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        user.setEmail(request.getEmail());
+        user.setPhone(request.getPhone());
+        user.setRoles(request.getRoles() != null && !request.getRoles().isEmpty() 
+                ? request.getRoles() 
+                : Set.of("ROLE_STAFF"));
+
+        userRepository.save(user);
+        return mapToDTO(user);
+    }
 
     public UserProfileDTO getUserProfile(String username) {
         User user = userRepository.findByUsername(username)

@@ -3,6 +3,7 @@ package com.clinica.backend.service;
 import com.clinica.backend.dto.InventoryTransactionDto;
 import com.clinica.backend.model.InventoryTransaction;
 import com.clinica.backend.model.Supply;
+import com.clinica.backend.model.TransactionType;
 import com.clinica.backend.repository.InventoryTransactionRepository;
 import com.clinica.backend.repository.SupplyRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,25 +22,48 @@ public class InventoryTransactionService {
 
     @Transactional
     public InventoryTransactionDto recordTransaction(InventoryTransactionDto dto) {
+        if (dto.getSupplyId() == null) {
+            throw new IllegalArgumentException("El ID del insumo es obligatorio");
+        }
+        if (dto.getQuantity() == null || dto.getQuantity() == 0) {
+            throw new IllegalArgumentException("La cantidad debe ser distinta de cero");
+        }
+        if (dto.getType() == null) {
+            throw new IllegalArgumentException("El tipo de transacción es obligatorio");
+        }
+
         Supply supply = supplyRepository.findByIdAndDeletedFalse(dto.getSupplyId())
-                .orElseThrow(() -> new RuntimeException("Supply not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Insumo no encontrado o dado de baja"));
+
+        int currentStock = supply.getCurrentStock() != null ? supply.getCurrentStock() : 0;
+        int newStock;
+        int recordedQuantity;
+
+        if (dto.getType() == TransactionType.IN) {
+            recordedQuantity = Math.abs(dto.getQuantity());
+            newStock = currentStock + recordedQuantity;
+        } else if (dto.getType() == TransactionType.OUT) {
+            recordedQuantity = Math.abs(dto.getQuantity());
+            if (currentStock < recordedQuantity) {
+                throw new IllegalArgumentException("Stock insuficiente para el insumo '" + supply.getName() + "'. Stock actual: " + currentStock + ", requerido: " + recordedQuantity);
+            }
+            newStock = currentStock - recordedQuantity;
+        } else { // ADJUSTMENT
+            recordedQuantity = dto.getQuantity();
+            newStock = currentStock + recordedQuantity;
+            if (newStock < 0) {
+                throw new IllegalArgumentException("El ajuste resultaría en un stock negativo (" + newStock + ") para el insumo: " + supply.getName());
+            }
+        }
 
         InventoryTransaction transaction = new InventoryTransaction();
         transaction.setSupply(supply);
-        transaction.setQuantity(dto.getQuantity());
+        transaction.setQuantity(recordedQuantity);
         transaction.setType(dto.getType());
         transaction.setReason(dto.getReason());
         transaction.setReferenceId(dto.getReferenceId());
         transaction.setNotes(dto.getNotes());
 
-        // Update supply stock
-        int currentStock = supply.getCurrentStock() != null ? supply.getCurrentStock() : 0;
-        int newStock = currentStock + dto.getQuantity();
-        
-        if (newStock < 0) {
-            throw new RuntimeException("Insufficient stock for supply: " + supply.getName());
-        }
-        
         supply.setCurrentStock(newStock);
         supplyRepository.save(supply);
 

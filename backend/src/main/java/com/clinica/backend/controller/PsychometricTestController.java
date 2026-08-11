@@ -12,8 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 @RestController
-@RequestMapping("/api/tests")
-@CrossOrigin(origins = "*")
+@RequestMapping({"/api/v1/tests", "/api/tests"})
 public class PsychometricTestController {
 
     @Autowired

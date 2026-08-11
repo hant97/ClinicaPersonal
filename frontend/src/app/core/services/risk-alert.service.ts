@@ -9,7 +9,7 @@ import { environment } from '../../../environments/environment';
   providedIn: 'root'
 })
 export class RiskAlertService {
-  private apiUrl = `${environment.apiUrl}/patients`;
+  private apiUrl = `${environment.apiUrl}/v1/patients`;
 
   constructor(private http: HttpClient) { }
 
@@ -23,7 +23,7 @@ export class RiskAlertService {
 
   getAllActiveAlerts(page: number = 0, size: number = 1000): Observable<PageResponse<RiskAlert>> {
     const params = new HttpParams().set('page', page.toString()).set('size', size.toString());
-    return this.http.get<PageResponse<RiskAlert>>(`${environment.apiUrl}/alerts/active`, { params });
+    return this.http.get<PageResponse<RiskAlert>>(`${environment.apiUrl}/v1/alerts/active`, { params });
   }
 
   createAlert(patientId: number, alert: RiskAlert): Observable<RiskAlert> {

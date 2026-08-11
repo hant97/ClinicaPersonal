@@ -10,7 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 @RestController
-@RequestMapping("/api/patients/{patientId}/alerts")
+@RequestMapping({"/api/v1/patients/{patientId}/alerts", "/api/patients/{patientId}/alerts"})
 public class RiskAlertController {
 
     @Autowired

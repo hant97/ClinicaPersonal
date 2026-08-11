@@ -10,7 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 @RestController
-@RequestMapping("/api/clinical-sessions")
+@RequestMapping({"/api/v1/clinical-sessions", "/api/clinical-sessions"})
 @RequiredArgsConstructor
 public class ClinicalSessionController {
 

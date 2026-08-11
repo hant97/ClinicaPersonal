@@ -17,7 +17,7 @@ export interface ClinicSettings {
   providedIn: 'root'
 })
 export class ClinicSettingsService {
-  private apiUrl = `${environment.apiUrl}/settings/clinic`;
+  private apiUrl = `${environment.apiUrl}/v1/settings/clinic`;
   
   private settingsSubject = new BehaviorSubject<ClinicSettings>({
     clinicName: 'Cargando...',

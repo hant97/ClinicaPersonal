@@ -11,11 +11,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class ClinicSettingsService {
+
+    private static final List<String> ALLOWED_EXTENSIONS = List.of(".png", ".jpg", ".jpeg", ".webp", ".svg");
+    private static final List<String> ALLOWED_CONTENT_TYPES = List.of("image/png", "image/jpeg", "image/webp", "image/svg+xml");
+    private static final long MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
     private final ClinicSettingsRepository repository;
     private final String UPLOAD_DIR = "uploads/logos/";
@@ -41,14 +46,38 @@ public class ClinicSettingsService {
     }
 
     public ClinicSettingsDto uploadLogo(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("El archivo del logo no puede estar vacío");
+        }
+        if (file.getSize() > MAX_FILE_SIZE) {
+            throw new IllegalArgumentException("El tamaño del archivo no debe exceder 2MB");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
+            throw new IllegalArgumentException("Tipo de imagen no permitido. Solo se aceptan PNG, JPG, WEBP y SVG.");
+        }
+
+        String originalFilename = file.getOriginalFilename();
+        String extension = "";
+        if (originalFilename != null && originalFilename.lastIndexOf('.') != -1) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf('.')).toLowerCase();
+        }
+        if (!ALLOWED_EXTENSIONS.contains(extension)) {
+            throw new IllegalArgumentException("Extensión de archivo no permitida.");
+        }
+
         try {
-            Path uploadPath = Paths.get(UPLOAD_DIR);
+            Path uploadPath = Paths.get(UPLOAD_DIR).toAbsolutePath().normalize();
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }
 
-            String filename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-            Path filePath = uploadPath.resolve(filename);
+            String filename = UUID.randomUUID() + extension;
+            Path filePath = uploadPath.resolve(filename).normalize();
+            if (!filePath.startsWith(uploadPath)) {
+                throw new IllegalArgumentException("Nombre de archivo inválido");
+            }
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
             ClinicSettings settings = repository.findTopByDeletedFalseOrderByIdAsc()
@@ -60,7 +89,7 @@ public class ClinicSettingsService {
             
             return mapToDto(settings);
         } catch (IOException e) {
-            throw new RuntimeException("Could not store the logo file. Error: " + e.getMessage());
+            throw new RuntimeException("No se pudo almacenar el archivo del logo. Error: " + e.getMessage());
         }
     }
 

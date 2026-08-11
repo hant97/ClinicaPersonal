@@ -21,8 +21,8 @@ export interface Supply {
 })
 export class InventoryService {
 
-  private apiUrl = `${environment.apiUrl}/supplies`;
-  private transactionApiUrl = `${environment.apiUrl}/inventory-transactions`;
+  private apiUrl = `${environment.apiUrl}/v1/supplies`;
+  private transactionApiUrl = `${environment.apiUrl}/v1/inventory-transactions`;
 
   constructor(private http: HttpClient) { }
 

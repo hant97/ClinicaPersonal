@@ -13,14 +13,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 @RestController
-@RequestMapping("/api")
-@CrossOrigin(origins = "*") // Assuming CORS is handled globally, but keeping it safe
+@RequestMapping({"/api/v1/assessments", "/api/assessments"})
 public class AssessmentController {
 
     @Autowired
     private AssessmentService assessmentService;
 
-    @GetMapping("/assessments/patient/{patientId}")
+    @GetMapping("/patient/{patientId}")
     public ResponseEntity<Page<AssessmentDto>> getAssessmentsByPatientId(
             @PathVariable Long patientId,
             @RequestParam(defaultValue = "0") int page,
@@ -28,7 +27,7 @@ public class AssessmentController {
         return ResponseEntity.ok(assessmentService.getAssessmentsByPatientId(patientId, PageRequest.of(page, size)));
     }
 
-    @PostMapping("/assessments")
+    @PostMapping
     public ResponseEntity<AssessmentDto> saveAssessment(@RequestBody AssessmentDto dto) {
         return ResponseEntity.ok(assessmentService.saveAssessment(dto));
     }

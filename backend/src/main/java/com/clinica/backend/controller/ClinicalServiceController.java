@@ -6,11 +6,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/clinical-services")
+@RequestMapping({"/api/v1/clinical-services", "/api/clinical-services"})
 @RequiredArgsConstructor
 public class ClinicalServiceController {
 
@@ -35,16 +36,19 @@ public class ClinicalServiceController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ClinicalServiceDto> create(@RequestBody ClinicalServiceDto dto) {
         return ResponseEntity.ok(service.createService(dto));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ClinicalServiceDto> update(@PathVariable Long id, @RequestBody ClinicalServiceDto dto) {
         return ResponseEntity.ok(service.updateService(id, dto));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.deleteService(id);
         return ResponseEntity.noContent().build();

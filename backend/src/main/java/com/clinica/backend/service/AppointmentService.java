@@ -111,13 +111,19 @@ public class AppointmentService {
     }
 
     private void validateAppointmentTime(LocalDate date, LocalTime start, LocalTime end, Long excludeId) {
-        if (date == null || start == null || end == null)
-            return;
+        if (date == null || start == null || end == null) {
+            throw new IllegalArgumentException("La fecha, hora de inicio y hora de fin son obligatorias.");
+        }
+
+        if (!start.isBefore(end)) {
+            throw new IllegalArgumentException("La hora de inicio (" + start + ") debe ser anterior a la hora de fin (" + end + ").");
+        }
 
         List<Appointment> overlapping = appointmentRepository.findByAppointmentDateAndStatusNot(date, "CANCELADA");
 
         boolean hasConflict = overlapping.stream()
                 .filter(app -> excludeId == null || !app.getId().equals(excludeId))
+                .filter(app -> app.getStartTime() != null && app.getEndTime() != null)
                 .anyMatch(app -> {
                     // Conflicto si el inicio propuesto está estrictamente antes del fin existente
                     // Y el fin propuesto está estrictamente después del inicio existente

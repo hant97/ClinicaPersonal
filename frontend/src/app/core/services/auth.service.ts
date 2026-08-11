@@ -3,6 +3,11 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
+export interface AuthRequest {
+  username: string;
+  password: string;
+}
+
 export interface AuthResponse {
   token: string;
 }
@@ -17,7 +22,7 @@ export class AuthService {
 
   constructor(private http: HttpClient) { }
 
-  login(credentials: any): Observable<AuthResponse> {
+  login(credentials: AuthRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
       tap(response => {
         if (response && response.token) {
@@ -35,6 +40,10 @@ export class AuthService {
 
   getToken(): string | null {
     return localStorage.getItem('token');
+  }
+
+  isLoggedIn(): boolean {
+    return this.hasToken();
   }
 
   private hasToken(): boolean {
