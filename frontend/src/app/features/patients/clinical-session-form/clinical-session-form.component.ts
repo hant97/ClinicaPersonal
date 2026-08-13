@@ -77,12 +77,8 @@ export class ClinicalSessionFormComponent implements OnInit {
       objective: [this.session?.objective || ''],
       analysis: [this.session?.analysis || ''],
       plan: [this.session?.plan || ''],
-      skinExamFindings: [this.session?.skinExamFindings || ''],
-      dermatologicalDiagnosis: [this.session?.dermatologicalDiagnosis || ''],
-      proceduresPerformed: [this.session?.proceduresPerformed || ''],
-      prescriptions: [this.session?.prescriptions || ''],
       isConfidential: [this.session?.isConfidential || false]
-    }, { validators: this.isPsychology ? this.soapValidator : this.dermValidator });
+    }, { validators: this.isPsychology ? this.soapValidator : null });
   }
 
   loadCatalogs(): void {
@@ -106,16 +102,6 @@ export class ClinicalSessionFormComponent implements OnInit {
 
     if (!s && !o && !a && !p) {
       return { 'soapRequired': true };
-    }
-    return null;
-  }
-
-  dermValidator = (group: FormGroup): { [key: string]: boolean } | null => {
-    const findings = group.get('skinExamFindings')?.value?.trim();
-    const diag = group.get('dermatologicalDiagnosis')?.value?.trim();
-
-    if (!findings && !diag) {
-      return { 'dermRequired': true };
     }
     return null;
   }

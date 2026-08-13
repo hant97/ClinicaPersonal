@@ -62,18 +62,6 @@ public class ClinicalSession {
     @Column(name = "specialty", nullable = false)
     private String specialty;
 
-    @Column(name = "skin_exam_findings", columnDefinition = "TEXT")
-    private String skinExamFindings;
-
-    @Column(name = "dermatological_diagnosis", columnDefinition = "TEXT")
-    private String dermatologicalDiagnosis;
-
-    @Column(name = "procedures_performed", columnDefinition = "TEXT")
-    private String proceduresPerformed;
-
-    @Column(name = "prescriptions", columnDefinition = "TEXT")
-    private String prescriptions;
-
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

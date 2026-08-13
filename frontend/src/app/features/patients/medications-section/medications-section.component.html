@@ -1,0 +1,99 @@
+<div class="card">
+  <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h3 class="flex items-center gap-2 text-lg font-semibold">
+      <lucide-icon [img]="Pill" [size]="20" class="text-clinic-600"></lucide-icon>
+      Medicamentos
+    </h3>
+    <p class="mt-1 text-sm text-muted">{{ totalElements }} registrados</p>
+    <button class="btn btn-primary" (click)="openForm()">+ Nuevo medicamento</button>
+  </div>
+
+  @if (loading) {
+    <p class="text-sm text-muted">Cargando…</p>
+  } @else if (medications.length > 0) {
+    <div class="space-y-3">
+      @for (medication of medications; track medication.id) {
+        <div class="flex items-start justify-between gap-4 rounded-lg border border-line bg-surface p-4">
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="font-semibold text-ink">{{ medication.name }}</span>
+              @if (medication.dose) {
+                <span class="text-sm text-muted">{{ medication.dose }}</span>
+              }
+              @if (medication.frequency) {
+                <span class="rounded-full border border-line bg-canvas px-2 py-0.5 text-xs font-semibold text-muted">{{ medication.frequency }}</span>
+              }
+              @if (!medication.active) {
+                <span class="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-danger">Inactivo</span>
+              }
+            </div>
+            @if (medication.startDate || medication.endDate) {
+              <p class="mt-1 text-xs text-muted">
+                {{ medication.startDate || '—' }} — {{ medication.endDate || 'actualidad' }}
+              </p>
+            }
+            @if (medication.notes) {
+              <p class="mt-1 text-xs text-muted">{{ medication.notes }}</p>
+            }
+          </div>
+          <div class="flex shrink-0 gap-1">
+            <button class="btn-text" (click)="openForm(medication)" title="Editar">Editar</button>
+            <button class="btn-text text-danger hover:bg-red-50" (click)="delete(medication.id!)" title="Eliminar">Eliminar</button>
+          </div>
+        </div>
+      }
+    </div>
+    <app-pagination [currentPage]="currentPage" [totalPages]="totalPages" (pageChange)="onPageChange($event)"></app-pagination>
+  } @else {
+    <div class="rounded-lg border border-dashed border-line bg-canvas p-6 text-center text-sm text-muted">
+      No hay medicamentos registrados para este paciente.
+    </div>
+  }
+</div>
+
+@if (showForm) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div class="card max-h-[90vh] w-full max-w-xl overflow-y-auto p-5 md:p-7">
+      <div class="mb-6 flex items-center justify-between border-b border-line pb-4">
+        <h2>{{ selected?.id ? 'Editar Medicamento' : 'Nuevo Medicamento' }}</h2>
+        <button class="btn-text text-muted hover:text-danger" aria-label="Cerrar" (click)="closeForm()">×</button>
+      </div>
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <div class="form-group">
+          <label class="form-label">Nombre *</label>
+          <input type="text" formControlName="name" class="input-field" placeholder="Ej. Sertralina, Isotretinoína…" />
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div class="form-group">
+            <label class="form-label">Dosis</label>
+            <input type="text" formControlName="dose" class="input-field" placeholder="Ej. 50 mg" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Frecuencia</label>
+            <input type="text" formControlName="frequency" class="input-field" placeholder="Ej. 1 vez al día" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fecha de inicio</label>
+            <input type="date" formControlName="startDate" class="input-field" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fecha de fin</label>
+            <input type="date" formControlName="endDate" class="input-field" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notas</label>
+          <textarea formControlName="notes" class="input-field" rows="2" placeholder="Observaciones…"></textarea>
+        </div>
+        <label class="mb-4 flex items-center gap-2 text-sm text-ink">
+          <input type="checkbox" formControlName="active" />
+          Medicamento activo
+        </label>
+        <div class="mt-6 flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end">
+          <button type="button" class="btn-secondary" (click)="closeForm()">Cancelar</button>
+          <button type="submit" class="btn-primary" [disabled]="form.invalid || isSaving">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

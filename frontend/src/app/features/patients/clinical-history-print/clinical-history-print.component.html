@@ -1,0 +1,658 @@
+<div
+  class="print-modal fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/50 p-4"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Vista previa de historia clínica"
+  (click)="onClose()"
+>
+  <section
+    class="print-modal-card flex h-full max-h-[95vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl bg-surface shadow-raised"
+    (click)="$event.stopPropagation()"
+  >
+    <div
+      class="flex shrink-0 items-center justify-between gap-2 border-b border-line bg-clinic-50 px-4 py-3 print:hidden"
+    >
+      <h2 class="text-sm font-semibold text-clinic-900">Vista previa de historia clínica</h2>
+      <div class="flex gap-2">
+        <button class="btn btn-primary flex items-center gap-2" (click)="print()">
+          <lucide-icon [img]="Printer" [size]="16"></lucide-icon>
+          Imprimir
+        </button>
+        <button class="btn-text" (click)="onClose()" aria-label="Cerrar">
+          <lucide-icon [img]="X" [size]="20"></lucide-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="print-modal-body min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+      @if (loading) {
+        <div class="flex items-center justify-center gap-3 p-12 text-sm text-muted">
+          <span class="spinner" aria-hidden="true"></span>
+          Cargando historia clínica…
+        </div>
+      } @else {
+        <article
+          id="clinical-history-print"
+          class="print-area mx-auto w-full max-w-[210mm] bg-white p-6 text-ink shadow-card sm:p-10"
+        >
+          <!-- Encabezado institucional -->
+          <header class="mb-6 border-b-2 border-clinic-900 pb-5">
+            <div class="flex items-center gap-3">
+              @if (clinicSettings?.logoUrl) {
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg">
+                  <img
+                    [src]="getLogoUrl(clinicSettings?.logoUrl)"
+                    alt="Logo de la clínica"
+                    class="max-h-full max-w-full object-contain"
+                  />
+                </div>
+              } @else {
+                <span class="text-2xl" aria-hidden="true">🌿</span>
+              }
+              <div class="min-w-0">
+                <h1 class="font-display text-xl font-bold leading-tight text-clinic-900">
+                  {{ clinicSettings?.clinicName || clinicSettings?.shortName || 'Clínica' }}
+                </h1>
+                @if (clinicSettings?.address) {
+                  <p class="text-xs text-muted">{{ clinicSettings?.address }}</p>
+                }
+                @if (clinicSettings?.contactPhone || clinicSettings?.contactEmail) {
+                  <p class="text-xs text-muted">
+                    @if (clinicSettings?.contactPhone) {
+                      <span>Tel: {{ clinicSettings?.contactPhone }}</span>
+                    }
+                    @if (clinicSettings?.contactPhone && clinicSettings?.contactEmail) {
+                      <span> | </span>
+                    }
+                    @if (clinicSettings?.contactEmail) {
+                      <span>{{ clinicSettings?.contactEmail }}</span>
+                    }
+                  </p>
+                }
+              </div>
+            </div>
+
+            <div class="mt-5 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p class="font-display text-lg font-bold uppercase tracking-wide text-clinic-900">
+                  Historia Clínica
+                </p>
+                <p class="text-sm text-muted">Especialidad: {{ specialtyLabel }}</p>
+              </div>
+              <div class="text-right text-xs text-muted">
+                <p>
+                  N° de historia:
+                  <span class="font-semibold text-ink">
+                    {{ patientId.toString().padStart(6, '0') }}
+                  </span>
+                </p>
+                <p>
+                  Fecha de impresión: {{ printDate | date: 'dd/MM/yyyy HH:mm' }}
+                </p>
+              </div>
+            </div>
+          </header>
+
+          <!-- Datos del paciente -->
+          <section class="hc-section">
+            <h2 class="hc-section-title">Datos del paciente</h2>
+            <div class="grid gap-x-8 gap-y-3 sm:grid-cols-2">
+              <div>
+                <p class="hc-label">Nombre completo</p>
+                <p class="hc-value">{{ fullName }}</p>
+              </div>
+              <div>
+                <p class="hc-label">Documento</p>
+                <p class="hc-value">{{ patient?.identificationDocument || '—' }}</p>
+              </div>
+              <div>
+                <p class="hc-label">Fecha de nacimiento</p>
+                <p class="hc-value">
+                  {{ patient?.dateOfBirth | date: 'dd/MM/yyyy' || '—' }}
+                  @if (age !== null) {
+                    <span class="text-muted">({{ age }} años)</span>
+                  }
+                </p>
+              </div>
+              <div>
+                <p class="hc-label">Género</p>
+                <p class="hc-value">{{ patient?.gender || '—' }}</p>
+              </div>
+              <div>
+                <p class="hc-label">Estado civil</p>
+                <p class="hc-value">{{ patient?.maritalStatus || '—' }}</p>
+              </div>
+              <div>
+                <p class="hc-label">Ocupación</p>
+                <p class="hc-value">{{ patient?.occupation || '—' }}</p>
+              </div>
+              <div>
+                <p class="hc-label">Teléfono</p>
+                <p class="hc-value">{{ patient?.contactNumber || '—' }}</p>
+              </div>
+              <div>
+                <p class="hc-label">Email</p>
+                <p class="hc-value">{{ patient?.email || '—' }}</p>
+              </div>
+              <div class="sm:col-span-2">
+                <p class="hc-label">Dirección</p>
+                <p class="hc-value">{{ patient?.address || '—' }}</p>
+              </div>
+              @if (patient?.emergencyContact) {
+                <div class="sm:col-span-2">
+                  <p class="hc-label">Contacto de emergencia</p>
+                  <p class="hc-value">{{ patient?.emergencyContact }}</p>
+                </div>
+              }
+              @if (patient?.reasonForConsultation) {
+                <div class="sm:col-span-2">
+                  <p class="hc-label">Motivo de consulta</p>
+                  <p class="hc-value">{{ patient?.reasonForConsultation }}</p>
+                </div>
+              }
+            </div>
+          </section>
+
+          <!-- Antecedentes generales -->
+          @if (hasGeneralHistory()) {
+            <section class="hc-section">
+              <h2 class="hc-section-title">Antecedentes generales</h2>
+              <div class="grid gap-x-8 gap-y-3 sm:grid-cols-2">
+                @if (history?.generalHistory?.pathologicalHistory) {
+                  <div>
+                    <p class="hc-label">Antecedentes patológicos</p>
+                    <p class="hc-value">{{ history?.generalHistory?.pathologicalHistory }}</p>
+                  </div>
+                }
+                @if (history?.generalHistory?.surgicalHistory) {
+                  <div>
+                    <p class="hc-label">Antecedentes quirúrgicos</p>
+                    <p class="hc-value">{{ history?.generalHistory?.surgicalHistory }}</p>
+                  </div>
+                }
+                @if (history?.generalHistory?.familyHistory) {
+                  <div>
+                    <p class="hc-label">Antecedentes familiares</p>
+                    <p class="hc-value">{{ history?.generalHistory?.familyHistory }}</p>
+                  </div>
+                }
+                @if (history?.generalHistory?.habits) {
+                  <div>
+                    <p class="hc-label">Hábitos</p>
+                    <p class="hc-value">{{ history?.generalHistory?.habits }}</p>
+                  </div>
+                }
+                @if (history?.generalHistory?.notes) {
+                  <div class="sm:col-span-2">
+                    <p class="hc-label">Notas</p>
+                    <p class="hc-value">{{ history?.generalHistory?.notes }}</p>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+
+          <!-- Alergias -->
+          @if (history?.allergies?.length) {
+            <section class="hc-section">
+              <h2 class="hc-section-title">Alergias</h2>
+              <table class="hc-table">
+                <thead>
+                  <tr>
+                    <th>Alérgeno</th>
+                    <th>Tipo</th>
+                    <th>Severidad</th>
+                    <th>Reacción</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (allergy of (history?.allergies ?? []); track $index) {
+                    <tr>
+                      <td class="font-medium">{{ allergy.allergen }}</td>
+                      <td>{{ allergy.type || '—' }}</td>
+                      <td>{{ allergy.severity || '—' }}</td>
+                      <td>{{ allergy.reaction || '—' }}</td>
+                      <td>{{ allergy.active ? 'Activa' : 'Inactiva' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </section>
+          }
+
+          <!-- Medicamentos -->
+          @if (history?.medications?.length) {
+            <section class="hc-section">
+              <h2 class="hc-section-title">Medicamentos</h2>
+              <table class="hc-table">
+                <thead>
+                  <tr>
+                    <th>Medicamento</th>
+                    <th>Dosis</th>
+                    <th>Frecuencia</th>
+                    <th>Periodo</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (medication of (history?.medications ?? []); track $index) {
+                    <tr>
+                      <td class="font-medium">{{ medication.name }}</td>
+                      <td>{{ medication.dose || '—' }}</td>
+                      <td>{{ medication.frequency || '—' }}</td>
+                      <td>
+                        {{ medication.startDate | date: 'dd/MM/yyyy' || '—' }} —
+                        {{ medication.endDate ? (medication.endDate | date: 'dd/MM/yyyy') : 'actualidad' }}
+                      </td>
+                      <td>{{ medication.active ? 'Activo' : 'Inactivo' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </section>
+          }
+
+          <!-- Diagnósticos -->
+          @if (history?.diagnoses?.length) {
+            <section class="hc-section">
+              <h2 class="hc-section-title">Diagnósticos</h2>
+              <table class="hc-table">
+                <thead>
+                  <tr>
+                    <th>Categoría</th>
+                    <th>Descripción</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (diagnosis of (history?.diagnoses ?? []); track $index) {
+                    <tr>
+                      <td>{{ diagnosis.category || '—' }}</td>
+                      <td class="font-medium">{{ diagnosis.description }}</td>
+                      <td>{{ statusLabel(diagnosis.status) }}</td>
+                      <td>{{ diagnosis.diagnosisDate | date: 'dd/MM/yyyy' || '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </section>
+          }
+
+          @if (isPsychology) {
+            <!-- Evaluaciones psicológicas -->
+            @if (history?.psychologyEvaluations?.length) {
+              <section class="hc-section">
+                <h2 class="hc-section-title">Evaluación inicial</h2>
+                @for (evaluation of (history?.psychologyEvaluations ?? []); track $index) {
+                  <div class="mb-4 last:mb-0">
+                    <p class="hc-label">
+                      {{ evaluation.evaluationDate | date: 'dd/MM/yyyy' }}
+                    </p>
+                    @if (evaluation.initialEvaluation) {
+                      <p class="mt-1 text-sm font-medium text-ink">
+                        Evaluación inicial:
+                        <span class="font-normal">{{ evaluation.initialEvaluation }}</span>
+                      </p>
+                    }
+                    @if (evaluation.psychologicalHistory) {
+                      <p class="mt-1 text-sm text-ink">
+                        Antecedentes: {{ evaluation.psychologicalHistory }}
+                      </p>
+                    }
+                    @if (evaluation.mentalExam) {
+                      <p class="mt-1 text-sm text-ink">Examen mental: {{ evaluation.mentalExam }}</p>
+                    }
+                    @if (evaluation.notes) {
+                      <p class="mt-1 text-sm text-muted">{{ evaluation.notes }}</p>
+                    }
+                  </div>
+                }
+              </section>
+            }
+
+            <!-- Plan terapéutico -->
+            @if (history?.therapeuticPlans?.length) {
+              <section class="hc-section">
+                <h2 class="hc-section-title">Plan terapéutico</h2>
+                @for (plan of (history?.therapeuticPlans ?? []); track $index) {
+                  <div class="mb-4 last:mb-0">
+                    <p class="hc-label">
+                      {{ statusLabel(plan.status) }}
+                      @if (plan.startDate || plan.endDate) {
+                        <span class="font-normal normal-case">
+                          ({{ plan.startDate | date: 'dd/MM/yyyy' || '—' }} —
+                          {{ plan.endDate ? (plan.endDate | date: 'dd/MM/yyyy') : 'actualidad' }})
+                        </span>
+                      }
+                    </p>
+                    @if (plan.objectives) {
+                      <p class="mt-1 text-sm text-ink">
+                        <span class="font-semibold">Objetivos:</span> {{ plan.objectives }}
+                      </p>
+                    }
+                    @if (plan.interventions) {
+                      <p class="mt-1 text-sm text-ink">
+                        <span class="font-semibold">Intervenciones:</span> {{ plan.interventions }}
+                      </p>
+                    }
+                    @if (plan.notes) {
+                      <p class="mt-1 text-sm text-muted">{{ plan.notes }}</p>
+                    }
+                  </div>
+                }
+              </section>
+            }
+          }
+
+          @if (isDermatology) {
+            <!-- Evaluación inicial dermatológica -->
+            @if (dermatologicalEvaluations.length) {
+              <section class="hc-section">
+                <h2 class="hc-section-title">Evaluación inicial</h2>
+                <table class="hc-table">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Diagnóstico</th>
+                      <th>Área / Lesión</th>
+                      <th>Tratamiento / Procedimiento</th>
+                      <th>Próxima revisión</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (evaluation of dermatologicalEvaluations; track $index) {
+                      <tr>
+                        <td>{{ evaluation.evaluationDate | date: 'dd/MM/yyyy' }}</td>
+                        <td class="font-medium">{{ evaluation.dermatologicalDiagnosis || '—' }}</td>
+                        <td>
+                          {{ evaluation.lesionType || '—' }}
+                          @if (evaluation.affectedArea) {
+                            <span>en {{ evaluation.affectedArea }}</span>
+                          }
+                        </td>
+                        <td>
+                          {{ evaluation.treatmentIndicated || evaluation.procedurePerformed || '—' }}
+                        </td>
+                        <td>{{ evaluation.nextReviewDate | date: 'dd/MM/yyyy' || '—' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </section>
+            }
+
+            <!-- Antecedentes dermatológicos -->
+            @if (hasDermatologicalHistory()) {
+              <section class="hc-section">
+                <h2 class="hc-section-title">Antecedentes dermatológicos</h2>
+                <div class="grid gap-x-8 gap-y-3 sm:grid-cols-2">
+                  @if (history?.dermatologicalHistory?.skinType) {
+                    <div>
+                      <p class="hc-label">Tipo de piel</p>
+                      <p class="hc-value">{{ history?.dermatologicalHistory?.skinType }}</p>
+                    </div>
+                  }
+                  @if (history?.dermatologicalHistory?.sunExposureHabits) {
+                    <div>
+                      <p class="hc-label">Hábitos de exposición solar</p>
+                      <p class="hc-value">{{ history?.dermatologicalHistory?.sunExposureHabits }}</p>
+                    </div>
+                  }
+                  @if (history?.dermatologicalHistory?.personalSkinHistory) {
+                    <div>
+                      <p class="hc-label">Antecedentes personales</p>
+                      <p class="hc-value">{{ history?.dermatologicalHistory?.personalSkinHistory }}</p>
+                    </div>
+                  }
+                  @if (history?.dermatologicalHistory?.familySkinHistory) {
+                    <div>
+                      <p class="hc-label">Antecedentes familiares</p>
+                      <p class="hc-value">{{ history?.dermatologicalHistory?.familySkinHistory }}</p>
+                    </div>
+                  }
+                  @if (history?.dermatologicalHistory?.chronicConditions) {
+                    <div>
+                      <p class="hc-label">Enfermedades crónicas</p>
+                      <p class="hc-value">{{ history?.dermatologicalHistory?.chronicConditions }}</p>
+                    </div>
+                  }
+                  @if (history?.dermatologicalHistory?.examFindings) {
+                    <div>
+                      <p class="hc-label">Hallazgos del examen</p>
+                      <p class="hc-value">{{ history?.dermatologicalHistory?.examFindings }}</p>
+                    </div>
+                  }
+                  @if (history?.dermatologicalHistory?.notes) {
+                    <div class="sm:col-span-2">
+                      <p class="hc-label">Notas</p>
+                      <p class="hc-value">{{ history?.dermatologicalHistory?.notes }}</p>
+                    </div>
+                  }
+                </div>
+              </section>
+            }
+
+            <!-- Lesiones -->
+            @if (history?.lesions?.length) {
+              <section class="hc-section">
+                <h2 class="hc-section-title">Lesiones</h2>
+                <table class="hc-table">
+                  <thead>
+                    <tr>
+                      <th>Zona</th>
+                      <th>Tipo</th>
+                      <th>Tamaño</th>
+                      <th>Color</th>
+                      <th>Desde</th>
+                      <th>Evolución</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (lesion of (history?.lesions ?? []); track $index) {
+                      <tr>
+                        <td class="font-medium">{{ lesion.bodyArea || '—' }}</td>
+                        <td>{{ lesion.lesionType || '—' }}</td>
+                        <td>{{ lesion.size || '—' }}</td>
+                        <td>{{ lesion.color || '—' }}</td>
+                        <td>{{ lesion.sinceDate | date: 'dd/MM/yyyy' || '—' }}</td>
+                        <td>{{ lesion.evolution || '—' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </section>
+            }
+
+            <!-- Exámenes auxiliares -->
+            @if (history?.auxiliaryExams?.length) {
+              <section class="hc-section">
+                <h2 class="hc-section-title">Exámenes auxiliares</h2>
+                <table class="hc-table">
+                  <thead>
+                    <tr>
+                      <th>Tipo</th>
+                      <th>Fecha</th>
+                      <th>Descripción</th>
+                      <th>Resultado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (exam of (history?.auxiliaryExams ?? []); track $index) {
+                      <tr>
+                        <td>{{ exam.examType || '—' }}</td>
+                        <td>{{ exam.examDate | date: 'dd/MM/yyyy' || '—' }}</td>
+                        <td>{{ exam.description || '—' }}</td>
+                        <td>{{ exam.result || '—' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </section>
+            }
+
+            <!-- Tratamientos -->
+            @if (history?.treatments?.length) {
+              <section class="hc-section">
+                <h2 class="hc-section-title">Tratamientos</h2>
+                <table class="hc-table">
+                  <thead>
+                    <tr>
+                      <th>Tratamiento</th>
+                      <th>Dosis</th>
+                      <th>Vía</th>
+                      <th>Frecuencia</th>
+                      <th>Periodo</th>
+                      <th>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (treatment of (history?.treatments ?? []); track $index) {
+                      <tr>
+                        <td class="font-medium">{{ treatment.name }}</td>
+                        <td>{{ treatment.dose || '—' }}</td>
+                        <td>{{ treatment.route || '—' }}</td>
+                        <td>{{ treatment.frequency || '—' }}</td>
+                        <td>
+                          {{ treatment.startDate | date: 'dd/MM/yyyy' || '—' }} —
+                          {{ treatment.endDate ? (treatment.endDate | date: 'dd/MM/yyyy') : 'actualidad' }}
+                        </td>
+                        <td>{{ statusLabel(treatment.status) }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </section>
+            }
+
+            <!-- Procedimientos -->
+            @if (history?.procedures?.length) {
+              <section class="hc-section">
+                <h2 class="hc-section-title">Procedimientos</h2>
+                <table class="hc-table">
+                  <thead>
+                    <tr>
+                      <th>Procedimiento</th>
+                      <th>Fecha</th>
+                      <th>Descripción</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (procedure of (history?.procedures ?? []); track $index) {
+                      <tr>
+                        <td class="font-medium">{{ procedure.name }}</td>
+                        <td>{{ procedure.procedureDate | date: 'dd/MM/yyyy' || '—' }}</td>
+                        <td>{{ procedure.description || '—' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </section>
+            }
+
+            <!-- Controles / Evoluciones -->
+            @if (history?.evolutions?.length) {
+              <section class="hc-section">
+                <h2 class="hc-section-title">Controles / Evoluciones</h2>
+                @for (evolution of (history?.evolutions ?? []); track $index) {
+                  <div class="mb-4 last:mb-0">
+                    <p class="hc-label">
+                      {{ evolution.controlDate | date: 'dd/MM/yyyy' }}
+                      @if (evolution.nextControlDate) {
+                        <span class="font-normal normal-case">
+                          — Próximo control: {{ evolution.nextControlDate | date: 'dd/MM/yyyy' }}
+                        </span>
+                      }
+                    </p>
+                    @if (evolution.clinicalNotes) {
+                      <p class="mt-1 text-sm text-ink">{{ evolution.clinicalNotes }}</p>
+                    }
+                  </div>
+                }
+              </section>
+            }
+          }
+
+          <!-- Sesiones -->
+          @if (sessions.length) {
+            <section class="hc-section">
+              <h2 class="hc-section-title">Sesiones</h2>
+              @for (session of sessions; track $index) {
+                <div class="mb-4 last:mb-0">
+                  <p class="hc-label">
+                    {{ session.sessionDate | date: 'dd/MM/yyyy' }}
+                    <span class="font-normal normal-case">
+                      ({{ session.startTime }} – {{ session.endTime }}) — {{ session.sessionType }}
+                      — {{ session.modality }} — {{ session.status }}
+                    </span>
+                  </p>
+                  @if (isPsychology) {
+                    @if (session.subjective) {
+                      <p class="mt-1 text-sm text-ink">
+                        <span class="font-semibold">Subjetivo:</span> {{ session.subjective }}
+                      </p>
+                    }
+                    @if (session.objective) {
+                      <p class="mt-1 text-sm text-ink">
+                        <span class="font-semibold">Objetivo:</span> {{ session.objective }}
+                      </p>
+                    }
+                    @if (session.analysis) {
+                      <p class="mt-1 text-sm text-ink">
+                        <span class="font-semibold">Análisis:</span> {{ session.analysis }}
+                      </p>
+                    }
+                    @if (session.plan) {
+                      <p class="mt-1 text-sm text-ink">
+                        <span class="font-semibold">Plan:</span> {{ session.plan }}
+                      </p>
+                    }
+                  } @else {
+                    @if (session.subjective || session.objective || session.analysis || session.plan) {
+                      <p class="mt-1 text-sm text-ink">
+                        @if (session.subjective) {
+                          {{ session.subjective }}
+                        }
+                        @if (session.objective) {
+                          <span class="block">{{ session.objective }}</span>
+                        }
+                        @if (session.analysis) {
+                          <span class="block">{{ session.analysis }}</span>
+                        }
+                        @if (session.plan) {
+                          <span class="block">{{ session.plan }}</span>
+                        }
+                      </p>
+                    }
+                  }
+                </div>
+              }
+            </section>
+          }
+
+          <!-- Firma -->
+          <footer class="mt-10">
+            <p class="text-xs text-muted">
+              Documento generado el {{ printDate | date: 'dd/MM/yyyy HH:mm' }}. Este es un
+              registro clínico interno.
+            </p>
+            <div class="mt-12 grid gap-10 sm:grid-cols-2">
+              <div class="text-center">
+                <div class="border-t border-ink pt-1">
+                  <p class="text-sm font-medium text-ink">{{ professionalName || 'Profesional' }}</p>
+                  <p class="text-xs text-muted">Profesional responsable — {{ specialtyLabel }}</p>
+                </div>
+              </div>
+              <div class="text-center">
+                <div class="border-t border-ink pt-1">
+                  <p class="text-sm text-muted">Firma del profesional</p>
+                </div>
+              </div>
+            </div>
+          </footer>
+        </article>
+      }
+    </div>
+  </section>
+</div>

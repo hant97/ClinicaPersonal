@@ -1,7 +1,7 @@
 <div class="p-1 md:p-2">
   <h3>
     {{ session ? "Editar Sesión" : "Nueva Sesión" }}
-    {{ isPsychology ? "(S.O.A.P.)" : "(Dermatológica)" }}
+    {{ isPsychology ? "(S.O.A.P.)" : "(Consulta)" }}
   </h3>
 
   <form [formGroup]="sessionForm" (ngSubmit)="onSubmit()">
@@ -111,45 +111,11 @@
       <fieldset
         class="mb-5 rounded-xl border border-line bg-clinic-50/50 p-4 md:p-5"
       >
-        <div class="form-group">
-          <label>Hallazgos Examen de Piel</label>
-          <textarea
-            formControlName="skinExamFindings"
-            class="input-field"
-            rows="3"
-            placeholder="Describa los hallazgos físicos de la piel..."
-          ></textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Diagnóstico Dermatológico</label>
-          <textarea
-            formControlName="dermatologicalDiagnosis"
-            class="input-field"
-            rows="3"
-            placeholder="Diagnóstico clínico o presuntivo..."
-          ></textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Procedimientos Realizados</label>
-          <textarea
-            formControlName="proceduresPerformed"
-            class="input-field"
-            rows="3"
-            placeholder="Detalle los procedimientos (crioterapia, biopsia, etc.)..."
-          ></textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Prescripciones</label>
-          <textarea
-            formControlName="prescriptions"
-            class="input-field"
-            rows="3"
-            placeholder="Medicamentos, cremas, bloqueadores, etc."
-          ></textarea>
-        </div>
+        <p class="text-sm text-muted">
+          Registre los datos de la consulta. El examen dermatológico, el
+          diagnóstico, los tratamientos, procedimientos y prescripciones se
+          registran en sus respectivas secciones de la historia clínica.
+        </p>
       </fieldset>
     }
 
@@ -158,14 +124,6 @@
         class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-danger"
       >
         Debe llenar al menos uno de los campos S.O.A.P.
-      </div>
-    }
-
-    @if (isDermatology && sessionForm.hasError("dermRequired")) {
-      <div
-        class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-danger"
-      >
-        Debe llenar los hallazgos o el diagnóstico dermatológico.
       </div>
     }
 

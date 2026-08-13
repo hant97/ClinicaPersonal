@@ -41,7 +41,7 @@ describe('MainLayoutComponent', () => {
         },
         {
           provide: AuthService,
-          useValue: { logout: () => undefined }
+          useValue: { logout: () => undefined, hasRole: () => false }
         }
       ]
     })

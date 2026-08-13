@@ -14,16 +14,55 @@ import { RiskAlertService } from '../../../core/services/risk-alert.service';
 import { RiskAlert } from '../../../core/models/risk-alert.model';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { SpecialtyService } from '../../../core/services/specialty.service';
-import { MedicalRecordService } from '../../../core/services/medical-record.service';
-import { MedicalRecord } from '../../../core/models/medical-record.model';
-import { MedicalRecordFormComponent } from '../medical-record-form/medical-record-form.component';
+import { ClinicalHistoryService } from '../../../core/services/clinical-history.service';
+import { ClinicalHistory } from '../../../core/models/clinical-history.model';
+import { GeneralHistorySectionComponent } from '../general-history-section/general-history-section.component';
+import { AllergiesSectionComponent } from '../allergies-section/allergies-section.component';
+import { MedicationsSectionComponent } from '../medications-section/medications-section.component';
+import { PsychologyEvaluationSectionComponent } from '../psychology-evaluation-section/psychology-evaluation-section.component';
+import { DiagnosesSectionComponent } from '../diagnoses-section/diagnoses-section.component';
+import { TherapeuticPlansSectionComponent } from '../therapeutic-plans-section/therapeutic-plans-section.component';
+import { DermatologicalHistorySectionComponent } from '../dermatological-history-section/dermatological-history-section.component';
+import { LesionsSectionComponent } from '../lesions-section/lesions-section.component';
+import { AuxiliaryExamsSectionComponent } from '../auxiliary-exams-section/auxiliary-exams-section.component';
+import { TreatmentsSectionComponent } from '../treatments-section/treatments-section.component';
+import { ProceduresSectionComponent } from '../procedures-section/procedures-section.component';
+import { EvolutionsSectionComponent } from '../evolutions-section/evolutions-section.component';
+import { DermatologicalEvaluationListComponent } from '../dermatological-evaluation-list/dermatological-evaluation-list.component';
+import { ClinicalHistoryPrintComponent } from '../clinical-history-print/clinical-history-print.component';
 import { RouterLink } from '@angular/router';
-import { LucideAngularModule, FileText, Pill, ClipboardList, Activity, Calendar, User, Phone } from 'lucide-angular';
+import {
+  LucideAngularModule,
+  LucideIconData,
+  FileText,
+  Pill,
+  ClipboardList,
+  Activity,
+  Calendar,
+  User,
+  Phone,
+  AlertTriangle,
+  Brain,
+  Stethoscope,
+  Microscope,
+  Printer,
+} from 'lucide-angular';
+
+interface NavItem {
+  id: string;
+  label: string;
+  icon: LucideIconData;
+}
+
+interface NavGroup {
+  title: string;
+  items: NavItem[];
+}
 
 @Component({
   selector: 'app-patient-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, ClinicalSessionFormComponent, AssessmentListComponent, RiskAlertFormComponent, MedicalRecordFormComponent, LucideAngularModule],
+  imports: [CommonModule, RouterLink, ClinicalSessionFormComponent, AssessmentListComponent, RiskAlertFormComponent, GeneralHistorySectionComponent, AllergiesSectionComponent, MedicationsSectionComponent, PsychologyEvaluationSectionComponent, DiagnosesSectionComponent, TherapeuticPlansSectionComponent, DermatologicalHistorySectionComponent, LesionsSectionComponent, AuxiliaryExamsSectionComponent, TreatmentsSectionComponent, ProceduresSectionComponent, EvolutionsSectionComponent, DermatologicalEvaluationListComponent, ClinicalHistoryPrintComponent, LucideAngularModule],
   templateUrl: './patient-detail.component.html',
 })
 export class PatientDetailComponent implements OnInit {
@@ -34,20 +73,22 @@ export class PatientDetailComponent implements OnInit {
   readonly Phone = Phone;
   readonly Activity = Activity;
   readonly Calendar = Calendar;
+  readonly Printer = Printer;
 
   patient: Patient | null = null;
   sessions: ClinicalSession[] = [];
   activeAlerts: RiskAlert[] = [];
-  medicalRecords: MedicalRecord[] = [];
   showForm = false;
   showAlertForm = false;
-  showMedicalRecordForm = false;
+  showPrint = false;
   expandedSessionId: number | null = null;
   selectedSession: ClinicalSession | undefined;
-  selectedMedicalRecord: MedicalRecord | undefined;
   esMenorEdad = false;
   age: number | null = null;
-  showPersonalDetails = false;
+
+  navGroups: NavGroup[] = [];
+  activeSection = 'datos-personales';
+  counts: Record<string, number> = {};
 
   constructor(
     private route: ActivatedRoute,
@@ -55,11 +96,11 @@ export class PatientDetailComponent implements OnInit {
     private patientService: PatientService,
     private sessionService: ClinicalSessionService,
     private riskAlertService: RiskAlertService,
-    private medicalRecordService: MedicalRecordService,
     private catalogService: CatalogService,
     private notificationService: NotificationService,
     private toastService: ToastService,
-    private specialtyService: SpecialtyService
+    private specialtyService: SpecialtyService,
+    private clinicalHistoryService: ClinicalHistoryService
   ) {}
 
   get isPsychology(): boolean {
@@ -71,20 +112,117 @@ export class PatientDetailComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.buildNav();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.loadPatient(Number(id));
       this.loadSessions(Number(id));
       this.loadAlerts(Number(id));
-      this.loadMedicalRecords(Number(id));
+      this.loadCounts(Number(id));
     }
 
     // Fase 2: Abrir sesión automáticamente si viene de completar cita
     this.route.queryParams.subscribe(params => {
       if (params['newSession'] === 'true') {
+        this.activeSection = 'sesiones';
         this.openForm();
       }
     });
+  }
+
+  private buildNav(): void {
+    const groups: NavGroup[] = [
+      {
+        title: 'Paciente',
+        items: [{ id: 'datos-personales', label: 'Datos personales', icon: User }],
+      },
+      {
+        title: 'General',
+        items: [
+          { id: 'antecedentes-generales', label: 'Antecedentes generales', icon: FileText },
+          { id: 'alergias', label: 'Alergias', icon: AlertTriangle },
+          { id: 'medicamentos', label: 'Medicamentos', icon: Pill },
+        ],
+      },
+    ];
+
+    if (this.isPsychology) {
+      groups.push({
+        title: 'Psicología',
+        items: [
+          { id: 'evaluacion-psicologica', label: 'Evaluación inicial', icon: Brain },
+          { id: 'pruebas-psicologicas', label: 'Pruebas psicológicas', icon: ClipboardList },
+          { id: 'diagnosticos', label: 'Diagnósticos', icon: Stethoscope },
+          { id: 'plan-terapeutico', label: 'Plan terapéutico', icon: ClipboardList },
+          { id: 'sesiones', label: 'Sesiones / Evoluciones', icon: Calendar },
+        ],
+      });
+    }
+
+    if (this.isDermatology) {
+      groups.push({
+        title: 'Dermatología',
+        items: [
+          { id: 'evaluacion-inicial', label: 'Evaluación inicial', icon: Stethoscope },
+          { id: 'antecedentes-dermatologicos', label: 'Antecedentes dermatológicos', icon: FileText },
+          { id: 'lesiones', label: 'Lesiones', icon: Activity },
+          { id: 'diagnosticos', label: 'Diagnósticos', icon: Stethoscope },
+          { id: 'examenes-auxiliares', label: 'Exámenes auxiliares', icon: Microscope },
+          { id: 'tratamientos', label: 'Tratamientos', icon: Pill },
+          { id: 'procedimientos', label: 'Procedimientos', icon: Activity },
+          { id: 'controles', label: 'Controles / Evoluciones', icon: Calendar },
+          { id: 'sesiones', label: 'Sesiones', icon: Calendar },
+        ],
+      });
+    }
+
+    groups.push({
+      title: 'Otros',
+      items: [
+        { id: 'alertas', label: 'Alertas de riesgo', icon: AlertTriangle },
+      ],
+    });
+
+    this.navGroups = groups;
+  }
+
+  selectSection(id: string): void {
+    this.activeSection = id;
+    if (this.patient?.id) {
+      this.loadCounts(this.patient.id);
+    }
+  }
+
+  loadCounts(patientId: number): void {
+    this.clinicalHistoryService.get(patientId).subscribe({
+      next: (history: ClinicalHistory) => {
+        this.counts = {
+          'antecedentes-generales': history.generalHistory?.id ? 1 : 0,
+          'alergias': history.allergies?.length ?? 0,
+          'medicamentos': history.medications?.length ?? 0,
+          'diagnosticos': history.diagnoses?.length ?? 0,
+          'evaluacion-psicologica': history.psychologyEvaluations?.length ?? 0,
+          'plan-terapeutico': history.therapeuticPlans?.length ?? 0,
+          'antecedentes-dermatologicos': history.dermatologicalHistory?.id ? 1 : 0,
+          'lesiones': history.lesions?.length ?? 0,
+          'examenes-auxiliares': history.auxiliaryExams?.length ?? 0,
+          'tratamientos': history.treatments?.length ?? 0,
+          'procedimientos': history.procedures?.length ?? 0,
+          'controles': history.evolutions?.length ?? 0
+        };
+      },
+      error: () => {}
+    });
+  }
+
+  countFor(id: string): number {
+    if (id === 'sesiones') {
+      return this.sessions.length;
+    }
+    if (id === 'alertas') {
+      return this.activeAlerts.length;
+    }
+    return this.counts[id] ?? 0;
   }
 
   loadAlerts(patientId: number): void {
@@ -163,51 +301,6 @@ export class PatientDetailComponent implements OnInit {
     }
   }
 
-  loadMedicalRecords(patientId: number): void {
-    this.medicalRecordService.getRecordsByPatientId(patientId).subscribe({
-      next: (data) => this.medicalRecords = data.content,
-      error: (err) => console.error('Error fetching medical records', err)
-    });
-  }
-
-  openMedicalRecordForm(record?: MedicalRecord): void {
-    this.selectedMedicalRecord = record;
-    this.showMedicalRecordForm = true;
-  }
-
-  closeMedicalRecordForm(): void {
-    this.showMedicalRecordForm = false;
-    this.selectedMedicalRecord = undefined;
-  }
-
-  onMedicalRecordSaved(): void {
-    this.closeMedicalRecordForm();
-    if (this.patient?.id) {
-      this.loadMedicalRecords(this.patient.id);
-    }
-  }
-
-  async deleteMedicalRecord(id: number, event: Event): Promise<void> {
-    event.stopPropagation();
-    const confirmed = await this.notificationService.confirm(
-      'Eliminar Registro',
-      '¿Está seguro de que desea eliminar este registro médico?',
-      'Sí, eliminar',
-      'Cancelar'
-    );
-    if (confirmed) {
-      this.medicalRecordService.deleteRecord(id).subscribe({
-        next: () => {
-          this.toastService.show('Registro eliminado', 'success');
-          if (this.patient?.id) {
-            this.loadMedicalRecords(this.patient.id);
-          }
-        },
-        error: () => this.toastService.show('Error al eliminar registro', 'error')
-      });
-    }
-  }
-
   loadPatient(id: number): void {
     this.patientService.getById(id).subscribe({
       next: (data) => {
@@ -233,10 +326,6 @@ export class PatientDetailComponent implements OnInit {
       this.age = null;
       this.esMenorEdad = false;
     }
-  }
-
-  togglePersonalDetails(): void {
-    this.showPersonalDetails = !this.showPersonalDetails;
   }
 
   loadSessions(patientId: number): void {
@@ -313,5 +402,13 @@ export class PatientDetailComponent implements OnInit {
         queryParams: { newAppointment: 'true', patientId: this.patient.id }
       });
     }
+  }
+
+  openPrint(): void {
+    this.showPrint = true;
+  }
+
+  closePrint(): void {
+    this.showPrint = false;
   }
 }

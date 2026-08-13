@@ -1,0 +1,144 @@
+<div class="card">
+  <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h3 class="flex items-center gap-2 text-lg font-semibold">
+      <lucide-icon [img]="Activity" [size]="20" class="text-clinic-600"></lucide-icon>
+      Lesiones
+    </h3>
+    <p class="mt-1 text-sm text-muted">{{ totalElements }} registradas</p>
+    <button class="btn btn-primary" (click)="openForm()">+ Nueva lesión</button>
+  </div>
+
+  @if (loading) {
+    <p class="text-sm text-muted">Cargando…</p>
+  } @else if (lesions.length > 0) {
+    <div class="space-y-3">
+      @for (lesion of lesions; track lesion.id) {
+        <div class="rounded-lg border border-line bg-surface p-4">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex flex-wrap items-center gap-2">
+                @if (lesion.bodyArea) {
+                  <span class="font-semibold text-ink">{{ lesion.bodyArea }}</span>
+                }
+                @if (lesion.lesionType) {
+                  <span class="rounded-full border border-line bg-canvas px-2 py-0.5 text-xs font-semibold text-muted">{{ lesion.lesionType }}</span>
+                }
+                @if (lesion.color) {
+                  <span class="rounded-full border border-line bg-canvas px-2 py-0.5 text-xs font-semibold text-muted">{{ lesion.color }}</span>
+                }
+                @if (lesion.size) {
+                  <span class="text-xs text-muted">{{ lesion.size }}</span>
+                }
+                @if (lesion.sinceDate) {
+                  <span class="text-xs text-muted">Desde {{ lesion.sinceDate | date: 'dd/MM/yyyy' }}</span>
+                }
+              </div>
+              @if (lesion.morphology) {
+                <p class="mt-1 text-sm text-muted">{{ lesion.morphology }}</p>
+              }
+              @if (lesion.evolution) {
+                <p class="mt-1 text-sm text-ink">{{ lesion.evolution }}</p>
+              }
+              @if (lesion.notes) {
+                <p class="mt-1 text-xs text-muted">{{ lesion.notes }}</p>
+              }
+            </div>
+            <div class="flex shrink-0 gap-1">
+              <button class="btn-text" (click)="togglePhotos(lesion.id!)">Fotos</button>
+              <button class="btn-text" (click)="openForm(lesion)" title="Editar">Editar</button>
+              <button class="btn-text text-danger hover:bg-red-50" (click)="delete(lesion.id!)" title="Eliminar">Eliminar</button>
+            </div>
+          </div>
+
+          @if (expandedPhotosLesionId === lesion.id) {
+            <div class="mt-4 border-t border-line pt-4">
+              <div class="mb-3 flex items-center gap-3">
+                <label class="btn btn-secondary cursor-pointer">
+                  <lucide-icon [img]="ImagePlus" [size]="16"></lucide-icon>
+                  Añadir foto
+                  <input type="file" accept="image/png,image/jpeg,image/webp" class="hidden" (change)="onFileSelected($event, lesion.id!)" />
+                </label>
+              </div>
+
+              @if (photos.length > 0) {
+                <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                  @for (item of photos; track item.photo.id) {
+                    <div class="overflow-hidden rounded-lg border border-line">
+                      @if (item.url) {
+                        <img [src]="item.url" class="h-28 w-full object-cover" alt="Fotografía de lesión" />
+                      } @else {
+                        <div class="flex h-28 items-center justify-center bg-canvas text-xs text-muted">Cargando…</div>
+                      }
+                      <div class="flex items-center justify-between px-2 py-1.5">
+                        <span class="truncate text-xs text-muted">{{ item.photo.description || (item.photo.takenDate | date: 'dd/MM/yyyy') || '—' }}</span>
+                        <button class="btn-text text-danger hover:bg-red-50" (click)="deletePhoto(item.photo.id!, lesion.id!)" title="Eliminar">🗑️</button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <p class="text-xs text-muted">No hay fotografías para esta lesión.</p>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+    <app-pagination [currentPage]="currentPage" [totalPages]="totalPages" (pageChange)="onPageChange($event)"></app-pagination>
+  } @else {
+    <div class="rounded-lg border border-dashed border-line bg-canvas p-6 text-center text-sm text-muted">
+      No hay lesiones registradas para este paciente.
+    </div>
+  }
+</div>
+
+@if (showForm) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div class="card max-h-[90vh] w-full max-w-2xl overflow-y-auto p-5 md:p-7">
+      <div class="mb-6 flex items-center justify-between border-b border-line pb-4">
+        <h2>{{ selected?.id ? 'Editar Lesión' : 'Nueva Lesión' }}</h2>
+        <button class="btn-text text-muted hover:text-danger" aria-label="Cerrar" (click)="closeForm()">×</button>
+      </div>
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div class="form-group">
+            <label class="form-label">Zona del cuerpo</label>
+            <input type="text" formControlName="bodyArea" class="input-field" placeholder="Rostro, brazo…" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tipo de lesión</label>
+            <input type="text" formControlName="lesionType" class="input-field" placeholder="Mácula, pápula, nódulo…" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tamaño</label>
+            <input type="text" formControlName="size" class="input-field" placeholder="Ej. 2 cm" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Color</label>
+            <input type="text" formControlName="color" class="input-field" placeholder="Eritematosa, marrón…" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fecha de aparición</label>
+            <input type="date" formControlName="sinceDate" class="input-field" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Morfología</label>
+          <textarea formControlName="morphology" class="input-field" rows="2" placeholder="Descripción morfológica…"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Evolución</label>
+          <textarea formControlName="evolution" class="input-field" rows="2" placeholder="Cambios en el tiempo…"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notas</label>
+          <textarea formControlName="notes" class="input-field" rows="2" placeholder="Observaciones…"></textarea>
+        </div>
+        <div class="mt-6 flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end">
+          <button type="button" class="btn-secondary" (click)="closeForm()">Cancelar</button>
+          <button type="submit" class="btn-primary" [disabled]="isSaving">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

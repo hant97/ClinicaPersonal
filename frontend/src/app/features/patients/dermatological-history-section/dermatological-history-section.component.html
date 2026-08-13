@@ -1,0 +1,91 @@
+<div class="card">
+  <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h3 class="flex items-center gap-2 text-lg font-semibold">
+      <lucide-icon [img]="FileText" [size]="20" class="text-clinic-600"></lucide-icon>
+      Antecedentes dermatológicos
+    </h3>
+    @if (!editing) {
+      <button class="btn btn-secondary" (click)="startEdit()">
+        {{ history ? 'Editar' : 'Registrar' }}
+      </button>
+    }
+  </div>
+
+  @if (loading) {
+    <p class="text-sm text-muted">Cargando…</p>
+  } @else if (editing) {
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <div class="grid gap-4">
+        <div class="form-group">
+          <label class="form-label">Tipo de piel</label>
+          <input type="text" formControlName="skinType" class="input-field" placeholder="Seca, grasa, mixta…" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hábitos de exposición solar</label>
+          <textarea formControlName="sunExposureHabits" class="input-field" rows="2" placeholder="Frecuencia, uso de protector…"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Antecedentes personales de piel</label>
+          <textarea formControlName="personalSkinHistory" class="input-field" rows="2" placeholder="Enfermedades cutáneas previas…"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Antecedentes familiares de piel</label>
+          <textarea formControlName="familySkinHistory" class="input-field" rows="2" placeholder="Enfermedades cutáneas en familiares…"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Condiciones crónicas</label>
+          <textarea formControlName="chronicConditions" class="input-field" rows="2" placeholder="Rosácea, psoriasis…"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Examen dermatológico</label>
+          <textarea formControlName="examFindings" class="input-field" rows="3" placeholder="Hallazgos del examen de piel…"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notas</label>
+          <textarea formControlName="notes" class="input-field" rows="2" placeholder="Observaciones…"></textarea>
+        </div>
+      </div>
+      <div class="mt-6 flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end">
+        <button type="button" class="btn-secondary" (click)="cancel()">Cancelar</button>
+        <button type="submit" class="btn-primary" [disabled]="isSaving">Guardar</button>
+      </div>
+    </form>
+  } @else if (history && hasContent()) {
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div class="rounded-lg border-l-4 border-clinic-500 bg-clinic-50 p-3">
+        <h4 class="text-sm font-semibold text-clinic-700">Tipo de piel</h4>
+        <p class="mt-1 text-sm text-ink">{{ history.skinType || '—' }}</p>
+      </div>
+      <div class="rounded-lg border-l-4 border-clinic-500 bg-clinic-50 p-3">
+        <h4 class="text-sm font-semibold text-clinic-700">Hábitos de exposición solar</h4>
+        <p class="mt-1 whitespace-pre-wrap text-sm text-ink">{{ history.sunExposureHabits || '—' }}</p>
+      </div>
+      <div class="rounded-lg border-l-4 border-clinic-500 bg-clinic-50 p-3">
+        <h4 class="text-sm font-semibold text-clinic-700">Antecedentes personales</h4>
+        <p class="mt-1 whitespace-pre-wrap text-sm text-ink">{{ history.personalSkinHistory || '—' }}</p>
+      </div>
+      <div class="rounded-lg border-l-4 border-clinic-500 bg-clinic-50 p-3">
+        <h4 class="text-sm font-semibold text-clinic-700">Antecedentes familiares</h4>
+        <p class="mt-1 whitespace-pre-wrap text-sm text-ink">{{ history.familySkinHistory || '—' }}</p>
+      </div>
+      <div class="rounded-lg border-l-4 border-clinic-500 bg-clinic-50 p-3">
+        <h4 class="text-sm font-semibold text-clinic-700">Condiciones crónicas</h4>
+        <p class="mt-1 whitespace-pre-wrap text-sm text-ink">{{ history.chronicConditions || '—' }}</p>
+      </div>
+      <div class="rounded-lg border-l-4 border-clinic-500 bg-clinic-50 p-3 sm:col-span-2">
+        <h4 class="text-sm font-semibold text-clinic-700">Examen dermatológico</h4>
+        <p class="mt-1 whitespace-pre-wrap text-sm text-ink">{{ history.examFindings || '—' }}</p>
+      </div>
+      @if (history.notes) {
+        <div class="rounded-lg border-l-4 border-clinic-500 bg-clinic-50 p-3">
+          <h4 class="text-sm font-semibold text-clinic-700">Notas</h4>
+          <p class="mt-1 whitespace-pre-wrap text-sm text-ink">{{ history.notes }}</p>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="rounded-lg border border-dashed border-line bg-canvas p-6 text-center text-sm text-muted">
+      No hay antecedentes dermatológicos registrados.
+    </div>
+  }
+</div>

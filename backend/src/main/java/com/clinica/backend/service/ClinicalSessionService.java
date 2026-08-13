@@ -92,10 +92,6 @@ public class ClinicalSessionService {
         session.setAnalysis(dto.getAnalysis());
         session.setPlan(dto.getPlan());
         session.setConfidential(dto.isConfidential());
-        session.setSkinExamFindings(dto.getSkinExamFindings());
-        session.setDermatologicalDiagnosis(dto.getDermatologicalDiagnosis());
-        session.setProceduresPerformed(dto.getProceduresPerformed());
-        session.setPrescriptions(dto.getPrescriptions());
         session.setAppointmentId(dto.getAppointmentId());
     }
 
@@ -115,10 +111,6 @@ public class ClinicalSessionService {
         dto.setPlan(entity.getPlan());
         dto.setConfidential(entity.isConfidential());
         dto.setSpecialty(entity.getSpecialty());
-        dto.setSkinExamFindings(entity.getSkinExamFindings());
-        dto.setDermatologicalDiagnosis(entity.getDermatologicalDiagnosis());
-        dto.setProceduresPerformed(entity.getProceduresPerformed());
-        dto.setPrescriptions(entity.getPrescriptions());
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setUpdatedAt(entity.getUpdatedAt());
         dto.setProfessionalId(entity.getProfessionalId());

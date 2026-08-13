@@ -4,7 +4,6 @@ import { MainLayoutComponent } from './layout/main-layout/main-layout.component'
 import { DashboardComponent } from './features/dashboard/dashboard/dashboard.component';
 import { PatientListComponent } from './features/patients/patient-list/patient-list.component';
 import { PatientDetailComponent } from './features/patients/patient-detail/patient-detail.component';
-import { DermatologicalEvaluationPageComponent } from './features/patients/dermatological-evaluation-page/dermatological-evaluation-page.component';
 import { AgendaComponent } from './features/agenda/agenda/agenda.component';
 import { BillingComponent } from './features/billing/billing/billing.component';
 import { authGuard } from './core/guards/auth.guard';
@@ -32,12 +31,6 @@ export const routes: Routes = [
       { path: 'dashboard', component: DashboardComponent, title: 'Dashboard' },
       { path: 'patients', component: PatientListComponent, title: 'Pacientes' },
       { path: 'patients/:id', component: PatientDetailComponent, title: 'Ficha del paciente' },
-      {
-        path: 'patients/:patientId/dermatological-evaluations',
-        component: DermatologicalEvaluationPageComponent,
-        canActivate: [specialtyGuard('DERMATOLOGIA')],
-        title: 'Evaluaciones dermatológicas'
-      },
       { path: 'agenda', component: AgendaComponent, title: 'Agenda' },
       { path: 'billing', component: BillingComponent, title: 'Cobros' },
 

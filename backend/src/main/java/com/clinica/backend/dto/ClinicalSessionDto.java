@@ -29,10 +29,6 @@ public class ClinicalSessionDto {
     private String plan;
     private boolean isConfidential;
     private String specialty;
-    private String skinExamFindings;
-    private String dermatologicalDiagnosis;
-    private String proceduresPerformed;
-    private String prescriptions;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Long professionalId;

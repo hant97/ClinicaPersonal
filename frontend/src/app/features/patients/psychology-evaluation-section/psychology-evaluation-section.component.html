@@ -1,0 +1,95 @@
+<div class="card">
+  <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h3 class="flex items-center gap-2 text-lg font-semibold">
+      <lucide-icon [img]="Brain" [size]="20" class="text-clinic-600"></lucide-icon>
+      Evaluaciones psicológicas
+    </h3>
+    <p class="mt-1 text-sm text-muted">{{ totalElements }} registradas</p>
+    <button class="btn btn-primary" (click)="openForm()">+ Nueva evaluación</button>
+  </div>
+
+  @if (loading) {
+    <p class="text-sm text-muted">Cargando…</p>
+  } @else if (evaluations.length > 0) {
+    <div class="space-y-3">
+      @for (evaluation of evaluations; track evaluation.id) {
+        <div class="rounded-lg border border-line bg-surface p-4">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="font-semibold text-ink">{{ evaluation.evaluationDate | date: 'longDate' }}</span>
+              </div>
+              @if (evaluation.initialEvaluation) {
+                <div class="mt-2 rounded-lg bg-clinic-50 p-3">
+                  <h4 class="text-sm font-semibold text-clinic-700">Evaluación inicial</h4>
+                  <p class="mt-1 whitespace-pre-wrap text-sm text-ink">{{ evaluation.initialEvaluation }}</p>
+                </div>
+              }
+              @if (evaluation.psychologicalHistory) {
+                <div class="mt-2 rounded-lg bg-clinic-50 p-3">
+                  <h4 class="text-sm font-semibold text-clinic-700">Antecedentes psicológicos</h4>
+                  <p class="mt-1 whitespace-pre-wrap text-sm text-ink">{{ evaluation.psychologicalHistory }}</p>
+                </div>
+              }
+              @if (evaluation.mentalExam) {
+                <div class="mt-2 rounded-lg bg-clinic-50 p-3">
+                  <h4 class="text-sm font-semibold text-clinic-700">Evaluación mental</h4>
+                  <p class="mt-1 whitespace-pre-wrap text-sm text-ink">{{ evaluation.mentalExam }}</p>
+                </div>
+              }
+              @if (evaluation.notes) {
+                <p class="mt-2 text-xs text-muted">{{ evaluation.notes }}</p>
+              }
+            </div>
+            <div class="flex shrink-0 gap-1">
+              <button class="btn-text" (click)="openForm(evaluation)" title="Editar">Editar</button>
+              <button class="btn-text text-danger hover:bg-red-50" (click)="delete(evaluation.id!)" title="Eliminar">Eliminar</button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+    <app-pagination [currentPage]="currentPage" [totalPages]="totalPages" (pageChange)="onPageChange($event)"></app-pagination>
+  } @else {
+    <div class="rounded-lg border border-dashed border-line bg-canvas p-6 text-center text-sm text-muted">
+      No hay evaluaciones psicológicas registradas.
+    </div>
+  }
+</div>
+
+@if (showForm) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div class="card max-h-[90vh] w-full max-w-3xl overflow-y-auto p-5 md:p-7">
+      <div class="mb-6 flex items-center justify-between border-b border-line pb-4">
+        <h2>{{ selected?.id ? 'Editar Evaluación' : 'Nueva Evaluación' }}</h2>
+        <button class="btn-text text-muted hover:text-danger" aria-label="Cerrar" (click)="closeForm()">×</button>
+      </div>
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <div class="form-group">
+          <label class="form-label">Fecha de evaluación *</label>
+          <input type="date" formControlName="evaluationDate" class="input-field" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Evaluación inicial</label>
+          <textarea formControlName="initialEvaluation" class="input-field" rows="3" placeholder="Motivo de consulta, historia del problema…"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Antecedentes psicológicos</label>
+          <textarea formControlName="psychologicalHistory" class="input-field" rows="3" placeholder="Antecedentes personales y familiares…"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Evaluación mental</label>
+          <textarea formControlName="mentalExam" class="input-field" rows="3" placeholder="Aspecto, actitud, afecto, pensamiento, cognición…"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notas</label>
+          <textarea formControlName="notes" class="input-field" rows="2" placeholder="Observaciones…"></textarea>
+        </div>
+        <div class="mt-6 flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end">
+          <button type="button" class="btn-secondary" (click)="closeForm()">Cancelar</button>
+          <button type="submit" class="btn-primary" [disabled]="form.invalid || isSaving">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

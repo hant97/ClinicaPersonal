@@ -48,6 +48,6 @@ describe('authGuard', () => {
     const result = TestBed.runInInjectionContext(() => authGuard({} as never, {} as never));
 
     await expectAsync(firstValueFrom(result as Observable<boolean>)).toBeResolvedTo(false);
-    expect(router.navigate).toHaveBeenCalledWith(['/login']);
+    expect(router.navigate).toHaveBeenCalledWith(['/login'], jasmine.anything());
   });
 });
