@@ -2,7 +2,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { DashboardService, DashboardStats } from '../../../core/services/dashboard.service';
 import { DashboardComponent } from './dashboard.component';
+import { RiskAlertService } from '../../../core/services/risk-alert.service';
 import { SpecialtyService } from '../../../core/services/specialty.service';
+import { provideRouter } from '@angular/router';
 
 const dashboardStats: DashboardStats = {
   activePatients: 12, appointmentsToday: 3, monthlyIncome: 450,
@@ -25,8 +27,10 @@ describe('DashboardComponent', () => {
     await TestBed.configureTestingModule({
       imports: [DashboardComponent],
       providers: [
+        provideRouter([]),
         { provide: DashboardService, useValue: dashboardService },
-        { provide: SpecialtyService, useValue: { isPsychology: () => false, isDermatology: () => true } }
+        { provide: SpecialtyService, useValue: { isPsychology: () => false, isDermatology: () => true } },
+        { provide: RiskAlertService, useValue: { getActiveRiskAlerts: () => of({ content: [], totalElements: 0 }) } }
       ]
     }).compileComponents();
     fixture = TestBed.createComponent(DashboardComponent);
@@ -36,7 +40,7 @@ describe('DashboardComponent', () => {
   it('muestra el resumen cuando la carga es correcta', () => {
     fixture.detectChanges();
     expect(component.stats).toEqual(dashboardStats);
-    expect(fixture.nativeElement.textContent).toContain('Pacientes activos');
+    expect(fixture.nativeElement.textContent).toContain('Pacientes Activos');
   });
 
   it('muestra una opción para reintentar cuando ocurre un error', () => {

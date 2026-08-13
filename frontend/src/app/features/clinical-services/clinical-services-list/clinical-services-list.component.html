@@ -1,16 +1,122 @@
-<section class="card">
-  <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p class="text-sm text-muted">Catálogos</p><h2 class="text-xl font-semibold">Servicios clínicos</h2></div><button class="btn-primary min-h-11" (click)="openModal()"><lucide-icon [img]="Plus" [size]="18"></lucide-icon>Nuevo servicio</button></div>
-  <div class="relative mb-6 max-w-2xl"><lucide-icon [img]="Search" [size]="20" class="input-leading-icon"></lucide-icon><input type="text" class="input-field input-with-leading-icon" placeholder="Buscar servicio por nombre..." (input)="onSearch($event)"></div>
+<section class="card space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-line pb-4">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="h-2 w-2 rounded-full bg-primary-600"></span>
+        <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Catálogo de Procedimientos</p>
+      </div>
+      <h1 class="text-2xl font-bold text-ink mt-0.5">Servicios Clínicos</h1>
+    </div>
+
+    <button
+      type="button"
+      class="btn-primary !text-xs !py-1.5"
+      (click)="openModal()"
+    >
+      <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
+      <span>Nuevo Servicio</span>
+    </button>
+  </div>
+
+  <!-- Search Filter -->
+  <div class="max-w-md">
+    <div class="relative">
+      <lucide-icon [img]="Search" [size]="16" class="input-leading-icon"></lucide-icon>
+      <input
+        type="text"
+        class="input-field input-with-leading-icon !py-1.5 text-xs"
+        placeholder="Buscar servicio clínico..."
+        (input)="onSearch($event)"
+      />
+    </div>
+  </div>
+
+  <!-- View States -->
   @if (isLoading) {
-    <div class="list-state"><span class="spinner" role="status" aria-label="Cargando servicios"></span><p>Cargando servicios…</p></div>
+    <div class="list-state">
+      <span class="spinner" role="status" aria-label="Cargando servicios"></span>
+      <p class="text-sm font-medium">Cargando catálogo de servicios...</p>
+    </div>
   } @else if (loadError) {
-    <div class="list-state"><p>No se pudo cargar la lista de servicios.</p><button class="btn-secondary" (click)="loadServices()">Reintentar</button></div>
+    <div class="list-state">
+      <p class="text-sm font-semibold text-danger">No se pudo cargar la lista de servicios</p>
+      <button type="button" class="btn-secondary !text-xs mt-2" (click)="loadServices()">Reintentar</button>
+    </div>
   } @else if (services.length === 0) {
-    <div class="list-state"><lucide-icon [img]="Activity" [size]="40" class="opacity-30"></lucide-icon><p>No hay servicios registrados.</p></div>
+    <div class="list-state">
+      <lucide-icon [img]="Activity" [size]="32" class="text-muted mb-1"></lucide-icon>
+      <p class="text-sm font-medium text-ink">No hay servicios clínicos registrados</p>
+      <p class="text-xs text-muted">Añade los procedimientos o tarifas que ofrece la clínica.</p>
+    </div>
   } @else {
-    <div class="table-responsive"><table class="minimal-table min-w-[620px]"><thead><tr><th>Servicio</th><th>Descripción</th><th>Precio base</th><th><span class="sr-only">Acciones</span></th></tr></thead><tbody>
-      @for (service of services; track service.id) { <tr><td><div class="flex items-center gap-3"><span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-clinic-100 text-clinic-700"><lucide-icon [img]="Activity" [size]="14"></lucide-icon></span><span class="font-medium">{{ service.name }}</span></div></td><td>{{ service.description || '-' }}</td><td class="font-semibold text-clinic-700">S/ {{ service.price | number:'1.2-2' }}</td><td><div class="flex gap-1"><button class="btn-text" (click)="openModal(service.id!)" title="Editar" [attr.aria-label]="'Editar ' + service.name"><lucide-icon [img]="Edit" [size]="18"></lucide-icon></button><button class="inline-flex items-center justify-center rounded-lg p-2 text-danger hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-danger" (click)="deleteService(service.id!)" title="Eliminar" [attr.aria-label]="'Eliminar ' + service.name"><lucide-icon [img]="Trash2" [size]="18"></lucide-icon></button></div></td></tr> }
-    </tbody></table>@if (totalPages > 1) { <app-pagination [currentPage]="currentPage" [totalPages]="totalPages" (pageChange)="onPageChange($event)"></app-pagination> }</div>
+    <!-- FlowGrid Table -->
+    <div class="table-responsive">
+      <table class="minimal-table">
+        <thead>
+          <tr>
+            <th>Servicio Clínico</th>
+            <th>Descripción</th>
+            <th>Precio Sugerido</th>
+            <th class="text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (service of services; track service.id) {
+            <tr class="transition hover:bg-slate-50">
+              <td>
+                <div class="flex items-center gap-2.5">
+                  <span class="flex h-7 w-7 items-center justify-center rounded-md bg-primary-50 text-primary-700 border border-primary-200">
+                    <lucide-icon [img]="Activity" [size]="14"></lucide-icon>
+                  </span>
+                  <span class="font-semibold text-xs text-ink">{{ service.name }}</span>
+                </div>
+              </td>
+              <td class="text-xs text-muted max-w-md truncate">{{ service.description || '—' }}</td>
+              <td>
+                <span class="font-mono font-bold text-xs text-primary-700 bg-primary-50 px-2 py-0.5 rounded border border-primary-200">
+                  S/ {{ service.price | number:'1.2-2' }}
+                </span>
+              </td>
+              <td class="text-right">
+                <div class="flex items-center justify-end gap-1">
+                  <button
+                    type="button"
+                    class="btn-text !p-1.5"
+                    (click)="openModal(service.id!)"
+                    title="Editar"
+                  >
+                    <lucide-icon [img]="Edit" [size]="16"></lucide-icon>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-text !p-1.5 text-danger hover:bg-red-50"
+                    (click)="deleteService(service.id!)"
+                    title="Eliminar"
+                  >
+                    <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalPages > 1) {
+      <app-pagination
+        [currentPage]="currentPage"
+        [totalPages]="totalPages"
+        (pageChange)="onPageChange($event)"
+      ></app-pagination>
+    }
   }
 </section>
-@if (showModal) { <app-clinical-services-form [serviceId]="selectedServiceId" (closeModal)="closeModal($event)"></app-clinical-services-form> }
+
+@if (showModal) {
+  <app-clinical-services-form
+    [serviceId]="selectedServiceId"
+    (closeModal)="closeModal($event)"
+  ></app-clinical-services-form>
+}

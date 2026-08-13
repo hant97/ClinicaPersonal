@@ -1,137 +1,178 @@
-<div class="card">
-  <div
-    class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
-  >
+<div class="card space-y-6">
+  <!-- Header: Title & Actions -->
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-line pb-4">
     <div>
-      <h2 class="text-2xl font-semibold">Directorio de pacientes</h2>
-      <p class="mt-1 text-sm text-muted">
-        Busca, consulta y administra las fichas clínicas.
-      </p>
+      <div class="flex items-center gap-2">
+        <span class="h-2 w-2 rounded-full bg-primary-600"></span>
+        <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Expedientes Clínicos</p>
+      </div>
+      <div class="flex items-center gap-2.5 mt-0.5">
+        <h1 class="text-2xl font-bold text-ink">Directorio de Pacientes</h1>
+        @if (totalElements > 0) {
+          <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700 border border-line">
+            {{ totalElements }} registros
+          </span>
+        }
+      </div>
     </div>
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+
+    <div class="flex items-center gap-2">
       <button
-        class="btn-secondary"
+        type="button"
+        class="btn-secondary !text-xs !py-1.5"
         (click)="exportPatients()"
         title="Exportar a Excel"
       >
-        <lucide-icon [img]="Download" [size]="18"></lucide-icon>
-        Exportar
+        <lucide-icon [img]="Download" [size]="14"></lucide-icon>
+        <span>Exportar</span>
       </button>
-      <button class="btn-primary" (click)="openModal()">
-        <lucide-icon [img]="Plus" [size]="18"></lucide-icon>
-        Nuevo Paciente
+
+      <button
+        type="button"
+        class="btn-primary !text-xs !py-1.5"
+        (click)="openModal()"
+      >
+        <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
+        <span>Nuevo Paciente</span>
       </button>
     </div>
   </div>
 
-  <div class="mb-6 max-w-2xl">
+  <!-- Search Filter -->
+  <div class="max-w-md">
     <div class="relative">
       <lucide-icon
         [img]="Search"
-        [size]="20"
-        [strokeWidth]="2"
+        [size]="16"
         class="input-leading-icon"
       ></lucide-icon>
       <input
         type="search"
-        class="input-field input-with-leading-icon"
+        class="input-field input-with-leading-icon !py-1.5 text-xs"
         aria-label="Buscar pacientes"
-        placeholder="Buscar por nombre, documento o correo…"
+        placeholder="Buscar por nombre, documento o correo..."
         (input)="onSearch($event)"
       />
     </div>
   </div>
 
+  <!-- Data View States -->
   @if (isLoading) {
     <div class="list-state">
-      <span
-        class="spinner"
-        role="status"
-        aria-label="Cargando pacientes"
-      ></span>
-      <p>Cargando pacientes…</p>
+      <span class="spinner" role="status" aria-label="Cargando pacientes"></span>
+      <p class="text-sm font-medium">Cargando directorio de pacientes...</p>
     </div>
   } @else if (loadError) {
     <div class="list-state">
-      <p>No se pudo cargar el directorio de pacientes.</p>
-      <button class="btn-secondary" (click)="loadPatients()">Reintentar</button>
+      <lucide-icon [img]="AlertTriangle" [size]="28" class="text-danger mb-1"></lucide-icon>
+      <p class="text-sm font-semibold text-danger">No se pudo cargar el directorio de pacientes</p>
+      <button type="button" class="btn-secondary !text-xs mt-2" (click)="loadPatients()">Reintentar</button>
     </div>
   } @else if (patients.length === 0) {
-    <div class="list-state"><p>No hay pacientes registrados.</p></div>
+    <div class="list-state">
+      <lucide-icon [img]="Users" [size]="28" class="text-muted mb-1"></lucide-icon>
+      <p class="text-sm font-medium text-ink">No hay pacientes registrados</p>
+      <p class="text-xs text-muted">Comienza registrando un nuevo paciente en el sistema.</p>
+    </div>
   } @else {
+    <!-- FlowGrid High-Density Table -->
     <div class="table-responsive">
       <table class="minimal-table">
         <thead>
           <tr>
-            <th>Nombre Completo</th>
+            <th>Paciente</th>
             <th>Documento</th>
             <th>Contacto</th>
             <th>Email</th>
-            <th>Fecha Nac.</th>
+            <th>F. Nacimiento</th>
             <th>Género</th>
-            <th>Dirección</th>
-            <th>Acciones</th>
+            <th class="text-right">Acciones</th>
           </tr>
         </thead>
         <tbody>
           @for (patient of patients; track patient.id) {
-            <tr>
+            <tr
+              class="cursor-pointer transition hover:bg-slate-50"
+              [routerLink]="['/patients', patient.id]"
+            >
               <td>
-                <div class="flex items-center">
-                  <span class="avatar-initials">{{
-                    getInitials(patient.firstName, patient.lastName)
-                  }}</span>
-                  <span>{{ patient.firstName }} {{ patient.lastName }}</span>
-                  @if (patient.hasActiveAlerts) {
-                    <lucide-icon
-                      [img]="AlertTriangle"
-                      [size]="16"
-                      class="ml-2 text-danger"
-                      title="Tiene alertas de riesgo activas"
-                    ></lucide-icon>
-                  }
+                <div class="flex items-center gap-2.5">
+                  <span class="avatar-initials !h-8 !w-8 !text-xs shrink-0">
+                    {{ getInitials(patient.firstName, patient.lastName) }}
+                  </span>
+                  <div class="min-w-0">
+                    <p class="font-semibold text-ink truncate">{{ patient.firstName }} {{ patient.lastName }}</p>
+                    @if (patient.hasActiveAlerts) {
+                      <span class="inline-flex items-center gap-1 text-[10px] font-bold text-danger">
+                        <span class="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                        Alerta activa
+                      </span>
+                    }
+                  </div>
                 </div>
               </td>
-              <td>{{ patient.identificationDocument }}</td>
-              <td>{{ patient.contactNumber }}</td>
-              <td>{{ patient.email }}</td>
-              <td>{{ patient.dateOfBirth }}</td>
-              <td>{{ patient.gender }}</td>
-              <td>{{ patient.address }}</td>
               <td>
-                <div class="flex gap-2">
-                  <button
-                    class="btn-text"
+                <span class="font-mono text-xs font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-line">
+                  {{ patient.identificationDocument || 'S/D' }}
+                </span>
+              </td>
+              <td class="text-xs text-slate-700">
+                {{ patient.contactNumber || '—' }}
+              </td>
+              <td class="text-xs text-muted max-w-[180px] truncate">
+                {{ patient.email || '—' }}
+              </td>
+              <td class="text-xs text-muted font-mono">
+                {{ patient.dateOfBirth || '—' }}
+              </td>
+              <td>
+                <span class="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">
+                  {{ patient.gender || '—' }}
+                </span>
+              </td>
+              <td class="text-right" (click)="$event.stopPropagation()">
+                <div class="flex items-center justify-end gap-1">
+                  <!-- Ver Ficha -->
+                  <a
+                    class="btn-text !p-1.5"
                     [routerLink]="['/patients', patient.id]"
-                    title="Ver Ficha"
-                    [attr.aria-label]="
-                      'Ver ficha de ' +
-                      patient.firstName +
-                      ' ' +
-                      patient.lastName
-                    "
+                    title="Ver Ficha Clínica"
+                    [attr.aria-label]="'Ver ficha de ' + patient.firstName + ' ' + patient.lastName"
                   >
-                    <lucide-icon [img]="Eye" [size]="18"></lucide-icon>
-                  </button>
+                    <lucide-icon [img]="Eye" [size]="16"></lucide-icon>
+                  </a>
+
+                  <!-- Agendar Cita Directa -->
                   <button
-                    class="btn-text"
+                    type="button"
+                    class="btn-text !p-1.5 text-primary-600"
+                    (click)="scheduleAppointment(patient.id, $event)"
+                    title="Agendar Cita"
+                    [attr.aria-label]="'Agendar cita para ' + patient.firstName"
+                  >
+                    <lucide-icon [img]="Calendar" [size]="16"></lucide-icon>
+                  </button>
+
+                  <!-- Editar -->
+                  <button
+                    type="button"
+                    class="btn-text !p-1.5"
                     (click)="openModal(patient.id)"
-                    title="Editar"
-                    [attr.aria-label]="
-                      'Editar ' + patient.firstName + ' ' + patient.lastName
-                    "
+                    title="Editar Datos"
+                    [attr.aria-label]="'Editar ' + patient.firstName + ' ' + patient.lastName"
                   >
-                    <lucide-icon [img]="Edit" [size]="18"></lucide-icon>
+                    <lucide-icon [img]="Edit" [size]="16"></lucide-icon>
                   </button>
+
+                  <!-- Eliminar -->
                   <button
-                    class="btn-text text-danger hover:bg-red-50"
-                    (click)="deletePatient(patient.id!)"
+                    type="button"
+                    class="btn-text !p-1.5 text-danger hover:bg-red-50"
+                    (click)="deletePatient(patient.id!, $event)"
                     title="Eliminar"
-                    [attr.aria-label]="
-                      'Eliminar ' + patient.firstName + ' ' + patient.lastName
-                    "
+                    [attr.aria-label]="'Eliminar ' + patient.firstName + ' ' + patient.lastName"
                   >
-                    <lucide-icon [img]="Trash2" [size]="18"></lucide-icon>
+                    <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
                   </button>
                 </div>
               </td>
@@ -141,15 +182,16 @@
       </table>
     </div>
 
+    <!-- Pagination -->
     <app-pagination
       [currentPage]="currentPage"
       [totalPages]="totalPages"
       (pageChange)="onPageChange($event)"
-    >
-    </app-pagination>
+    ></app-pagination>
   }
 </div>
 
+<!-- Modal Formulario de Paciente -->
 @if (showModal) {
   <app-patient-form
     [patientId]="selectedPatientId"

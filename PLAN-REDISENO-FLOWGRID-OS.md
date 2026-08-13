@@ -43,12 +43,12 @@ graph TD
 ---
 
 ### Fase 0 — Sistema de Diseño, Tokens y Componentes Compartidos
-- [ ] **0.1** Actualizar `tailwind.config.js` con la paleta *FlowGrid* (Cobalt Blue `#2563EB`, Zinc Slate scale, Triage alert colors).
-- [ ] **0.2** Rediseñar `src/styles.css` con clases de utilidad y componentes base:
+- [x] **0.1** Actualizar `tailwind.config.js` con la paleta *FlowGrid* (Cobalt Blue `#2563EB`, Zinc Slate scale, Triage alert colors).
+- [x] **0.2** Rediseñar `src/styles.css` con clases de utilidad y componentes base:
   - Botones primarios, secundarios, fantasma (*ghost*) y de acción destructiva.
   - Badges de triaje y estados clínicos con micro-indicadores pulsantes.
   - Tablas de alta densidad con cabeceras *sticky* y selección interactiva.
-- [ ] **0.3** Crear componentes UI compartidos:
+- [x] **0.3** Crear componentes UI compartidos:
   - `CommandPaletteComponent` (`Ctrl+K` para búsqueda global de pacientes, citas y acciones).
   - `StatusPillComponent` y `TriageBadgeComponent`.
   - `DrawerSheetComponent` (panel lateral deslizante para vistas rápidas).
@@ -56,41 +56,41 @@ graph TD
 ---
 
 ### Fase 1 — Shell de Navegación y Top Pipeline Bar
-- [ ] **1.1** Rediseñar `MainLayoutComponent`:
+- [x] **1.1** Rediseñar `MainLayoutComponent`:
   - Sustituir el sidebar verde pesado por un **Slim Navigation Rail (64px)** colapsable o barra superior moderna con breadcrumbs y selector de especialidad.
   - Implementar la barra superior **Pipeline Bar**: visualización en tiempo real de pacientes en espera, en consulta y pendientes de cobro.
-- [ ] **1.2** Integrar el buscador omnidireccional rápido en la cabecera.
-- [ ] **1.3** Ajustar el menú de perfil y cambio rápido de especialidad (Dermatología / Psicología).
+- [x] **1.2** Integrar el buscador omnidireccional rápido en la cabecera.
+- [x] **1.3** Ajustar el menú de perfil y cambio rápido de especialidad (Dermatología / Psicología).
 
 ---
 
 ### Fase 2 — Dashboard Operativo y Kanban Clínico en Vivo
-- [ ] **2.1** Rediseñar `DashboardComponent`:
+- [x] **2.1** Rediseñar `DashboardComponent`:
   - Reemplazar las tarjetas estáticas actuales por un **Tablero Kanban de Flujo Clínico**:
     - **Columna 1: Check-in / Sala de espera** (con contador de minutos transcurridos y badge de triaje).
     - **Columna 2: En Atención Médica** (paciente actual en box de consulta).
     - **Columna 3: Procedimientos / Pruebas** (en ejecución).
     - **Columna 4: Facturación & Alta** (listos para cobro y salida).
-- [ ] **2.2** Panel superior de métricas dinámicas (Pacientes atendidos hoy, tiempo promedio de espera, ingresos del día).
-- [ ] **2.3** Centro de Alertas Críticas con resolución rápida en un clic.
+- [x] **2.2** Panel superior de métricas dinámicas (Pacientes atendidos hoy, tiempo promedio de espera, ingresos del día).
+- [x] **2.3** Centro de Alertas Críticas con resolución rápida en un clic.
 
 ---
 
 ### Fase 3 — Agenda Inteligente & Multi-Chair Timeline
-- [ ] **3.1** Rediseñar `AgendaComponent`:
+- [x] **3.1** Rediseñar `AgendaComponent`:
   - Conmutador de 3 vistas: **Timeline Multi-Consultorio** (Gantt por médico/sala), **Calendario Semanal** y **Lista Filtrable**.
-- [ ] **3.2** Implementar el cronograma horizontal (*Multi-Chair Timeline*):
+- [x] **3.2** Implementar el cronograma horizontal (*Multi-Chair Timeline*):
   - Ranuras horarias interactivas con estados visuales claros (Confirmada, En Box, Completada, Cancelada).
   - Clic en ranura libre para apertura inmediata del formulario de cita rápida.
-- [ ] **3.3** Panel deslizante (*Quick Drawer*) al hacer clic en una cita para ver el resumen del paciente sin abandonar la agenda.
+- [x] **3.3** Panel deslizante (*Quick Drawer*) al hacer clic en una cita para ver el resumen del paciente sin abandonar la agenda.
 
 ---
 
 ### Fase 4 — Directorio de Pacientes y Ficha 360° Unificada
-- [ ] **4.1** Rediseñar `PatientListComponent`:
+- [x] **4.1** Rediseñar `PatientListComponent`:
   - Grid de datos de alta velocidad con filtros por estado de alerta, fecha de última atención y búsqueda instantánea.
   - Acciones rápidas en fila (Agendar cita, abrir consulta inmediata, exportar).
-- [ ] **4.2** Rediseño total de `PatientDetailComponent` (Eliminación del `@switch` monolítico de 15 botones):
+- [x] **4.2** Rediseño total de `PatientDetailComponent` (Eliminación del `@switch` monolítico de 15 botones):
   - **Cabecera Persistente 360°**: Datos personales clave, alergias críticas destacadas en rojo/ámbar, diagnósticos vigentes y botones de acción rápida (*Nueva Sesión*, *Agendar Cita*).
   - **Espacio de Trabajo en Pestañas Unificadas**:
     - **Pestaña 1: Timeline Clínico**: Historial cronológico continuo de sesiones, controles y notas médicas.
@@ -103,45 +103,45 @@ graph TD
 ---
 
 ### Fase 5 — Editor Clínico por Bloques y Módulos de Especialidad
-- [ ] **5.1** Rediseñar `ClinicalSessionFormComponent`:
+- [x] **5.1** Rediseñar `ClinicalSessionFormComponent`:
   - Editor fluido con estructura SOAP integrada y soporte de comandos rápidos (`/`).
   - Auto-guardado en borrador local para evitar pérdida de notas médicas.
-- [ ] **5.2** Módulo de Psicología (`assessment-form`, `psychology-evaluation`):
+- [x] **5.2** Módulo de Psicología (`assessment-form`, `psychology-evaluation`):
   - Visualización gráfica interactiva de resultados psicométricos con barras de percentiles.
-- [ ] **5.3** Módulo de Dermatología (`lesions-section`, `dermatological-evaluation`):
+- [x] **5.3** Módulo de Dermatología (`lesions-section`, `dermatological-evaluation`):
   - Tarjetas visuales de lesiones con registro fotográfico comparativo (antes/después).
 
 ---
 
 ### Fase 6 — Cobros, Inventario, Catálogos y Servicios
-- [ ] **6.1** Rediseñar `BillingComponent`:
+- [x] **6.1** Rediseñar `BillingComponent`:
   - Registro de transacciones con buscador por paciente, comprobantes y desglose visual de ingresos por método de pago.
-- [ ] **6.2** Rediseñar `InventoryListComponent`:
+- [x] **6.2** Rediseñar `InventoryListComponent`:
   - Tarjetas de suministros con semáforo de stock (Crítico, Bajo, Óptimo) y ajuste de stock rápido.
-- [ ] **6.3** Rediseñar `ClinicalServicesListComponent` y `CatalogManagementComponent`.
+- [x] **6.3** Rediseñar `ClinicalServicesListComponent` y `CatalogManagementComponent`.
 
 ---
 
 ### Fase 7 — Landing Page Pública, Login y Pulido Visual
-- [ ] **7.1** Rediseñar `LandingComponent`:
+- [x] **7.1** Rediseñar `LandingComponent`:
   - Look moderno, tipografía nítida, secciones claras de especialidades, equipo médico y reserva rápida por WhatsApp/Formulario.
-- [ ] **7.2** Rediseñar `LoginComponent`:
+- [x] **7.2** Rediseñar `LoginComponent`:
   - Pantalla de acceso minimalista suiza con soporte de credenciales seguras y microinteracciones de carga.
-- [ ] **7.3** Pulido de micro-animaciones (transiciones suaves en cambios de vista, feedback visual al guardar).
+- [x] **7.3** Pulido de micro-animaciones (transiciones suaves en cambios de vista, feedback visual al guardar).
 
 ---
 
 ### Fase 8 — Verificación, Pruebas y Accesibilidad
-- [ ] **8.1** Verificación estricta de compilación y tipos:
+- [x] **8.1** Verificación estricta de compilación y tipos:
   ```powershell
   cd frontend
   npm run build
   ```
-- [ ] **8.2** Pruebas unitarias de componentes y servicios:
+- [x] **8.2** Pruebas unitarias de componentes y servicios:
   ```powershell
   npm test -- --watch=false
   ```
-- [ ] **8.3** Auditoría de accesibilidad (contrastes WCAG AA, navegación por teclado, roles ARIA en modales y menús).
+- [x] **8.3** Auditoría de accesibilidad (contrastes WCAG AA, navegación por teclado, roles ARIA en modales y menús).
 
 ---
 

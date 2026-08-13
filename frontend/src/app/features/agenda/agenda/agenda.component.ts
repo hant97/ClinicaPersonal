@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 import { AppointmentService } from '../../../core/services/appointment.service';
@@ -10,12 +10,45 @@ import { PatientService } from '../../../core/services/patient/patient.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { ExportService } from '../../../shared/services/export/export.service';
-import { LucideAngularModule, Plus, Calendar, MoreVertical, Check, X, Clock, Video, User, Search, Filter, ChevronLeft, ChevronRight, LayoutList, CalendarDays, Download } from 'lucide-angular';
+import { StatusPillComponent } from '../../../shared/components/status-pill/status-pill.component';
+import { DrawerSheetComponent } from '../../../shared/components/drawer-sheet/drawer-sheet.component';
+import {
+  LucideAngularModule,
+  Plus,
+  Calendar,
+  MoreVertical,
+  Check,
+  X,
+  Clock,
+  Video,
+  User,
+  Search,
+  Filter,
+  ChevronLeft,
+  ChevronRight,
+  LayoutList,
+  CalendarDays,
+  Download,
+  Eye,
+  Phone,
+  FileText,
+  Stethoscope,
+  Grid,
+  Columns
+} from 'lucide-angular';
 
 @Component({
   selector: 'app-agenda',
   standalone: true,
-  imports: [CommonModule, AppointmentFormComponent, LucideAngularModule, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    AppointmentFormComponent,
+    LucideAngularModule,
+    ReactiveFormsModule,
+    StatusPillComponent,
+    DrawerSheetComponent
+  ],
   templateUrl: './agenda.component.html',
 })
 export class AgendaComponent implements OnInit, OnDestroy {
@@ -34,6 +67,12 @@ export class AgendaComponent implements OnInit, OnDestroy {
   readonly LayoutList = LayoutList;
   readonly CalendarDays = CalendarDays;
   readonly Download = Download;
+  readonly Eye = Eye;
+  readonly Phone = Phone;
+  readonly FileText = FileText;
+  readonly Stethoscope = Stethoscope;
+  readonly Grid = Grid;
+  readonly Columns = Columns;
 
   appointments: Appointment[] = [];
   showForm = false;
@@ -42,12 +81,17 @@ export class AgendaComponent implements OnInit, OnDestroy {
   initialAppointmentData: Partial<Appointment> | null = null;
   patientMap = new Map<number, string>();
 
+  // Quick Drawer Preview State
+  selectedAppointmentPreview: Appointment | null = null;
+  isDrawerOpen = false;
+
   filterForm!: FormGroup;
   private destroy$ = new Subject<void>();
 
-  // Calendar State
-  currentView: 'list' | 'calendar' = 'calendar';
+  // View States
+  currentView: 'calendar' | 'timeline' | 'list' = 'calendar';
   currentWeekStart!: Date;
+  selectedDay: Date = new Date();
   weekDays: Date[] = [];
   hours: string[] = [];
 
@@ -114,16 +158,19 @@ export class AgendaComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe((filters) => {
-        if (this.currentView === 'calendar') {
+        if (this.currentView === 'calendar' || this.currentView === 'timeline') {
           if (filters.dateRange === 'TODAY' || filters.dateRange === 'WEEK') {
             this.currentWeekStart = this.getStartOfWeek(new Date());
+            this.selectedDay = new Date();
             this.updateWeekDays(false);
           } else if (filters.dateRange === 'MONTH') {
             const today = new Date();
             this.currentWeekStart = this.getStartOfWeek(new Date(today.getFullYear(), today.getMonth(), 1));
+            this.selectedDay = new Date();
             this.updateWeekDays(false);
           } else if (filters.dateRange === 'ALL') {
             this.currentWeekStart = this.getStartOfWeek(new Date());
+            this.selectedDay = new Date();
             this.updateWeekDays(false);
           }
         }
@@ -131,7 +178,7 @@ export class AgendaComponent implements OnInit, OnDestroy {
       });
   }
 
-  // --- CALENDAR LOGIC ---
+  // --- CALENDAR & TIMELINE LOGIC ---
   private initCalendar(): void {
     for (let i = 8; i <= 20; i++) {
       this.hours.push(i.toString().padStart(2, '0') + ':00');
@@ -154,6 +201,19 @@ export class AgendaComponent implements OnInit, OnDestroy {
            day.getFullYear() === today.getFullYear();
   }
 
+  isSelectedDay(day: Date): boolean {
+    return day.getDate() === this.selectedDay.getDate() &&
+           day.getMonth() === this.selectedDay.getMonth() &&
+           day.getFullYear() === this.selectedDay.getFullYear();
+  }
+
+  selectDay(day: Date): void {
+    this.selectedDay = day;
+    if (this.currentView === 'timeline') {
+      this.loadAppointments();
+    }
+  }
+
   updateWeekDays(reload = true): void {
     this.weekDays = [];
     for(let i = 0; i < 7; i++) {
@@ -161,43 +221,64 @@ export class AgendaComponent implements OnInit, OnDestroy {
       day.setDate(this.currentWeekStart.getDate() + i);
       this.weekDays.push(day);
     }
-    if (reload && this.currentView === 'calendar') {
+    if (reload) {
       this.loadAppointments();
     }
   }
 
   prevWeek(): void {
     this.currentWeekStart.setDate(this.currentWeekStart.getDate() - 7);
+    this.selectedDay = new Date(this.currentWeekStart);
     this.updateWeekDays();
   }
 
   nextWeek(): void {
     this.currentWeekStart.setDate(this.currentWeekStart.getDate() + 7);
+    this.selectedDay = new Date(this.currentWeekStart);
     this.updateWeekDays();
+  }
+
+  prevDay(): void {
+    const d = new Date(this.selectedDay);
+    d.setDate(d.getDate() - 1);
+    this.selectedDay = d;
+    this.currentWeekStart = this.getStartOfWeek(d);
+    this.updateWeekDays(true);
+  }
+
+  nextDay(): void {
+    const d = new Date(this.selectedDay);
+    d.setDate(d.getDate() + 1);
+    this.selectedDay = d;
+    this.currentWeekStart = this.getStartOfWeek(d);
+    this.updateWeekDays(true);
   }
 
   todayWeek(): void {
     this.currentWeekStart = this.getStartOfWeek(new Date());
-    this.updateWeekDays(this.currentView === 'calendar');
+    this.selectedDay = new Date();
+    this.updateWeekDays(true);
   }
 
-  toggleView(view: 'list' | 'calendar'): void {
+  toggleView(view: 'calendar' | 'timeline' | 'list'): void {
     this.currentView = view;
     this.loadAppointments();
   }
 
-  // Helper for calendar rendering
   getAppointmentsForDayAndHour(day: Date, hourString: string): Appointment[] {
     const y = day.getFullYear();
     const m = String(day.getMonth() + 1).padStart(2, '0');
     const d = String(day.getDate()).padStart(2, '0');
     const dateStr = `${y}-${m}-${d}`;
-    
     const hourPrefix = hourString.substring(0, 2);
     
     return this.appointments.filter(app => {
       return app.appointmentDate === dateStr && app.startTime.startsWith(hourPrefix);
     });
+  }
+
+  getAppointmentsForHour(hourString: string): Appointment[] {
+    return this.getAppointmentsForDayAndHour(this.selectedDay, hourString);
   }
 
   getAppointmentStyle(app: Appointment): any {
@@ -210,7 +291,7 @@ export class AgendaComponent implements OnInit, OnDestroy {
     const duration = endTotalMins - startTotalMins;
     
     const top = (startMins / 60) * 100;
-    const height = (duration / 60) * 100;
+    const height = Math.max((duration / 60) * 100, 24);
     
     return {
       top: `calc(${top}% + 1px)`,
@@ -221,7 +302,6 @@ export class AgendaComponent implements OnInit, OnDestroy {
       zIndex: this.openMenuId === app.id ? 100 : 10
     };
   }
-  // ----------------------
 
   loadAppointments(): void {
     const filters = this.filterForm.getRawValue();
@@ -230,11 +310,15 @@ export class AgendaComponent implements OnInit, OnDestroy {
     let endDate: string | undefined = undefined;
 
     if (this.currentView === 'calendar') {
-      const s = this.weekDays[0];
+      const s = this.weekDays[0] || this.currentWeekStart;
       startDate = `${s.getFullYear()}-${String(s.getMonth()+1).padStart(2, '0')}-${String(s.getDate()).padStart(2, '0')}`;
       
-      const e = this.weekDays[6];
+      const e = this.weekDays[6] || s;
       endDate = `${e.getFullYear()}-${String(e.getMonth()+1).padStart(2, '0')}-${String(e.getDate()).padStart(2, '0')}`;
+    } else if (this.currentView === 'timeline') {
+      const d = this.selectedDay;
+      startDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      endDate = startDate;
     } else {
       if (filters.dateRange !== 'ALL') {
         const today = new Date();
@@ -270,10 +354,26 @@ export class AgendaComponent implements OnInit, OnDestroy {
     });
   }
 
+  // Quick Preview Drawer
+  openPreview(app: Appointment, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.openMenuId = null;
+    this.selectedAppointmentPreview = app;
+    this.isDrawerOpen = true;
+  }
+
+  closePreview(): void {
+    this.isDrawerOpen = false;
+    this.selectedAppointmentPreview = null;
+  }
+
   openForm(appointment?: Appointment, initialData?: Partial<Appointment>): void {
     this.appointmentToEdit = appointment || null;
     this.initialAppointmentData = initialData || null;
     this.showForm = true;
+    this.closePreview();
   }
 
   onSlotClick(day: Date, hourString: string): void {
@@ -283,8 +383,6 @@ export class AgendaComponent implements OnInit, OnDestroy {
     const dateStr = `${y}-${m}-${d}`;
 
     const startTime = hourString.length === 5 ? hourString : hourString.substring(0, 5);
-    
-    // Default 30 min duration
     const [h, min] = startTime.split(':').map(Number);
     const endMinutes = h * 60 + min + 30;
     const endH = Math.floor(endMinutes / 60);
@@ -318,11 +416,7 @@ export class AgendaComponent implements OnInit, OnDestroy {
       event.stopPropagation();
     }
     if (!id) return;
-    if (this.openMenuId === id) {
-      this.openMenuId = null;
-    } else {
-      this.openMenuId = id;
-    }
+    this.openMenuId = this.openMenuId === id ? null : id;
   }
 
   closeMenu(): void {
@@ -375,6 +469,7 @@ export class AgendaComponent implements OnInit, OnDestroy {
 
   viewPatientProfile(patientId: number): void {
     this.openMenuId = null;
+    this.closePreview();
     this.router.navigate(['/patients', patientId]);
   }
 
@@ -383,6 +478,9 @@ export class AgendaComponent implements OnInit, OnDestroy {
       this.appointmentService.updateStatus(appointment.id, status).subscribe({
         next: () => {
           this.loadAppointments();
+          if (this.selectedAppointmentPreview && this.selectedAppointmentPreview.id === appointment.id) {
+            this.selectedAppointmentPreview.status = status;
+          }
           this.toastService.show(`Cita ${status.toLowerCase()} exitosamente.`, 'success');
         },
         error: (err) => {
@@ -393,17 +491,22 @@ export class AgendaComponent implements OnInit, OnDestroy {
     }
   }
 
-  // --- UI HELPERS ---
-
-  getStatusClass(status: string): string {
-    switch (status) {
-      case 'PROGRAMADA': return 'status-scheduled'; 
-      case 'CONFIRMADA': return 'status-confirmed'; 
-      case 'COMPLETADA': return 'status-attended'; 
-      case 'CANCELADA': return 'status-cancelled'; 
-      case 'NO_ASISTIO': return 'status-missed'; 
-      default: return '';
+  getPatientInitials(name?: string): string {
+    if (!name) return 'P';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase();
     }
+    return parts[0].substring(0, 2).toUpperCase();
+  }
+
+  getStatusPillVariant(status: string): 'critical' | 'urgent' | 'priority' | 'stable' | 'neutral' {
+    const s = (status || '').toUpperCase();
+    if (s === 'CONFIRMADA') return 'priority';
+    if (s === 'PROGRAMADA') return 'urgent';
+    if (s === 'COMPLETADA') return 'stable';
+    if (s === 'NO_ASISTIO' || s === 'CANCELADA') return 'critical';
+    return 'neutral';
   }
 
   exportAppointments(): void {

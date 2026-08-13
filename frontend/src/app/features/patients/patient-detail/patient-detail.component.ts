@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PatientService } from '../../../core/services/patient/patient.service';
 import { ClinicalSessionService } from '../../../core/services/clinical-session.service';
 import { Patient } from '../../../core/models/patient.model';
@@ -30,10 +30,9 @@ import { ProceduresSectionComponent } from '../procedures-section/procedures-sec
 import { EvolutionsSectionComponent } from '../evolutions-section/evolutions-section.component';
 import { DermatologicalEvaluationListComponent } from '../dermatological-evaluation-list/dermatological-evaluation-list.component';
 import { ClinicalHistoryPrintComponent } from '../clinical-history-print/clinical-history-print.component';
-import { RouterLink } from '@angular/router';
+import { StatusPillComponent } from '../../../shared/components/status-pill/status-pill.component';
 import {
   LucideAngularModule,
-  LucideIconData,
   FileText,
   Pill,
   ClipboardList,
@@ -46,23 +45,45 @@ import {
   Stethoscope,
   Microscope,
   Printer,
+  Plus,
+  ArrowLeft,
+  Mail,
+  Clock,
+  Edit,
+  Trash2,
+  CheckCircle2,
+  FolderOpen,
+  Sparkles
 } from 'lucide-angular';
 
-interface NavItem {
-  id: string;
-  label: string;
-  icon: LucideIconData;
-}
-
-interface NavGroup {
-  title: string;
-  items: NavItem[];
-}
+export type MainTabType = 'timeline' | 'expediente' | 'especialidad' | 'alertas';
 
 @Component({
   selector: 'app-patient-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, ClinicalSessionFormComponent, AssessmentListComponent, RiskAlertFormComponent, GeneralHistorySectionComponent, AllergiesSectionComponent, MedicationsSectionComponent, PsychologyEvaluationSectionComponent, DiagnosesSectionComponent, TherapeuticPlansSectionComponent, DermatologicalHistorySectionComponent, LesionsSectionComponent, AuxiliaryExamsSectionComponent, TreatmentsSectionComponent, ProceduresSectionComponent, EvolutionsSectionComponent, DermatologicalEvaluationListComponent, ClinicalHistoryPrintComponent, LucideAngularModule],
+  imports: [
+    CommonModule,
+    RouterLink,
+    ClinicalSessionFormComponent,
+    AssessmentListComponent,
+    RiskAlertFormComponent,
+    GeneralHistorySectionComponent,
+    AllergiesSectionComponent,
+    MedicationsSectionComponent,
+    PsychologyEvaluationSectionComponent,
+    DiagnosesSectionComponent,
+    TherapeuticPlansSectionComponent,
+    DermatologicalHistorySectionComponent,
+    LesionsSectionComponent,
+    AuxiliaryExamsSectionComponent,
+    TreatmentsSectionComponent,
+    ProceduresSectionComponent,
+    EvolutionsSectionComponent,
+    DermatologicalEvaluationListComponent,
+    ClinicalHistoryPrintComponent,
+    LucideAngularModule,
+    StatusPillComponent
+  ],
   templateUrl: './patient-detail.component.html',
 })
 export class PatientDetailComponent implements OnInit {
@@ -74,6 +95,19 @@ export class PatientDetailComponent implements OnInit {
   readonly Activity = Activity;
   readonly Calendar = Calendar;
   readonly Printer = Printer;
+  readonly Plus = Plus;
+  readonly ArrowLeft = ArrowLeft;
+  readonly Mail = Mail;
+  readonly Clock = Clock;
+  readonly Edit = Edit;
+  readonly Trash2 = Trash2;
+  readonly CheckCircle2 = CheckCircle2;
+  readonly FolderOpen = FolderOpen;
+  readonly Brain = Brain;
+  readonly Stethoscope = Stethoscope;
+  readonly Microscope = Microscope;
+  readonly AlertTriangle = AlertTriangle;
+  readonly Sparkles = Sparkles;
 
   patient: Patient | null = null;
   sessions: ClinicalSession[] = [];
@@ -86,9 +120,15 @@ export class PatientDetailComponent implements OnInit {
   esMenorEdad = false;
   age: number | null = null;
 
-  navGroups: NavGroup[] = [];
-  activeSection = 'datos-personales';
+  // FlowGrid 360 Workspace Tabs
+  activeTab: MainTabType = 'timeline';
+  activeSpecialtySubTab = 'evaluacion-inicial';
+  activeExpedienteSubTab = 'datos-personales';
+
   counts: Record<string, number> = {};
+  allergies: any[] = [];
+  medications: any[] = [];
+  diagnoses: any[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -112,7 +152,6 @@ export class PatientDetailComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.buildNav();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.loadPatient(Number(id));
@@ -121,81 +160,41 @@ export class PatientDetailComponent implements OnInit {
       this.loadCounts(Number(id));
     }
 
-    // Fase 2: Abrir sesión automáticamente si viene de completar cita
+    if (this.isPsychology) {
+      this.activeSpecialtySubTab = 'evaluacion-psicologica';
+    } else if (this.isDermatology) {
+      this.activeSpecialtySubTab = 'evaluacion-inicial';
+    }
+
     this.route.queryParams.subscribe(params => {
       if (params['newSession'] === 'true') {
-        this.activeSection = 'sesiones';
+        this.activeTab = 'timeline';
         this.openForm();
       }
     });
   }
 
-  private buildNav(): void {
-    const groups: NavGroup[] = [
-      {
-        title: 'Paciente',
-        items: [{ id: 'datos-personales', label: 'Datos personales', icon: User }],
-      },
-      {
-        title: 'General',
-        items: [
-          { id: 'antecedentes-generales', label: 'Antecedentes generales', icon: FileText },
-          { id: 'alergias', label: 'Alergias', icon: AlertTriangle },
-          { id: 'medicamentos', label: 'Medicamentos', icon: Pill },
-        ],
-      },
-    ];
-
-    if (this.isPsychology) {
-      groups.push({
-        title: 'Psicología',
-        items: [
-          { id: 'evaluacion-psicologica', label: 'Evaluación inicial', icon: Brain },
-          { id: 'pruebas-psicologicas', label: 'Pruebas psicológicas', icon: ClipboardList },
-          { id: 'diagnosticos', label: 'Diagnósticos', icon: Stethoscope },
-          { id: 'plan-terapeutico', label: 'Plan terapéutico', icon: ClipboardList },
-          { id: 'sesiones', label: 'Sesiones / Evoluciones', icon: Calendar },
-        ],
-      });
-    }
-
-    if (this.isDermatology) {
-      groups.push({
-        title: 'Dermatología',
-        items: [
-          { id: 'evaluacion-inicial', label: 'Evaluación inicial', icon: Stethoscope },
-          { id: 'antecedentes-dermatologicos', label: 'Antecedentes dermatológicos', icon: FileText },
-          { id: 'lesiones', label: 'Lesiones', icon: Activity },
-          { id: 'diagnosticos', label: 'Diagnósticos', icon: Stethoscope },
-          { id: 'examenes-auxiliares', label: 'Exámenes auxiliares', icon: Microscope },
-          { id: 'tratamientos', label: 'Tratamientos', icon: Pill },
-          { id: 'procedimientos', label: 'Procedimientos', icon: Activity },
-          { id: 'controles', label: 'Controles / Evoluciones', icon: Calendar },
-          { id: 'sesiones', label: 'Sesiones', icon: Calendar },
-        ],
-      });
-    }
-
-    groups.push({
-      title: 'Otros',
-      items: [
-        { id: 'alertas', label: 'Alertas de riesgo', icon: AlertTriangle },
-      ],
-    });
-
-    this.navGroups = groups;
-  }
-
-  selectSection(id: string): void {
-    this.activeSection = id;
+  setTab(tab: MainTabType): void {
+    this.activeTab = tab;
     if (this.patient?.id) {
       this.loadCounts(this.patient.id);
     }
   }
 
+  setSpecialtySubTab(subTab: string): void {
+    this.activeSpecialtySubTab = subTab;
+  }
+
+  setExpedienteSubTab(subTab: string): void {
+    this.activeExpedienteSubTab = subTab;
+  }
+
   loadCounts(patientId: number): void {
     this.clinicalHistoryService.get(patientId).subscribe({
       next: (history: ClinicalHistory) => {
+        this.allergies = history.allergies || [];
+        this.medications = history.medications || [];
+        this.diagnoses = history.diagnoses || [];
         this.counts = {
           'antecedentes-generales': history.generalHistory?.id ? 1 : 0,
           'alergias': history.allergies?.length ?? 0,
@@ -215,16 +214,6 @@ export class PatientDetailComponent implements OnInit {
     });
   }
 
-  countFor(id: string): number {
-    if (id === 'sesiones') {
-      return this.sessions.length;
-    }
-    if (id === 'alertas') {
-      return this.activeAlerts.length;
-    }
-    return this.counts[id] ?? 0;
-  }
-
   loadAlerts(patientId: number): void {
     this.riskAlertService.getAlertsByPatientId(patientId, true).subscribe({
       next: (data) => {
@@ -241,13 +230,10 @@ export class PatientDetailComponent implements OnInit {
       next: (types) => {
         this.catalogService.getActiveItemsByCatalogCode('RISK_ALERT_LEVEL').subscribe({
           next: (levels) => {
-            // Filter alerts that belong to this specialty and map their labels
             const validTypes = new Set(types.map(t => t.itemCode));
             const filteredAlerts: RiskAlert[] = [];
 
             this.activeAlerts.forEach(alert => {
-              // MockDataSeeder uses names directly instead of codes for legacy data,
-              // we check if it matches either the code or the name.
               const typeItem = types.find(t => t.itemCode === alert.type || t.itemName === alert.type);
 
               if (typeItem) {
@@ -357,11 +343,7 @@ export class PatientDetailComponent implements OnInit {
   }
 
   toggleSessionExpand(sessionId: number): void {
-    if (this.expandedSessionId === sessionId) {
-      this.expandedSessionId = null;
-    } else {
-      this.expandedSessionId = sessionId;
-    }
+    this.expandedSessionId = this.expandedSessionId === sessionId ? null : sessionId;
   }
 
   async deleteSession(id: number, event: Event): Promise<void> {
@@ -410,5 +392,11 @@ export class PatientDetailComponent implements OnInit {
 
   closePrint(): void {
     this.showPrint = false;
+  }
+
+  getInitials(firstName?: string, lastName?: string): string {
+    const f = (firstName || '').charAt(0).toUpperCase();
+    const l = (lastName || '').charAt(0).toUpperCase();
+    return `${f}${l}` || 'P';
   }
 }

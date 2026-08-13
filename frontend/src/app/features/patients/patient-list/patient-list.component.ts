@@ -4,18 +4,41 @@ import { PatientService } from '../../../core/services/patient/patient.service';
 import { Patient } from '../../../core/models/patient.model';
 import { PatientFormComponent } from '../patient-form/patient-form.component';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ExportService } from '../../../shared/services/export/export.service';
-import { LucideAngularModule, Search, Eye, Edit, Trash2, Plus, Download, AlertTriangle } from 'lucide-angular';
+import { StatusPillComponent } from '../../../shared/components/status-pill/status-pill.component';
+import {
+  LucideAngularModule,
+  Search,
+  Eye,
+  Edit,
+  Trash2,
+  Plus,
+  Download,
+  AlertTriangle,
+  Calendar,
+  User,
+  Users,
+  Phone,
+  Mail,
+  FileText
+} from 'lucide-angular';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-patient-list',
   standalone: true,
-  imports: [CommonModule, PatientFormComponent, PaginationComponent, RouterLink, LucideAngularModule],
+  imports: [
+    CommonModule,
+    PatientFormComponent,
+    PaginationComponent,
+    RouterLink,
+    LucideAngularModule,
+    StatusPillComponent
+  ],
   templateUrl: './patient-list.component.html',
 })
 export class PatientListComponent implements OnInit {
@@ -26,6 +49,12 @@ export class PatientListComponent implements OnInit {
   readonly Plus = Plus;
   readonly Download = Download;
   readonly AlertTriangle = AlertTriangle;
+  readonly Calendar = Calendar;
+  readonly User = User;
+  readonly Users = Users;
+  readonly Phone = Phone;
+  readonly Mail = Mail;
+  readonly FileText = FileText;
 
   patients: Patient[] = [];
   searchTerm: string = '';
@@ -45,7 +74,8 @@ export class PatientListComponent implements OnInit {
     private patientService: PatientService,
     private toastService: ToastService,
     private notificationService: NotificationService,
-    private exportService: ExportService
+    private exportService: ExportService,
+    private router: Router
   ) {
     this.searchSubject.pipe(
       debounceTime(300),
@@ -92,8 +122,10 @@ export class PatientListComponent implements OnInit {
     this.loadPatients();
   }
 
-  getInitials(firstName: string, lastName: string): string {
-    return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+  getInitials(firstName?: string, lastName?: string): string {
+    const f = (firstName || '').charAt(0).toUpperCase();
+    const l = (lastName || '').charAt(0).toUpperCase();
+    return `${f}${l}` || 'P';
   }
 
   openModal(id?: number): void {
@@ -109,7 +141,21 @@ export class PatientListComponent implements OnInit {
     }
   }
 
-  async deletePatient(id: number): Promise<void> {
+  scheduleAppointment(patientId?: number, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (patientId) {
+      this.router.navigate(['/agenda'], {
+        queryParams: { newAppointment: 'true', patientId: patientId }
+      });
+    }
+  }
+
+  async deletePatient(id: number, event?: Event): Promise<void> {
+    if (event) {
+      event.stopPropagation();
+    }
     const confirmed = await this.notificationService.confirm(
       'Eliminar Paciente',
       '¿Estás seguro de que deseas eliminar este paciente? Esta acción no se puede deshacer.',

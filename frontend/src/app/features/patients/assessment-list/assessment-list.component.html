@@ -1,79 +1,65 @@
-<div class="card">
-  <div
-    class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-  >
-    <h3 class="text-lg font-semibold">Evaluaciones Psicométricas</h3>
-    <button class="btn-primary" (click)="openForm()">
+<div class="card space-y-5">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-line pb-3">
+    <div>
+      <h3 class="text-sm font-bold uppercase tracking-wider text-slate-800">Evaluaciones Psicométricas</h3>
+      <p class="text-xs text-muted">Historial de tests aplicados y puntajes estandarizados</p>
+    </div>
+    <button type="button" class="btn-primary !text-xs !py-1.5" (click)="openForm()">
       + Registrar Evaluación
     </button>
   </div>
 
-  <div class="table-responsive">
-    @if (assessments.length > 0) {
-      @if (assessments.length > 1) {
-        <div
-          class="relative mb-6 h-72 w-full rounded-xl border border-line bg-clinic-50/50 p-4"
-        >
-          <canvas #chartCanvas></canvas>
-        </div>
-      }
-
-      <div class="overflow-hidden rounded-xl border border-line">
-        <table class="minimal-table">
-          <thead class="bg-clinic-50">
-            <tr>
-              <th>Fecha</th>
-              <th>Test</th>
-              <th>Puntaje Total</th>
-              <th>Notas</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (assessment of assessments; track assessment.id) {
-              <tr>
-                <td class="font-medium text-muted">
-                  <div class="flex items-center gap-2">
-                    <span>{{
-                      assessment.assessmentDate | date: "dd/MM/yyyy HH:mm"
-                    }}</span>
-                  </div>
-                </td>
-                <td class="font-semibold">{{ assessment.testName }}</td>
-                <td>
-                  <span
-                    class="inline-flex rounded-full bg-clinic-700 px-2.5 py-1 text-xs font-semibold text-white shadow-sm"
-                    >{{ assessment.totalScore }}</span
-                  >
-                </td>
-                <td
-                  class="max-w-xs truncate text-muted"
-                  [title]="assessment.notes || ''"
-                >
-                  {{ assessment.notes || "-" }}
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-
-      <app-pagination
-        [currentPage]="currentPage"
-        [totalPages]="totalPages"
-        (pageChange)="onPageChange($event)"
-      >
-      </app-pagination>
-    } @else {
-      <div
-        class="rounded-lg border border-dashed border-line bg-canvas p-6 text-center text-sm text-muted"
-      >
-        <p>No hay evaluaciones registradas para este paciente.</p>
+  @if (assessments.length > 0) {
+    @if (assessments.length > 1) {
+      <div class="relative h-72 w-full rounded-xl border border-line bg-slate-50/60 p-4 shadow-sm">
+        <canvas #chartCanvas></canvas>
       </div>
     }
-  </div>
+
+    <div class="table-responsive">
+      <table class="minimal-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Test Aplicado</th>
+            <th>Puntaje Total</th>
+            <th>Notas / Interpretación</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (assessment of assessments; track assessment.id) {
+            <tr>
+              <td class="font-mono text-xs text-slate-700">
+                {{ assessment.assessmentDate | date: 'dd/MM/yyyy HH:mm' }}
+              </td>
+              <td class="font-semibold text-xs text-ink">{{ assessment.testName }}</td>
+              <td>
+                <span class="inline-flex rounded-md bg-purple-50 px-2.5 py-0.5 text-xs font-bold text-purple-700 border border-purple-200">
+                  {{ assessment.totalScore }} pts
+                </span>
+              </td>
+              <td class="max-w-xs truncate text-xs text-muted" [title]="assessment.notes || ''">
+                {{ assessment.notes || '—' }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-pagination
+      [currentPage]="currentPage"
+      [totalPages]="totalPages"
+      (pageChange)="onPageChange($event)"
+    ></app-pagination>
+  } @else {
+    <div class="list-state">
+      <p class="text-sm font-medium text-ink">No hay evaluaciones psicométricas registradas</p>
+      <p class="text-xs text-muted">Aplica un test del catálogo para comenzar el seguimiento psicométrico.</p>
+    </div>
+  }
 </div>
 
 @if (showForm) {
-  <app-assessment-form [patientId]="patientId" (close)="closeForm($event)">
-  </app-assessment-form>
+  <app-assessment-form [patientId]="patientId" (close)="closeForm($event)"></app-assessment-form>
 }

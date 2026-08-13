@@ -1,34 +1,68 @@
 <div class="login-shell">
+  <!-- Left Side: Clinical OS Branding -->
   <section class="login-intro">
     <div class="login-intro-content">
       <a class="login-brand" href="/" aria-label="Clínica Personal, ir al inicio">
-        <span class="login-brand-mark"><lucide-icon [img]="HeartHandshake" [size]="21" /></span>
-        <span>Clínica Personal</span>
+        <span class="login-brand-mark">
+          <lucide-icon [img]="HeartHandshake" [size]="20"></lucide-icon>
+        </span>
+        <span class="font-bold text-white tracking-tight">Clínica Personal</span>
       </a>
 
       <div class="login-message">
-        <p class="login-eyebrow"><span></span> Espacio profesional</p>
-        <h1>Tu cuidado comienza con una <em>buena decisión.</em></h1>
-        <p>Accede a un espacio pensado para acompañar tu práctica con claridad, confianza y una mirada integral.</p>
-        <div class="login-promise">
-          <span class="login-promise-icon"><lucide-icon [img]="ShieldCheck" [size]="21" /></span>
-          <span><strong>Un espacio seguro y confidencial</strong><small>Tu información merece el mismo cuidado que tus pacientes.</small></span>
+        <div class="inline-flex items-center gap-2 rounded-full bg-blue-500/20 px-3 py-1 text-xs font-semibold text-blue-300 border border-blue-400/30 mb-6">
+          <span class="h-2 w-2 rounded-full bg-blue-400 animate-pulse"></span>
+          <span>FlowGrid Medical OS • v2.4</span>
+        </div>
+
+        <h1 class="text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-tight">
+          Gestión clínica inteligente con precisión y velocidad.
+        </h1>
+        <p class="text-slate-300 text-sm mt-4 leading-relaxed">
+          Plataforma unificada de expedientes 360°, agenda multi-consultorio y seguimiento especializado para Dermatología y Psicología.
+        </p>
+
+        <div class="login-features-list mt-8 space-y-3">
+          <div class="flex items-center gap-3 text-xs text-slate-200">
+            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/20 text-blue-400 font-mono text-[10px]">✓</span>
+            <span>Agenda en tiempo real y timeline de consultorios</span>
+          </div>
+          <div class="flex items-center gap-3 text-xs text-slate-200">
+            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/20 text-blue-400 font-mono text-[10px]">✓</span>
+            <span>Notas clínicas estructuradas S.O.A.P. y registro de lesiones</span>
+          </div>
+          <div class="flex items-center gap-3 text-xs text-slate-200">
+            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/20 text-blue-400 font-mono text-[10px]">✓</span>
+            <span>Autenticación segura con tokens de sesión cifrados</span>
+          </div>
         </div>
       </div>
 
-      <p class="login-specialties">Dermatología <span></span> Psicología</p>
+      <div class="flex items-center justify-between text-xs text-slate-400 border-t border-slate-700/60 pt-4">
+        <span>© 2026 Clínica Personal</span>
+        <span class="font-mono text-[11px]">HIPAA / Encrypted</span>
+      </div>
     </div>
   </section>
 
+  <!-- Right Side: Login Form -->
   <main class="login-main">
     <div class="login-card">
       <a class="login-brand login-brand-mobile" href="/" aria-label="Clínica Personal, ir al inicio">
-        <span class="login-brand-mark"><lucide-icon [img]="HeartHandshake" [size]="19" /></span>
-        <span>Clínica Personal</span>
+        <span class="login-brand-mark">
+          <lucide-icon [img]="HeartHandshake" [size]="18"></lucide-icon>
+        </span>
+        <span class="font-bold text-ink">Clínica Personal</span>
       </a>
-      <p class="login-eyebrow login-eyebrow-dark"><span></span> Acceso al sistema</p>
-      <h2>Iniciar sesión</h2>
-      <p class="login-subtitle">Bienvenida. Ingresa tus credenciales para continuar con tu jornada.</p>
+
+      <div class="mb-6">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="h-2 w-2 rounded-full bg-primary-600"></span>
+          <p class="text-xs font-bold uppercase tracking-wider text-primary-600">Portal Médico</p>
+        </div>
+        <h2 class="text-2xl font-bold text-ink tracking-tight">Iniciar Sesión</h2>
+        <p class="text-xs text-muted mt-1">Ingresa tus credenciales profesionales para acceder al sistema.</p>
+      </div>
 
       @if (errorMessage) {
         <div class="login-error" role="alert">
@@ -36,17 +70,17 @@
         </div>
       }
 
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-4">
         <div class="login-field">
-          <label class="login-label" for="username">Usuario</label>
+          <label class="login-label" for="username">Usuario del Sistema</label>
           <input
             type="text"
             id="username"
             formControlName="username"
-            class="login-input"
-            placeholder="Ej: doctora.ana"
+            class="input-field !py-2 text-xs"
+            placeholder="Ej: doctor.ana"
             autocomplete="username"
-          >
+          />
           @if (loginForm.get('username')?.invalid && (loginForm.get('username')?.dirty || loginForm.get('username')?.touched)) {
             <div class="login-validation">
               @if (loginForm.get('username')?.hasError('required')) { <small>El usuario es requerido.</small> }
@@ -56,15 +90,17 @@
         </div>
 
         <div class="login-field">
-          <label class="login-label" for="password">Contraseña</label>
+          <div class="flex items-center justify-between mb-1">
+            <label class="login-label !mb-0" for="password">Contraseña</label>
+          </div>
           <input
             type="password"
             id="password"
             formControlName="password"
-            class="login-input"
+            class="input-field !py-2 text-xs"
             placeholder="••••••••"
             autocomplete="current-password"
-          >
+          />
           @if (loginForm.get('password')?.invalid && (loginForm.get('password')?.dirty || loginForm.get('password')?.touched)) {
             <div class="login-validation">
               @if (loginForm.get('password')?.hasError('required')) { <small>La contraseña es requerida.</small> }
@@ -73,11 +109,18 @@
           }
         </div>
 
-        <button type="submit" class="login-submit" [disabled]="loginForm.invalid || isLoading">
+        <button
+          type="submit"
+          class="btn-primary w-full !py-2.5 !text-xs mt-2"
+          [disabled]="loginForm.invalid || isLoading"
+        >
           @if (!isLoading) {
-            <span>Ingresar</span>
+            <span>Ingresar al Sistema</span>
           } @else {
-            <span>Verificando...</span>
+            <span class="inline-flex items-center gap-2">
+              <span class="spinner !h-3.5 !w-3.5" role="status"></span>
+              Verificando credenciales...
+            </span>
           }
         </button>
       </form>

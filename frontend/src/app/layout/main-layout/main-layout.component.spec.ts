@@ -7,6 +7,7 @@ import { ClinicSettingsService } from '../../core/services/clinic-settings.servi
 import { UserService } from '../../core/services/user.service';
 import { SpecialtyService } from '../../core/services/specialty.service';
 import { AuthService } from '../../core/services/auth.service';
+import { PatientService } from '../../core/services/patient/patient.service';
 
 describe('MainLayoutComponent', () => {
   let component: MainLayoutComponent;
@@ -42,10 +43,13 @@ describe('MainLayoutComponent', () => {
         {
           provide: AuthService,
           useValue: { logout: () => undefined, hasRole: () => false }
+        },
+        {
+          provide: PatientService,
+          useValue: { search: () => of({ content: [], page: { totalPages: 0, totalElements: 0 } }) }
         }
       ]
-    })
-    .compileComponents();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(MainLayoutComponent);
     component = fixture.componentInstance;

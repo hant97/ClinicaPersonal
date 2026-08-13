@@ -1,40 +1,90 @@
-<div class="card">
-  <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-    <h3 class="flex items-center gap-2 text-lg font-semibold"><lucide-icon [img]="Stethoscope" [size]="20" class="text-clinic-600"></lucide-icon>Evaluaciones Dermatológicas</h3>
-    <p class="mt-1 text-sm text-muted">{{ totalElements }} evaluaciones registradas</p>
-    <button class="btn btn-primary" (click)="openForm()">+ Registrar evaluación</button>
+<div class="card space-y-4">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-line pb-3">
+    <div>
+      <h3 class="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-slate-800">
+        <lucide-icon [img]="Stethoscope" [size]="16" class="text-cyan-600"></lucide-icon>
+        Evaluaciones Clínicas Dermatológicas
+      </h3>
+      <p class="text-xs text-muted">{{ totalElements }} evaluaciones registradas en el historial</p>
+    </div>
+    <button type="button" class="btn-primary !text-xs !py-1.5 !bg-cyan-600 hover:!bg-cyan-700" (click)="openForm()">
+      + Registrar Evaluación
+    </button>
   </div>
 
-  <div class="table-responsive">
-    @if (evaluations.length > 0) {
-      <div class="overflow-hidden rounded-xl border border-line">
-        <table class="minimal-table">
-          <thead class="bg-clinic-50"><tr><th>Fecha</th><th>Diagnóstico</th><th>Tratamiento / Procedimiento</th><th>Próxima rev.</th><th class="text-right">Acciones</th></tr></thead>
-          <tbody>
-            @for (evaluation of evaluations; track evaluation.id) {
-              <tr>
-                <td class="font-medium text-muted">{{ evaluation.evaluationDate | date:'dd/MM/yyyy' }}</td>
-                <td>
-                  <div class="font-semibold text-ink">{{ evaluation.dermatologicalDiagnosis || '-' }}</div>
-                  @if (evaluation.lesionType || evaluation.affectedArea) { <div class="text-xs text-muted">{{ evaluation.lesionType }} @if (evaluation.affectedArea) { <span>en {{ evaluation.affectedArea }}</span> }</div> }
-                </td>
-                <td><div class="max-w-xs truncate text-sm" [title]="evaluation.treatmentIndicated || ''">{{ evaluation.treatmentIndicated || evaluation.procedurePerformed || '-' }}</div></td>
-                <td class="text-sm">
-                  @if (evaluation.nextReviewDate) { <span class="inline-flex rounded-md bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700 ring-1 ring-inset ring-amber-600/20">{{ evaluation.nextReviewDate | date:'dd/MM/yyyy' }}</span> } @else { <span class="text-muted">-</span> }
-                </td>
-                <td class="text-right"><button class="btn-text" (click)="openForm(evaluation)" title="Editar">Editar</button><button class="btn-text text-danger hover:bg-red-50" (click)="deleteEvaluation(evaluation.id!)" title="Eliminar">Eliminar</button></td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-      <app-pagination [currentPage]="currentPage" [totalPages]="totalPages" (pageChange)="onPageChange($event)"></app-pagination>
-    } @else {
-      <div class="rounded-lg border border-dashed border-line bg-canvas p-6 text-center text-sm text-muted"><p>No hay evaluaciones dermatológicas registradas para este paciente.</p></div>
-    }
-  </div>
+  @if (evaluations.length > 0) {
+    <div class="table-responsive">
+      <table class="minimal-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Diagnóstico & Zona</th>
+            <th>Tratamiento / Procedimiento</th>
+            <th>Próxima Revisión</th>
+            <th class="text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (evaluation of evaluations; track evaluation.id) {
+            <tr class="transition hover:bg-slate-50">
+              <td class="font-mono text-xs text-slate-700">
+                {{ evaluation.evaluationDate | date:'dd/MM/yyyy' }}
+              </td>
+              <td>
+                <div class="font-semibold text-xs text-ink">{{ evaluation.dermatologicalDiagnosis || '—' }}</div>
+                @if (evaluation.lesionType || evaluation.affectedArea) {
+                  <div class="text-[11px] text-muted">
+                    {{ evaluation.lesionType }} @if (evaluation.affectedArea) { <span>en {{ evaluation.affectedArea }}</span> }
+                  </div>
+                }
+              </td>
+              <td>
+                <div class="max-w-md truncate text-xs text-slate-700" [title]="evaluation.treatmentIndicated || ''">
+                  {{ evaluation.treatmentIndicated || evaluation.procedurePerformed || '—' }}
+                </div>
+              </td>
+              <td>
+                @if (evaluation.nextReviewDate) {
+                  <span class="inline-flex rounded bg-amber-50 px-2 py-0.5 text-xs font-mono font-semibold text-amber-800 border border-amber-200">
+                    {{ evaluation.nextReviewDate | date:'dd/MM/yyyy' }}
+                  </span>
+                } @else {
+                  <span class="text-xs text-muted">—</span>
+                }
+              </td>
+              <td class="text-right">
+                <div class="flex items-center justify-end gap-1">
+                  <button type="button" class="btn-text !p-1.5" (click)="openForm(evaluation)" title="Editar">
+                    ✏️
+                  </button>
+                  <button type="button" class="btn-text !p-1.5 text-danger hover:bg-red-50" (click)="deleteEvaluation(evaluation.id!)" title="Eliminar">
+                    🗑️
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-pagination
+      [currentPage]="currentPage"
+      [totalPages]="totalPages"
+      (pageChange)="onPageChange($event)"
+    ></app-pagination>
+  } @else {
+    <div class="list-state">
+      <p class="text-sm font-medium text-ink">No hay evaluaciones dermatológicas registradas</p>
+      <p class="text-xs text-muted">Registra la primera evaluación clínica del paciente.</p>
+    </div>
+  }
 </div>
 
 @if (showForm) {
-  <app-dermatological-evaluation-form [patientId]="patientId" [evaluation]="selectedEvaluation" (close)="closeForm($event)"></app-dermatological-evaluation-form>
+  <app-dermatological-evaluation-form
+    [patientId]="patientId"
+    [evaluation]="selectedEvaluation"
+    (close)="closeForm($event)"
+  ></app-dermatological-evaluation-form>
 }

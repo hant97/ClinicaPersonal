@@ -1,19 +1,40 @@
 import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { LucideAngularModule, LayoutDashboard, Users, CalendarDays, Receipt, LogOut, ClipboardList, Package, Settings, Menu, Activity, Stethoscope, HeartHandshake } from 'lucide-angular';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
+import {
+  LucideAngularModule,
+  LayoutDashboard,
+  Users,
+  CalendarDays,
+  Receipt,
+  LogOut,
+  ClipboardList,
+  Package,
+  Settings,
+  Menu,
+  Activity,
+  Stethoscope,
+  HeartHandshake,
+  Search,
+  ChevronRight,
+  Sparkles,
+  Brain,
+  Shield,
+  X,
+  Plus
+} from 'lucide-angular';
 import { UserService } from '../../core/services/user.service';
 import { ClinicSettingsService, ClinicSettings } from '../../core/services/clinic-settings.service';
 import { SpecialtyService } from '../../core/services/specialty.service';
 import { AuthService } from '../../core/services/auth.service';
-import { Router } from '@angular/router';
 import { UserProfile } from '../../core/models/user-profile.model';
-import { Subscription } from 'rxjs';
+import { Subscription, filter } from 'rxjs';
+import { CommandPaletteComponent } from '../../shared/components/command-palette/command-palette.component';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule],
+  imports: [CommonModule, RouterModule, LucideAngularModule, CommandPaletteComponent],
   templateUrl: './main-layout.component.html',
 })
 export class MainLayoutComponent implements OnInit, OnDestroy {
@@ -29,15 +50,26 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   readonly Activity = Activity;
   readonly Stethoscope = Stethoscope;
   readonly HeartHandshake = HeartHandshake;
+  readonly Search = Search;
+  readonly ChevronRight = ChevronRight;
+  readonly Sparkles = Sparkles;
+  readonly Brain = Brain;
+  readonly Shield = Shield;
+  readonly X = X;
+  readonly Plus = Plus;
 
   isSidebarOpen = false;
+  isSidebarExpanded = true;
+  isCommandPaletteOpen = false;
+  
   userProfile: UserProfile | null = null;
-  greetingName = 'Usuario';
-  avatarLetter = 'U';
+  greetingName = 'Profesional';
+  avatarLetter = 'P';
   clinicSettings: ClinicSettings | null = null;
   isPsychology = false;
   isDermatology = false;
   isSiteAdmin = false;
+  currentRouteTitle = 'Dashboard';
 
   isMobile = false;
   private mobileQuery = window.matchMedia('(max-width: 767px)');
@@ -52,6 +84,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
 
   private profileSubscription?: Subscription;
   private settingsSubscription?: Subscription;
+  private routerSubscription?: Subscription;
 
   constructor(
     private userService: UserService,
@@ -65,7 +98,19 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     this.isPsychology = this.specialtyService.isPsychology();
     this.isDermatology = this.specialtyService.isDermatology();
     this.isSiteAdmin = this.authService.hasRole('ROLE_SITE_ADMIN');
+    
     this.loadProfile();
+    this.updateRouteTitle(this.router.url);
+
+    this.routerSubscription = this.router.events
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .subscribe((event) => {
+        this.updateRouteTitle(event.urlAfterRedirects);
+        if (this.isMobile) {
+          this.closeSidebar();
+        }
+      });
+
     this.profileSubscription = this.userService.profileUpdated$.subscribe(
       profile => this.updateHeaderProfile(profile)
     );
@@ -77,14 +122,24 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.profileSubscription) {
-      this.profileSubscription.unsubscribe();
-    }
-    if (this.settingsSubscription) {
-      this.settingsSubscription.unsubscribe();
-    }
+    this.profileSubscription?.unsubscribe();
+    this.settingsSubscription?.unsubscribe();
+    this.routerSubscription?.unsubscribe();
     this.mobileQuery.removeEventListener('change', this.onMobileChange);
     this.setScrollLock(false);
+  }
+
+  private updateRouteTitle(url: string): void {
+    if (url.includes('/dashboard')) this.currentRouteTitle = 'Dashboard';
+    else if (url.includes('/agenda')) this.currentRouteTitle = 'Agenda';
+    else if (url.includes('/patients')) this.currentRouteTitle = 'Pacientes';
+    else if (url.includes('/billing')) this.currentRouteTitle = 'Cobros';
+    else if (url.includes('/services')) this.currentRouteTitle = 'Servicios Clínicos';
+    else if (url.includes('/inventory')) this.currentRouteTitle = 'Inventario';
+    else if (url.includes('/tests-catalog')) this.currentRouteTitle = 'Pruebas Psicométricas';
+    else if (url.includes('/settings')) this.currentRouteTitle = 'Configuración';
+    else if (url.includes('/profile')) this.currentRouteTitle = 'Mi Perfil';
+    else this.currentRouteTitle = 'FlowGrid OS';
   }
 
   private loadProfile(): void {
@@ -118,11 +173,23 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     }
   }
 
+  openCommandPalette(): void {
+    this.isCommandPaletteOpen = true;
+  }
+
   @HostListener('document:keydown.escape')
   onEscape(): void {
     if (this.isSidebarOpen) {
       this.closeSidebar();
       this.menuToggle?.nativeElement.focus();
+    }
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onGlobalKeydown(event: KeyboardEvent): void {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      this.isCommandPaletteOpen = !this.isCommandPaletteOpen;
     }
   }
 

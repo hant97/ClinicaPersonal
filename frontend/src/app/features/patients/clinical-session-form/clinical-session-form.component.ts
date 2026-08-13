@@ -7,14 +7,34 @@ import { SpecialtyService } from '../../../core/services/specialty.service';
 import { ClinicalSession } from '../../../core/models/clinical-session.model';
 import { CatalogItem } from '../../../core/models/catalog.model';
 import { ToastService } from '../../../shared/services/toast/toast.service';
+import {
+  LucideAngularModule,
+  Clock,
+  Calendar,
+  FileText,
+  Lock,
+  Sparkles,
+  Check,
+  X,
+  AlertCircle
+} from 'lucide-angular';
 
 @Component({
   selector: 'app-clinical-session-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
   templateUrl: './clinical-session-form.component.html',
 })
 export class ClinicalSessionFormComponent implements OnInit {
+  readonly Clock = Clock;
+  readonly Calendar = Calendar;
+  readonly FileText = FileText;
+  readonly Lock = Lock;
+  readonly Sparkles = Sparkles;
+  readonly Check = Check;
+  readonly X = X;
+  readonly AlertCircle = AlertCircle;
+
   @Input() patientId!: number;
   @Input() session?: ClinicalSession;
   @Output() saved = new EventEmitter<void>();
@@ -22,6 +42,7 @@ export class ClinicalSessionFormComponent implements OnInit {
 
   sessionForm!: FormGroup;
   appointmentModalities: CatalogItem[] = [];
+  draftSaved = false;
 
   constructor(
     private fb: FormBuilder,
@@ -37,6 +58,10 @@ export class ClinicalSessionFormComponent implements OnInit {
 
   get isDermatology(): boolean {
     return this.specialtyService.isDermatology();
+  }
+
+  private get draftKey(): string {
+    return `flowgrid_draft_session_${this.patientId}`;
   }
 
   ngOnInit(): void {
@@ -58,7 +83,14 @@ export class ClinicalSessionFormComponent implements OnInit {
       const tzOffset = now.getTimezoneOffset() * 60000;
       const localISO = new Date(now.getTime() - tzOffset).toISOString();
       dateStr = localISO.split('T')[0];
-      startTimeStr = '';
+      const curH = String(now.getHours()).padStart(2, '0');
+      const curM = String(now.getMinutes()).padStart(2, '0');
+      startTimeStr = `${curH}:${curM}`;
+      
+      const endMins = now.getHours() * 60 + now.getMinutes() + 45;
+      const endH = String(Math.floor(endMins / 60) % 24).padStart(2, '0');
+      const endM = String(endMins % 60).padStart(2, '0');
+      endTimeStr = `${endH}:${endM}`;
     }
 
     let sType = this.session?.sessionType || 'INDIVIDUAL';
@@ -66,19 +98,40 @@ export class ClinicalSessionFormComponent implements OnInit {
       sType = 'INDIVIDUAL';
     }
 
+    // Check for draft if creating new
+    let savedDraft: any = null;
+    if (!this.session) {
+      try {
+        const raw = localStorage.getItem(this.draftKey);
+        if (raw) {
+          savedDraft = JSON.parse(raw);
+        }
+      } catch (e) {}
+    }
+
     this.sessionForm = this.fb.group({
-      sessionDate: [dateStr, Validators.required],
-      startTime: [startTimeStr, Validators.required],
-      endTime: [endTimeStr, Validators.required],
-      sessionType: [sType, Validators.required],
-      modality: [this.session?.modality || 'PRESENCIAL', Validators.required],
-      status: [this.session?.status || 'COMPLETADA', Validators.required],
-      subjective: [this.session?.subjective || ''],
-      objective: [this.session?.objective || ''],
-      analysis: [this.session?.analysis || ''],
-      plan: [this.session?.plan || ''],
-      isConfidential: [this.session?.isConfidential || false]
+      sessionDate: [this.session?.sessionDate || savedDraft?.sessionDate || dateStr, Validators.required],
+      startTime: [this.session?.startTime || savedDraft?.startTime || startTimeStr, Validators.required],
+      endTime: [this.session?.endTime || savedDraft?.endTime || endTimeStr, Validators.required],
+      sessionType: [this.session?.sessionType || savedDraft?.sessionType || sType, Validators.required],
+      modality: [this.session?.modality || savedDraft?.modality || 'PRESENCIAL', Validators.required],
+      status: [this.session?.status || savedDraft?.status || 'COMPLETADA', Validators.required],
+      subjective: [this.session?.subjective || savedDraft?.subjective || ''],
+      objective: [this.session?.objective || savedDraft?.objective || ''],
+      analysis: [this.session?.analysis || savedDraft?.analysis || ''],
+      plan: [this.session?.plan || savedDraft?.plan || ''],
+      isConfidential: [this.session?.isConfidential || savedDraft?.isConfidential || false]
     }, { validators: this.isPsychology ? this.soapValidator : null });
+
+    // Auto-save draft on value changes
+    if (!this.session) {
+      this.sessionForm.valueChanges.subscribe(val => {
+        try {
+          localStorage.setItem(this.draftKey, JSON.stringify(val));
+          this.draftSaved = true;
+        } catch (e) {}
+      });
+    }
   }
 
   loadCatalogs(): void {
@@ -93,7 +146,15 @@ export class ClinicalSessionFormComponent implements OnInit {
     });
   }
 
-  // Validador custom: Al menos un campo SOAP debe estar lleno
+  // Quick insertion helpers for SOAP blocks
+  insertTemplate(field: 'subjective' | 'objective' | 'analysis' | 'plan', text: string): void {
+    const control = this.sessionForm.get(field);
+    if (control) {
+      const current = control.value ? `${control.value}\n${text}` : text;
+      control.setValue(current);
+    }
+  }
+
   soapValidator(group: FormGroup): { [key: string]: boolean } | null {
     const s = group.get('subjective')?.value?.trim();
     const o = group.get('objective')?.value?.trim();
@@ -121,6 +182,7 @@ export class ClinicalSessionFormComponent implements OnInit {
       this.sessionService.updateSession(this.session.id, sessionData).subscribe({
         next: () => {
           this.toastService.show('Sesión actualizada exitosamente', 'success');
+          this.clearDraft();
           this.saved.emit();
         },
         error: (err) => {
@@ -132,6 +194,7 @@ export class ClinicalSessionFormComponent implements OnInit {
       this.sessionService.createSession(sessionData).subscribe({
         next: () => {
           this.toastService.show('Sesión guardada exitosamente', 'success');
+          this.clearDraft();
           this.saved.emit();
         },
         error: (err) => {
@@ -140,6 +203,12 @@ export class ClinicalSessionFormComponent implements OnInit {
         }
       });
     }
+  }
+
+  private clearDraft(): void {
+    try {
+      localStorage.removeItem(this.draftKey);
+    } catch (e) {}
   }
 
   onCancel(): void {
