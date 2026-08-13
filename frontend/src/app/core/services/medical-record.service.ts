@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { MedicalRecord } from '../models/medical-record.model';
+import { PageResponse } from '../models/page.model';
 
 @Injectable({
   providedIn: 'root'
@@ -12,8 +13,10 @@ export class MedicalRecordService {
 
   constructor(private http: HttpClient) { }
 
-  getRecordsByPatientId(patientId: number): Observable<MedicalRecord[]> {
-    return this.http.get<MedicalRecord[]>(`${this.apiUrl}/patient/${patientId}`);
+  getRecordsByPatientId(patientId: number, page: number = 0, size: number = 10): Observable<PageResponse<MedicalRecord>> {
+    return this.http.get<PageResponse<MedicalRecord>>(`${this.apiUrl}/patient/${patientId}`, {
+      params: { page, size }
+    });
   }
 
   createRecord(record: MedicalRecord): Observable<MedicalRecord> {

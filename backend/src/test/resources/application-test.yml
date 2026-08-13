@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:clinica_test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password: ''
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  flyway:
+    enabled: false
+
+jwt:
+  secret: dGVzdC1vbmx5LWp3dC1zaWduaW5nLWtleS0zMi1ieXRlcy0xMjM0NTY=
+  expiration: 900000
+  refresh-expiration: 604800000
+
+auth:
+  cookie-secure: false
+
+cors:
+  allowed-origins: http://localhost:4200

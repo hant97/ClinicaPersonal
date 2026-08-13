@@ -1,0 +1,5 @@
+.icon-picker { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
+.icon-option { display: flex; min-height: 3.25rem; align-items: center; gap: .5rem; padding: .5rem .625rem; border: 1px solid var(--line, #dce8e3); border-radius: .5rem; color: #355f5d; background: #fff; font-size: .75rem; font-weight: 600; text-align: left; }
+.icon-option:hover { border-color: #2f7773; background: #f2f8f5; }
+.icon-option.selected { border-color: #2f7773; color: #205957; background: #e6f2ed; box-shadow: inset 0 0 0 1px #2f7773; }
+@media (max-width: 640px) { .icon-picker { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

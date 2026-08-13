@@ -2,11 +2,13 @@ package com.clinica.backend.service;
 
 import com.clinica.backend.dto.PatientDto;
 import com.clinica.backend.model.Patient;
+import com.clinica.backend.model.User;
 import com.clinica.backend.repository.PatientRepository;
 import com.clinica.backend.repository.RiskAlertRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,7 +22,7 @@ public class PatientService {
     private final RiskAlertRepository riskAlertRepository;
 
     public Page<PatientDto> getAllPatients(Pageable pageable) {
-        return patientRepository.findByDeletedFalse(pageable)
+        return patientRepository.findBySpecialtyAndDeletedFalse(currentSpecialty(), pageable)
                 .map(this::mapToDto);
     }
 
@@ -28,23 +30,24 @@ public class PatientService {
         if (query == null || query.trim().isEmpty()) {
             return Page.empty();
         }
-        return patientRepository.searchPatients(query, pageable)
+        return patientRepository.searchPatients(query, currentSpecialty(), pageable)
                 .map(this::mapToDto);
     }
 
     public PatientDto getPatientById(Long id) {
-        Patient patient = patientRepository.findById(id).orElseThrow();
+        Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(id, currentSpecialty()).orElseThrow();
         return mapToDto(patient);
     }
 
     public PatientDto createPatient(PatientDto patientDto) {
         Patient patient = mapToEntity(patientDto);
+        patient.setSpecialty(currentSpecialty());
         Patient savedPatient = patientRepository.save(patient);
         return mapToDto(savedPatient);
     }
 
     public PatientDto updatePatient(Long id, PatientDto patientDto) {
-        Patient patient = patientRepository.findById(id).orElseThrow();
+        Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(id, currentSpecialty()).orElseThrow();
         
         patient.setFirstName(patientDto.getFirstName());
         patient.setLastName(patientDto.getLastName());
@@ -67,9 +70,14 @@ public class PatientService {
     }
 
     public void deletePatient(Long id) {
-        Patient patient = patientRepository.findById(id).orElseThrow();
+        Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(id, currentSpecialty()).orElseThrow();
         patient.setDeleted(true);
         patientRepository.save(patient);
+    }
+
+    private String currentSpecialty() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return user.getSpecialty();
     }
 
     private PatientDto mapToDto(Patient patient) {
@@ -90,8 +98,9 @@ public class PatientService {
         dto.setGuardianName(patient.getGuardianName());
         dto.setGuardianContact(patient.getGuardianContact());
         dto.setHasLegalGuardian(patient.isHasLegalGuardian());
+        dto.setSpecialty(patient.getSpecialty());
         dto.setDeleted(patient.isDeleted());
-        dto.setHasActiveAlerts(riskAlertRepository.existsByPatientIdAndActiveTrue(patient.getId()));
+        dto.setHasActiveAlerts(riskAlertRepository.existsByPatientIdAndSpecialtyAndActiveTrue(patient.getId(), patient.getSpecialty()));
         return dto;
     }
 

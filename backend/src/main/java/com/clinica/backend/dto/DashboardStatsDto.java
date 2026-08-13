@@ -23,4 +23,9 @@ public class DashboardStatsDto {
     private int monthlyIncomeGrowth;
     private List<DashboardRiskAlertDto> activeRiskAlerts;
     private List<SupplyDto> lowStockSupplies;
+
+    // Specialty specific metrics
+    private long psychometricEvaluationsThisMonth;
+    private long dermatologicalEvaluationsThisMonth;
+    private long dermatologicalProceduresThisMonth;
 }

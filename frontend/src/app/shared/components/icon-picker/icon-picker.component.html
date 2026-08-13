@@ -1,0 +1,8 @@
+<div class="icon-picker" role="group" aria-label="Seleccionar icono">
+  @for (option of options; track option.code) {
+    <button type="button" class="icon-option" [class.selected]="value === option.code" [attr.aria-pressed]="value === option.code" [attr.aria-label]="option.label" [title]="option.label" (click)="select(option.code)">
+      <lucide-icon [img]="option.icon" [size]="20"></lucide-icon>
+      <span>{{ option.label }}</span>
+    </button>
+  }
+</div>

@@ -2,6 +2,7 @@ package com.clinica.backend.controller;
 
 import com.clinica.backend.dto.ClinicalSessionDto;
 import com.clinica.backend.service.ClinicalSessionService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,13 +31,13 @@ public class ClinicalSessionController {
     }
 
     @PostMapping
-    public ResponseEntity<ClinicalSessionDto> createSession(@RequestBody ClinicalSessionDto dto) {
+    public ResponseEntity<ClinicalSessionDto> createSession(@Valid @RequestBody ClinicalSessionDto dto) {
         return ResponseEntity.ok(sessionService.createSession(dto));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ClinicalSessionDto> updateSession(@PathVariable Long id,
-            @RequestBody ClinicalSessionDto dto) {
+            @Valid @RequestBody ClinicalSessionDto dto) {
         return ResponseEntity.ok(sessionService.updateSession(id, dto));
     }
 

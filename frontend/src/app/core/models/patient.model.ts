@@ -15,6 +15,7 @@ export interface Patient {
   guardianName?: string;
   guardianContact?: string;
   hasLegalGuardian?: boolean;
+  specialty?: string;
   hasActiveAlerts?: boolean;
   createdAt?: string;
 }

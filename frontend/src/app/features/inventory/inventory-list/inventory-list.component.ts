@@ -5,7 +5,7 @@ import { InventoryFormComponent } from '../inventory-form/inventory-form.compone
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule, Search, Edit, Trash2, Plus, AlertTriangle } from 'lucide-angular';
+import { LucideAngularModule, Search, Edit, Trash2, Plus, AlertTriangle, Package, Eye, X } from 'lucide-angular';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 
 @Component({
@@ -20,16 +20,23 @@ export class InventoryListComponent implements OnInit, OnDestroy {
   readonly Trash2 = Trash2;
   readonly Plus = Plus;
   readonly AlertTriangle = AlertTriangle;
+  readonly Package = Package;
+  readonly Eye = Eye;
+  readonly X = X;
 
   filteredSupplies: Supply[] = [];
   searchTerm: string = '';
   showModal = false;
   selectedSupplyId: number | null = null;
+  viewImageUrl: string | null = null;
+  viewImageName: string | null = null;
   
   currentPage: number = 0;
   pageSize: number = 10;
   totalPages: number = 0;
   totalElements: number = 0;
+  isLoading = false;
+  loadError = false;
   
   private searchSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
@@ -60,10 +67,20 @@ export class InventoryListComponent implements OnInit, OnDestroy {
   }
 
   loadSupplies(): void {
-    this.inventoryService.getAllSupplies(this.searchTerm, this.currentPage, this.pageSize).subscribe(page => {
-      this.filteredSupplies = page.content;
-      this.totalPages = page.page.totalPages;
-      this.totalElements = page.page.totalElements;
+    this.isLoading = true;
+    this.loadError = false;
+    this.inventoryService.getAllSupplies(this.searchTerm, this.currentPage, this.pageSize).subscribe({
+      next: (page) => {
+        this.filteredSupplies = page.content;
+        this.totalPages = page.page.totalPages;
+        this.totalElements = page.page.totalElements;
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+        this.loadError = true;
+        this.toastService.show('Error al cargar el inventario', 'error');
+      }
     });
   }
 
@@ -88,6 +105,16 @@ export class InventoryListComponent implements OnInit, OnDestroy {
     if (refresh) {
       this.loadSupplies();
     }
+  }
+
+  openImageView(supply: Supply): void {
+    this.viewImageUrl = supply.imageUrl ?? null;
+    this.viewImageName = supply.name;
+  }
+
+  closeImageView(): void {
+    this.viewImageUrl = null;
+    this.viewImageName = null;
   }
 
   async deleteSupply(id: number): Promise<void> {

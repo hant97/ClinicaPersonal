@@ -2,13 +2,14 @@ package com.clinica.backend.service;
 
 import com.clinica.backend.dto.AssessmentDto;
 import com.clinica.backend.dto.PsychometricTestDto;
+import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.Assessment;
 import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.PsychometricTest;
 import com.clinica.backend.repository.AssessmentRepository;
 import com.clinica.backend.repository.PatientRepository;
 import com.clinica.backend.repository.PsychometricTestRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,16 +20,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 @Service
+@RequiredArgsConstructor
 public class AssessmentService {
 
-    @Autowired
-    private AssessmentRepository assessmentRepository;
+    private final AssessmentRepository assessmentRepository;
 
-    @Autowired
-    private PsychometricTestRepository psychometricTestRepository;
+    private final PsychometricTestRepository psychometricTestRepository;
 
-    @Autowired
-    private PatientRepository patientRepository;
+    private final PatientRepository patientRepository;
+
+    private final ClinicalAuthorizationService clinicalAuthorizationService;
 
     public Page<AssessmentDto> getAssessmentsByPatientId(Long patientId, Pageable pageable) {
         return assessmentRepository.findByPatientIdOrderByAssessmentDateDesc(patientId, pageable).map(this::mapToDto);
@@ -36,16 +37,17 @@ public class AssessmentService {
 
     @Transactional
     public AssessmentDto saveAssessment(AssessmentDto dto) {
-        Patient patient = patientRepository.findById(dto.getPatientId())
-                .orElseThrow(() -> new RuntimeException("Patient not found"));
+        String specialty = clinicalAuthorizationService.currentUser().getSpecialty();
+        Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(dto.getPatientId(), specialty)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
 
         PsychometricTest test = psychometricTestRepository.findById(dto.getPsychometricTestId())
-                .orElseThrow(() -> new RuntimeException("Test not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Prueba psicométrica no encontrada"));
 
         Assessment assessment = new Assessment();
         if (dto.getId() != null) {
             assessment = assessmentRepository.findById(dto.getId())
-                    .orElseThrow(() -> new RuntimeException("Assessment not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Evaluación no encontrada"));
         } else {
             assessment.setPatient(patient);
             assessment.setPsychometricTest(test);

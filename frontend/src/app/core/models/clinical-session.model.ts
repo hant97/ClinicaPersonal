@@ -12,6 +12,11 @@ export interface ClinicalSession {
   analysis?: string;
   plan?: string;
   isConfidential: boolean;
+  specialty?: string;
+  skinExamFindings?: string;
+  dermatologicalDiagnosis?: string;
+  proceduresPerformed?: string;
+  prescriptions?: string;
   createdAt?: string;
   updatedAt?: string;
   professionalId?: number;

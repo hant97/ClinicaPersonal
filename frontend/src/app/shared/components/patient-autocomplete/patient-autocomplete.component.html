@@ -4,11 +4,18 @@
       <input type="text" 
         class="input-field pr-10" 
         [formControl]="searchControl" 
+        role="combobox"
+        aria-autocomplete="list"
+        aria-haspopup="listbox"
+        aria-controls="patient-listbox"
+        [attr.aria-expanded]="showDropdown"
+        [attr.aria-activedescendant]="activeIndex >= 0 ? 'patient-option-' + activeIndex : null"
         (focus)="onFocus()" 
+        (keydown)="onKeydown($event)"
         placeholder="Buscar paciente por nombre o DNI..." 
         autocomplete="off">
       @if (isLoading) {
-        <span class="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin rounded-full border-2 border-clinic-100 border-l-clinic-600" aria-label="Buscando"></span>
+        <span class="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin rounded-full border-2 border-clinic-100 border-l-clinic-600" role="status" aria-label="Buscando"></span>
       } @else if (selectedPatientId && !disabled) {
         <button type="button" class="btn-text absolute right-1 top-1/2 -translate-y-1/2 !p-2 text-muted hover:text-clinic-900" aria-label="Limpiar paciente seleccionado" (click)="onInputClear()">✕</button>
       }
@@ -26,7 +33,7 @@
   </div>
 
   @if (showDropdown) {
-    <ul class="absolute z-50 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-line bg-surface py-1 shadow-raised" role="listbox">
+    <ul id="patient-listbox" class="absolute z-50 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-line bg-surface py-1 shadow-raised" role="listbox">
       @if (patients.length === 0 && searchControl.value && searchControl.value.length >= 2 && !isLoading) {
         <li class="px-4 py-3 text-sm text-muted">
           <p class="italic">No se encontraron pacientes para "{{ searchControl.value }}".</p>
@@ -40,10 +47,11 @@
           }
         </li>
       }
-      @for (patient of patients; track patient.id) {
-        <li>
+      @for (patient of patients; track patient.id; let i = $index) {
+        <li role="option" [id]="'patient-option-' + i" [attr.aria-selected]="activeIndex === i">
           <button type="button" 
             class="w-full border-b border-line px-4 py-3 text-left last:border-b-0 hover:bg-clinic-50 focus:bg-clinic-50 focus:outline-none transition-colors" 
+            [class.bg-clinic-50]="activeIndex === i"
             (click)="selectPatient(patient)">
             <span class="block text-sm font-semibold text-clinic-900">{{ patient.firstName }} {{ patient.lastName }}</span>
             <span class="mt-0.5 block text-xs text-muted">DNI / Documento: {{ patient.identificationDocument || 'Sin DNI' }}</span>
@@ -103,6 +111,19 @@
           <input type="text" id="qa-doc" formControlName="identificationDocument" class="input-field text-sm" placeholder="Ej: 71234567">
           @if (quickAddForm.get('identificationDocument')?.invalid && (quickAddForm.get('identificationDocument')?.dirty || quickAddForm.get('identificationDocument')?.touched)) {
             <p class="mt-1 text-xs text-danger">El documento de identidad es requerido.</p>
+          }
+        </div>
+
+        <div>
+          <label for="qa-gender" class="form-label text-xs">Género <span class="text-danger">*</span></label>
+          <select id="qa-gender" formControlName="gender" class="input-field text-sm">
+            <option value="">Seleccione</option>
+            @for (gender of genders; track gender.id) {
+              <option [value]="gender.itemCode">{{ gender.itemName }}</option>
+            }
+          </select>
+          @if (quickAddForm.get('gender')?.invalid && (quickAddForm.get('gender')?.dirty || quickAddForm.get('gender')?.touched)) {
+            <p class="mt-1 text-xs text-danger">El género es requerido.</p>
           }
         </div>
 

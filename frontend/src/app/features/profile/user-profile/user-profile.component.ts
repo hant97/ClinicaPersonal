@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { UserService } from '../../../core/services/user.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { ClinicSettingsService } from '../../../core/services/clinic-settings.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { LucideAngularModule, User, Key, Save, Mail, Phone, Shield, Building2, ImagePlus } from 'lucide-angular';
@@ -34,6 +35,7 @@ export class UserProfileComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
+    private authService: AuthService,
     private clinicSettingsService: ClinicSettingsService,
     private toastService: ToastService
   ) {
@@ -46,7 +48,7 @@ export class UserProfileComponent implements OnInit {
 
     this.passwordForm = this.fb.group({
       currentPassword: ['', Validators.required],
-      newPassword: ['', [Validators.required, Validators.minLength(6)]],
+       newPassword: ['', [Validators.required, Validators.minLength(8), Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/)]],
       confirmPassword: ['', Validators.required]
     }, { validators: this.passwordMatchValidator });
 
@@ -113,7 +115,8 @@ export class UserProfileComponent implements OnInit {
         newPassword: this.passwordForm.value.newPassword
       };
       this.userService.updatePassword(request).subscribe({
-        next: () => {
+        next: (response) => {
+          this.authService.loginResponse(response);
           this.toastService.show('Contraseña actualizada correctamente', 'success');
           this.passwordForm.reset();
           this.isLoading = false;

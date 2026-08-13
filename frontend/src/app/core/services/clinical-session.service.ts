@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ClinicalSession } from '../models/clinical-session.model';
+import { PageResponse } from '../models/page.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -12,8 +13,10 @@ export class ClinicalSessionService {
 
   constructor(private http: HttpClient) { }
 
-  getSessionsByPatientId(patientId: number): Observable<ClinicalSession[]> {
-    return this.http.get<ClinicalSession[]>(`${this.apiUrl}/patient/${patientId}`);
+  getSessionsByPatientId(patientId: number, page: number = 0, size: number = 10): Observable<PageResponse<ClinicalSession>> {
+    return this.http.get<PageResponse<ClinicalSession>>(`${this.apiUrl}/patient/${patientId}`, {
+      params: { page, size }
+    });
   }
 
   getSessionById(id: number): Observable<ClinicalSession> {

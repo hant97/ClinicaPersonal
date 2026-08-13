@@ -2,6 +2,7 @@ package com.clinica.backend.service;
 
 import com.clinica.backend.dto.CreateUserRequest;
 import com.clinica.backend.dto.UserProfileDTO;
+import com.clinica.backend.dto.UpdatePasswordRequest;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,9 @@ class UserServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private RefreshTokenService refreshTokenService;
 
     @InjectMocks
     private UserService userService;
@@ -69,5 +73,43 @@ class UserServiceTest {
 
         assertThrows(IllegalArgumentException.class, () -> userService.createUser(request));
         verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void changingPasswordInvalidatesAllPreviousSessionsAndAccessTokens() {
+        User user = new User();
+        user.setId(10L);
+        user.setUsername("doctor.test");
+        user.setPassword("old-hash");
+        user.setTokenVersion(2L);
+        UpdatePasswordRequest request = UpdatePasswordRequest.builder()
+                .currentPassword("Current1!")
+                .newPassword("Replacement1!")
+                .build();
+        when(userRepository.findByUsername("doctor.test")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("Current1!", "old-hash")).thenReturn(true);
+        when(passwordEncoder.encode("Replacement1!")).thenReturn("new-hash");
+
+        userService.updatePassword("doctor.test", request);
+
+        assertEquals(3L, user.getTokenVersion());
+        assertEquals("new-hash", user.getPassword());
+        verify(refreshTokenService).revokeAllForUser(10L);
+    }
+
+    @Test
+    void disablingOrResettingCredentialsInvalidatesAllRefreshSessions() {
+        User user = new User();
+        user.setId(10L);
+        user.setTokenVersion(4L);
+        when(userRepository.findById(10L)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode("Temporary1!")).thenReturn("temporary-hash");
+
+        userService.disableUser(10L);
+        userService.resetPassword(10L, "Temporary1!");
+
+        assertFalse(user.isEnabled());
+        assertEquals(6L, user.getTokenVersion());
+        verify(refreshTokenService, times(2)).revokeAllForUser(10L);
     }
 }

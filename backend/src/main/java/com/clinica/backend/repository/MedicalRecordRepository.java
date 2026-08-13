@@ -8,5 +8,7 @@ import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface MedicalRecordRepository extends JpaRepository<MedicalRecord, Long> {
-    Page<MedicalRecord> findByPatientIdOrderByCreatedAtDesc(Long patientId, Pageable pageable);
+    Page<MedicalRecord> findByPatientIdAndSpecialtyAndDeletedFalseOrderByCreatedAtDesc(Long patientId, String specialty, Pageable pageable);
+    Page<MedicalRecord> findByPatientIdAndSpecialtyAndProfessionalIdAndDeletedFalseOrderByCreatedAtDesc(Long patientId, String specialty, Long professionalId, Pageable pageable);
+    java.util.Optional<MedicalRecord> findByIdAndDeletedFalse(Long id);
 }

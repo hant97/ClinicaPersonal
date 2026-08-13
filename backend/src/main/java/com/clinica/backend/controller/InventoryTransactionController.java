@@ -2,6 +2,7 @@ package com.clinica.backend.controller;
 
 import com.clinica.backend.dto.InventoryTransactionDto;
 import com.clinica.backend.service.InventoryTransactionService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +17,7 @@ public class InventoryTransactionController {
     private final InventoryTransactionService transactionService;
 
     @PostMapping
-    public ResponseEntity<InventoryTransactionDto> recordTransaction(@RequestBody InventoryTransactionDto dto) {
+    public ResponseEntity<InventoryTransactionDto> recordTransaction(@Valid @RequestBody InventoryTransactionDto dto) {
         return ResponseEntity.ok(transactionService.recordTransaction(dto));
     }
 

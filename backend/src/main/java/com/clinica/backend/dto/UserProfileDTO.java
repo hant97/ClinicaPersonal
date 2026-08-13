@@ -19,4 +19,5 @@ public class UserProfileDTO {
     private String email;
     private String phone;
     private Set<String> roles;
+    private String specialty;
 }

@@ -34,4 +34,7 @@ public class ClinicalService {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "specialty", nullable = false)
+    private String specialty = "PSICOLOGIA";
 }

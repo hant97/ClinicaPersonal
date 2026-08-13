@@ -1,55 +1,79 @@
 <div class="card">
-  <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+  <div
+    class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+  >
     <h3 class="text-lg font-semibold">Evaluaciones Psicométricas</h3>
-    <button class="btn btn-primary" (click)="openForm()">+ Registrar Evaluación</button>
+    <button class="btn-primary" (click)="openForm()">
+      + Registrar Evaluación
+    </button>
   </div>
 
   <div class="table-responsive">
-    <ng-container *ngIf="assessments.length > 0; else noData">
-      <div *ngIf="assessments.length > 1" class="relative mb-6 h-72 w-full rounded-xl border border-line bg-clinic-50/50 p-4">
-        <canvas #chartCanvas></canvas>
-      </div>
+    @if (assessments.length > 0) {
+      @if (assessments.length > 1) {
+        <div
+          class="relative mb-6 h-72 w-full rounded-xl border border-line bg-clinic-50/50 p-4"
+        >
+          <canvas #chartCanvas></canvas>
+        </div>
+      }
 
       <div class="overflow-hidden rounded-xl border border-line">
         <table class="minimal-table">
-        <thead class="bg-clinic-50">
-          <tr>
-            <th>Fecha</th><th>Test</th><th>Puntaje Total</th><th>Notas</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let assessment of assessments">
-            <td class="font-medium text-muted">
-              <div class="flex items-center gap-2">
-                <span>{{ assessment.assessmentDate | date:'dd/MM/yyyy HH:mm' }}</span>
-              </div>
-            </td>
-            <td class="font-semibold">{{ assessment.testName }}</td>
-            <td>
-              <span class="inline-flex rounded-full bg-clinic-700 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">{{ assessment.totalScore }}</span>
-            </td>
-            <td class="max-w-xs truncate text-muted" [title]="assessment.notes || ''">{{ assessment.notes || '-' }}</td>
-          </tr>
-        </tbody>
+          <thead class="bg-clinic-50">
+            <tr>
+              <th>Fecha</th>
+              <th>Test</th>
+              <th>Puntaje Total</th>
+              <th>Notas</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (assessment of assessments; track assessment.id) {
+              <tr>
+                <td class="font-medium text-muted">
+                  <div class="flex items-center gap-2">
+                    <span>{{
+                      assessment.assessmentDate | date: "dd/MM/yyyy HH:mm"
+                    }}</span>
+                  </div>
+                </td>
+                <td class="font-semibold">{{ assessment.testName }}</td>
+                <td>
+                  <span
+                    class="inline-flex rounded-full bg-clinic-700 px-2.5 py-1 text-xs font-semibold text-white shadow-sm"
+                    >{{ assessment.totalScore }}</span
+                  >
+                </td>
+                <td
+                  class="max-w-xs truncate text-muted"
+                  [title]="assessment.notes || ''"
+                >
+                  {{ assessment.notes || "-" }}
+                </td>
+              </tr>
+            }
+          </tbody>
         </table>
       </div>
-      
-      <app-pagination 
-        [currentPage]="currentPage" 
-        [totalPages]="totalPages" 
-        (pageChange)="onPageChange($event)">
+
+      <app-pagination
+        [currentPage]="currentPage"
+        [totalPages]="totalPages"
+        (pageChange)="onPageChange($event)"
+      >
       </app-pagination>
-    </ng-container>
-    <ng-template #noData>
-      <div class="rounded-lg border border-dashed border-line bg-canvas p-6 text-center text-sm text-muted">
+    } @else {
+      <div
+        class="rounded-lg border border-dashed border-line bg-canvas p-6 text-center text-sm text-muted"
+      >
         <p>No hay evaluaciones registradas para este paciente.</p>
       </div>
-    </ng-template>
+    }
   </div>
 </div>
 
-<app-assessment-form 
-  *ngIf="showForm" 
-  [patientId]="patientId" 
-  (close)="closeForm($event)">
-</app-assessment-form>
+@if (showForm) {
+  <app-assessment-form [patientId]="patientId" (close)="closeForm($event)">
+  </app-assessment-form>
+}

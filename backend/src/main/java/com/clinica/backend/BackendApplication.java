@@ -7,9 +7,11 @@ import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import static org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO;
 
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableCaching
+@EnableScheduling
 @EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO)
 public class BackendApplication {
 

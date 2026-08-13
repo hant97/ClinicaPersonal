@@ -6,11 +6,12 @@ import { CatalogService } from '../../../core/services/catalog.service';
 import { CatalogItem } from '../../../core/models/catalog.model';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { LucideAngularModule, X } from 'lucide-angular';
+import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
 
 @Component({
   selector: 'app-inventory-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, FocusTrapDirective],
   templateUrl: './inventory-form.component.html'
 })
 export class InventoryFormComponent implements OnInit {
@@ -23,6 +24,8 @@ export class InventoryFormComponent implements OnInit {
   isSubmitting = false;
   isEditMode = false;
   supplyUnits: CatalogItem[] = [];
+  selectedImageFile: File | null = null;
+  imagePreviewUrl: string | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -30,6 +33,10 @@ export class InventoryFormComponent implements OnInit {
     private catalogService: CatalogService,
     private toastService: ToastService
   ) {}
+
+  get imagePreview(): string | null {
+    return this.imagePreviewUrl ?? (this.form?.get('imageUrl')?.value || null);
+  }
 
   ngOnInit(): void {
     this.isEditMode = !!this.supplyId;
@@ -48,7 +55,8 @@ export class InventoryFormComponent implements OnInit {
       minStockLevel: [0, [Validators.required, Validators.min(0)]],
       unit: ['', [Validators.required]],
       price: [0, [Validators.min(0)]],
-      expirationDate: ['']
+      expirationDate: [''],
+      imageUrl: ['']
     });
   }
 
@@ -75,6 +83,19 @@ export class InventoryFormComponent implements OnInit {
     });
   }
 
+  onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 2 * 1024 * 1024) {
+      this.toastService.show('La imagen debe ser PNG, JPG o WEBP de hasta 2 MB', 'error');
+      input.value = '';
+      return;
+    }
+    this.selectedImageFile = file;
+    this.imagePreviewUrl = URL.createObjectURL(file);
+  }
+
   onSubmit(): void {
     if (this.form.invalid) {
       this.markFormGroupTouched(this.form);
@@ -89,14 +110,32 @@ export class InventoryFormComponent implements OnInit {
       : this.inventoryService.createSupply(formData);
 
     request$.subscribe({
-      next: () => {
+      next: (saved) => {
         this.toastService.show(`Insumo ${this.isEditMode ? 'actualizado' : 'creado'} exitosamente`, 'success');
+        if (this.selectedImageFile && saved.id != null) {
+          this.uploadImage(saved.id);
+          return;
+        }
         this.isSubmitting = false;
         this.close(true);
       },
       error: () => {
         this.toastService.show(`Error al ${this.isEditMode ? 'actualizar' : 'crear'} el insumo`, 'error');
         this.isSubmitting = false;
+      }
+    });
+  }
+
+  private uploadImage(id: number): void {
+    this.inventoryService.uploadSupplyImage(id, this.selectedImageFile!).subscribe({
+      next: () => {
+        this.isSubmitting = false;
+        this.close(true);
+      },
+      error: () => {
+        this.toastService.show('Error al subir la imagen del insumo', 'error');
+        this.isSubmitting = false;
+        this.close(true);
       }
     });
   }

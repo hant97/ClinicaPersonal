@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { AssessmentService } from '../../../core/services/assessment.service';
 import { PsychometricTest } from '../../../core/models/assessment.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { ToastService } from '../../../shared/services/toast/toast.service';
+import { NotificationService } from '../../../shared/services/notification/notification.service';
 
 import { LucideAngularModule, Edit, Trash2 } from 'lucide-angular';
 
@@ -23,10 +25,14 @@ export class TestsCatalogListComponent implements OnInit {
   pageSize: number = 10;
   totalPages: number = 0;
   totalElements: number = 0;
+  isLoading = false;
+  loadError = false;
 
   constructor(
     private assessmentService: AssessmentService,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit() {
@@ -34,10 +40,20 @@ export class TestsCatalogListComponent implements OnInit {
   }
 
   loadTests() {
-    this.assessmentService.getAvailableTests(this.currentPage, this.pageSize).subscribe(page => {
-      this.totalPages = page.page.totalPages;
-      this.totalElements = page.page.totalElements;
-      this.tests = page.content;
+    this.isLoading = true;
+    this.loadError = false;
+    this.assessmentService.getAvailableTests(this.currentPage, this.pageSize).subscribe({
+      next: (page) => {
+        this.totalPages = page.page.totalPages;
+        this.totalElements = page.page.totalElements;
+        this.tests = page.content;
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+        this.loadError = true;
+        this.toastService.show('Error al cargar las pruebas', 'error');
+      }
     });
   }
   
@@ -54,14 +70,21 @@ export class TestsCatalogListComponent implements OnInit {
     this.router.navigate(['/tests-catalog/edit', id]);
   }
 
-  deleteTest(id: number) {
-    if (confirm('¿Está seguro de que desea eliminar este test? Si el test ya ha sido utilizado por pacientes, no se podrá eliminar.')) {
+  async deleteTest(id: number): Promise<void> {
+    const confirmed = await this.notificationService.confirm(
+      'Eliminar prueba',
+      '¿Está seguro de que desea eliminar este test? Si el test ya ha sido utilizado por pacientes, no se podrá eliminar.',
+      'Sí, eliminar',
+      'Cancelar'
+    );
+    if (confirmed) {
       this.assessmentService.deleteTest(id).subscribe({
         next: () => {
+          this.toastService.show('Prueba eliminada exitosamente', 'success');
           this.loadTests();
         },
         error: (err) => {
-          alert('Error al eliminar: ' + (err.error?.message || err.message));
+          this.toastService.show('Error al eliminar: ' + (err.error?.message || err.message), 'error');
         }
       });
     }

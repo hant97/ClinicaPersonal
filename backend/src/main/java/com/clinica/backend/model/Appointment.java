@@ -52,4 +52,7 @@ public class Appointment {
 
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
+
+    @Column(name = "specialty", nullable = false)
+    private String specialty = "PSICOLOGIA";
 }

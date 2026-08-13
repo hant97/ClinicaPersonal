@@ -22,6 +22,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final TokenRevocationService tokenRevocationService;
 
     @Override
     protected void doFilterInternal(
@@ -45,7 +46,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
                 
-                if (jwtService.isTokenValid(jwt, userDetails)) {
+                if (jwtService.isTokenValid(jwt, userDetails)
+                        && jwtService.extractTokenVersion(jwt) == ((com.clinica.backend.model.User) userDetails).getTokenVersion()
+                        && !tokenRevocationService.isRevoked(jwtService.extractTokenId(jwt))) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,

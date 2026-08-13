@@ -4,11 +4,15 @@ import com.clinica.backend.dto.CreateUserRequest;
 import com.clinica.backend.dto.UpdatePasswordRequest;
 import com.clinica.backend.dto.UpdateProfileRequest;
 import com.clinica.backend.dto.UserProfileDTO;
+import com.clinica.backend.exception.ResourceNotFoundException;
+import com.clinica.backend.exception.BusinessRuleException;
+import com.clinica.backend.exception.ConflictException;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 
@@ -18,10 +22,11 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenService refreshTokenService;
 
     public UserProfileDTO createUser(CreateUserRequest request) {
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-            throw new IllegalArgumentException("El nombre de usuario ya está registrado");
+            throw new ConflictException("El nombre de usuario ya está registrado");
         }
 
         User user = new User();
@@ -34,20 +39,20 @@ public class UserService {
         user.setRoles(request.getRoles() != null && !request.getRoles().isEmpty() 
                 ? request.getRoles() 
                 : Set.of("ROLE_STAFF"));
-
+        user.setSpecialty(request.getSpecialty());
         userRepository.save(user);
         return mapToDTO(user);
     }
 
     public UserProfileDTO getUserProfile(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         return mapToDTO(user);
     }
 
     public UserProfileDTO updateProfile(String username, UpdateProfileRequest request) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
@@ -58,16 +63,39 @@ public class UserService {
         return mapToDTO(user);
     }
 
+    @Transactional
     public void updatePassword(String username, UpdatePasswordRequest request) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-            throw new RuntimeException("La contraseña actual es incorrecta");
+            throw new BusinessRuleException("La contraseña actual es incorrecta");
         }
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setTokenVersion(user.getTokenVersion() + 1);
         userRepository.save(user);
+        refreshTokenService.revokeAllForUser(user.getId());
+    }
+
+    @Transactional
+    public void disableUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+        user.setEnabled(false);
+        user.setTokenVersion(user.getTokenVersion() + 1);
+        userRepository.save(user);
+        refreshTokenService.revokeAllForUser(userId);
+    }
+
+    @Transactional
+    public void resetPassword(Long userId, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setTokenVersion(user.getTokenVersion() + 1);
+        userRepository.save(user);
+        refreshTokenService.revokeAllForUser(userId);
     }
 
     private UserProfileDTO mapToDTO(User user) {
@@ -79,6 +107,7 @@ public class UserService {
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .roles(user.getRoles())
+                .specialty(user.getSpecialty())
                 .build();
     }
 }

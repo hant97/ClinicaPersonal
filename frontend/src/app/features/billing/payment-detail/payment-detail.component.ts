@@ -4,11 +4,12 @@ import { Payment } from '../../../core/models/payment.model';
 import { LucideAngularModule, Printer, X } from 'lucide-angular';
 import { ClinicSettingsService, ClinicSettings } from '../../../core/services/clinic-settings.service';
 import { Subscription } from 'rxjs';
+import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
 
 @Component({
   selector: 'app-payment-detail',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, FocusTrapDirective],
   templateUrl: './payment-detail.component.html'
 })
 export class PaymentDetailComponent implements OnInit, OnDestroy {

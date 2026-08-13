@@ -1,9 +1,10 @@
 <div class="flex min-h-screen bg-canvas">
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
   @if (isSidebarOpen) {
     <button type="button" class="fixed inset-0 z-30 bg-slate-950/40 backdrop-blur-sm md:hidden" aria-label="Cerrar menú de navegación" (click)="closeSidebar()"></button>
   }
 
-  <aside id="main-navigation" class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full flex-col border-r border-line bg-surface py-6 shadow-raised transition-transform duration-200 md:sticky md:top-0 md:h-screen md:translate-x-0 md:shadow-none" [class.translate-x-0]="isSidebarOpen">
+  <aside id="main-navigation" aria-label="Navegación principal" [attr.inert]="isMobile && !isSidebarOpen ? '' : null" [attr.aria-hidden]="isMobile && !isSidebarOpen ? 'true' : null" class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-line bg-surface py-6 shadow-raised transition-transform duration-200 md:sticky md:top-0 md:h-screen md:translate-x-0 md:shadow-none" [class.translate-x-0]="isSidebarOpen">
     <div class="mb-4 border-b border-line px-5 pb-5">
       <div class="flex items-center gap-3">
         @if (clinicSettings?.logoUrl) {
@@ -11,39 +12,48 @@
             <img class="max-h-full max-w-full object-contain" [src]="getLogoUrl(clinicSettings?.logoUrl)" alt="Logo de la clínica">
           </div>
         } @else {
-          <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-clinic-100 text-xl" aria-hidden="true">🌿</div>
+          <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[50%_50%_50%_8px] bg-clinic-600 text-white" aria-hidden="true"><lucide-icon [img]="HeartHandshake" [size]="22"></lucide-icon></div>
         }
-        <h2 class="truncate font-display text-lg font-bold text-clinic-900">{{ clinicSettings?.shortName || 'Cargando...' }}</h2>
+        <h2 class="truncate font-display text-base font-semibold tracking-tight text-clinic-900">{{ clinicSettings?.shortName || 'Cargando...' }}</h2>
       </div>
     </div>
 
     <nav class="flex flex-1 flex-col gap-1 px-3" aria-label="Navegación principal">
+      @if (!isSiteAdmin) {
       <a routerLink="/dashboard" routerLinkActive="bg-clinic-600 text-white shadow-sm" [routerLinkActiveOptions]="{ exact: true }" class="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition hover:bg-clinic-50 hover:text-clinic-900 focus:outline-none focus:ring-2 focus:ring-clinic-500 focus:ring-offset-2" (click)="closeSidebar()"><lucide-icon [img]="LayoutDashboard" [size]="20" [strokeWidth]="2"></lucide-icon> Inicio</a>
       <a routerLink="/agenda" routerLinkActive="bg-clinic-600 text-white shadow-sm" [routerLinkActiveOptions]="{ exact: true }" class="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition hover:bg-clinic-50 hover:text-clinic-900 focus:outline-none focus:ring-2 focus:ring-clinic-500 focus:ring-offset-2" (click)="closeSidebar()"><lucide-icon [img]="CalendarDays" [size]="20" [strokeWidth]="2"></lucide-icon> Agenda</a>
       <a routerLink="/patients" routerLinkActive="bg-clinic-600 text-white shadow-sm" [routerLinkActiveOptions]="{ paths: 'subset', queryParams: 'exact', matrixParams: 'ignored', fragment: 'ignored' }" class="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition hover:bg-clinic-50 hover:text-clinic-900 focus:outline-none focus:ring-2 focus:ring-clinic-500 focus:ring-offset-2" (click)="closeSidebar()"><lucide-icon [img]="Users" [size]="20" [strokeWidth]="2"></lucide-icon> Pacientes</a>
       <a routerLink="/patients" [queryParams]="{ clinical: 'true' }" routerLinkActive="bg-clinic-600 text-white shadow-sm" [routerLinkActiveOptions]="{ exact: true }" class="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition hover:bg-clinic-50 hover:text-clinic-900 focus:outline-none focus:ring-2 focus:ring-clinic-500 focus:ring-offset-2" (click)="closeSidebar()"><lucide-icon [img]="Stethoscope" [size]="20" [strokeWidth]="2"></lucide-icon> Atención clínica</a>
       <a routerLink="/billing" routerLinkActive="bg-clinic-600 text-white shadow-sm" [routerLinkActiveOptions]="{ exact: true }" class="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition hover:bg-clinic-50 hover:text-clinic-900 focus:outline-none focus:ring-2 focus:ring-clinic-500 focus:ring-offset-2" (click)="closeSidebar()"><lucide-icon [img]="Receipt" [size]="20" [strokeWidth]="2"></lucide-icon> Cobros</a>
 
-      <p class="mt-5 px-3 text-xs font-semibold uppercase tracking-wider text-muted">Operación</p>
+      <p class="mt-5 px-3 text-[10px] font-semibold uppercase tracking-[.16em] text-muted">Operación</p>
       <a routerLink="/services" routerLinkActive="bg-clinic-600 text-white shadow-sm" [routerLinkActiveOptions]="{ exact: true }" class="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition hover:bg-clinic-50 hover:text-clinic-900 focus:outline-none focus:ring-2 focus:ring-clinic-500 focus:ring-offset-2" (click)="closeSidebar()"><lucide-icon [img]="Activity" [size]="20" [strokeWidth]="2"></lucide-icon> Servicios</a>
-      <a routerLink="/tests-catalog" routerLinkActive="bg-clinic-600 text-white shadow-sm" [routerLinkActiveOptions]="{ exact: true }" class="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition hover:bg-clinic-50 hover:text-clinic-900 focus:outline-none focus:ring-2 focus:ring-clinic-500 focus:ring-offset-2" (click)="closeSidebar()"><lucide-icon [img]="ClipboardList" [size]="20" [strokeWidth]="2"></lucide-icon> Pruebas</a>
+
+      @if (isPsychology) {
+        <a routerLink="/tests-catalog" routerLinkActive="bg-clinic-600 text-white shadow-sm" [routerLinkActiveOptions]="{ exact: true }" class="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition hover:bg-clinic-50 hover:text-clinic-900 focus:outline-none focus:ring-2 focus:ring-clinic-500 focus:ring-offset-2" (click)="closeSidebar()"><lucide-icon [img]="ClipboardList" [size]="20" [strokeWidth]="2"></lucide-icon> Pruebas</a>
+      }
+
       <a routerLink="/inventory" routerLinkActive="bg-clinic-600 text-white shadow-sm" [routerLinkActiveOptions]="{ exact: true }" class="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition hover:bg-clinic-50 hover:text-clinic-900 focus:outline-none focus:ring-2 focus:ring-clinic-500 focus:ring-offset-2" (click)="closeSidebar()"><lucide-icon [img]="Package" [size]="20" [strokeWidth]="2"></lucide-icon> Inventario</a>
       <a routerLink="/settings/catalogs" routerLinkActive="bg-clinic-600 text-white shadow-sm" class="mt-5 flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition hover:bg-clinic-50 hover:text-clinic-900 focus:outline-none focus:ring-2 focus:ring-clinic-500 focus:ring-offset-2" (click)="closeSidebar()"><lucide-icon [img]="Settings" [size]="20" [strokeWidth]="2"></lucide-icon> Configuración</a>
+      }
+      @if (isSiteAdmin) {
+        <a routerLink="/settings/website" routerLinkActive="bg-clinic-600 text-white shadow-sm" class="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition hover:bg-clinic-50 hover:text-clinic-900 focus:outline-none focus:ring-2 focus:ring-clinic-500 focus:ring-offset-2" (click)="closeSidebar()"><lucide-icon [img]="Settings" [size]="20" [strokeWidth]="2"></lucide-icon> Configuración del sitio web</a>
+      }
     </nav>
 
     <div class="mt-5 border-t border-line px-3 pt-4">
-      <a routerLink="/login" class="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-danger transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2"><lucide-icon [img]="LogOut" [size]="20" [strokeWidth]="2"></lucide-icon> Cerrar sesión</a>
+       <button type="button" class="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-danger transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2" (click)="logout()"><lucide-icon [img]="LogOut" [size]="20" [strokeWidth]="2"></lucide-icon> Cerrar sesión</button>
     </div>
   </aside>
 
-  <main class="flex min-w-0 flex-1 flex-col">
-    <header class="flex min-h-[72px] items-center justify-between border-b border-line bg-gradient-to-br from-canvas to-[#e3e8e7] px-4 md:px-8">
+  <main id="contenido" tabindex="-1" class="flex min-w-0 flex-1 flex-col">
+    <header class="flex min-h-[72px] items-center justify-between border-b border-line bg-surface px-4 md:px-8">
       <div class="flex min-w-0 items-center gap-3">
-        <button type="button" class="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-clinic-900 transition hover:bg-clinic-50 focus:outline-none focus:ring-2 focus:ring-clinic-500 focus:ring-offset-2 md:hidden" [attr.aria-expanded]="isSidebarOpen" aria-controls="main-navigation" aria-label="Abrir menú de navegación" (click)="toggleSidebar()"><lucide-icon [img]="Menu" [size]="24"></lucide-icon></button>
-        <h1 class="truncate font-display text-lg font-semibold text-clinic-900">Bienvenida(o), {{ greetingName }}</h1>
+        <button #menuToggle type="button" class="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-clinic-900 transition hover:bg-clinic-50 focus:outline-none focus:ring-2 focus:ring-clinic-500 focus:ring-offset-2 md:hidden" [attr.aria-expanded]="isSidebarOpen" aria-controls="main-navigation" [attr.aria-label]="isSidebarOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'" (click)="toggleSidebar()"><lucide-icon [img]="Menu" [size]="24"></lucide-icon></button>
+        <div class="min-w-0"><p class="hidden text-[10px] font-semibold uppercase tracking-[.16em] text-clinic-500 sm:block">Espacio profesional</p><h1 class="truncate font-display text-lg font-semibold tracking-tight text-clinic-900">Bienvenida, {{ greetingName }}</h1></div>
       </div>
       <a routerLink="/profile" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-clinic-600 font-display text-base font-semibold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-clinic-700 hover:shadow-raised focus:outline-none focus:ring-2 focus:ring-clinic-500 focus:ring-offset-2" title="Mi perfil" aria-label="Ir a mi perfil">{{ avatarLetter }}</a>
     </header>
-    <div class="flex-1 p-4 md:p-8"><router-outlet></router-outlet></div>
+    <div class="flex-1 bg-canvas p-4 md:p-8"><div class="mx-auto w-full max-w-[1440px]"><router-outlet></router-outlet></div></div>
   </main>
 </div>

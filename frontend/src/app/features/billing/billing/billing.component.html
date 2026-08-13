@@ -7,10 +7,17 @@
     </div>
   </div>
   <div class="relative mb-6 max-w-2xl"><lucide-icon [img]="Search" [size]="20" class="input-leading-icon"></lucide-icon><input type="text" class="input-field input-with-leading-icon" placeholder="Buscar por paciente o motivo..." (input)="onSearch($event)"></div>
-  <div class="table-responsive"><table class="minimal-table min-w-[720px]"><thead><tr><th>Fecha</th><th>Paciente</th><th>Descripción</th><th>Monto</th><th>Método</th><th><span class="sr-only">Acciones</span></th></tr></thead><tbody>
-    @for (payment of payments; track payment.id) { <tr><td>{{ payment.paymentDate | date:'medium' }}</td><td class="font-medium">{{ payment.patientName }}</td><td>{{ payment.description || '-' }}</td><td class="font-semibold text-clinic-700">{{ payment.amount | currency:'PEN':'S/ ':'1.2-2' }}</td><td><span class="rounded-full border border-line bg-clinic-50 px-2.5 py-1 text-xs font-medium text-clinic-700">{{ getPaymentMethodText(payment.paymentMethod) }}</span></td><td><div class="flex gap-1"><button class="btn-text" (click)="viewPayment(payment)" title="Ver detalle"><lucide-icon [img]="Eye" [size]="18"></lucide-icon></button><button class="btn-text" (click)="openForm(payment)" title="Editar"><lucide-icon [img]="Edit" [size]="18"></lucide-icon></button><button class="inline-flex items-center justify-center rounded-lg p-2 text-danger transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-danger" (click)="deletePayment(payment.id!)" title="Eliminar"><lucide-icon [img]="Trash2" [size]="18"></lucide-icon></button></div></td></tr> }
-    @empty { <tr><td colspan="6" class="py-12 text-center text-muted">No hay pagos registrados.</td></tr> }
-  </tbody></table><app-pagination [currentPage]="currentPage" [totalPages]="totalPages" (pageChange)="onPageChange($event)"></app-pagination></div>
+  @if (isLoading) {
+    <div class="list-state"><span class="spinner" role="status" aria-label="Cargando cobros"></span><p>Cargando cobros…</p></div>
+  } @else if (loadError) {
+    <div class="list-state"><p>No se pudo cargar la facturación.</p><button class="btn-secondary" (click)="loadPayments()">Reintentar</button></div>
+  } @else if (payments.length === 0) {
+    <div class="list-state"><p>No hay pagos registrados.</p></div>
+  } @else {
+    <div class="table-responsive"><table class="minimal-table min-w-[720px]"><thead><tr><th>Fecha</th><th>Paciente</th><th>Descripción</th><th>Monto</th><th>Método</th><th><span class="sr-only">Acciones</span></th></tr></thead><tbody>
+      @for (payment of payments; track payment.id) { <tr><td>{{ payment.paymentDate | date:'medium' }}</td><td class="font-medium">{{ payment.patientName }}</td><td>{{ payment.description || '-' }}</td><td class="font-semibold text-clinic-700">{{ payment.amount | currency:'PEN':'S/ ':'1.2-2' }}</td><td><span class="rounded-full border border-line bg-clinic-50 px-2.5 py-1 text-xs font-medium text-clinic-700">{{ getPaymentMethodText(payment.paymentMethod) }}</span></td><td><div class="flex gap-1"><button class="btn-text" (click)="viewPayment(payment)" title="Ver detalle" [attr.aria-label]="'Ver detalle del cobro de ' + payment.patientName"><lucide-icon [img]="Eye" [size]="18"></lucide-icon></button><button class="btn-text" (click)="openForm(payment)" title="Editar" [attr.aria-label]="'Editar cobro de ' + payment.patientName"><lucide-icon [img]="Edit" [size]="18"></lucide-icon></button><button class="inline-flex items-center justify-center rounded-lg p-2 text-danger transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-danger" (click)="deletePayment(payment.id!)" title="Eliminar" [attr.aria-label]="'Eliminar cobro de ' + payment.patientName"><lucide-icon [img]="Trash2" [size]="18"></lucide-icon></button></div></td></tr> }
+    </tbody></table><app-pagination [currentPage]="currentPage" [totalPages]="totalPages" (pageChange)="onPageChange($event)"></app-pagination></div>
+  }
 </section>
 @if (showForm) { <app-payment-form [payment]="selectedPayment" (saved)="onPaymentSaved()" (cancelled)="closeForm()"></app-payment-form> }
 @if (viewingPayment) { <app-payment-detail [payment]="viewingPayment" [paymentMethodText]="getPaymentMethodText(viewingPayment.paymentMethod)" (close)="closeView()"></app-payment-detail> }

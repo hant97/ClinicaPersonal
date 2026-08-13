@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardService, DashboardStats } from '../../../core/services/dashboard.service';
-import { LucideAngularModule, Users, Calendar, DollarSign, Activity, UserPlus, TrendingUp, TrendingDown, Clock, AlertTriangle, Package } from 'lucide-angular';
+import { SpecialtyService } from '../../../core/services/specialty.service';
+import { LucideAngularModule, Users, Calendar, DollarSign, Activity, UserPlus, TrendingUp, TrendingDown, Clock, AlertTriangle, Package, BrainCircuit, Sparkles } from 'lucide-angular';
 
 @Component({
   selector: 'app-dashboard',
@@ -13,7 +14,11 @@ export class DashboardComponent implements OnInit {
   stats: DashboardStats | null = null;
   isLoading = true;
   loadError = false;
-  
+
+  isPsychology = false;
+  isDermatology = false;
+  dashboardTitle = 'Inicio';
+
   readonly Users = Users;
   readonly Calendar = Calendar;
   readonly DollarSign = DollarSign;
@@ -24,10 +29,18 @@ export class DashboardComponent implements OnInit {
   readonly Clock = Clock;
   readonly AlertTriangle = AlertTriangle;
   readonly Package = Package;
+  readonly BrainCircuit = BrainCircuit;
+  readonly Sparkles = Sparkles;
 
-  constructor(private dashboardService: DashboardService) {}
+  constructor(
+    private dashboardService: DashboardService,
+    private specialtyService: SpecialtyService
+  ) {}
 
   ngOnInit(): void {
+    this.isPsychology = this.specialtyService.isPsychology();
+    this.isDermatology = this.specialtyService.isDermatology();
+    this.dashboardTitle = this.isPsychology ? 'Dashboard — Psicología' : (this.isDermatology ? 'Dashboard — Dermatología' : 'Inicio');
     this.loadStats();
   }
 

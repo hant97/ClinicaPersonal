@@ -4,11 +4,13 @@ import com.clinica.backend.dto.InventoryTransactionDto;
 import com.clinica.backend.model.InventoryTransaction;
 import com.clinica.backend.model.Supply;
 import com.clinica.backend.model.TransactionType;
+import com.clinica.backend.model.User;
 import com.clinica.backend.repository.InventoryTransactionRepository;
 import com.clinica.backend.repository.SupplyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,6 +36,10 @@ public class InventoryTransactionService {
 
         Supply supply = supplyRepository.findByIdAndDeletedFalse(dto.getSupplyId())
                 .orElseThrow(() -> new IllegalArgumentException("Insumo no encontrado o dado de baja"));
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!user.getSpecialty().equals(supply.getSpecialty())) {
+            throw new org.springframework.security.access.AccessDeniedException("Insumo fuera de la especialidad del usuario");
+        }
 
         int currentStock = supply.getCurrentStock() != null ? supply.getCurrentStock() : 0;
         int newStock;
@@ -72,6 +78,12 @@ public class InventoryTransactionService {
     }
 
     public List<InventoryTransactionDto> getTransactionsBySupply(Long supplyId) {
+        Supply supply = supplyRepository.findByIdAndDeletedFalse(supplyId)
+                .orElseThrow(() -> new IllegalArgumentException("Insumo no encontrado o dado de baja"));
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!user.getSpecialty().equals(supply.getSpecialty())) {
+            throw new org.springframework.security.access.AccessDeniedException("Insumo fuera de la especialidad del usuario");
+        }
         return transactionRepository.findBySupplyIdOrderByTransactionDateDesc(supplyId)
                 .stream()
                 .map(this::mapToDto)

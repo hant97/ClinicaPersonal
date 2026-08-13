@@ -10,8 +10,9 @@ import java.util.List;
 
 @Repository
 public interface ClinicalServiceRepository extends JpaRepository<ClinicalService, Long> {
-    Page<ClinicalService> findByDeletedFalse(Pageable pageable);
-    Page<ClinicalService> findByNameContainingIgnoreCaseAndDeletedFalse(String name, Pageable pageable);
+    Page<ClinicalService> findBySpecialtyAndDeletedFalse(String specialty, Pageable pageable);
+    Page<ClinicalService> findBySpecialtyAndNameContainingIgnoreCaseAndDeletedFalse(String specialty, String name, Pageable pageable);
     Optional<ClinicalService> findByIdAndDeletedFalse(Long id);
-    List<ClinicalService> findByDeletedFalse();
+    List<ClinicalService> findBySpecialtyAndDeletedFalse(String specialty);
+    List<ClinicalService> findAllByDeletedFalseOrderBySpecialtyAscNameAsc();
 }

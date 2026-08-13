@@ -2,6 +2,7 @@ package com.clinica.backend.controller;
 
 import com.clinica.backend.dto.MedicalRecordDto;
 import com.clinica.backend.service.MedicalRecordService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,12 +26,12 @@ public class MedicalRecordController {
     }
 
     @PostMapping
-    public ResponseEntity<MedicalRecordDto> createRecord(@RequestBody MedicalRecordDto dto) {
+    public ResponseEntity<MedicalRecordDto> createRecord(@Valid @RequestBody MedicalRecordDto dto) {
         return ResponseEntity.ok(medicalRecordService.createRecord(dto));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<MedicalRecordDto> updateRecord(@PathVariable Long id, @RequestBody MedicalRecordDto dto) {
+    public ResponseEntity<MedicalRecordDto> updateRecord(@PathVariable Long id, @Valid @RequestBody MedicalRecordDto dto) {
         return ResponseEntity.ok(medicalRecordService.updateRecord(id, dto));
     }
 

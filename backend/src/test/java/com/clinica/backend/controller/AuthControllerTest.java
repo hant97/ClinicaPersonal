@@ -6,6 +6,8 @@ import com.clinica.backend.model.User;
 import com.clinica.backend.repository.UserRepository;
 import com.clinica.backend.security.JwtService;
 import com.clinica.backend.security.LoginAttemptService;
+import com.clinica.backend.security.TokenRevocationService;
+import com.clinica.backend.service.RefreshTokenService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +26,7 @@ import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -45,6 +48,12 @@ class AuthControllerTest {
     @Mock
     private LoginAttemptService loginAttemptService;
 
+    @Mock
+    private RefreshTokenService refreshTokenService;
+
+    @Mock
+    private TokenRevocationService tokenRevocationService;
+
     @InjectMocks
     private AuthController authController;
 
@@ -64,14 +73,19 @@ class AuthControllerTest {
         user.setRoles(Set.of("ROLE_ADMIN"));
 
         when(loginAttemptService.isBlocked("admin")).thenReturn(false);
+        when(loginAttemptService.isIpBlocked(anyString())).thenReturn(false);
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(user));
         when(jwtService.generateToken(user)).thenReturn("mocked_jwt_token");
+        when(refreshTokenService.issue(user)).thenReturn("refresh-token");
 
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestJson))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value("mocked_jwt_token"));
+                .andExpect(jsonPath("$.token").value("mocked_jwt_token"))
+                .andExpect(jsonPath("$.roles[0]").value("ROLE_ADMIN"))
+                .andExpect(jsonPath("$.mustChangePassword").doesNotExist())
+                .andExpect(header().string("Set-Cookie", org.hamcrest.Matchers.containsString("SameSite=Strict")));
 
         verify(loginAttemptService).loginSucceeded("admin");
     }
@@ -105,6 +119,7 @@ class AuthControllerTest {
         String requestJson = "{\"username\":\"admin\",\"password\":\"wrongpassword\"}";
 
         when(loginAttemptService.isBlocked("admin")).thenReturn(false);
+        when(loginAttemptService.isIpBlocked(anyString())).thenReturn(false);
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenThrow(new BadCredentialsException("Bad credentials"));
 
@@ -123,15 +138,39 @@ class AuthControllerTest {
         String requestJson = "{\"username\":\"lockeduser\",\"password\":\"password123\"}";
 
         when(loginAttemptService.isBlocked("lockeduser")).thenReturn(true);
-        when(loginAttemptService.getRemainingLockMinutes("lockeduser")).thenReturn(15L);
 
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestJson))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.error").value("Account Locked"));
+                .andExpect(jsonPath("$.message").value("Usuario o contraseña incorrectos"));
 
         verify(authenticationManager, never()).authenticate(any());
+    }
+
+    @Test
+    void shouldReturn401WhenRefreshCookieIsAbsent() throws Exception {
+        when(refreshTokenService.rotate(null)).thenThrow(new BadCredentialsException("Refresh token inválido"));
+
+        mockMvc.perform(post("/api/v1/auth/refresh"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value(401));
+    }
+
+    @Test
+    void logoutRevokesBothRefreshAndAccessTokenAndExpiresCookie() throws Exception {
+        java.util.Date expiration = new java.util.Date(System.currentTimeMillis() + 60_000);
+        when(jwtService.extractTokenId("access-token")).thenReturn("access-id");
+        when(jwtService.extractClaim(eq("access-token"), any())).thenReturn(expiration);
+
+        mockMvc.perform(post("/api/v1/auth/logout")
+                        .cookie(new jakarta.servlet.http.Cookie("refresh_token", "refresh-token"))
+                        .header("Authorization", "Bearer access-token"))
+                .andExpect(status().isNoContent())
+                .andExpect(header().string("Set-Cookie", org.hamcrest.Matchers.containsString("Max-Age=0")));
+
+        verify(refreshTokenService).revoke("refresh-token");
+        verify(tokenRevocationService).revoke("access-id", expiration.toInstant());
     }
 }

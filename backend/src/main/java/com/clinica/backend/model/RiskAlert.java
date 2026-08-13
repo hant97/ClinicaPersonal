@@ -21,6 +21,9 @@ public class RiskAlert {
     @Column(name = "patient_id", nullable = false)
     private Long patientId;
 
+    @Column(name = "specialty", nullable = false)
+    private String specialty = "PSICOLOGIA";
+
     @Column(name = "type", nullable = false)
     private String type;
 

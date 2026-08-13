@@ -2,6 +2,7 @@ package com.clinica.backend.controller;
 
 import com.clinica.backend.dto.PaymentDto;
 import com.clinica.backend.service.PaymentService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,12 +32,12 @@ public class PaymentController {
     }
 
     @PostMapping
-    public ResponseEntity<PaymentDto> create(@RequestBody PaymentDto dto) {
+    public ResponseEntity<PaymentDto> create(@Valid @RequestBody PaymentDto dto) {
         return ResponseEntity.ok(service.create(dto));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PaymentDto> update(@PathVariable Long id, @RequestBody PaymentDto dto) {
+    public ResponseEntity<PaymentDto> update(@PathVariable Long id, @Valid @RequestBody PaymentDto dto) {
         return ResponseEntity.ok(service.update(id, dto));
     }
 

@@ -4,11 +4,12 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ClinicalServiceService } from '../../../core/services/clinical-service.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { LucideAngularModule, X } from 'lucide-angular';
+import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
 
 @Component({
   selector: 'app-clinical-services-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, FocusTrapDirective],
   templateUrl: './clinical-services-form.component.html'
 })
 export class ClinicalServicesFormComponent implements OnInit {

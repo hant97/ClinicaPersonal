@@ -2,7 +2,8 @@ package com.clinica.backend.controller;
 
 import com.clinica.backend.dto.RiskAlertDto;
 import com.clinica.backend.service.RiskAlertService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,10 +12,10 @@ import org.springframework.data.domain.PageRequest;
 
 @RestController
 @RequestMapping({"/api/v1/patients/{patientId}/alerts", "/api/patients/{patientId}/alerts"})
+@RequiredArgsConstructor
 public class RiskAlertController {
 
-    @Autowired
-    private RiskAlertService riskAlertService;
+    private final RiskAlertService riskAlertService;
 
     @GetMapping
     public ResponseEntity<Page<RiskAlertDto>> getAlerts(
@@ -29,7 +30,7 @@ public class RiskAlertController {
     @PostMapping
     public ResponseEntity<RiskAlertDto> createAlert(
             @PathVariable Long patientId,
-            @RequestBody RiskAlertDto dto) {
+            @Valid @RequestBody RiskAlertDto dto) {
         dto.setPatientId(patientId);
         return ResponseEntity.ok(riskAlertService.createAlert(dto));
     }

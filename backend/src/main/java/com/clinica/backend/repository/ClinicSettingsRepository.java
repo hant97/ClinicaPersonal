@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface ClinicSettingsRepository extends JpaRepository<ClinicSettings, Long> {
-    Optional<ClinicSettings> findTopByDeletedFalseOrderByIdAsc();
+    Optional<ClinicSettings> findTopBySpecialtyAndDeletedFalseOrderByIdAsc(String specialty);
 }

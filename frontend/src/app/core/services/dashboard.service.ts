@@ -17,6 +17,9 @@ export interface DashboardStats {
   monthlyIncomeGrowth: number;
   activeRiskAlerts: RiskAlert[];
   lowStockSupplies: Supply[];
+  psychometricEvaluationsThisMonth: number;
+  dermatologicalEvaluationsThisMonth: number;
+  dermatologicalProceduresThisMonth: number;
 }
 
 @Injectable({

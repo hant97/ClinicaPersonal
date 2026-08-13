@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AssessmentService } from '../../../core/services/assessment.service';
 import { Assessment, PsychometricTest, Question } from '../../../core/models/assessment.model';
+import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
 
 @Component({
   selector: 'app-assessment-form',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, FocusTrapDirective],
   templateUrl: './assessment-form.component.html',
 })
 export class AssessmentFormComponent implements OnInit {

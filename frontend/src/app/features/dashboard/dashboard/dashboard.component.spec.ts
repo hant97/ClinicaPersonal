@@ -2,12 +2,16 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { DashboardService, DashboardStats } from '../../../core/services/dashboard.service';
 import { DashboardComponent } from './dashboard.component';
+import { SpecialtyService } from '../../../core/services/specialty.service';
 
 const dashboardStats: DashboardStats = {
   activePatients: 12, appointmentsToday: 3, monthlyIncome: 450,
   upcomingAppointments: [], attendanceRate: 90, cancelledAppointments: 0,
   newPatientsThisMonth: 2, monthlyIncomeGrowth: 10,
-  activeRiskAlerts: [], lowStockSupplies: []
+   activeRiskAlerts: [], lowStockSupplies: [],
+   psychometricEvaluationsThisMonth: 0,
+   dermatologicalEvaluationsThisMonth: 0,
+   dermatologicalProceduresThisMonth: 0
 };
 
 describe('DashboardComponent', () => {
@@ -20,7 +24,10 @@ describe('DashboardComponent', () => {
     dashboardService.getDashboardStats.and.returnValue(of(dashboardStats));
     await TestBed.configureTestingModule({
       imports: [DashboardComponent],
-      providers: [{ provide: DashboardService, useValue: dashboardService }]
+      providers: [
+        { provide: DashboardService, useValue: dashboardService },
+        { provide: SpecialtyService, useValue: { isPsychology: () => false, isDermatology: () => true } }
+      ]
     }).compileComponents();
     fixture = TestBed.createComponent(DashboardComponent);
     component = fixture.componentInstance;

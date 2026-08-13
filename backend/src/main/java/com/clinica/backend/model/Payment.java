@@ -43,4 +43,7 @@ public class Payment {
 
     @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, orphanRemoval = true)
     private java.util.List<PaymentItem> items = new java.util.ArrayList<>();
+
+    @Column(name = "specialty", nullable = false)
+    private String specialty = "PSICOLOGIA";
 }

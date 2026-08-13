@@ -11,4 +11,5 @@ public class ClinicSettingsDto {
     private String contactEmail;
     private String contactPhone;
     private String address;
+    private String specialty;
 }

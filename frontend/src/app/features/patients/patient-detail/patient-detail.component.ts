@@ -13,15 +13,17 @@ import { RiskAlertFormComponent } from '../risk-alert-form/risk-alert-form.compo
 import { RiskAlertService } from '../../../core/services/risk-alert.service';
 import { RiskAlert } from '../../../core/models/risk-alert.model';
 import { CatalogService } from '../../../core/services/catalog.service';
+import { SpecialtyService } from '../../../core/services/specialty.service';
 import { MedicalRecordService } from '../../../core/services/medical-record.service';
 import { MedicalRecord } from '../../../core/models/medical-record.model';
 import { MedicalRecordFormComponent } from '../medical-record-form/medical-record-form.component';
+import { RouterLink } from '@angular/router';
 import { LucideAngularModule, FileText, Pill, ClipboardList, Activity, Calendar, User, Phone } from 'lucide-angular';
 
 @Component({
   selector: 'app-patient-detail',
   standalone: true,
-  imports: [CommonModule, ClinicalSessionFormComponent, AssessmentListComponent, RiskAlertFormComponent, MedicalRecordFormComponent, LucideAngularModule],
+  imports: [CommonModule, RouterLink, ClinicalSessionFormComponent, AssessmentListComponent, RiskAlertFormComponent, MedicalRecordFormComponent, LucideAngularModule],
   templateUrl: './patient-detail.component.html',
 })
 export class PatientDetailComponent implements OnInit {
@@ -32,7 +34,7 @@ export class PatientDetailComponent implements OnInit {
   readonly Phone = Phone;
   readonly Activity = Activity;
   readonly Calendar = Calendar;
-  
+
   patient: Patient | null = null;
   sessions: ClinicalSession[] = [];
   activeAlerts: RiskAlert[] = [];
@@ -56,8 +58,17 @@ export class PatientDetailComponent implements OnInit {
     private medicalRecordService: MedicalRecordService,
     private catalogService: CatalogService,
     private notificationService: NotificationService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private specialtyService: SpecialtyService
   ) {}
+
+  get isPsychology(): boolean {
+    return this.specialtyService.isPsychology();
+  }
+
+  get isDermatology(): boolean {
+    return this.specialtyService.isDermatology();
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -67,7 +78,7 @@ export class PatientDetailComponent implements OnInit {
       this.loadAlerts(Number(id));
       this.loadMedicalRecords(Number(id));
     }
-    
+
     // Fase 2: Abrir sesión automáticamente si viene de completar cita
     this.route.queryParams.subscribe(params => {
       if (params['newSession'] === 'true') {
@@ -78,8 +89,8 @@ export class PatientDetailComponent implements OnInit {
 
   loadAlerts(patientId: number): void {
     this.riskAlertService.getAlertsByPatientId(patientId, true).subscribe({
-      next: (data: any) => {
-        this.activeAlerts = data.content || data || [];
+      next: (data) => {
+        this.activeAlerts = data.content;
         this.resolveAlertLabels();
       },
       error: (err) => console.error('Error fetching alerts', err)
@@ -87,21 +98,34 @@ export class PatientDetailComponent implements OnInit {
   }
 
   resolveAlertLabels(): void {
-    this.catalogService.getActiveItemsByCatalogCode('RISK_ALERT_TYPE').subscribe({
+    const catalogCode = this.isPsychology ? 'RISK_ALERT_TYPE' : 'RISK_ALERT_TYPE_DERM';
+    this.catalogService.getActiveItemsByCatalogCode(catalogCode).subscribe({
       next: (types) => {
         this.catalogService.getActiveItemsByCatalogCode('RISK_ALERT_LEVEL').subscribe({
           next: (levels) => {
+            // Filter alerts that belong to this specialty and map their labels
+            const validTypes = new Set(types.map(t => t.itemCode));
+            const filteredAlerts: RiskAlert[] = [];
+
             this.activeAlerts.forEach(alert => {
-              const typeItem = types.find(t => t.itemCode === alert.type);
-              const levelItem = levels.find(l => l.itemCode === alert.level);
-              alert.type = typeItem ? typeItem.itemName : alert.type;
-              alert.level = levelItem ? levelItem.itemName : alert.level;
+              // MockDataSeeder uses names directly instead of codes for legacy data,
+              // we check if it matches either the code or the name.
+              const typeItem = types.find(t => t.itemCode === alert.type || t.itemName === alert.type);
+
+              if (typeItem) {
+                const levelItem = levels.find(l => l.itemCode === alert.level || l.itemName === alert.level);
+                alert.type = typeItem.itemName;
+                alert.level = levelItem ? levelItem.itemName : alert.level;
+                filteredAlerts.push(alert);
+              }
             });
+
+            this.activeAlerts = filteredAlerts;
           },
           error: (err) => console.error('Error fetching RISK_ALERT_LEVEL', err)
         });
       },
-      error: (err) => console.error('Error fetching RISK_ALERT_TYPE', err)
+      error: (err) => console.error('Error fetching ' + catalogCode, err)
     });
   }
 
@@ -141,7 +165,7 @@ export class PatientDetailComponent implements OnInit {
 
   loadMedicalRecords(patientId: number): void {
     this.medicalRecordService.getRecordsByPatientId(patientId).subscribe({
-      next: (data: any) => this.medicalRecords = data.content || data || [],
+      next: (data) => this.medicalRecords = data.content,
       error: (err) => console.error('Error fetching medical records', err)
     });
   }
@@ -217,7 +241,7 @@ export class PatientDetailComponent implements OnInit {
 
   loadSessions(patientId: number): void {
     this.sessionService.getSessionsByPatientId(patientId).subscribe({
-      next: (data: any) => this.sessions = data.content || data || [],
+      next: (data) => this.sessions = data.content,
       error: (err) => console.error('Error fetching sessions', err)
     });
   }

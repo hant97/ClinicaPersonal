@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MedicalRecordService } from '../../../core/services/medical-record.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
+import { SpecialtyService } from '../../../core/services/specialty.service';
 import { MedicalRecord } from '../../../core/models/medical-record.model';
 
 @Component({
@@ -23,15 +24,28 @@ export class MedicalRecordFormComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private medicalRecordService: MedicalRecordService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private specialtyService: SpecialtyService
   ) {}
+
+  get isPsychology(): boolean {
+    return this.specialtyService.isPsychology();
+  }
+
+  get isDermatology(): boolean {
+    return this.specialtyService.isDermatology();
+  }
 
   ngOnInit(): void {
     this.recordForm = this.fb.group({
       diagnosis: [this.record?.diagnosis || ''],
       currentMedication: [this.record?.currentMedication || ''],
       treatmentPlan: [this.record?.treatmentPlan || ''],
-      treatmentStatus: [this.record?.treatmentStatus || 'Activo', [Validators.required]]
+      treatmentStatus: [this.record?.treatmentStatus || 'Activo', [Validators.required]],
+      skinType: [this.record?.skinType || ''],
+      knownAllergies: [this.record?.knownAllergies || ''],
+      chronicConditions: [this.record?.chronicConditions || ''],
+      sunExposureHabits: [this.record?.sunExposureHabits || '']
     });
   }
 

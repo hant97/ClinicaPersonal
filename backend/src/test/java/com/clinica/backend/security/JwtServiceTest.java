@@ -55,4 +55,11 @@ class JwtServiceTest {
         String tamperedToken = token.substring(0, token.length() - 5) + "abcde";
         assertFalse(jwtService.isTokenValid(tamperedToken, user));
     }
+
+    @Test
+    void shouldFailSafelyWhenJwtSecretIsMissing() {
+        ReflectionTestUtils.setField(jwtService, "secretKey", "");
+
+        assertThrows(IllegalStateException.class, jwtService::validateConfiguration);
+    }
 }

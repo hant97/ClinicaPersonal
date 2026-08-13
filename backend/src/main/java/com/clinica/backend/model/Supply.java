@@ -47,4 +47,10 @@ public class Supply {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = true)
     private LocalDateTime createdAt;
+
+    @Column(name = "specialty", nullable = false)
+    private String specialty = "PSICOLOGIA";
+
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;
 }

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ClinicalSessionService } from '../../../core/services/clinical-session.service';
 import { CatalogService } from '../../../core/services/catalog.service';
+import { SpecialtyService } from '../../../core/services/specialty.service';
 import { ClinicalSession } from '../../../core/models/clinical-session.model';
 import { CatalogItem } from '../../../core/models/catalog.model';
 import { ToastService } from '../../../shared/services/toast/toast.service';
@@ -26,8 +27,17 @@ export class ClinicalSessionFormComponent implements OnInit {
     private fb: FormBuilder,
     private sessionService: ClinicalSessionService,
     private catalogService: CatalogService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private specialtyService: SpecialtyService
   ) {}
+
+  get isPsychology(): boolean {
+    return this.specialtyService.isPsychology();
+  }
+
+  get isDermatology(): boolean {
+    return this.specialtyService.isDermatology();
+  }
 
   ngOnInit(): void {
     this.loadCatalogs();
@@ -67,12 +77,17 @@ export class ClinicalSessionFormComponent implements OnInit {
       objective: [this.session?.objective || ''],
       analysis: [this.session?.analysis || ''],
       plan: [this.session?.plan || ''],
+      skinExamFindings: [this.session?.skinExamFindings || ''],
+      dermatologicalDiagnosis: [this.session?.dermatologicalDiagnosis || ''],
+      proceduresPerformed: [this.session?.proceduresPerformed || ''],
+      prescriptions: [this.session?.prescriptions || ''],
       isConfidential: [this.session?.isConfidential || false]
-    }, { validators: this.soapValidator });
+    }, { validators: this.isPsychology ? this.soapValidator : this.dermValidator });
   }
 
   loadCatalogs(): void {
-    this.catalogService.getActiveItemsByCatalogCode('APPOINTMENT_MODALITY').subscribe({
+    const code = this.isDermatology ? 'DERM_MODALITY' : 'APPOINTMENT_MODALITY';
+    this.catalogService.getActiveItemsByCatalogCode(code).subscribe({
       next: (items) => {
         this.appointmentModalities = items;
       },
@@ -91,6 +106,16 @@ export class ClinicalSessionFormComponent implements OnInit {
 
     if (!s && !o && !a && !p) {
       return { 'soapRequired': true };
+    }
+    return null;
+  }
+
+  dermValidator = (group: FormGroup): { [key: string]: boolean } | null => {
+    const findings = group.get('skinExamFindings')?.value?.trim();
+    const diag = group.get('dermatologicalDiagnosis')?.value?.trim();
+
+    if (!findings && !diag) {
+      return { 'dermRequired': true };
     }
     return null;
   }

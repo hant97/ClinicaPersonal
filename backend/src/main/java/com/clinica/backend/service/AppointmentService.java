@@ -14,6 +14,8 @@ import java.time.LocalTime;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.clinica.backend.model.User;
 
 @Service
 @RequiredArgsConstructor
@@ -21,15 +23,21 @@ public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final PatientRepository patientRepository;
 
+    private String getCurrentUserSpecialty() {
+        return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getSpecialty();
+    }
+
     @Transactional(readOnly = true)
     public Page<AppointmentDto> getByPatientId(Long patientId, Pageable pageable) {
-        return appointmentRepository.findByPatientIdOrderByAppointmentDateDescStartTimeDesc(patientId, pageable)
+        String specialty = getCurrentUserSpecialty();
+        return appointmentRepository.findByPatientIdAndSpecialtyOrderByAppointmentDateDescStartTimeDesc(patientId, specialty, pageable)
                 .map(this::mapToDto);
     }
 
     @Transactional(readOnly = true)
     public Page<AppointmentDto> getAll(Pageable pageable) {
-        return appointmentRepository.findAllByOrderByAppointmentDateAscStartTimeAsc(pageable)
+        String specialty = getCurrentUserSpecialty();
+        return appointmentRepository.findAllBySpecialtyOrderByAppointmentDateAscStartTimeAsc(specialty, pageable)
                 .map(this::mapToDto);
     }
 
@@ -40,15 +48,16 @@ public class AppointmentService {
             searchTerm = "";
         if (status != null && status.trim().isEmpty())
             status = null;
+        String specialty = getCurrentUserSpecialty();
 
-        return appointmentRepository.searchAppointments(searchTerm, status, startDate, endDate, pageable)
+        return appointmentRepository.searchAppointmentsBySpecialty(searchTerm, status, startDate, endDate, specialty, pageable)
                 .map(this::mapToDto);
     }
 
     @Transactional
     public AppointmentDto create(AppointmentDto dto) {
         validateAppointmentTime(dto.getAppointmentDate(), dto.getStartTime(), dto.getEndTime(), null);
-        Patient patient = patientRepository.findById(dto.getPatientId()).orElseThrow();
+        Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(dto.getPatientId(), getCurrentUserSpecialty()).orElseThrow();
         Appointment appointment = new Appointment();
         appointment.setPatient(patient);
 
@@ -62,6 +71,7 @@ public class AppointmentService {
         appointment.setFirstTime(dto.isFirstTime());
         appointment.setClinicalSessionId(dto.getClinicalSessionId());
         appointment.setNotes(dto.getNotes());
+        appointment.setSpecialty(getCurrentUserSpecialty());
 
         return mapToDto(appointmentRepository.save(appointment));
     }
@@ -70,6 +80,9 @@ public class AppointmentService {
     public AppointmentDto update(Long id, AppointmentDto dto) {
         validateAppointmentTime(dto.getAppointmentDate(), dto.getStartTime(), dto.getEndTime(), id);
         Appointment appointment = appointmentRepository.findById(id).orElseThrow();
+        if (!getCurrentUserSpecialty().equals(appointment.getSpecialty())) {
+            throw new org.springframework.security.access.AccessDeniedException("Cita fuera de la especialidad del usuario");
+        }
 
         appointment.setAppointmentDate(dto.getAppointmentDate());
         appointment.setStartTime(dto.getStartTime());
@@ -86,6 +99,9 @@ public class AppointmentService {
     @Transactional
     public AppointmentDto updateStatus(Long id, String newStatus) {
         Appointment appointment = appointmentRepository.findById(id).orElseThrow();
+        if (!getCurrentUserSpecialty().equals(appointment.getSpecialty())) {
+            throw new org.springframework.security.access.AccessDeniedException("Cita fuera de la especialidad del usuario");
+        }
         String currentStatus = appointment.getStatus();
 
         if (newStatus.equals(currentStatus)) {
@@ -119,7 +135,8 @@ public class AppointmentService {
             throw new IllegalArgumentException("La hora de inicio (" + start + ") debe ser anterior a la hora de fin (" + end + ").");
         }
 
-        List<Appointment> overlapping = appointmentRepository.findByAppointmentDateAndStatusNot(date, "CANCELADA");
+        String specialty = getCurrentUserSpecialty();
+        List<Appointment> overlapping = appointmentRepository.findByAppointmentDateAndStatusNotAndSpecialty(date, "CANCELADA", specialty);
 
         boolean hasConflict = overlapping.stream()
                 .filter(app -> excludeId == null || !app.getId().equals(excludeId))
@@ -149,6 +166,7 @@ public class AppointmentService {
         dto.setFirstTime(appointment.isFirstTime());
         dto.setClinicalSessionId(appointment.getClinicalSessionId());
         dto.setNotes(appointment.getNotes());
+        dto.setSpecialty(appointment.getSpecialty());
         return dto;
     }
 }

@@ -3,6 +3,7 @@ package com.clinica.backend.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,7 +22,8 @@ public class CreateUserRequest {
     private String username;
 
     @NotBlank(message = "La contraseña es obligatoria")
-    @Size(min = 6, max = 100, message = "La contraseña debe tener al menos 6 caracteres")
+    @Size(min = 8, max = 100, message = "La contraseña debe tener al menos 8 caracteres")
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d]).{8,100}$", message = "La contraseña debe incluir mayúsculas, minúsculas, un número y un símbolo")
     private String password;
 
     private String firstName;
@@ -32,4 +34,7 @@ public class CreateUserRequest {
 
     private String phone;
     private Set<String> roles;
+
+    @NotBlank(message = "La especialidad es obligatoria")
+    private String specialty;
 }

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">Espacio de escucha y bienestar</title>
+  <desc id="desc">Composición editorial abstracta que representa una conversación tranquila.</desc>
+  <rect width="1200" height="900" fill="#dcebe2"/>
+  <rect x="94" y="90" width="1012" height="720" fill="#f5f1e8"/>
+  <circle cx="720" cy="305" r="112" fill="#e7bfa7"/>
+  <path d="M608 305c8-119 190-154 247-26-61-29-147-7-247 26Z" fill="#315b57"/>
+  <path d="M592 462c55-83 185-93 264-10l35 271H554Z" fill="#6e9585"/>
+  <circle cx="674" cy="315" r="7" fill="#183b3e"/><circle cx="754" cy="315" r="7" fill="#183b3e"/>
+  <path d="M685 362c18 13 39 13 57-1" fill="none" stroke="#a56d5f" stroke-width="7" stroke-linecap="round"/>
+  <path d="M172 769c20-160 157-218 280-142 62 38 85 104 73 233H144Z" fill="#e6c2ab"/>
+  <path d="M141 750c49-111 139-155 248-113 38 15 70 41 95 78-100-22-213-7-343 77Z" fill="#8b7162"/>
+  <circle cx="414" cy="723" r="12" fill="#f1d1bb"/>
+  <path d="M381 737c38-27 75-28 111-5" fill="none" stroke="#183b3e" stroke-width="8" stroke-linecap="round"/>
+</svg>

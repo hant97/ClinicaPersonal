@@ -12,11 +12,11 @@ import java.util.Optional;
 
 @Repository
 public interface SupplyRepository extends JpaRepository<Supply, Long> {
-    Page<Supply> findByDeletedFalse(Pageable pageable);
-    Page<Supply> findByNameContainingIgnoreCaseAndDeletedFalse(String name, Pageable pageable);
-    List<Supply> findByDeletedFalse();
+    Page<Supply> findBySpecialtyAndDeletedFalse(String specialty, Pageable pageable);
+    Page<Supply> findBySpecialtyAndNameContainingIgnoreCaseAndDeletedFalse(String specialty, String name, Pageable pageable);
+    List<Supply> findBySpecialtyAndDeletedFalse(String specialty);
     Optional<Supply> findByIdAndDeletedFalse(Long id);
     
-    @Query("SELECT s FROM Supply s WHERE s.deleted = false AND s.currentStock IS NOT NULL AND s.minStockLevel IS NOT NULL AND s.currentStock <= s.minStockLevel")
-    List<Supply> findLowStockSupplies();
+    @Query("SELECT s FROM Supply s WHERE s.deleted = false AND s.specialty = :specialty AND s.currentStock IS NOT NULL AND s.minStockLevel IS NOT NULL AND s.currentStock <= s.minStockLevel")
+    List<Supply> findLowStockSuppliesBySpecialty(String specialty);
 }

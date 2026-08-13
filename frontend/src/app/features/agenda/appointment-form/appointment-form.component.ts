@@ -10,6 +10,7 @@ import { NotificationService } from '../../../shared/services/notification/notif
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { PatientAutocompleteComponent } from '../../../shared/components/patient-autocomplete/patient-autocomplete.component';
 import { LucideAngularModule, Clock, Calendar, Video, User, AlertTriangle } from 'lucide-angular';
+import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
 
 export function futureDateValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -32,7 +33,7 @@ export function timeOrderValidator(): ValidatorFn {
 @Component({
   selector: 'app-appointment-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PatientAutocompleteComponent, LucideAngularModule],
+  imports: [CommonModule, ReactiveFormsModule, PatientAutocompleteComponent, LucideAngularModule, FocusTrapDirective],
   templateUrl: './appointment-form.component.html',
 })
 export class AppointmentFormComponent implements OnInit {

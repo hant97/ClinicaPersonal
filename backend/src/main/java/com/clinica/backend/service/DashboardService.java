@@ -11,6 +11,9 @@ import com.clinica.backend.repository.AppointmentRepository;
 import com.clinica.backend.repository.PatientRepository;
 import com.clinica.backend.repository.PaymentRepository;
 import com.clinica.backend.repository.RiskAlertRepository;
+import com.clinica.backend.repository.AssessmentRepository;
+import com.clinica.backend.repository.DermatologicalEvaluationRepository;
+import com.clinica.backend.repository.CatalogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,9 +38,12 @@ public class DashboardService {
     private final PaymentRepository paymentRepository;
     private final RiskAlertRepository riskAlertRepository;
     private final SupplyService supplyService;
+    private final AssessmentRepository assessmentRepository;
+    private final DermatologicalEvaluationRepository dermatologicalEvaluationRepository;
+    private final CatalogRepository catalogRepository;
 
     @Transactional(readOnly = true)
-    public DashboardStatsDto getDashboardStats() {
+    public DashboardStatsDto getDashboardStats(String specialty) {
         LocalDate today = LocalDate.now();
         LocalTime nowTime = LocalTime.now();
         YearMonth currentYearMonth = YearMonth.from(today);
@@ -48,14 +54,14 @@ public class DashboardService {
         LocalDateTime startOfPreviousMonth = previousYearMonth.atDay(1).atStartOfDay();
 
         // 1. Pacientes activos
-        long activePatients = patientRepository.countByDeletedFalse();
+        long activePatients = patientRepository.countBySpecialtyAndDeletedFalse(specialty);
 
         // 2. Citas hoy
-        long appointmentsToday = appointmentRepository.countByAppointmentDate(today);
+        long appointmentsToday = appointmentRepository.countByAppointmentDateAndSpecialty(today, specialty);
 
         // 3. Cobros del mes actual y mes anterior
-        BigDecimal monthlyIncome = paymentRepository.sumIncomeBetween(startOfCurrentMonth, endOfCurrentMonth);
-        BigDecimal previousMonthlyIncome = paymentRepository.sumIncomeBetween(startOfPreviousMonth, startOfCurrentMonth);
+        BigDecimal monthlyIncome = paymentRepository.sumIncomeBetweenBySpecialty(startOfCurrentMonth, endOfCurrentMonth, specialty);
+        BigDecimal previousMonthlyIncome = paymentRepository.sumIncomeBetweenBySpecialty(startOfPreviousMonth, startOfCurrentMonth, specialty);
 
         int monthlyIncomeGrowth = 0;
         if (previousMonthlyIncome != null && previousMonthlyIncome.compareTo(BigDecimal.ZERO) > 0) {
@@ -68,9 +74,10 @@ public class DashboardService {
         }
 
         // 4. Asistencia y cancelaciones del mes actual
-        List<Appointment> currentMonthAppointments = appointmentRepository.findByAppointmentDateBetween(
+        List<Appointment> currentMonthAppointments = appointmentRepository.findByAppointmentDateBetweenAndSpecialty(
                 currentYearMonth.atDay(1),
-                currentYearMonth.atEndOfMonth()
+                currentYearMonth.atEndOfMonth(),
+                specialty
         );
 
         long completedThisMonth = currentMonthAppointments.stream()
@@ -85,12 +92,13 @@ public class DashboardService {
         int attendanceRate = totalPast > 0 ? (int) Math.round((completedThisMonth * 100.0) / totalPast) : 0;
 
         // 5. Nuevos pacientes este mes
-        long newPatientsThisMonth = patientRepository.countNewPatientsBetween(startOfCurrentMonth, endOfCurrentMonth);
+        long newPatientsThisMonth = patientRepository.countNewPatientsBetween(specialty, startOfCurrentMonth, endOfCurrentMonth);
 
         // 6. Próximas citas (top 5)
-        List<Appointment> upcomingList = appointmentRepository.findUpcomingAppointments(
+        List<Appointment> upcomingList = appointmentRepository.findUpcomingAppointmentsBySpecialty(
                 today,
                 nowTime,
+                specialty,
                 PageRequest.of(0, 5)
         );
 
@@ -115,9 +123,26 @@ public class DashboardService {
                 })
                 .collect(Collectors.toList());
 
-        // 7. Alertas de riesgo activas
-        Page<RiskAlert> riskAlertsPage = riskAlertRepository.findByActiveTrueOrderByCreatedAtDesc(PageRequest.of(0, 10));
+        // 7. Alertas de riesgo activas (filtradas por especialidad si es necesario)
+        // Para simplificar, asumimos que obtenemos todas las activas, pero deberíamos
+        // filtrar por las que correspondan al catálogo de la especialidad
+        Page<RiskAlert> riskAlertsPage = riskAlertRepository.findBySpecialtyAndActiveTrueOrderByCreatedAtDesc(specialty, PageRequest.of(0, 50));
         List<RiskAlert> riskAlerts = riskAlertsPage.getContent();
+
+        // Obtenemos los items del catálogo de riesgos de la especialidad actual
+        String catalogCode = "PSICOLOGIA".equals(specialty) ? "RISK_ALERT_TYPE" : "RISK_ALERT_TYPE_DERM";
+        Set<String> validAlertTypes = new HashSet<>();
+        catalogRepository.findByCode(catalogCode).ifPresent(catalog -> {
+            catalog.getItems().stream()
+                .filter(item -> item.isActive())
+                .forEach(item -> validAlertTypes.add(item.getItemName()));
+        });
+
+        // Filtramos las alertas
+        riskAlerts = riskAlerts.stream()
+            .filter(alert -> validAlertTypes.contains(alert.getType()))
+            .limit(10)
+            .collect(Collectors.toList());
 
         Set<Long> patientIds = riskAlerts.stream()
                 .map(RiskAlert::getPatientId)
@@ -149,6 +174,20 @@ public class DashboardService {
         // 8. Insumos con bajo stock
         List<SupplyDto> lowStockSupplies = supplyService.getLowStockSupplies();
 
+        // 9. Métricas por especialidad
+        long psychometricEvaluationsThisMonth = 0;
+        long dermatologicalEvaluationsThisMonth = 0;
+        long dermatologicalProceduresThisMonth = 0;
+
+        if ("PSICOLOGIA".equals(specialty)) {
+            psychometricEvaluationsThisMonth = assessmentRepository.countByAssessmentDateBetween(startOfCurrentMonth, endOfCurrentMonth);
+        } else if ("DERMATOLOGIA".equals(specialty)) {
+            LocalDate startDate = currentYearMonth.atDay(1);
+            LocalDate endDate = currentYearMonth.plusMonths(1).atDay(1);
+            dermatologicalEvaluationsThisMonth = dermatologicalEvaluationRepository.countByEvaluationDateBetween(startDate, endDate);
+            dermatologicalProceduresThisMonth = dermatologicalEvaluationRepository.countByEvaluationDateBetweenAndProcedurePerformedIsNotNullAndProcedurePerformedNot(startDate, endDate, "");
+        }
+
         return DashboardStatsDto.builder()
                 .activePatients(activePatients)
                 .appointmentsToday(appointmentsToday)
@@ -160,6 +199,9 @@ public class DashboardService {
                 .monthlyIncomeGrowth(monthlyIncomeGrowth)
                 .activeRiskAlerts(activeRiskAlerts)
                 .lowStockSupplies(lowStockSupplies)
+                .psychometricEvaluationsThisMonth(psychometricEvaluationsThisMonth)
+                .dermatologicalEvaluationsThisMonth(dermatologicalEvaluationsThisMonth)
+                .dermatologicalProceduresThisMonth(dermatologicalProceduresThisMonth)
                 .build();
     }
 }

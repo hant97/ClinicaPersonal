@@ -15,6 +15,7 @@ import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -58,17 +59,33 @@ public class JwtService {
                     .map(GrantedAuthority::getAuthority)
                     .toList());
         }
+        if (userDetails instanceof com.clinica.backend.model.User) {
+            extraClaims.put("specialty", ((com.clinica.backend.model.User) userDetails).getSpecialty());
+        }
         return generateToken(extraClaims, userDetails);
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+        if (userDetails instanceof com.clinica.backend.model.User user) {
+            extraClaims.put("tv", user.getTokenVersion());
+        }
         return Jwts.builder()
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
+                .setId(UUID.randomUUID().toString())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    public long extractTokenVersion(String token) {
+        Long version = extractClaim(token, claims -> claims.get("tv", Long.class));
+        return version == null ? -1 : version;
+    }
+
+    public String extractTokenId(String token) {
+        return extractClaim(token, Claims::getId);
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {

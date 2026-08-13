@@ -1,6 +1,7 @@
 package com.clinica.backend.service;
 
 import com.clinica.backend.dto.ClinicSettingsDto;
+import com.clinica.backend.exception.BusinessRuleException;
 import com.clinica.backend.model.ClinicSettings;
 import com.clinica.backend.repository.ClinicSettingsRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,27 +26,28 @@ public class ClinicSettingsService {
     private final ClinicSettingsRepository repository;
     private final String UPLOAD_DIR = "uploads/logos/";
 
-    public ClinicSettingsDto getSettings() {
-        ClinicSettings settings = repository.findTopByDeletedFalseOrderByIdAsc()
-                .orElseGet(this::createDefaultSettings);
+    public ClinicSettingsDto getSettings(String specialty) {
+        ClinicSettings settings = repository.findTopBySpecialtyAndDeletedFalseOrderByIdAsc(specialty)
+                .orElseGet(() -> createDefaultSettings(specialty));
         return mapToDto(settings);
     }
 
-    public ClinicSettingsDto updateSettings(ClinicSettingsDto dto) {
-        ClinicSettings settings = repository.findTopByDeletedFalseOrderByIdAsc()
-                .orElseGet(this::createDefaultSettings);
+    public ClinicSettingsDto updateSettings(ClinicSettingsDto dto, String specialty) {
+        ClinicSettings settings = repository.findTopBySpecialtyAndDeletedFalseOrderByIdAsc(specialty)
+                .orElseGet(() -> createDefaultSettings(specialty));
         
         settings.setClinicName(dto.getClinicName());
         settings.setShortName(dto.getShortName());
         settings.setContactEmail(dto.getContactEmail());
         settings.setContactPhone(dto.getContactPhone());
         settings.setAddress(dto.getAddress());
+        settings.setSpecialty(specialty);
         
         ClinicSettings saved = repository.save(settings);
         return mapToDto(saved);
     }
 
-    public ClinicSettingsDto uploadLogo(MultipartFile file) {
+    public ClinicSettingsDto uploadLogo(MultipartFile file, String specialty) {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("El archivo del logo no puede estar vacío");
         }
@@ -80,8 +82,8 @@ public class ClinicSettingsService {
             }
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-            ClinicSettings settings = repository.findTopByDeletedFalseOrderByIdAsc()
-                    .orElseGet(this::createDefaultSettings);
+            ClinicSettings settings = repository.findTopBySpecialtyAndDeletedFalseOrderByIdAsc(specialty)
+                    .orElseGet(() -> createDefaultSettings(specialty));
             
             String logoUrl = "/api/settings/clinic/logo/" + filename;
             settings.setLogoUrl(logoUrl);
@@ -89,14 +91,15 @@ public class ClinicSettingsService {
             
             return mapToDto(settings);
         } catch (IOException e) {
-            throw new RuntimeException("No se pudo almacenar el archivo del logo. Error: " + e.getMessage());
+            throw new BusinessRuleException("No se pudo almacenar el archivo del logo");
         }
     }
 
-    private ClinicSettings createDefaultSettings() {
+    private ClinicSettings createDefaultSettings(String specialty) {
         ClinicSettings settings = new ClinicSettings();
         settings.setClinicName("Mi Clínica");
         settings.setShortName("Clínica");
+        settings.setSpecialty(specialty);
         return repository.save(settings);
     }
 
@@ -109,6 +112,7 @@ public class ClinicSettingsService {
         dto.setContactEmail(entity.getContactEmail());
         dto.setContactPhone(entity.getContactPhone());
         dto.setAddress(entity.getAddress());
+        dto.setSpecialty(entity.getSpecialty());
         return dto;
     }
 }

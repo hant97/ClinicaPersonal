@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Consulta profesional y cercana</title>
+  <desc id="desc">Composición editorial abstracta de una conversación en un espacio de atención cálido.</desc>
+  <rect width="800" height="1000" fill="#dcebe2"/>
+  <rect x="72" y="82" width="656" height="836" rx="10" fill="#f6f3eb"/>
+  <path d="M72 675c112-71 200-74 310-8 107 64 210 76 346-18v269H72Z" fill="#b7d2c3"/>
+  <circle cx="516" cy="315" r="119" fill="#efd4be"/>
+  <path d="M414 295c15-113 184-161 241-17-46-22-84-29-124-16-39 13-69 24-117 33Z" fill="#315b57"/>
+  <path d="M409 451c28-81 189-94 251-2l-10 244H399Z" fill="#6e9585"/>
+  <circle cx="476" cy="321" r="7" fill="#183b3e"/><circle cx="559" cy="321" r="7" fill="#183b3e"/>
+  <path d="M486 372c21 18 46 18 66 0" fill="none" stroke="#a56d5f" stroke-width="7" stroke-linecap="round"/>
+  <path d="M163 790c27-155 160-217 272-133 56 42 64 107 42 261H129Z" fill="#e7c1a8"/>
+  <path d="M137 821c32-108 111-168 221-154 44 6 79 26 104 58-100-16-212 11-325 96Z" fill="#8b7162"/>
+  <path d="M282 752c42-32 85-35 127-6" fill="none" stroke="#183b3e" stroke-width="11" stroke-linecap="round"/>
+  <circle cx="405" cy="761" r="13" fill="#f2d7c1"/>
+  <path d="M275 776c-36 8-63 31-79 69M407 764c34 1 60 13 80 36" fill="none" stroke="#183b3e" stroke-width="8" stroke-linecap="round"/>
+</svg>

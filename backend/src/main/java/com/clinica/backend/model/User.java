@@ -41,10 +41,19 @@ public class User implements UserDetails {
     @Column
     private String phone;
 
+    @Column(name = "specialty", nullable = false)
+    private String specialty;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "role")
     private Set<String> roles;
+
+    @Column(name = "token_version", nullable = false)
+    private long tokenVersion = 0;
+
+    @Column(nullable = false)
+    private boolean enabled = true;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -70,6 +79,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return enabled;
     }
 }

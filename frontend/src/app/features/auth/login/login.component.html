@@ -1,61 +1,79 @@
-<div class="flex min-h-screen flex-col overflow-y-auto md:h-screen md:flex-row md:overflow-hidden">
-  <section class="flex shrink-0 flex-col items-center justify-center bg-gradient-to-br from-clinic-500 to-clinic-700 px-6 py-12 text-white md:flex-1">
-    <div class="max-w-sm text-center">
-      <div class="mb-4 text-6xl md:text-7xl" aria-hidden="true">🌿</div>
-      <h1 class="mb-4 text-4xl font-semibold text-white md:text-5xl">Clínica Vida</h1>
-      <p class="text-lg text-white/90">Gestión integral y eficiente para su consultorio.</p>
+<div class="login-shell">
+  <section class="login-intro">
+    <div class="login-intro-content">
+      <a class="login-brand" href="/" aria-label="Clínica Personal, ir al inicio">
+        <span class="login-brand-mark"><lucide-icon [img]="HeartHandshake" [size]="21" /></span>
+        <span>Clínica Personal</span>
+      </a>
+
+      <div class="login-message">
+        <p class="login-eyebrow"><span></span> Espacio profesional</p>
+        <h1>Tu cuidado comienza con una <em>buena decisión.</em></h1>
+        <p>Accede a un espacio pensado para acompañar tu práctica con claridad, confianza y una mirada integral.</p>
+        <div class="login-promise">
+          <span class="login-promise-icon"><lucide-icon [img]="ShieldCheck" [size]="21" /></span>
+          <span><strong>Un espacio seguro y confidencial</strong><small>Tu información merece el mismo cuidado que tus pacientes.</small></span>
+        </div>
+      </div>
+
+      <p class="login-specialties">Dermatología <span></span> Psicología</p>
     </div>
   </section>
-  
-  <main class="flex flex-1 items-start justify-center bg-canvas px-4 py-8 sm:px-6 md:items-center md:px-8">
-    <div class="w-full max-w-md py-4 md:p-8">
-      <h2 class="mb-2 text-3xl font-semibold">Iniciar Sesión</h2>
-      <p class="mb-8 text-muted">Bienvenida Dra. Ingrese sus credenciales para acceder al sistema.</p>
+
+  <main class="login-main">
+    <div class="login-card">
+      <a class="login-brand login-brand-mobile" href="/" aria-label="Clínica Personal, ir al inicio">
+        <span class="login-brand-mark"><lucide-icon [img]="HeartHandshake" [size]="19" /></span>
+        <span>Clínica Personal</span>
+      </a>
+      <p class="login-eyebrow login-eyebrow-dark"><span></span> Acceso al sistema</p>
+      <h2>Iniciar sesión</h2>
+      <p class="login-subtitle">Bienvenida. Ingresa tus credenciales para continuar con tu jornada.</p>
 
       @if (errorMessage) {
-        <div class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 font-medium text-danger" role="alert">
+        <div class="login-error" role="alert">
           {{ errorMessage }}
         </div>
       }
 
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-        <div class="form-group">
-          <label class="form-label" for="username">Usuario</label>
-          <input 
-            type="text" 
-            id="username" 
-            formControlName="username" 
-            class="input-field" 
+        <div class="login-field">
+          <label class="login-label" for="username">Usuario</label>
+          <input
+            type="text"
+            id="username"
+            formControlName="username"
+            class="login-input"
             placeholder="Ej: doctora.ana"
             autocomplete="username"
           >
           @if (loginForm.get('username')?.invalid && (loginForm.get('username')?.dirty || loginForm.get('username')?.touched)) {
-            <div class="mt-1.5 space-y-1">
-              @if (loginForm.get('username')?.hasError('required')) { <small class="block text-danger">El usuario es requerido.</small> }
-              @if (loginForm.get('username')?.hasError('minlength')) { <small class="block text-danger">Mínimo 4 caracteres.</small> }
+            <div class="login-validation">
+              @if (loginForm.get('username')?.hasError('required')) { <small>El usuario es requerido.</small> }
+              @if (loginForm.get('username')?.hasError('minlength')) { <small>Mínimo 3 caracteres.</small> }
             </div>
           }
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="password">Contraseña</label>
-          <input 
-            type="password" 
-            id="password" 
-            formControlName="password" 
-            class="input-field" 
+        <div class="login-field">
+          <label class="login-label" for="password">Contraseña</label>
+          <input
+            type="password"
+            id="password"
+            formControlName="password"
+            class="login-input"
             placeholder="••••••••"
             autocomplete="current-password"
           >
           @if (loginForm.get('password')?.invalid && (loginForm.get('password')?.dirty || loginForm.get('password')?.touched)) {
-            <div class="mt-1.5 space-y-1">
-              @if (loginForm.get('password')?.hasError('required')) { <small class="block text-danger">La contraseña es requerida.</small> }
-              @if (loginForm.get('password')?.hasError('minlength')) { <small class="block text-danger">Mínimo 6 caracteres.</small> }
+            <div class="login-validation">
+              @if (loginForm.get('password')?.hasError('required')) { <small>La contraseña es requerida.</small> }
+              @if (loginForm.get('password')?.hasError('minlength')) { <small>Mínimo 6 caracteres.</small> }
             </div>
           }
         </div>
 
-        <button type="submit" class="btn-primary mt-4 w-full py-4 text-base" [disabled]="loginForm.invalid || isLoading">
+        <button type="submit" class="login-submit" [disabled]="loginForm.invalid || isLoading">
           @if (!isLoading) {
             <span>Ingresar</span>
           } @else {

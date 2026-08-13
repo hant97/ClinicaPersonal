@@ -5,7 +5,7 @@ import { PaymentService } from '../../../core/services/payment.service';
 import { PatientService } from '../../../core/services/patient/patient.service';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { Patient } from '../../../core/models/patient.model';
-import { Payment } from '../../../core/models/payment.model';
+import { Payment, PaymentItem } from '../../../core/models/payment.model';
 import { CatalogItem } from '../../../core/models/catalog.model';
 import { Supply } from '../../../core/services/inventory.service';
 import { InventoryService } from '../../../core/services/inventory.service';
@@ -13,11 +13,31 @@ import { ClinicalService } from '../../../core/models/clinical-service.model';
 import { ClinicalServiceService } from '../../../core/services/clinical-service.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { PatientAutocompleteComponent } from '../../../shared/components/patient-autocomplete/patient-autocomplete.component';
+import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
+
+interface PaymentLineFormValue {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  clinicalServiceId?: number | null;
+  supplyId?: number | null;
+}
+
+interface PaymentFormValue {
+  patientId: number | string;
+  amount: number;
+  paymentDate: string;
+  paymentMethod: string;
+  description?: string;
+  services: PaymentLineFormValue[];
+  supplies: PaymentLineFormValue[];
+}
 
 @Component({
   selector: 'app-payment-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PatientAutocompleteComponent],
+  imports: [CommonModule, ReactiveFormsModule, PatientAutocompleteComponent, FocusTrapDirective],
   templateUrl: './payment-form.component.html'
 })
 export class PaymentFormComponent implements OnInit {
@@ -85,7 +105,7 @@ export class PaymentFormComponent implements OnInit {
     return this.paymentForm.get('supplies') as import('@angular/forms').FormArray;
   }
 
-  addService(itemData?: any): void {
+  addService(itemData?: PaymentItem): void {
     const itemGroup = this.fb.group({
       description: [itemData?.description || '', Validators.required],
       quantity: [itemData?.quantity || 1, [Validators.required, Validators.min(1)]],
@@ -100,7 +120,7 @@ export class PaymentFormComponent implements OnInit {
     this.services.push(itemGroup);
   }
 
-  addSupply(itemData?: any): void {
+  addSupply(itemData?: PaymentItem): void {
     const itemGroup = this.fb.group({
       description: [itemData?.description || '', Validators.required],
       quantity: [itemData?.quantity || 1, [Validators.required, Validators.min(1)]],
@@ -145,8 +165,8 @@ export class PaymentFormComponent implements OnInit {
     this.paymentForm.get('amount')?.setValue(total, { emitEvent: false });
   }
 
-  onClinicalServiceSelect(index: number, event: any): void {
-    const serviceId = event.target.value;
+  onClinicalServiceSelect(index: number, event: Event): void {
+    const serviceId = (event.target as HTMLSelectElement).value;
     if (serviceId) {
       const selectedService = this.clinicalServices.find(s => s.id === Number(serviceId));
       if (selectedService) {
@@ -159,8 +179,8 @@ export class PaymentFormComponent implements OnInit {
     }
   }
 
-  onSupplySelect(index: number, event: any): void {
-    const supplyId = event.target.value;
+  onSupplySelect(index: number, event: Event): void {
+    const supplyId = (event.target as HTMLSelectElement).value;
     if (supplyId) {
       const selectedSupply = this.suppliesList.find(s => s.id === Number(supplyId));
       if (selectedSupply) {
@@ -209,7 +229,7 @@ export class PaymentFormComponent implements OnInit {
     }
 
     this.isSubmitting = true;
-    const formValue = this.paymentForm.getRawValue();
+    const formValue = this.paymentForm.getRawValue() as PaymentFormValue;
     
     // Validate we have at least one service
     if (formValue.services.length === 0) {
@@ -219,7 +239,7 @@ export class PaymentFormComponent implements OnInit {
     }
 
     // Map items from form arrays
-    const mappedServices = formValue.services.map((item: any) => ({
+    const mappedServices: PaymentItem[] = formValue.services.map((item) => ({
       description: item.description,
       quantity: Number(item.quantity),
       unitPrice: Number(item.unitPrice),
@@ -227,7 +247,7 @@ export class PaymentFormComponent implements OnInit {
       clinicalServiceId: Number(item.clinicalServiceId)
     }));
 
-    const mappedSupplies = formValue.supplies.map((item: any) => ({
+    const mappedSupplies: PaymentItem[] = formValue.supplies.map((item) => ({
       description: item.description,
       quantity: Number(item.quantity),
       unitPrice: Number(item.unitPrice),
@@ -237,10 +257,12 @@ export class PaymentFormComponent implements OnInit {
 
     const mappedItems = [...mappedServices, ...mappedSupplies];
 
-    const newPayment = {
-      ...formValue,
+    const newPayment: Payment = {
       patientId: Number(formValue.patientId),
       amount: Number(formValue.amount),
+      paymentDate: formValue.paymentDate,
+      paymentMethod: formValue.paymentMethod,
+      description: formValue.description,
       items: mappedItems
     };
     

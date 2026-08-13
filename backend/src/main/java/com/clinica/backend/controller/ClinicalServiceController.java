@@ -2,6 +2,7 @@ package com.clinica.backend.controller;
 
 import com.clinica.backend.dto.ClinicalServiceDto;
 import com.clinica.backend.service.ClinicalServiceService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -37,13 +38,13 @@ public class ClinicalServiceController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ClinicalServiceDto> create(@RequestBody ClinicalServiceDto dto) {
+    public ResponseEntity<ClinicalServiceDto> create(@Valid @RequestBody ClinicalServiceDto dto) {
         return ResponseEntity.ok(service.createService(dto));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ClinicalServiceDto> update(@PathVariable Long id, @RequestBody ClinicalServiceDto dto) {
+    public ResponseEntity<ClinicalServiceDto> update(@PathVariable Long id, @Valid @RequestBody ClinicalServiceDto dto) {
         return ResponseEntity.ok(service.updateService(id, dto));
     }
 

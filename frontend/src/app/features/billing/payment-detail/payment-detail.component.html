@@ -1,4 +1,4 @@
-<div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm" (click)="onClose()">
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" appFocusTrap (trapClose)="onClose()" (click)="onClose()">
   <section class="w-full max-w-lg overflow-hidden rounded-xl border border-line bg-surface shadow-raised" (click)="$event.stopPropagation()">
     <div class="flex justify-end gap-2 border-b border-line bg-clinic-50 p-3 print:hidden">
       <button class="btn-text" (click)="printReceipt()" title="Imprimir recibo">

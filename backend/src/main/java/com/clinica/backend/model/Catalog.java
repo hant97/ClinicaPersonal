@@ -28,6 +28,9 @@ public class Catalog {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "specialty", nullable = false)
+    private String specialty = "PSICOLOGIA";
+
     @JsonManagedReference
     @OneToMany(mappedBy = "catalog", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CatalogItem> items = new ArrayList<>();

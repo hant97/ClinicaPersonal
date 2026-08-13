@@ -39,6 +39,8 @@ export class BillingComponent implements OnInit, OnDestroy {
   pageSize: number = 10;
   totalPages: number = 0;
   totalElements: number = 0;
+  isLoading = false;
+  loadError = false;
 
   searchTerm: string = '';
   private searchSubject = new Subject<string>();
@@ -94,6 +96,8 @@ export class BillingComponent implements OnInit, OnDestroy {
   }
 
   loadPayments(): void {
+    this.isLoading = true;
+    this.loadError = false;
     this.paymentService.getAll(this.currentPage, this.pageSize, this.searchTerm).subscribe({
       next: (page) => {
         this.totalPages = page.page.totalPages;
@@ -102,8 +106,14 @@ export class BillingComponent implements OnInit, OnDestroy {
           ...pay,
           patientName: this.patientMap.get(pay.patientId) || 'Paciente Desconocido'
         }));
+        this.isLoading = false;
       },
-      error: (err) => console.error('Error fetching payments', err)
+      error: (err) => {
+        this.isLoading = false;
+        this.loadError = true;
+        console.error('Error fetching payments', err);
+        this.toastService.show('Error al cargar los cobros', 'error');
+      }
     });
   }
   

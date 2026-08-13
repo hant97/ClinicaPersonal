@@ -4,6 +4,7 @@ import { Observable, Subject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { UserProfile, UpdateProfileRequest, UpdatePasswordRequest } from '../models/user-profile.model';
+import { AuthResponse } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -25,7 +26,7 @@ export class UserService {
     );
   }
 
-  updatePassword(request: UpdatePasswordRequest): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/me/password`, request);
+  updatePassword(request: UpdatePasswordRequest): Observable<AuthResponse> {
+    return this.http.put<AuthResponse>(`${this.apiUrl}/me/password`, request);
   }
 }

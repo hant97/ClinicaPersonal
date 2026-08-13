@@ -2,6 +2,7 @@ package com.clinica.backend.controller;
 
 import com.clinica.backend.dto.PatientDto;
 import com.clinica.backend.service.PatientService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -36,12 +37,12 @@ public class PatientController {
     }
 
     @PostMapping
-    public ResponseEntity<PatientDto> createPatient(@RequestBody PatientDto patientDto) {
+    public ResponseEntity<PatientDto> createPatient(@Valid @RequestBody PatientDto patientDto) {
         return ResponseEntity.ok(patientService.createPatient(patientDto));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PatientDto> updatePatient(@PathVariable Long id, @RequestBody PatientDto patientDto) {
+    public ResponseEntity<PatientDto> updatePatient(@PathVariable Long id, @Valid @RequestBody PatientDto patientDto) {
         return ResponseEntity.ok(patientService.updatePatient(id, patientDto));
     }
 

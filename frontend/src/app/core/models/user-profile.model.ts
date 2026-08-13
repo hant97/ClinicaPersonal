@@ -6,6 +6,7 @@ export interface UserProfile {
   email?: string;
   phone?: string;
   roles?: string[];
+  specialty?: string;
 }
 
 export interface UpdateProfileRequest {

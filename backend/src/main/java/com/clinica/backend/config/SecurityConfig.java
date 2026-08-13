@@ -17,6 +17,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.beans.factory.annotation.Value;
+import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Arrays;
 
@@ -33,6 +34,17 @@ public class SecurityConfig {
     @Value("${cors.allowed-origins}")
     private String allowedOrigins;
 
+    @PostConstruct
+    void validateCorsConfiguration() {
+        List<String> origins = Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isBlank())
+                .toList();
+        if (origins.isEmpty() || origins.stream().anyMatch(origin -> origin.equals("*") || origin.contains("*"))) {
+            throw new IllegalStateException("CORS_ALLOWED_ORIGINS debe contener únicamente orígenes concretos.");
+        }
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -47,7 +59,7 @@ public class SecurityConfig {
                 .authenticationEntryPoint(authenticationEntryPoint)
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/auth/login").permitAll()
+                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/public/**").permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -60,7 +72,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
+        configuration.setAllowedOrigins(Arrays.stream(allowedOrigins.split(","))
+                 .map(String::trim)
+                 .filter(origin -> !origin.isBlank())
+                 .toList());
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

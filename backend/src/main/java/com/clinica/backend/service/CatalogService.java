@@ -2,11 +2,12 @@ package com.clinica.backend.service;
 
 import com.clinica.backend.dto.CatalogDto;
 import com.clinica.backend.dto.CatalogItemDto;
+import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.Catalog;
 import com.clinica.backend.model.CatalogItem;
 import com.clinica.backend.repository.CatalogItemRepository;
 import com.clinica.backend.repository.CatalogRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,22 +19,21 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
 
 @Service
+@RequiredArgsConstructor
 public class CatalogService {
 
-    @Autowired
-    private CatalogRepository catalogRepository;
+    private final CatalogRepository catalogRepository;
 
-    @Autowired
-    private CatalogItemRepository catalogItemRepository;
+    private final CatalogItemRepository catalogItemRepository;
 
-    public Page<CatalogDto> getAllCatalogs(Pageable pageable) {
-        return catalogRepository.findAll(pageable)
+    public Page<CatalogDto> getAllCatalogs(String specialty, Pageable pageable) {
+        return catalogRepository.findBySpecialty(specialty, pageable)
                 .map(this::mapToDto);
     }
 
     public CatalogDto getCatalogByCode(String code) {
         Catalog catalog = catalogRepository.findByCode(code)
-                .orElseThrow(() -> new RuntimeException("Catalog not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Catálogo no encontrado"));
         return mapToDto(catalog);
     }
 
@@ -51,6 +51,7 @@ public class CatalogService {
         catalog.setCode(dto.getCode());
         catalog.setName(dto.getName());
         catalog.setDescription(dto.getDescription());
+        catalog.setSpecialty(dto.getSpecialty() != null ? dto.getSpecialty() : "PSICOLOGIA");
         
         Catalog saved = catalogRepository.save(catalog);
         return mapToDto(saved);
@@ -60,7 +61,7 @@ public class CatalogService {
     @CacheEvict(value = "catalogItems", allEntries = true)
     public CatalogItemDto addCatalogItem(String catalogCode, CatalogItemDto itemDto) {
         Catalog catalog = catalogRepository.findByCode(catalogCode)
-                .orElseThrow(() -> new RuntimeException("Catalog not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Catálogo no encontrado"));
 
         CatalogItem item = new CatalogItem();
         item.setCatalog(catalog);
@@ -77,7 +78,7 @@ public class CatalogService {
     @CacheEvict(value = "catalogItems", allEntries = true)
     public CatalogItemDto updateCatalogItem(Long itemId, CatalogItemDto itemDto) {
         CatalogItem item = catalogItemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Catalog item not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Ítem de catálogo no encontrado"));
 
         item.setItemName(itemDto.getItemName());
         item.setActive(itemDto.isActive());
@@ -95,6 +96,7 @@ public class CatalogService {
         dto.setCode(catalog.getCode());
         dto.setName(catalog.getName());
         dto.setDescription(catalog.getDescription());
+        dto.setSpecialty(catalog.getSpecialty());
         if (catalog.getItems() != null) {
             dto.setItems(catalog.getItems().stream()
                     .map(this::mapItemToDto)

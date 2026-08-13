@@ -14,6 +14,7 @@ export interface Supply {
   unit: string;
   price?: number;
   expirationDate: string;
+  imageUrl?: string;
 }
 
 @Injectable({
@@ -48,6 +49,12 @@ export class InventoryService {
 
   updateSupply(id: number, supply: Supply): Observable<Supply> {
     return this.http.put<Supply>(`${this.apiUrl}/${id}`, supply);
+  }
+
+  uploadSupplyImage(id: number, file: File): Observable<Supply> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<Supply>(`${this.apiUrl}/${id}/image`, formData);
   }
 
   deleteSupply(id: number): Observable<void> {

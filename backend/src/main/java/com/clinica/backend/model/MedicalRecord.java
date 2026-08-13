@@ -37,6 +37,21 @@ public class MedicalRecord {
     @Column(name = "treatment_status", length = 50)
     private String treatmentStatus;
 
+    @Column(name = "specialty", nullable = false)
+    private String specialty;
+
+    @Column(name = "skin_type", length = 50)
+    private String skinType;
+
+    @Column(name = "known_allergies", columnDefinition = "TEXT")
+    private String knownAllergies;
+
+    @Column(name = "chronic_conditions", columnDefinition = "TEXT")
+    private String chronicConditions;
+
+    @Column(name = "sun_exposure_habits", columnDefinition = "TEXT")
+    private String sunExposureHabits;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -44,4 +59,16 @@ public class MedicalRecord {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "professional_id")
+    private Long professionalId;
+
+    @Column(name = "deleted", nullable = false)
+    private boolean deleted = false;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    @Column(name = "deleted_by")
+    private Long deletedBy;
 }

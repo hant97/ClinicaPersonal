@@ -3,7 +3,14 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AssessmentService } from '../../../core/services/assessment.service';
-import { PsychometricTest } from '../../../core/models/assessment.model';
+import { PsychometricTest, Question } from '../../../core/models/assessment.model';
+import { ToastService } from '../../../shared/services/toast/toast.service';
+
+interface TestCatalogFormValue {
+  name: string;
+  description: string;
+  questions: Question[];
+}
 
 @Component({
   selector: 'app-tests-catalog-form',
@@ -21,7 +28,8 @@ export class TestsCatalogFormComponent implements OnInit {
     private fb: FormBuilder,
     private assessmentService: AssessmentService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private toastService: ToastService
   ) {
     this.createForm();
   }
@@ -88,8 +96,8 @@ export class TestsCatalogFormComponent implements OnInit {
         description: test.description
       });
       
-      const parsedQuestions = JSON.parse(test.questionsJson);
-      parsedQuestions.forEach((q: any, qIndex: number) => {
+      const parsedQuestions = JSON.parse(test.questionsJson) as Question[];
+      parsedQuestions.forEach((q, qIndex) => {
         const questionGroup = this.fb.group({
           id: [q.id],
           text: [q.text, Validators.required],
@@ -97,7 +105,7 @@ export class TestsCatalogFormComponent implements OnInit {
         });
         this.questions.push(questionGroup);
         
-        q.options.forEach((opt: any) => {
+        q.options.forEach((opt) => {
           const optionGroup = this.fb.group({
             score: [opt.score, Validators.required],
             text: [opt.text, Validators.required]
@@ -115,10 +123,10 @@ export class TestsCatalogFormComponent implements OnInit {
     }
 
     this.isSaving = true;
-    const formValue = this.testForm.value;
+    const formValue = this.testForm.getRawValue() as TestCatalogFormValue;
     
     // Ensure IDs are sequential for questions
-    const questionsJsonObj = formValue.questions.map((q: any, i: number) => ({
+    const questionsJsonObj = formValue.questions.map((q, i) => ({
       ...q,
       id: i + 1
     }));
@@ -133,12 +141,12 @@ export class TestsCatalogFormComponent implements OnInit {
     if (this.isEditMode) {
       this.assessmentService.updateTest(this.testId!, testData).subscribe({
         next: () => this.goBack(),
-        error: (err) => { this.isSaving = false; alert('Error: ' + err.message); }
+        error: (err) => { this.isSaving = false; this.toastService.show('Error al guardar: ' + (err.error?.message || err.message), 'error'); }
       });
     } else {
       this.assessmentService.createTest(testData).subscribe({
         next: () => this.goBack(),
-        error: (err) => { this.isSaving = false; alert('Error: ' + err.message); }
+        error: (err) => { this.isSaving = false; this.toastService.show('Error al guardar: ' + (err.error?.message || err.message), 'error'); }
       });
     }
   }

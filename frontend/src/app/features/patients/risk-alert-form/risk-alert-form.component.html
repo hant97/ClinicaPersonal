@@ -1,10 +1,24 @@
-<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true">
+<div
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+  role="dialog"
+  aria-modal="true"
+  appFocusTrap
+  (trapClose)="cancel()"
+>
   <div class="card max-h-[90vh] w-full max-w-lg overflow-y-auto p-5 md:p-6">
-    <div class="mb-6 flex items-center justify-between border-b border-line pb-4">
+    <div
+      class="mb-6 flex items-center justify-between border-b border-line pb-4"
+    >
       <h2>Registrar Alerta de Riesgo</h2>
-      <button class="close-btn" (click)="cancel()">×</button>
+      <button
+        class="btn-text text-muted hover:text-danger"
+        aria-label="Cerrar"
+        (click)="cancel()"
+      >
+        ×
+      </button>
     </div>
-    
+
     <form [formGroup]="alertForm" (ngSubmit)="onSubmit()">
       <div class="form-group">
         <label class="form-label">Tipo de Riesgo</label>
@@ -14,7 +28,10 @@
             <option [value]="type.itemCode">{{ type.itemName }}</option>
           }
         </select>
-        @if (alertForm.get('type')?.invalid && (alertForm.get('type')?.dirty || alertForm.get('type')?.touched)) {
+        @if (
+          alertForm.get("type")?.invalid &&
+          (alertForm.get("type")?.dirty || alertForm.get("type")?.touched)
+        ) {
           <div class="error-messages">
             <small class="text-error">El tipo es requerido.</small>
           </div>
@@ -29,7 +46,10 @@
             <option [value]="level.itemCode">{{ level.itemName }}</option>
           }
         </select>
-        @if (alertForm.get('level')?.invalid && (alertForm.get('level')?.dirty || alertForm.get('level')?.touched)) {
+        @if (
+          alertForm.get("level")?.invalid &&
+          (alertForm.get("level")?.dirty || alertForm.get("level")?.touched)
+        ) {
           <div class="error-messages">
             <small class="text-error">El nivel es requerido.</small>
           </div>
@@ -38,18 +58,38 @@
 
       <div class="form-group">
         <label class="form-label">Descripción</label>
-        <textarea formControlName="description" class="input-field" rows="4"></textarea>
-        @if (alertForm.get('description')?.invalid && (alertForm.get('description')?.dirty || alertForm.get('description')?.touched)) {
+        <textarea
+          formControlName="description"
+          class="input-field"
+          rows="4"
+        ></textarea>
+        @if (
+          alertForm.get("description")?.invalid &&
+          (alertForm.get("description")?.dirty ||
+            alertForm.get("description")?.touched)
+        ) {
           <div class="error-messages">
-            @if (alertForm.get('description')?.hasError('required')) { <small class="text-error">La descripción es requerida.</small> }
-            @if (alertForm.get('description')?.hasError('maxlength')) { <small class="text-error">Máximo 1000 caracteres.</small> }
+            @if (alertForm.get("description")?.hasError("required")) {
+              <small class="text-error">La descripción es requerida.</small>
+            }
+            @if (alertForm.get("description")?.hasError("maxlength")) {
+              <small class="text-error">Máximo 1000 caracteres.</small>
+            }
           </div>
         }
       </div>
-      
-      <div class="mt-7 flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end">
-        <button type="button" class="btn-secondary" (click)="cancel()">Cancelar</button>
-        <button type="submit" class="btn-primary" [disabled]="alertForm.invalid || isSaving">
+
+      <div
+        class="mt-7 flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end"
+      >
+        <button type="button" class="btn-secondary" (click)="cancel()">
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="alertForm.invalid || isSaving"
+        >
           Guardar Alerta
         </button>
       </div>

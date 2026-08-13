@@ -27,6 +27,7 @@ public class LoginAttemptService {
     }
 
     private final Map<String, AttemptInfo> attemptsCache = new ConcurrentHashMap<>();
+    private final Map<String, AttemptInfo> ipAttemptsCache = new ConcurrentHashMap<>();
 
     public void loginSucceeded(String key) {
         if (key == null) return;
@@ -64,6 +65,36 @@ public class LoginAttemptService {
         }
 
         return true;
+    }
+
+    public boolean isIpBlocked(String ip) {
+        return isBlockedFrom(ipAttemptsCache, ip);
+    }
+
+    public void loginFailedFromIp(String ip) {
+        recordFailure(ipAttemptsCache, ip);
+    }
+
+    private boolean isBlockedFrom(Map<String, AttemptInfo> cache, String key) {
+        if (key == null) return false;
+        String normalizedKey = key.trim();
+        AttemptInfo info = cache.get(normalizedKey);
+        if (info == null || info.lockedUntil == null) return false;
+        if (Instant.now().isAfter(info.lockedUntil)) {
+            cache.remove(normalizedKey);
+            return false;
+        }
+        return true;
+    }
+
+    private void recordFailure(Map<String, AttemptInfo> cache, String key) {
+        if (key == null || key.isBlank()) return;
+        String normalizedKey = key.trim();
+        AttemptInfo info = cache.get(normalizedKey);
+        int attempts = info == null ? 1 : info.attempts + 1;
+        Instant lockedUntil = attempts >= MAX_ATTEMPTS
+                ? Instant.now().plusSeconds(LOCK_DURATION_SECONDS) : null;
+        cache.put(normalizedKey, new AttemptInfo(attempts, lockedUntil));
     }
 
     public long getRemainingLockMinutes(String key) {

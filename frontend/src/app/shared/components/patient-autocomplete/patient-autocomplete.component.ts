@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, FormBuilder, FormControl, FormGroup, NG_VALUE_ACCESSOR, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PatientService } from '../../../core/services/patient/patient.service';
 import { Patient } from '../../../core/models/patient.model';
+import { CatalogService } from '../../../core/services/catalog.service';
+import { CatalogItem } from '../../../core/models/catalog.model';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { LucideAngularModule, UserPlus, X, User, Phone, Mail, FileText } from 'lucide-angular';
 import { debounceTime, distinctUntilChanged, Subject, switchMap, takeUntil, tap, of, map } from 'rxjs';
@@ -36,10 +38,12 @@ export class PatientAutocompleteComponent implements OnInit, OnDestroy, ControlV
   showDropdown = false;
   isLoading = false;
   selectedPatientId: number | null = null;
+  activeIndex = -1;
 
   showQuickAddModal = false;
   quickAddForm!: FormGroup;
   isSavingQuickPatient = false;
+  genders: CatalogItem[] = [];
   
   private destroy$ = new Subject<void>();
   
@@ -51,7 +55,8 @@ export class PatientAutocompleteComponent implements OnInit, OnDestroy, ControlV
     private patientService: PatientService,
     private toastService: ToastService,
     private fb: FormBuilder,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
+    private catalogService: CatalogService
   ) {}
 
   ngOnInit(): void {
@@ -60,7 +65,13 @@ export class PatientAutocompleteComponent implements OnInit, OnDestroy, ControlV
       lastName: ['', [Validators.required, Validators.maxLength(50)]],
       identificationDocument: ['', [Validators.required, Validators.maxLength(20)]],
       contactNumber: ['', [Validators.maxLength(20)]],
-      email: ['', [Validators.email]]
+      email: ['', [Validators.email]],
+      gender: ['', [Validators.required]]
+    });
+
+    this.catalogService.getActiveItemsByCatalogCode('GENDER').subscribe({
+      next: (items) => this.genders = items,
+      error: () => this.genders = []
     });
 
     this.searchControl.valueChanges.pipe(
@@ -85,6 +96,7 @@ export class PatientAutocompleteComponent implements OnInit, OnDestroy, ControlV
       }),
       tap(() => this.isLoading = false)
     ).subscribe(results => {
+      this.activeIndex = -1;
       if (results.length > 0 || (this.searchControl.value && this.searchControl.value.length >= 2)) {
         this.patients = results;
         this.showDropdown = true;
@@ -111,9 +123,39 @@ export class PatientAutocompleteComponent implements OnInit, OnDestroy, ControlV
 
   selectPatient(patient: Patient): void {
     this.selectedPatientId = patient.id!;
+    this.activeIndex = -1;
     this.searchControl.setValue(`${patient.firstName} ${patient.lastName}`, { emitEvent: false });
     this.showDropdown = false;
     this.onChange(this.selectedPatientId);
+  }
+
+  onKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      this.showDropdown = false;
+      this.activeIndex = -1;
+      return;
+    }
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp' && event.key !== 'Enter') {
+      return;
+    }
+    if (!this.showDropdown || this.patients.length === 0) {
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        this.showDropdown = this.patients.length > 0;
+      }
+      return;
+    }
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      this.activeIndex = (this.activeIndex + 1) % this.patients.length;
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      this.activeIndex = (this.activeIndex - 1 + this.patients.length) % this.patients.length;
+    } else if (event.key === 'Enter') {
+      if (this.activeIndex >= 0 && this.activeIndex < this.patients.length) {
+        event.preventDefault();
+        this.selectPatient(this.patients[this.activeIndex]);
+      }
+    }
   }
 
   onFocus(): void {
@@ -124,6 +166,7 @@ export class PatientAutocompleteComponent implements OnInit, OnDestroy, ControlV
   
   onInputClear(): void {
     this.selectedPatientId = null;
+    this.activeIndex = -1;
     this.searchControl.setValue('');
     this.onChange(null);
   }
@@ -145,7 +188,8 @@ export class PatientAutocompleteComponent implements OnInit, OnDestroy, ControlV
       lastName: '',
       identificationDocument: prefillDoc,
       contactNumber: '',
-      email: ''
+      email: '',
+      gender: ''
     });
     this.showQuickAddModal = true;
   }
@@ -169,7 +213,8 @@ export class PatientAutocompleteComponent implements OnInit, OnDestroy, ControlV
       lastName: formVal.lastName.trim(),
       identificationDocument: formVal.identificationDocument.trim(),
       contactNumber: formVal.contactNumber?.trim() || undefined,
-      email: formVal.email?.trim() || undefined
+      email: formVal.email?.trim() || undefined,
+      gender: formVal.gender
     };
 
     this.patientService.create(newPatient).subscribe({

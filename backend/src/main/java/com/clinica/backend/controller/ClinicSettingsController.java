@@ -2,6 +2,7 @@ package com.clinica.backend.controller;
 
 import com.clinica.backend.dto.ClinicSettingsDto;
 import com.clinica.backend.service.ClinicSettingsService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -9,8 +10,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.clinica.backend.model.User;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,22 +26,25 @@ public class ClinicSettingsController {
     private final ClinicSettingsService service;
 
     @GetMapping
-    public ResponseEntity<ClinicSettingsDto> getSettings() {
-        return ResponseEntity.ok(service.getSettings());
+    public ResponseEntity<ClinicSettingsDto> getSettings(Authentication authentication) {
+        String specialty = getSpecialtyFromAuthentication(authentication);
+        return ResponseEntity.ok(service.getSettings(specialty));
     }
 
     @PutMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ClinicSettingsDto> updateSettings(@RequestBody ClinicSettingsDto dto) {
-        return ResponseEntity.ok(service.updateSettings(dto));
+    public ResponseEntity<ClinicSettingsDto> updateSettings(@Valid @RequestBody ClinicSettingsDto dto, Authentication authentication) {
+        String specialty = getSpecialtyFromAuthentication(authentication);
+        return ResponseEntity.ok(service.updateSettings(dto, specialty));
     }
 
     @PostMapping(value = "/logo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ClinicSettingsDto> uploadLogo(@RequestParam("file") MultipartFile file) {
-        return ResponseEntity.ok(service.uploadLogo(file));
+    public ResponseEntity<ClinicSettingsDto> uploadLogo(@RequestParam("file") MultipartFile file, Authentication authentication) {
+        String specialty = getSpecialtyFromAuthentication(authentication);
+        return ResponseEntity.ok(service.uploadLogo(file, specialty));
     }
-    
+
     @GetMapping("/logo/{filename:.+}")
     public ResponseEntity<Resource> serveLogo(@PathVariable String filename) {
         try {
@@ -48,13 +54,13 @@ public class ClinicSettingsController {
 
             Path basePath = Paths.get("uploads/logos/").toAbsolutePath().normalize();
             Path filePath = basePath.resolve(filename).normalize();
-            
+
             if (!filePath.startsWith(basePath)) {
                 return ResponseEntity.badRequest().build();
             }
 
             Resource resource = new UrlResource(filePath.toUri());
-            
+
             if (resource.exists() && resource.isReadable()) {
                 String contentType = "image/jpeg";
                 String lower = filename.toLowerCase();
@@ -65,7 +71,7 @@ public class ClinicSettingsController {
                 } else if (lower.endsWith(".webp")) {
                     contentType = "image/webp";
                 }
-                
+
                 return ResponseEntity.ok()
                         .header(HttpHeaders.CONTENT_TYPE, contentType)
                         .body(resource);
@@ -75,5 +81,12 @@ public class ClinicSettingsController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    private String getSpecialtyFromAuthentication(Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof User) {
+            return ((User) authentication.getPrincipal()).getSpecialty();
+        }
+        return "PSICOLOGIA"; // Default
     }
 }

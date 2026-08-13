@@ -36,6 +36,8 @@ export class PatientListComponent implements OnInit {
   pageSize: number = 10;
   totalPages: number = 0;
   totalElements: number = 0;
+  isLoading = false;
+  loadError = false;
 
   private searchSubject = new Subject<string>();
 
@@ -60,19 +62,24 @@ export class PatientListComponent implements OnInit {
   }
 
   loadPatients(): void {
-    if (this.searchTerm) {
-      this.patientService.search(this.searchTerm, this.currentPage, this.pageSize).subscribe(page => {
+    this.isLoading = true;
+    this.loadError = false;
+    const request = this.searchTerm
+      ? this.patientService.search(this.searchTerm, this.currentPage, this.pageSize)
+      : this.patientService.getAll(this.currentPage, this.pageSize);
+    request.subscribe({
+      next: (page) => {
         this.patients = page.content;
         this.totalPages = page.page.totalPages;
         this.totalElements = page.page.totalElements;
-      });
-    } else {
-      this.patientService.getAll(this.currentPage, this.pageSize).subscribe(page => {
-        this.patients = page.content;
-        this.totalPages = page.page.totalPages;
-        this.totalElements = page.page.totalElements;
-      });
-    }
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+        this.loadError = true;
+        this.toastService.show('Error al cargar los pacientes', 'error');
+      }
+    });
   }
 
   onSearch(event: Event): void {

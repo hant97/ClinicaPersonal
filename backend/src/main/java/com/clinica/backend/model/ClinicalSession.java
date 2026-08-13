@@ -59,6 +59,21 @@ public class ClinicalSession {
     @Column(name = "is_confidential", nullable = false)
     private boolean isConfidential = false;
 
+    @Column(name = "specialty", nullable = false)
+    private String specialty;
+
+    @Column(name = "skin_exam_findings", columnDefinition = "TEXT")
+    private String skinExamFindings;
+
+    @Column(name = "dermatological_diagnosis", columnDefinition = "TEXT")
+    private String dermatologicalDiagnosis;
+
+    @Column(name = "procedures_performed", columnDefinition = "TEXT")
+    private String proceduresPerformed;
+
+    @Column(name = "prescriptions", columnDefinition = "TEXT")
+    private String prescriptions;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -72,4 +87,13 @@ public class ClinicalSession {
 
     @Column(name = "appointment_id")
     private Long appointmentId;
+
+    @Column(name = "deleted", nullable = false)
+    private boolean deleted = false;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    @Column(name = "deleted_by")
+    private Long deletedBy;
 }

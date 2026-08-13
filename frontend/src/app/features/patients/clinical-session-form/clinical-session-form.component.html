@@ -1,44 +1,59 @@
 <div class="p-1 md:p-2">
-  <h3>{{ session ? 'Editar Sesión (S.O.A.P.)' : 'Nueva Sesión (S.O.A.P.)' }}</h3>
-  
+  <h3>
+    {{ session ? "Editar Sesión" : "Nueva Sesión" }}
+    {{ isPsychology ? "(S.O.A.P.)" : "(Dermatológica)" }}
+  </h3>
+
   <form [formGroup]="sessionForm" (ngSubmit)="onSubmit()">
     <div class="mb-5 grid grid-cols-1 gap-4 md:grid-cols-3">
       <div class="form-group">
         <label>Fecha de la Sesión</label>
-        <input type="date" formControlName="sessionDate" class="form-control">
+        <input type="date" formControlName="sessionDate" class="input-field" />
       </div>
       <div class="form-group">
         <label>Hora de Inicio</label>
-        <input type="time" formControlName="startTime" class="form-control">
+        <input type="time" formControlName="startTime" class="input-field" />
       </div>
       <div class="form-group">
         <label>Hora de Fin</label>
-        <input type="time" formControlName="endTime" class="form-control">
+        <input type="time" formControlName="endTime" class="input-field" />
       </div>
     </div>
 
     <div class="mb-5 grid grid-cols-1 gap-4 md:grid-cols-3">
       <div class="form-group">
         <label>Tipo de Sesión</label>
-        <select formControlName="sessionType" class="form-control">
-          <option value="INDIVIDUAL">Individual</option>
-          <option value="PAREJA">Pareja</option>
-          <option value="FAMILIAR">Familiar</option>
-          <option value="GRUPAL">Grupal</option>
+        <select formControlName="sessionType" class="input-field">
+          @if (isPsychology) {
+            <option value="INDIVIDUAL">Individual</option>
+            <option value="PAREJA">Pareja</option>
+            <option value="FAMILIAR">Familiar</option>
+            <option value="GRUPAL">Grupal</option>
+          } @else {
+            <option value="CONSULTA_PRIMERA_VEZ">Consulta Primera Vez</option>
+            <option value="CONTROL_DE_RUTINA">Control de Rutina</option>
+            <option value="CONTROL_POST_PROCEDIMIENTO">
+              Control Post-Procedimiento
+            </option>
+            <option value="PROCEDIMIENTO_AMBULATORIO">
+              Procedimiento Ambulatorio
+            </option>
+            <option value="EMERGENCIA">Emergencia</option>
+          }
         </select>
       </div>
-        <div class="form-group">
-          <label for="modality">Modalidad *</label>
-          <select id="modality" formControlName="modality" class="form-control">
-            <option value="">Seleccione</option>
-            @for (modality of appointmentModalities; track modality.id) {
-              <option [value]="modality.itemCode">{{ modality.itemName }}</option>
-            }
-          </select>
-        </div>
+      <div class="form-group">
+        <label for="modality">Modalidad *</label>
+        <select id="modality" formControlName="modality" class="input-field">
+          <option value="">Seleccione</option>
+          @for (modality of appointmentModalities; track modality.id) {
+            <option [value]="modality.itemCode">{{ modality.itemName }}</option>
+          }
+        </select>
+      </div>
       <div class="form-group">
         <label>Estado</label>
-        <select formControlName="status" class="form-control">
+        <select formControlName="status" class="input-field">
           <option value="COMPLETADA">Completada</option>
           <option value="CANCELADA">Cancelada</option>
           <option value="NO_ASISTIO">No Asistió</option>
@@ -46,46 +61,136 @@
       </div>
     </div>
 
-    <fieldset class="mb-5 rounded-xl border border-line bg-clinic-50/50 p-4 md:p-5">
-      <div class="form-group">
-        <label>Subjetivo (S)</label>
-        <textarea formControlName="subjective" class="form-control" rows="3" 
-          placeholder="¿Qué reporta el paciente sobre su estado o semana?"></textarea>
-      </div>
-      
-      <div class="form-group">
-        <label>Objetivo (O)</label>
-        <textarea formControlName="objective" class="form-control" rows="3" 
-          placeholder="Observaciones clínicas medibles durante la sesión."></textarea>
-      </div>
-      
-      <div class="form-group">
-        <label>Análisis (A)</label>
-        <textarea formControlName="analysis" class="form-control" rows="3" 
-          placeholder="Interpretación clínica y diagnóstico presuntivo."></textarea>
-      </div>
-      
-      <div class="form-group">
-        <label>Plan (P)</label>
-        <textarea formControlName="plan" class="form-control" rows="3" 
-          placeholder="Tareas asignadas, próximos pasos o derivaciones."></textarea>
-      </div>
-    </fieldset>
+    @if (isPsychology) {
+      <fieldset
+        class="mb-5 rounded-xl border border-line bg-clinic-50/50 p-4 md:p-5"
+      >
+        <div class="form-group">
+          <label>Subjetivo (S)</label>
+          <textarea
+            formControlName="subjective"
+            class="input-field"
+            rows="3"
+            placeholder="¿Qué reporta el paciente sobre su estado o semana?"
+          ></textarea>
+        </div>
 
-    <div *ngIf="sessionForm.hasError('soapRequired')" class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-danger">
-      Debe llenar al menos uno de los campos S.O.A.P.
-    </div>
+        <div class="form-group">
+          <label>Objetivo (O)</label>
+          <textarea
+            formControlName="objective"
+            class="input-field"
+            rows="3"
+            placeholder="Observaciones clínicas medibles durante la sesión."
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Análisis (A)</label>
+          <textarea
+            formControlName="analysis"
+            class="input-field"
+            rows="3"
+            placeholder="Interpretación clínica y diagnóstico presuntivo."
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Plan (P)</label>
+          <textarea
+            formControlName="plan"
+            class="input-field"
+            rows="3"
+            placeholder="Tareas asignadas, próximos pasos o derivaciones."
+          ></textarea>
+        </div>
+      </fieldset>
+    }
+
+    @if (isDermatology) {
+      <fieldset
+        class="mb-5 rounded-xl border border-line bg-clinic-50/50 p-4 md:p-5"
+      >
+        <div class="form-group">
+          <label>Hallazgos Examen de Piel</label>
+          <textarea
+            formControlName="skinExamFindings"
+            class="input-field"
+            rows="3"
+            placeholder="Describa los hallazgos físicos de la piel..."
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Diagnóstico Dermatológico</label>
+          <textarea
+            formControlName="dermatologicalDiagnosis"
+            class="input-field"
+            rows="3"
+            placeholder="Diagnóstico clínico o presuntivo..."
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Procedimientos Realizados</label>
+          <textarea
+            formControlName="proceduresPerformed"
+            class="input-field"
+            rows="3"
+            placeholder="Detalle los procedimientos (crioterapia, biopsia, etc.)..."
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Prescripciones</label>
+          <textarea
+            formControlName="prescriptions"
+            class="input-field"
+            rows="3"
+            placeholder="Medicamentos, cremas, bloqueadores, etc."
+          ></textarea>
+        </div>
+      </fieldset>
+    }
+
+    @if (isPsychology && sessionForm.hasError("soapRequired")) {
+      <div
+        class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-danger"
+      >
+        Debe llenar al menos uno de los campos S.O.A.P.
+      </div>
+    }
+
+    @if (isDermatology && sessionForm.hasError("dermRequired")) {
+      <div
+        class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-danger"
+      >
+        Debe llenar los hallazgos o el diagnóstico dermatológico.
+      </div>
+    }
 
     <div class="form-group">
-      <label class="flex cursor-pointer items-center gap-2 text-sm font-medium text-danger">
-        <input type="checkbox" formControlName="isConfidential">
+      <label
+        class="flex cursor-pointer items-center gap-2 text-sm font-medium text-danger"
+      >
+        <input type="checkbox" formControlName="isConfidential" />
         Contiene información sensible/confidencial
       </label>
     </div>
 
-    <div class="mt-7 flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end">
-      <button type="button" class="btn btn-secondary" (click)="onCancel()">Cancelar</button>
-      <button type="submit" class="btn btn-primary" [disabled]="sessionForm.invalid">Guardar Sesión</button>
+    <div
+      class="mt-7 flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end"
+    >
+      <button type="button" class="btn btn-secondary" (click)="onCancel()">
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="sessionForm.invalid"
+      >
+        Guardar Sesión
+      </button>
     </div>
   </form>
 </div>

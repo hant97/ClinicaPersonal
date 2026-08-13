@@ -5,12 +5,14 @@ import { forkJoin } from 'rxjs';
 import { PatientService } from '../../../core/services/patient/patient.service';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
+import { SpecialtyService } from '../../../core/services/specialty.service';
 import { CatalogItem } from '../../../core/models/catalog.model';
+import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
 
 @Component({
   selector: 'app-patient-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FocusTrapDirective],
   templateUrl: './patient-form.component.html',
 })
 export class PatientFormComponent implements OnInit {
@@ -19,6 +21,7 @@ export class PatientFormComponent implements OnInit {
   
   patientForm: FormGroup;
   isSaving = false;
+  isDermatology = false;
 
   documentTypes: CatalogItem[] = [];
   genders: CatalogItem[] = [];
@@ -28,7 +31,8 @@ export class PatientFormComponent implements OnInit {
     private fb: FormBuilder,
     private patientService: PatientService,
     private catalogService: CatalogService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private specialtyService: SpecialtyService
   ) {
     this.patientForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50), Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)]],
@@ -53,6 +57,7 @@ export class PatientFormComponent implements OnInit {
   esMenorEdad = false;
 
   ngOnInit(): void {
+    this.isDermatology = this.specialtyService.isDermatology();
     this.loadCatalogs();
     this.setupDocumentValidation();
     this.setupAgeValidation();

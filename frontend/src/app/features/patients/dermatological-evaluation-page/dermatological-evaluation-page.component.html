@@ -1,0 +1,7 @@
+<a [routerLink]="['/patients', patientId]" class="btn-text mb-4 inline-flex" aria-label="Volver a la ficha del paciente">
+  ← Volver a la ficha del paciente
+</a>
+
+@if (patientId) {
+  <app-dermatological-evaluation-list [patientId]="patientId"></app-dermatological-evaluation-list>
+}

@@ -13,12 +13,13 @@ export class RiskAlertService {
 
   constructor(private http: HttpClient) { }
 
-  getAlertsByPatientId(patientId: number, onlyActive: boolean = false): Observable<RiskAlert[]> {
+  getAlertsByPatientId(patientId: number, onlyActive: boolean = false, page: number = 0, size: number = 10): Observable<PageResponse<RiskAlert>> {
     let params = new HttpParams();
     if (onlyActive) {
       params = params.set('onlyActive', 'true');
     }
-    return this.http.get<RiskAlert[]>(`${this.apiUrl}/${patientId}/alerts`, { params });
+    params = params.set('page', page.toString()).set('size', size.toString());
+    return this.http.get<PageResponse<RiskAlert>>(`${this.apiUrl}/${patientId}/alerts`, { params });
   }
 
   getAllActiveAlerts(page: number = 0, size: number = 1000): Observable<PageResponse<RiskAlert>> {

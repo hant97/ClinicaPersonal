@@ -9,7 +9,9 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
-@Table(name = "patients")
+@Table(name = "patients", uniqueConstraints = @UniqueConstraint(
+        name = "uq_patients_specialty_identification_document",
+        columnNames = {"specialty", "identification_document"}))
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,7 +27,7 @@ public class Patient {
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    @Column(name = "identification_document", unique = true)
+    @Column(name = "identification_document")
     private String identificationDocument;
 
     @Column(name = "date_of_birth")
@@ -49,7 +51,7 @@ public class Patient {
     @Column(name = "reason_for_consultation", length = 500)
     private String reasonForConsultation;
 
-    @Column(name = "gender")
+    @Column(name = "gender", nullable = false)
     private String gender;
 
     @Column(name = "address")
@@ -63,6 +65,9 @@ public class Patient {
 
     @Column(name = "has_legal_guardian", nullable = false)
     private boolean hasLegalGuardian = false;
+
+    @Column(name = "specialty", nullable = false)
+    private String specialty = "PSICOLOGIA";
 
     @Column(name = "deleted", nullable = false)
     private boolean deleted = false;

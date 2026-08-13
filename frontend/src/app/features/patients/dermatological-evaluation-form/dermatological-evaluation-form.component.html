@@ -1,0 +1,163 @@
+<div
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+  role="dialog"
+  aria-modal="true"
+  appFocusTrap
+  (trapClose)="cancel()"
+>
+  <div
+    class="card relative flex max-h-[90vh] w-full max-w-4xl flex-col p-5 md:p-7"
+  >
+    <div
+      class="mb-6 flex items-center justify-between border-b border-line pb-4"
+    >
+      <h3 class="text-xl font-semibold">
+        {{
+          evaluation
+            ? "Editar Evaluación Dermatológica"
+            : "Nueva Evaluación Dermatológica"
+        }}
+      </h3>
+      <button
+        class="btn-text text-muted hover:text-danger"
+        aria-label="Cerrar"
+        (click)="cancel()"
+      >
+        &times;
+      </button>
+    </div>
+
+    <div class="overflow-y-auto pr-2">
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <div class="mb-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div class="form-group">
+            <label>Fecha de Evaluación *</label>
+            <input
+              type="date"
+              formControlName="evaluationDate"
+              class="input-field"
+            />
+          </div>
+          <div class="form-group">
+            <label>Próxima Revisión</label>
+            <input
+              type="date"
+              formControlName="nextReviewDate"
+              class="input-field"
+            />
+          </div>
+        </div>
+
+        <fieldset
+          class="mb-5 rounded-xl border border-line bg-clinic-50/50 p-4 md:p-5"
+        >
+          <legend class="text-sm font-semibold text-clinic-700">
+            Examen Físico
+          </legend>
+          <div class="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div class="form-group">
+              <label>Tipo de Piel</label>
+              <select formControlName="skinType" class="input-field">
+                <option value="">Seleccione</option>
+                @for (item of skinTypes; track item.id) {
+                  <option [value]="item.itemName">{{ item.itemName }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Zona Afectada</label>
+              <select formControlName="affectedArea" class="input-field">
+                <option value="">Seleccione</option>
+                @for (item of bodyAreas; track item.id) {
+                  <option [value]="item.itemName">{{ item.itemName }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Tipo de Lesión</label>
+              <select formControlName="lesionType" class="input-field">
+                <option value="">Seleccione</option>
+                @for (item of lesionTypes; track item.id) {
+                  <option [value]="item.itemName">{{ item.itemName }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Tamaño de Lesión</label>
+              <input
+                type="text"
+                formControlName="lesionSize"
+                class="input-field"
+                placeholder="ej. 2cm x 3cm"
+              />
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="form-group">
+          <label>Diagnóstico Dermatológico *</label>
+          <textarea
+            formControlName="dermatologicalDiagnosis"
+            class="input-field"
+            rows="2"
+            placeholder="Diagnóstico principal"
+          ></textarea>
+        </div>
+
+        <fieldset
+          class="mb-5 rounded-xl border border-line bg-clinic-50/50 p-4 md:p-5"
+        >
+          <legend class="text-sm font-semibold text-clinic-700">
+            Tratamiento y Procedimientos
+          </legend>
+          <div class="mt-2 grid grid-cols-1 gap-4">
+            <div class="form-group">
+              <label>Procedimiento Realizado</label>
+              <select formControlName="procedurePerformed" class="input-field">
+                <option value="">Ninguno / Otro</option>
+                @for (item of dermProcedures; track item.id) {
+                  <option [value]="item.itemName">{{ item.itemName }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Tratamiento Indicado</label>
+              <textarea
+                formControlName="treatmentIndicated"
+                class="input-field"
+                rows="2"
+                placeholder="Recetas, indicaciones..."
+              ></textarea>
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="form-group">
+          <label>Notas de Evolución</label>
+          <textarea
+            formControlName="evolutionNotes"
+            class="input-field"
+            rows="3"
+            placeholder="Progreso, complicaciones..."
+          ></textarea>
+        </div>
+      </form>
+    </div>
+
+    <div
+      class="mt-5 flex flex-col gap-4 border-t border-line pt-5 sm:flex-row sm:justify-end"
+    >
+      <button type="button" class="btn-secondary" (click)="cancel()">
+        Cancelar
+      </button>
+      <button
+        type="button"
+        class="btn-primary"
+        [disabled]="form.invalid || isSaving"
+        (click)="save()"
+      >
+        {{ isSaving ? "Guardando..." : "Guardar Evaluación" }}
+      </button>
+    </div>
+  </div>
+</div>

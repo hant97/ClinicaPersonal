@@ -5,6 +5,8 @@ import { provideRouter } from '@angular/router';
 import { MainLayoutComponent } from './main-layout.component';
 import { ClinicSettingsService } from '../../core/services/clinic-settings.service';
 import { UserService } from '../../core/services/user.service';
+import { SpecialtyService } from '../../core/services/specialty.service';
+import { AuthService } from '../../core/services/auth.service';
 
 describe('MainLayoutComponent', () => {
   let component: MainLayoutComponent;
@@ -32,6 +34,14 @@ describe('MainLayoutComponent', () => {
             settings$: settings$.asObservable(),
             getLogoUrl: (path: string) => path
           }
+        },
+        {
+          provide: SpecialtyService,
+          useValue: { isPsychology: () => false, isDermatology: () => true }
+        },
+        {
+          provide: AuthService,
+          useValue: { logout: () => undefined }
         }
       ]
     })

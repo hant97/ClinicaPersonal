@@ -1,16 +1,19 @@
 package com.clinica.backend.service;
 
 import com.clinica.backend.dto.ClinicalSessionDto;
+import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.ClinicalSession;
 import com.clinica.backend.model.Patient;
+import com.clinica.backend.model.User;
 import com.clinica.backend.repository.ClinicalSessionRepository;
 import com.clinica.backend.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -18,40 +21,66 @@ public class ClinicalSessionService {
 
     private final ClinicalSessionRepository sessionRepository;
     private final PatientRepository patientRepository;
+    private final ClinicalAuthorizationService clinicalAuthorizationService;
 
     @Transactional(readOnly = true)
     public Page<ClinicalSessionDto> getSessionsByPatientId(Long patientId, Pageable pageable) {
-        // TODO: Para la fase de confidencialidad, aquí se debería filtrar la lista
-        // para asegurar que las sesiones confidenciales solo se devuelvan si el
-        // usuario logueado es un profesional médico (ej. comprobando el rol del usuario
-        // en SecurityContextHolder).
-        return sessionRepository.findByPatientIdOrderBySessionDateDescStartTimeDesc(patientId, pageable)
-                .map(this::mapToDto);
+        User user = clinicalAuthorizationService.currentUser();
+        Page<ClinicalSession> sessions = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
+                ? sessionRepository.findByPatientIdAndSpecialtyAndDeletedFalseOrderBySessionDateDescStartTimeDesc(
+                        patientId, user.getSpecialty(), pageable)
+                : sessionRepository.findVisibleByPatientAndSpecialty(patientId, user.getSpecialty(), user.getId(), pageable);
+        return sessions.map(this::mapToDto);
     }
 
     @Transactional(readOnly = true)
     public ClinicalSessionDto getSessionById(Long id) {
-        ClinicalSession session = sessionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Session not found"));
-        // TODO: Validar permisos de lectura si session.isConfidential() es true.
+        ClinicalSession session = getActiveSession(id);
+        clinicalAuthorizationService.ensureSameSpecialty(session.getSpecialty());
+        if (session.isConfidential()) {
+            clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator(session.getSpecialty(), session.getProfessionalId());
+        }
         return mapToDto(session);
     }
 
     @Transactional
     public ClinicalSessionDto createSession(ClinicalSessionDto dto) {
-        ClinicalSession session = mapToEntity(dto);
-        ClinicalSession savedSession = sessionRepository.save(session);
-        return mapToDto(savedSession);
+        User user = clinicalAuthorizationService.currentUser();
+        Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(dto.getPatientId(), user.getSpecialty())
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
+
+        ClinicalSession session = new ClinicalSession();
+        session.setPatient(patient);
+        copyEditableFields(dto, session);
+        session.setSpecialty(user.getSpecialty());
+        session.setProfessionalId(user.getId());
+        return mapToDto(sessionRepository.save(session));
     }
 
     @Transactional
     public ClinicalSessionDto updateSession(Long id, ClinicalSessionDto dto) {
-        ClinicalSession session = sessionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Session not found"));
+        ClinicalSession session = getActiveSession(id);
+        clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator(session.getSpecialty(), session.getProfessionalId());
+        copyEditableFields(dto, session);
+        return mapToDto(sessionRepository.save(session));
+    }
 
-        // TODO: Validar permisos de edición si session.isConfidential() es true
-        // o si el usuario actual no es el creador de la sesión.
+    @Transactional
+    public void deleteSession(Long id) {
+        ClinicalSession session = getActiveSession(id);
+        clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator(session.getSpecialty(), session.getProfessionalId());
+        session.setDeleted(true);
+        session.setDeletedAt(LocalDateTime.now());
+        session.setDeletedBy(clinicalAuthorizationService.currentUser().getId());
+        sessionRepository.save(session);
+    }
 
+    private ClinicalSession getActiveSession(Long id) {
+        return sessionRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Sesión clínica no encontrada"));
+    }
+
+    private void copyEditableFields(ClinicalSessionDto dto, ClinicalSession session) {
         session.setSessionDate(dto.getSessionDate());
         session.setStartTime(dto.getStartTime());
         session.setEndTime(dto.getEndTime());
@@ -63,20 +92,11 @@ public class ClinicalSessionService {
         session.setAnalysis(dto.getAnalysis());
         session.setPlan(dto.getPlan());
         session.setConfidential(dto.isConfidential());
-        session.setProfessionalId(dto.getProfessionalId());
+        session.setSkinExamFindings(dto.getSkinExamFindings());
+        session.setDermatologicalDiagnosis(dto.getDermatologicalDiagnosis());
+        session.setProceduresPerformed(dto.getProceduresPerformed());
+        session.setPrescriptions(dto.getPrescriptions());
         session.setAppointmentId(dto.getAppointmentId());
-
-        ClinicalSession updatedSession = sessionRepository.save(session);
-        return mapToDto(updatedSession);
-    }
-
-    @Transactional
-    public void deleteSession(Long id) {
-        if (!sessionRepository.existsById(id)) {
-            throw new RuntimeException("Session not found");
-        }
-        // Nota: A futuro podríamos implementar soft delete también aquí
-        sessionRepository.deleteById(id);
     }
 
     private ClinicalSessionDto mapToDto(ClinicalSession entity) {
@@ -94,32 +114,15 @@ public class ClinicalSessionService {
         dto.setAnalysis(entity.getAnalysis());
         dto.setPlan(entity.getPlan());
         dto.setConfidential(entity.isConfidential());
+        dto.setSpecialty(entity.getSpecialty());
+        dto.setSkinExamFindings(entity.getSkinExamFindings());
+        dto.setDermatologicalDiagnosis(entity.getDermatologicalDiagnosis());
+        dto.setProceduresPerformed(entity.getProceduresPerformed());
+        dto.setPrescriptions(entity.getPrescriptions());
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setUpdatedAt(entity.getUpdatedAt());
         dto.setProfessionalId(entity.getProfessionalId());
         dto.setAppointmentId(entity.getAppointmentId());
         return dto;
-    }
-
-    private ClinicalSession mapToEntity(ClinicalSessionDto dto) {
-        ClinicalSession entity = new ClinicalSession();
-        Patient patient = patientRepository.findById(dto.getPatientId())
-                .orElseThrow(() -> new RuntimeException("Patient not found"));
-        entity.setPatient(patient);
-
-        entity.setSessionDate(dto.getSessionDate());
-        entity.setStartTime(dto.getStartTime());
-        entity.setEndTime(dto.getEndTime());
-        entity.setSessionType(dto.getSessionType());
-        entity.setModality(dto.getModality());
-        entity.setStatus(dto.getStatus());
-        entity.setSubjective(dto.getSubjective());
-        entity.setObjective(dto.getObjective());
-        entity.setAnalysis(dto.getAnalysis());
-        entity.setPlan(dto.getPlan());
-        entity.setConfidential(dto.isConfidential());
-        entity.setProfessionalId(dto.getProfessionalId());
-        entity.setAppointmentId(dto.getAppointmentId());
-        return entity;
     }
 }

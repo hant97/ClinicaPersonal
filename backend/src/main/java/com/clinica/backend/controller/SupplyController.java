@@ -2,11 +2,14 @@ package com.clinica.backend.controller;
 
 import com.clinica.backend.dto.SupplyDto;
 import com.clinica.backend.service.SupplyService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -40,13 +43,13 @@ public class SupplyController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<SupplyDto> createSupply(@RequestBody SupplyDto supplyDto) {
+    public ResponseEntity<SupplyDto> createSupply(@Valid @RequestBody SupplyDto supplyDto) {
         return new ResponseEntity<>(supplyService.createSupply(supplyDto), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<SupplyDto> updateSupply(@PathVariable Long id, @RequestBody SupplyDto supplyDto) {
+    public ResponseEntity<SupplyDto> updateSupply(@PathVariable Long id, @Valid @RequestBody SupplyDto supplyDto) {
         return ResponseEntity.ok(supplyService.updateSupply(id, supplyDto));
     }
 
@@ -55,5 +58,11 @@ public class SupplyController {
     public ResponseEntity<Void> deleteSupply(@PathVariable Long id) {
         supplyService.deleteSupply(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<SupplyDto> uploadImage(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(supplyService.uploadImage(id, file));
     }
 }
