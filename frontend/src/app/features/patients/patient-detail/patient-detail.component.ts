@@ -21,6 +21,7 @@ import { AllergiesSectionComponent } from '../allergies-section/allergies-sectio
 import { MedicationsSectionComponent } from '../medications-section/medications-section.component';
 import { PrescriptionsSectionComponent } from '../prescriptions-section/prescriptions-section.component';
 import { DocumentsSectionComponent } from '../documents-section/documents-section.component';
+import { RiskAlertBannerComponent } from '../risk-alert-banner/risk-alert-banner.component';
 import { PsychologyEvaluationSectionComponent } from '../psychology-evaluation-section/psychology-evaluation-section.component';
 import { DiagnosesSectionComponent } from '../diagnoses-section/diagnoses-section.component';
 import { TherapeuticPlansSectionComponent } from '../therapeutic-plans-section/therapeutic-plans-section.component';
@@ -55,10 +56,12 @@ import {
   Trash2,
   CheckCircle2,
   FolderOpen,
-  Sparkles
+  Sparkles,
+  ChevronRight,
+  ChevronDown
 } from 'lucide-angular';
 
-export type MainTabType = 'timeline' | 'expediente' | 'especialidad' | 'alertas';
+export type MainTabType = 'timeline' | 'expediente' | 'especialidad';
 
 @Component({
   selector: 'app-patient-detail',
@@ -85,6 +88,7 @@ export type MainTabType = 'timeline' | 'expediente' | 'especialidad' | 'alertas'
     EvolutionsSectionComponent,
     DermatologicalEvaluationListComponent,
     ClinicalHistoryPrintComponent,
+    RiskAlertBannerComponent,
     LucideAngularModule,
     StatusPillComponent
   ],
@@ -112,6 +116,8 @@ export class PatientDetailComponent implements OnInit {
   readonly Microscope = Microscope;
   readonly AlertTriangle = AlertTriangle;
   readonly Sparkles = Sparkles;
+  readonly ChevronRight = ChevronRight;
+  readonly ChevronDown = ChevronDown;
 
   patient: Patient | null = null;
   sessions: ClinicalSession[] = [];
@@ -119,6 +125,8 @@ export class PatientDetailComponent implements OnInit {
   showForm = false;
   showAlertForm = false;
   showPrint = false;
+  showAlertsModal = false;
+  showContact = false;
   expandedSessionId: number | null = null;
   selectedSession: ClinicalSession | undefined;
   esMenorEdad = false;
@@ -191,6 +199,49 @@ export class PatientDetailComponent implements OnInit {
 
   setExpedienteSubTab(subTab: string): void {
     this.activeExpedienteSubTab = subTab;
+  }
+
+  openAlertsModal(): void {
+    this.showAlertsModal = true;
+  }
+
+  openAllergiesSection(): void {
+    this.activeTab = 'expediente';
+    this.activeExpedienteSubTab = 'alergias';
+  }
+
+  closeAlertsModal(): void {
+    this.showAlertsModal = false;
+  }
+
+  toggleContact(): void {
+    this.showContact = !this.showContact;
+  }
+
+  sessionStatusBadge(status?: string): string {
+    switch ((status || '').toUpperCase()) {
+      case 'COMPLETADA':
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'CANCELADA':
+        return 'bg-slate-100 text-slate-500 border-slate-200';
+      case 'NO_ASISTIO':
+        return 'bg-red-50 text-red-700 border-red-200';
+      default:
+        return 'bg-amber-50 text-amber-700 border-amber-200';
+    }
+  }
+
+  sessionStatusDot(status?: string): string {
+    switch ((status || '').toUpperCase()) {
+      case 'COMPLETADA':
+        return 'bg-emerald-500';
+      case 'CANCELADA':
+        return 'bg-slate-400';
+      case 'NO_ASISTIO':
+        return 'bg-red-500';
+      default:
+        return 'bg-amber-500';
+    }
   }
 
   loadCounts(patientId: number): void {

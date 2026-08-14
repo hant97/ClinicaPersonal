@@ -50,8 +50,19 @@
     </div>
     <app-pagination [currentPage]="currentPage" [totalPages]="totalPages" (pageChange)="onPageChange($event)"></app-pagination>
   } @else {
-    <div class="rounded-lg border border-dashed border-line bg-canvas p-6 text-center text-sm text-muted">
-      No hay documentos registrados para este paciente.
+    <div class="rounded-[10px] border border-dashed border-line bg-canvas px-6 py-[34px] text-center">
+      <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+        <lucide-icon [img]="FolderOpen" [size]="24"></lucide-icon>
+      </div>
+      <h4 class="text-sm font-semibold text-ink">Aún no hay documentos para {{ patientName || 'este paciente' }}</h4>
+      <p class="mx-auto mt-1 max-w-md text-xs text-muted leading-relaxed">
+        Sube resultados de laboratorio, fotos clínicas, consentimientos informados o recetas escaneadas para tenerlos junto al resto de su historia.
+      </p>
+      <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
+        <span class="rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-slate-600">🧪 Resultado de laboratorio</span>
+        <span class="rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-slate-600">📝 Consentimiento informado</span>
+        <span class="rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-slate-600">📄 Receta escaneada</span>
+      </div>
     </div>
   }
 </div>

@@ -33,6 +33,7 @@ export class DocumentsSectionComponent implements OnInit {
   readonly FolderOpen = FolderOpen;
 
   @Input() patientId!: number;
+  @Input() patientName = '';
 
   documents: ClinicalDocument[] = [];
   loading = true;

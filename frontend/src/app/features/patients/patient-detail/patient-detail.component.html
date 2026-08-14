@@ -34,6 +34,12 @@
       </button>
     </div>
 
+    <!-- Persistent Risk Alert Banner (allergies) -->
+    <app-risk-alert-banner
+      [allergies]="allergies"
+      (openAllergies)="openAllergiesSection()"
+    ></app-risk-alert-banner>
+
     <!-- 2-Column Clinical Split Screen Workspace -->
     <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px] gap-6 items-start">
       
@@ -85,22 +91,6 @@
                 <span>Atención Especializada</span>
               }
             </button>
-
-            <!-- Tab 4: Alertas de Riesgo -->
-            <button
-              type="button"
-              class="inline-flex items-center gap-2 border-b-2 px-3.5 py-2.5 text-xs font-semibold transition whitespace-nowrap"
-              [ngClass]="activeTab === 'alertas' ? 'border-red-500 text-red-700 bg-red-50/50' : 'border-transparent text-muted hover:text-ink hover:border-slate-300'"
-              (click)="setTab('alertas')"
-            >
-              <lucide-icon [img]="AlertTriangle" [size]="15" class="text-danger"></lucide-icon>
-              <span>Alertas de Riesgo</span>
-              @if (activeAlerts.length > 0) {
-                <span class="rounded-full bg-red-100 px-1.5 py-0.2 text-[10px] font-bold text-danger">
-                  {{ activeAlerts.length }}
-                </span>
-              }
-            </button>
           </nav>
         </div>
 
@@ -124,30 +114,38 @@
                 </button>
               </div>
 
-              <div class="space-y-3">
+              <div class="relative space-y-3 pl-6">
+                <span class="absolute left-1.5 top-1 bottom-1 w-px bg-line" aria-hidden="true"></span>
                 @for (session of sessions; track session.id) {
                   <div
-                    class="card !p-4 border-l-4 border-l-primary-500 transition hover:shadow-raised cursor-pointer"
+                    class="relative card !p-4 transition hover:shadow-raised cursor-pointer"
                     (click)="toggleSessionExpand(session.id!)"
                   >
+                    <span
+                      class="absolute -left-6 top-4 h-2.5 w-2.5 rounded-full border-2 border-white"
+                      [ngClass]="sessionStatusDot(session.status)"
+                      aria-hidden="true"
+                    ></span>
                     <!-- Session Header Row -->
                     <div class="flex flex-wrap items-center justify-between gap-3">
-                      <div class="flex items-center gap-3">
+                      <div class="flex flex-wrap items-center gap-3">
                         <div class="flex flex-col">
                           <span class="text-xs font-bold text-ink">{{ session.sessionDate | date:'fullDate' | titlecase }}</span>
                           <span class="text-[11px] text-muted font-mono">{{ session.startTime }} - {{ session.endTime }}</span>
                         </div>
 
-                        <span class="rounded bg-primary-50 px-2 py-0.5 text-xs font-semibold text-primary-700 border border-primary-200">
+                        <span class="rounded border px-2 py-0.5 text-xs font-bold" [ngClass]="sessionStatusBadge(session.status)">
                           {{ session.status || 'Completada' }}
                         </span>
 
-                        <span class="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
-                          {{ session.sessionType | uppercase }}
-                        </span>
+                        <span class="flex items-center gap-1.5">
+                          <span class="rounded border border-line bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                            {{ session.sessionType | uppercase }}
+                          </span>
 
-                        <span class="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
-                          {{ session.modality }}
+                          <span class="rounded border border-line bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                            {{ session.modality }}
+                          </span>
                         </span>
 
                         @if (session.isConfidential) {
@@ -229,60 +227,70 @@
 
           <!-- TAB 2: Expediente General -->
           @if (activeTab === 'expediente') {
-            <div class="space-y-4">
-              <!-- Sub-pills selector -->
-              <div class="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-line">
+            <div class="flex flex-col gap-4 md:flex-row md:items-start">
+              <!-- Vertical Sub-nav -->
+              <nav
+                class="flex shrink-0 gap-1 overflow-x-auto rounded-lg border border-line bg-surface p-1.5 md:w-[170px] md:flex-col md:overflow-visible"
+                aria-label="Secciones del expediente general"
+              >
                 <button
                   type="button"
-                  class="rounded-md px-3 py-1.5 text-xs font-semibold transition"
-                  [ngClass]="activeExpedienteSubTab === 'datos-personales' ? 'bg-primary-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                  class="flex items-center justify-between gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition whitespace-nowrap"
+                  [ngClass]="activeExpedienteSubTab === 'datos-personales' ? 'bg-primary-50 text-primary-700' : 'text-slate-700 hover:bg-slate-100'"
                   (click)="setExpedienteSubTab('datos-personales')"
                 >
                   Datos Personales
                 </button>
                 <button
                   type="button"
-                  class="rounded-md px-3 py-1.5 text-xs font-semibold transition"
-                  [ngClass]="activeExpedienteSubTab === 'antecedentes' ? 'bg-primary-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                  class="flex items-center justify-between gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition whitespace-nowrap"
+                  [ngClass]="activeExpedienteSubTab === 'antecedentes' ? 'bg-primary-50 text-primary-700' : 'text-slate-700 hover:bg-slate-100'"
                   (click)="setExpedienteSubTab('antecedentes')"
                 >
                   Antecedentes Generales
                 </button>
                 <button
                   type="button"
-                  class="rounded-md px-3 py-1.5 text-xs font-semibold transition"
-                  [ngClass]="activeExpedienteSubTab === 'alergias' ? 'bg-primary-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                  class="flex items-center justify-between gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition whitespace-nowrap"
+                  [ngClass]="activeExpedienteSubTab === 'alergias' ? 'bg-primary-50 text-primary-700' : 'text-slate-700 hover:bg-slate-100'"
                   (click)="setExpedienteSubTab('alergias')"
                 >
-                  Alergias
+                  <span>Alergias</span>
+                  @if (counts['alergias'] > 0) {
+                    <span class="rounded-full bg-red-100 px-1.5 py-0.2 text-[10px] font-bold text-danger">{{ counts['alergias'] }}</span>
+                  }
                 </button>
                 <button
                   type="button"
-                  class="rounded-md px-3 py-1.5 text-xs font-semibold transition"
-                  [ngClass]="activeExpedienteSubTab === 'medicamentos' ? 'bg-primary-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                  class="flex items-center justify-between gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition whitespace-nowrap"
+                  [ngClass]="activeExpedienteSubTab === 'medicamentos' ? 'bg-primary-50 text-primary-700' : 'text-slate-700 hover:bg-slate-100'"
                   (click)="setExpedienteSubTab('medicamentos')"
                 >
-                  Medicamentos
+                  <span>Medicamentos</span>
+                  @if (counts['medicamentos'] > 0) {
+                    <span class="rounded-full bg-primary-100 px-1.5 py-0.2 text-[10px] font-bold text-primary-700">{{ counts['medicamentos'] }}</span>
+                  }
                 </button>
                 <button
                   type="button"
-                  class="rounded-md px-3 py-1.5 text-xs font-semibold transition"
-                  [ngClass]="activeExpedienteSubTab === 'recetas' ? 'bg-primary-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                  class="flex items-center justify-between gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition whitespace-nowrap"
+                  [ngClass]="activeExpedienteSubTab === 'recetas' ? 'bg-primary-50 text-primary-700' : 'text-slate-700 hover:bg-slate-100'"
                   (click)="setExpedienteSubTab('recetas')"
                 >
                   Recetas
                 </button>
                 <button
                   type="button"
-                  class="rounded-md px-3 py-1.5 text-xs font-semibold transition"
-                  [ngClass]="activeExpedienteSubTab === 'documentos' ? 'bg-primary-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                  class="flex items-center justify-between gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition whitespace-nowrap"
+                  [ngClass]="activeExpedienteSubTab === 'documentos' ? 'bg-primary-50 text-primary-700' : 'text-slate-700 hover:bg-slate-100'"
                   (click)="setExpedienteSubTab('documentos')"
                 >
                   Documentos
                 </button>
-              </div>
+              </nav>
 
               <!-- Sub-tab Content -->
+              <div class="min-w-0 flex-1">
               @switch (activeExpedienteSubTab) {
                 @case ('datos-personales') {
                   <div class="grid gap-4 md:grid-cols-2">
@@ -321,9 +329,10 @@
                   <app-prescriptions-section [patientId]="patient.id!"></app-prescriptions-section>
                 }
                 @case ('documentos') {
-                  <app-documents-section [patientId]="patient.id!"></app-documents-section>
+                  <app-documents-section [patientId]="patient.id!" [patientName]="patient.firstName + ' ' + patient.lastName"></app-documents-section>
                 }
               }
+              </div>
             </div>
           }
 
@@ -482,57 +491,6 @@
             </div>
           }
 
-          <!-- TAB 4: Alertas de Riesgo -->
-          @if (activeTab === 'alertas') {
-            <div class="space-y-4">
-              <div class="flex items-center justify-between">
-                <div>
-                  <h2 class="text-sm font-bold uppercase tracking-wider text-slate-800">Alertas de Riesgo Clínico</h2>
-                  <p class="text-xs text-muted">Factores de vulnerabilidad y condiciones críticas</p>
-                </div>
-                <button
-                  type="button"
-                  class="btn-primary !text-xs !py-1.5 !bg-red-600 hover:!bg-red-700"
-                  (click)="openAlertForm()"
-                >
-                  <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
-                  <span>Nueva Alerta</span>
-                </button>
-              </div>
-
-              @if (activeAlerts.length > 0) {
-                <div class="space-y-3">
-                  @for (alert of activeAlerts; track alert.id) {
-                    <div class="card !p-4 border-l-4 border-l-red-500 bg-red-50/40 flex items-start justify-between gap-4">
-                      <div class="space-y-1 min-w-0">
-                        <div class="flex items-center gap-2">
-                          <span class="font-bold text-danger text-sm">{{ alert.type }}</span>
-                          <span class="rounded bg-red-100 px-2 py-0.5 text-xs font-bold text-danger border border-red-200">
-                            {{ alert.level }}
-                          </span>
-                        </div>
-                        <p class="text-xs text-slate-700 leading-relaxed">{{ alert.description }}</p>
-                      </div>
-
-                      <button
-                        type="button"
-                        class="btn-secondary !text-xs !py-1.5 shrink-0"
-                        (click)="resolveAlert(alert.id!, $event)"
-                      >
-                        Resolver
-                      </button>
-                    </div>
-                  }
-                </div>
-              } @else {
-                <div class="list-state card">
-                  <lucide-icon [img]="CheckCircle2" [size]="28" class="text-emerald-500 mb-1"></lucide-icon>
-                  <p class="text-sm font-semibold text-ink">No hay alertas de riesgo activas</p>
-                  <p class="text-xs text-muted">El paciente no registra alertas críticas ni factores de riesgo vigentes.</p>
-                </div>
-              }
-            </div>
-          }
         </div>
       </div>
 
@@ -580,30 +538,44 @@
             </button>
           </div>
 
-          <!-- Meta Strip -->
-          <div class="space-y-2 text-xs border-t border-line pt-2.5 text-slate-600">
-            @if (patient.contactNumber) {
-              <div class="flex items-center justify-between">
-                <span class="text-muted flex items-center gap-1">
-                  <lucide-icon [img]="Phone" [size]="12"></lucide-icon>
-                  Teléfono:
-                </span>
-                <span class="font-semibold text-ink">{{ patient.contactNumber }}</span>
-              </div>
-            }
-            @if (patient.email) {
-              <div class="flex items-center justify-between">
-                <span class="text-muted flex items-center gap-1">
-                  <lucide-icon [img]="Mail" [size]="12"></lucide-icon>
-                  Email:
-                </span>
-                <span class="font-medium text-ink truncate max-w-[160px]">{{ patient.email }}</span>
-              </div>
-            }
-            @if (patient.emergencyContact) {
-              <div class="flex items-center justify-between">
-                <span class="text-muted">Emergencia:</span>
-                <span class="font-semibold text-ink">{{ patient.emergencyContact }}</span>
+          <!-- Contact (collapsed by default) -->
+          <div class="border-t border-line pt-2.5">
+            <button
+              type="button"
+              class="flex w-full items-center gap-1 text-xs font-semibold text-primary-700 transition hover:text-primary-800"
+              (click)="toggleContact()"
+              [attr.aria-expanded]="showContact"
+            >
+              <lucide-icon [img]="showContact ? ChevronDown : ChevronRight" [size]="14"></lucide-icon>
+              Ver datos de contacto
+            </button>
+
+            @if (showContact) {
+              <div class="space-y-2 text-xs pt-2.5 text-slate-600">
+                @if (patient.contactNumber) {
+                  <div class="flex items-center justify-between">
+                    <span class="text-muted flex items-center gap-1">
+                      <lucide-icon [img]="Phone" [size]="12"></lucide-icon>
+                      Teléfono:
+                    </span>
+                    <span class="font-semibold text-ink">{{ patient.contactNumber }}</span>
+                  </div>
+                }
+                @if (patient.email) {
+                  <div class="flex items-center justify-between">
+                    <span class="text-muted flex items-center gap-1">
+                      <lucide-icon [img]="Mail" [size]="12"></lucide-icon>
+                      Email:
+                    </span>
+                    <span class="font-medium text-ink truncate max-w-[160px]">{{ patient.email }}</span>
+                  </div>
+                }
+                @if (patient.emergencyContact) {
+                  <div class="flex items-center justify-between">
+                    <span class="text-muted">Emergencia:</span>
+                    <span class="font-semibold text-ink">{{ patient.emergencyContact }}</span>
+                  </div>
+                }
               </div>
             }
           </div>
@@ -617,7 +589,7 @@
                 <lucide-icon [img]="AlertTriangle" [size]="14"></lucide-icon>
                 Alertas Activas ({{ activeAlerts.length }})
               </span>
-              <button type="button" class="btn-text !p-0 text-[11px] text-danger underline" (click)="setTab('alertas')">
+              <button type="button" class="btn-text !p-0 text-[11px] text-danger underline" (click)="openAlertsModal()">
                 Ver todas
               </button>
             </div>
@@ -632,28 +604,29 @@
           </div>
         }
 
-        <!-- 3. Allergies Widget -->
+        <!-- 3. Active Diagnoses Widget -->
         <div class="card !p-3.5 space-y-2">
           <div class="flex items-center justify-between border-b border-line pb-1.5">
             <span class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1">
-              <lucide-icon [img]="AlertTriangle" [size]="13" class="text-amber-500"></lucide-icon>
-              Alergias Registradas
+              <lucide-icon [img]="Stethoscope" [size]="13" class="text-cyan-600"></lucide-icon>
+              Diagnósticos CIE
             </span>
             <span class="rounded bg-slate-100 px-1.5 py-0.2 text-[10px] font-bold text-slate-700">
-              {{ allergies.length }}
+              {{ diagnoses.length }}
             </span>
           </div>
 
-          @if (allergies.length > 0) {
-            <div class="flex flex-wrap gap-1.5">
-              @for (allergy of allergies; track allergy.id) {
-                <span class="rounded bg-red-50 px-2 py-0.5 text-xs font-semibold text-danger border border-red-200">
-                  {{ allergy.allergen }} ({{ allergy.severity || 'Leve' }})
-                </span>
+          @if (diagnoses.length > 0) {
+            <div class="space-y-1.5">
+              @for (diag of diagnoses; track diag.id) {
+                <div class="rounded bg-slate-50 p-1.5 border border-line text-xs">
+                  <span class="font-bold text-ink block">{{ diag.description }}</span>
+                  <span class="text-[10px] text-muted font-mono">{{ diag.cieCode || 'CIE-10' }}</span>
+                </div>
               }
             </div>
           } @else {
-            <p class="text-[11px] text-muted italic">Sin alergias conocidas registradas.</p>
+            <p class="text-[11px] text-muted italic">Sin diagnósticos registrados.</p>
           }
         </div>
 
@@ -682,34 +655,66 @@
             <p class="text-[11px] text-muted italic">Sin medicamentos prescritos actualmente.</p>
           }
         </div>
+      </aside>
+    </div>
 
-        <!-- 5. Active Diagnoses Widget -->
-        <div class="card !p-3.5 space-y-2">
-          <div class="flex items-center justify-between border-b border-line pb-1.5">
-            <span class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1">
-              <lucide-icon [img]="Stethoscope" [size]="13" class="text-cyan-600"></lucide-icon>
-              Diagnósticos CIE
-            </span>
-            <span class="rounded bg-slate-100 px-1.5 py-0.2 text-[10px] font-bold text-slate-700">
-              {{ diagnoses.length }}
-            </span>
+    <!-- Risk Alerts Viewer Modal -->
+    @if (showAlertsModal) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeAlertsModal()">
+        <div class="card relative max-h-[90vh] w-full max-w-2xl overflow-y-auto !p-6 shadow-floating" (click)="$event.stopPropagation()">
+          <div class="mb-4 flex items-center justify-between border-b border-line pb-3">
+            <div>
+              <h2 class="text-sm font-bold uppercase tracking-wider text-slate-800">Alertas de Riesgo Clínico</h2>
+              <p class="text-xs text-muted">Factores de vulnerabilidad y condiciones críticas</p>
+            </div>
+            <button type="button" class="btn-text text-muted hover:text-danger" aria-label="Cerrar" (click)="closeAlertsModal()">×</button>
           </div>
 
-          @if (diagnoses.length > 0) {
-            <div class="space-y-1.5">
-              @for (diag of diagnoses; track diag.id) {
-                <div class="rounded bg-slate-50 p-1.5 border border-line text-xs">
-                  <span class="font-bold text-ink block">{{ diag.description }}</span>
-                  <span class="text-[10px] text-muted font-mono">{{ diag.cieCode || 'CIE-10' }}</span>
+          <div class="mb-4 flex justify-end">
+            <button
+              type="button"
+              class="btn-primary !text-xs !py-1.5 !bg-red-600 hover:!bg-red-700"
+              (click)="openAlertForm()"
+            >
+              <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
+              <span>Nueva Alerta</span>
+            </button>
+          </div>
+
+          @if (activeAlerts.length > 0) {
+            <div class="space-y-3">
+              @for (alert of activeAlerts; track alert.id) {
+                <div class="card !p-4 border-l-4 border-l-red-500 bg-red-50/40 flex items-start justify-between gap-4">
+                  <div class="space-y-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                      <span class="font-bold text-danger text-sm">{{ alert.type }}</span>
+                      <span class="rounded bg-red-100 px-2 py-0.5 text-xs font-bold text-danger border border-red-200">
+                        {{ alert.level }}
+                      </span>
+                    </div>
+                    <p class="text-xs text-slate-700 leading-relaxed">{{ alert.description }}</p>
+                  </div>
+
+                  <button
+                    type="button"
+                    class="btn-secondary !text-xs !py-1.5 shrink-0"
+                    (click)="resolveAlert(alert.id!, $event)"
+                  >
+                    Resolver
+                  </button>
                 </div>
               }
             </div>
           } @else {
-            <p class="text-[11px] text-muted italic">Sin diagnósticos registrados.</p>
+            <div class="list-state card">
+              <lucide-icon [img]="CheckCircle2" [size]="28" class="text-emerald-500 mb-1"></lucide-icon>
+              <p class="text-sm font-semibold text-ink">No hay alertas de riesgo activas</p>
+              <p class="text-xs text-muted">El paciente no registra alertas críticas ni factores de riesgo vigentes.</p>
+            </div>
           }
         </div>
-      </aside>
-    </div>
+      </div>
+    }
 
     <!-- Clinical Session Modal Form -->
     @if (showForm) {

@@ -1,0 +1,21 @@
+@if (allergies.length > 0) {
+  <div
+    role="alert"
+    class="flex items-start gap-3 rounded-[10px] border border-red-200 border-l-4 border-l-danger bg-gradient-to-r from-red-50 to-red-50/60 px-4 py-3"
+  >
+    <lucide-icon [img]="AlertTriangle" [size]="18" class="mt-0.5 shrink-0 text-danger"></lucide-icon>
+    <div class="min-w-0 flex-1">
+      <p class="text-sm font-bold text-danger">
+        {{ allergies.length }} alergias registradas · verificar antes de prescribir
+      </p>
+      <p class="mt-0.5 text-xs text-slate-700">{{ summary }}</p>
+    </div>
+    <button
+      type="button"
+      class="btn-secondary !text-xs !py-1.5 shrink-0"
+      (click)="openAllergies.emit()"
+    >
+      Ver todas las alergias
+    </button>
+  </div>
+}
