@@ -49,7 +49,10 @@ class GeneralHistoryServiceTest {
 
     @Test
     void getGeneralHistoryWhenMissingReturnsEmptyDtoWithPatientIdAndSpecialty() {
+        Patient patient = new Patient();
+        patient.setId(7L);
         when(clinicalAuthorizationService.currentUser()).thenReturn(user);
+        when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(7L, "PSICOLOGIA")).thenReturn(Optional.of(patient));
         when(repository.findByPatientIdAndSpecialtyAndDeletedFalse(7L, "PSICOLOGIA")).thenReturn(Optional.empty());
 
         GeneralHistoryDto result = service.getGeneralHistory(7L);

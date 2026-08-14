@@ -1,5 +1,6 @@
 package com.clinica.backend.security;
 
+import com.clinica.backend.model.User;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -47,7 +48,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
                 
                 if (jwtService.isTokenValid(jwt, userDetails)
-                        && jwtService.extractTokenVersion(jwt) == ((com.clinica.backend.model.User) userDetails).getTokenVersion()
+                        && jwtService.extractTokenVersion(jwt) == ((User) userDetails).getTokenVersion()
                         && !tokenRevocationService.isRevoked(jwtService.extractTokenId(jwt))) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,

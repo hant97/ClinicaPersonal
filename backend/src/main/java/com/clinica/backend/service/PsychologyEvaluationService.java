@@ -27,6 +27,8 @@ public class PsychologyEvaluationService {
     @Transactional(readOnly = true)
     public Page<PsychologyEvaluationDto> getEvaluationsByPatientId(Long patientId, Pageable pageable) {
         User user = clinicalAuthorizationService.currentUser();
+        patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, user.getSpecialty())
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
         Page<PsychologyEvaluation> evaluations = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
                 ? repository.findByPatientIdAndDeletedFalse(patientId, pageable)
                 : repository.findByPatientIdAndProfessionalIdAndDeletedFalse(patientId, user.getId(), pageable);

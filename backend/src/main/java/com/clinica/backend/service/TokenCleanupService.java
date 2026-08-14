@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 @Service
 @RequiredArgsConstructor
@@ -19,7 +20,7 @@ public class TokenCleanupService {
     @Scheduled(cron = "${auth.token-cleanup-cron:0 15 * * * *}")
     @Transactional
     public void removeExpiredTokens() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         refreshTokenRepository.deleteByExpiresAtBefore(now);
         revokedTokenRepository.deleteByExpiresAtBefore(now);
     }

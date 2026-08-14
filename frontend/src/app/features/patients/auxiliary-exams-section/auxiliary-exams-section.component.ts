@@ -6,7 +6,7 @@ import { AuxiliaryExam } from '../../../core/models/auxiliary-exam.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule, Microscope } from 'lucide-angular';
+import { LucideAngularModule, Microscope, Edit, Trash2 } from 'lucide-angular';
 
 @Component({
   selector: 'app-auxiliary-exams-section',
@@ -16,6 +16,8 @@ import { LucideAngularModule, Microscope } from 'lucide-angular';
 })
 export class AuxiliaryExamsSectionComponent implements OnInit {
   readonly Microscope = Microscope;
+  readonly Edit = Edit;
+  readonly Trash2 = Trash2;
 
   @Input() patientId!: number;
 

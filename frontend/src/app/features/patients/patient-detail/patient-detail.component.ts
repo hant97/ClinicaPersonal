@@ -19,6 +19,8 @@ import { ClinicalHistory } from '../../../core/models/clinical-history.model';
 import { GeneralHistorySectionComponent } from '../general-history-section/general-history-section.component';
 import { AllergiesSectionComponent } from '../allergies-section/allergies-section.component';
 import { MedicationsSectionComponent } from '../medications-section/medications-section.component';
+import { PrescriptionsSectionComponent } from '../prescriptions-section/prescriptions-section.component';
+import { DocumentsSectionComponent } from '../documents-section/documents-section.component';
 import { PsychologyEvaluationSectionComponent } from '../psychology-evaluation-section/psychology-evaluation-section.component';
 import { DiagnosesSectionComponent } from '../diagnoses-section/diagnoses-section.component';
 import { TherapeuticPlansSectionComponent } from '../therapeutic-plans-section/therapeutic-plans-section.component';
@@ -70,6 +72,8 @@ export type MainTabType = 'timeline' | 'expediente' | 'especialidad' | 'alertas'
     GeneralHistorySectionComponent,
     AllergiesSectionComponent,
     MedicationsSectionComponent,
+    PrescriptionsSectionComponent,
+    DocumentsSectionComponent,
     PsychologyEvaluationSectionComponent,
     DiagnosesSectionComponent,
     TherapeuticPlansSectionComponent,

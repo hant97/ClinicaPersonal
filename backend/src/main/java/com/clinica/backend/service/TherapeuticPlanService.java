@@ -26,6 +26,8 @@ public class TherapeuticPlanService {
     @Transactional(readOnly = true)
     public Page<TherapeuticPlanDto> getPlans(Long patientId, Pageable pageable) {
         User user = clinicalAuthorizationService.currentUser();
+        patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, user.getSpecialty())
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
         Page<TherapeuticPlan> plans = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
                 ? repository.findByPatientIdAndSpecialtyAndDeletedFalseOrderByCreatedAtDesc(patientId, user.getSpecialty(), pageable)
                 : repository.findByPatientIdAndSpecialtyAndProfessionalIdAndDeletedFalseOrderByCreatedAtDesc(patientId, user.getSpecialty(), user.getId(), pageable);

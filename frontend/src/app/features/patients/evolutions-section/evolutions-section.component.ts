@@ -6,7 +6,7 @@ import { Evolution } from '../../../core/models/evolution.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule, Calendar } from 'lucide-angular';
+import { LucideAngularModule, Calendar, Edit, Trash2 } from 'lucide-angular';
 
 @Component({
   selector: 'app-evolutions-section',
@@ -16,6 +16,8 @@ import { LucideAngularModule, Calendar } from 'lucide-angular';
 })
 export class EvolutionsSectionComponent implements OnInit {
   readonly Calendar = Calendar;
+  readonly Edit = Edit;
+  readonly Trash2 = Trash2;
 
   @Input() patientId!: number;
 

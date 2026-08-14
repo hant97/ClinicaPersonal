@@ -2,6 +2,7 @@ package com.clinica.backend.config;
 
 import com.clinica.backend.security.JwtAuthenticationEntryPoint;
 import com.clinica.backend.security.JwtAuthenticationFilter;
+import com.clinica.backend.security.PublicRateLimitFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,6 +29,7 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final PublicRateLimitFilter publicRateLimitFilter;
     private final AuthenticationProvider authenticationProvider;
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
 
@@ -64,6 +66,7 @@ public class SecurityConfig {
             )
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authenticationProvider(authenticationProvider)
+            .addFilterBefore(publicRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

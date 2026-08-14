@@ -2,6 +2,7 @@ package com.clinica.backend.dto;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
@@ -15,6 +16,6 @@ public class PaymentDto {
     @Size(max = 50, message = "El método de pago es demasiado largo") private String paymentMethod; // CASH, TRANSFER, CARD
     private String description;
     
-    @Valid private java.util.List<PaymentItemDto> items;
+    @Valid private List<PaymentItemDto> items;
     private String specialty;
 }

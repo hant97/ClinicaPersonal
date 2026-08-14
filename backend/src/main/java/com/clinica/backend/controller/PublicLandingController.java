@@ -27,7 +27,13 @@ public class PublicLandingController {
     public ResponseEntity<Resource> getAsset(@PathVariable String key) {
         Resource resource = service.loadAsset(key.startsWith("/") ? key.substring(1) : key);
         String filename = resource.getFilename() == null ? "" : resource.getFilename().toLowerCase();
-        MediaType type = filename.endsWith(".png") ? MediaType.IMAGE_PNG : filename.endsWith(".webp") ? MediaType.parseMediaType("image/webp") : filename.endsWith(".svg") ? MediaType.parseMediaType("image/svg+xml") : MediaType.IMAGE_JPEG;
-        return ResponseEntity.ok().contentType(type).body(resource);
+        MediaType type = filename.endsWith(".png") ? MediaType.IMAGE_PNG
+                : filename.endsWith(".webp") ? MediaType.parseMediaType("image/webp")
+                : MediaType.IMAGE_JPEG;
+        return ResponseEntity.ok()
+                .header("X-Content-Type-Options", "nosniff")
+                .header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'")
+                .contentType(type)
+                .body(resource);
     }
 }

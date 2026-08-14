@@ -1,0 +1,51 @@
+:host { display: block; }
+
+.editor-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: #0f172a;
+}
+
+.editor-layout {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.editor-stage {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: 24px;
+  background: #334155;
+}
+
+.preview-frame {
+  max-width: 1400px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  transition: max-width 0.25s ease;
+}
+
+.preview-frame.frame-tablet { max-width: 768px; }
+
+.preview-frame.frame-mobile { max-width: 390px; }
+
+.editor-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex: 1;
+  min-height: 60vh;
+  color: #cbd5e1;
+  font-size: 14px;
+}
+
+.editor-error { color: #fca5a5; }

@@ -154,8 +154,14 @@ export class UserProfileComponent implements OnInit {
   onLogoSelected(event: any): void {
     const file = event.target.files[0];
     if (file) {
+      if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+        this.toastService.show('Formato no permitido. Solo se aceptan PNG, JPG y WEBP.', 'error');
+        event.target.value = '';
+        return;
+      }
       if (file.size > 2 * 1024 * 1024) { // 2MB
         this.toastService.show('La imagen no debe superar los 2MB', 'error');
+        event.target.value = '';
         return;
       }
       this.selectedLogo = file;

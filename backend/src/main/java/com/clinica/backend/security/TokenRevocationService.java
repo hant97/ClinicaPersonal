@@ -7,6 +7,8 @@ import com.clinica.backend.repository.RevokedTokenRepository;
 import lombok.RequiredArgsConstructor;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -22,7 +24,7 @@ public class TokenRevocationService {
         if (!repository.existsByTokenId(tokenId)) {
             RevokedToken token = new RevokedToken();
             token.setTokenId(tokenId);
-            token.setExpiresAt(java.time.LocalDateTime.ofInstant(expiresAt, java.time.ZoneOffset.UTC));
+            token.setExpiresAt(LocalDateTime.ofInstant(expiresAt, ZoneOffset.UTC));
             repository.save(token);
         }
     }

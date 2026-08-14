@@ -3,7 +3,9 @@ package com.clinica.backend.service;
 import com.clinica.backend.dto.ClinicalHistoryDto;
 import com.clinica.backend.dto.DermatologicalHistoryDto;
 import com.clinica.backend.dto.GeneralHistoryDto;
+import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.User;
+import com.clinica.backend.repository.PatientRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +18,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,6 +30,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ClinicalHistoryServiceTest {
 
+    @Mock
+    private PatientRepository patientRepository;
     @Mock
     private GeneralHistoryService generalHistoryService;
     @Mock
@@ -61,6 +66,9 @@ class ClinicalHistoryServiceTest {
 
     @BeforeEach
     void setUp() {
+        Patient patient = new Patient();
+        patient.setId(7L);
+        when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(any(), any())).thenReturn(Optional.of(patient));
         when(generalHistoryService.getGeneralHistory(7L)).thenReturn(new GeneralHistoryDto());
         when(allergyService.getAllergies(any(), any())).thenReturn(emptyPage());
         when(medicationService.getMedications(any(), any())).thenReturn(emptyPage());

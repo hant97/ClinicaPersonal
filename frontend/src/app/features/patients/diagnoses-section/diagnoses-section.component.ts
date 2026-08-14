@@ -6,7 +6,7 @@ import { Diagnosis } from '../../../core/models/diagnosis.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule, Stethoscope } from 'lucide-angular';
+import { LucideAngularModule, Stethoscope, Edit, Trash2 } from 'lucide-angular';
 
 @Component({
   selector: 'app-diagnoses-section',
@@ -16,6 +16,8 @@ import { LucideAngularModule, Stethoscope } from 'lucide-angular';
 })
 export class DiagnosesSectionComponent implements OnInit {
   readonly Stethoscope = Stethoscope;
+  readonly Edit = Edit;
+  readonly Trash2 = Trash2;
 
   @Input() patientId!: number;
 

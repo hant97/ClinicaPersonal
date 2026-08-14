@@ -6,7 +6,7 @@ import { Allergy } from '../../../core/models/allergy.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule, AlertTriangle } from 'lucide-angular';
+import { LucideAngularModule, AlertTriangle, Edit, Trash2 } from 'lucide-angular';
 
 @Component({
   selector: 'app-allergies-section',
@@ -16,6 +16,8 @@ import { LucideAngularModule, AlertTriangle } from 'lucide-angular';
 })
 export class AllergiesSectionComponent implements OnInit {
   readonly AlertTriangle = AlertTriangle;
+  readonly Edit = Edit;
+  readonly Trash2 = Trash2;
 
   @Input() patientId!: number;
 

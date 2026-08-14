@@ -22,6 +22,8 @@ public class GeneralHistoryService {
     @Transactional(readOnly = true)
     public GeneralHistoryDto getGeneralHistory(Long patientId) {
         User user = clinicalAuthorizationService.currentUser();
+        patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, user.getSpecialty())
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
         GeneralHistory history = repository.findByPatientIdAndSpecialtyAndDeletedFalse(patientId, user.getSpecialty())
                 .orElse(null);
         if (history == null) {

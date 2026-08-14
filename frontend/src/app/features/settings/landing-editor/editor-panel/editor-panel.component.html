@@ -1,0 +1,360 @@
+@if (block; as b) {
+  <aside class="panel" role="dialog" aria-label="Panel de edición del bloque">
+    <header class="panel-header">
+      <div>
+        <h2 class="panel-title">{{ title }}</h2>
+        <p class="panel-subtitle">Los cambios se aplican al instante en la vista previa.</p>
+      </div>
+      <div class="panel-header-actions">
+        <button type="button" class="panel-icon-btn" title="Deshacer cambios de este bloque" aria-label="Deshacer cambios de este bloque" (click)="revert.emit()"><lucide-icon [img]="RotateCcw" [size]="17" /></button>
+        <button type="button" class="panel-icon-btn" aria-label="Cerrar panel" (click)="close.emit()"><lucide-icon [img]="X" [size]="19" /></button>
+      </div>
+    </header>
+
+    <div class="panel-body">
+      @switch (b.type) {
+        @case ('general') {
+          <div class="form-group">
+            <label class="form-label">Nombre comercial <span class="counter">{{ draft.commercialName.length || 0 }}/{{ limits['commercialName'] }}</span></label>
+            <input class="input-field" type="text" [(ngModel)]="draft.commercialName" [class.input-error]="hasError('commercialName')" />
+            @if (errorText('commercialName')) { <p class="field-error">{{ errorText('commercialName') }}</p> }
+          </div>
+          <div class="form-group">
+            <label class="form-label">Lema <span class="counter">{{ draft.tagline?.length || 0 }}/{{ limits['tagline'] }}</span></label>
+            <input class="input-field" type="text" [(ngModel)]="draft.tagline" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Descripción <span class="counter">{{ draft.description?.length || 0 }}/{{ limits['description'] }}</span></label>
+            <textarea class="input-field" [(ngModel)]="draft.description"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">URL del logo (externa)</label>
+            <input class="input-field" type="text" [(ngModel)]="draft.logoExternalImageUrl" [class.input-error]="hasError('logoExternalImageUrl')" />
+            @if (errorText('logoExternalImageUrl')) { <p class="field-error">{{ errorText('logoExternalImageUrl') }}</p> }
+          </div>
+          <div class="form-group">
+            <label class="form-label">Logo (imagen)</label>
+            <div class="image-preview image-preview-sm">
+              @if (imageUrl(draft.logoAssetKey, draft.logoExternalImageUrl); as url) { <img [src]="url" alt="Vista previa del logo" /> } @else { <span class="image-empty">Sin logo</span> }
+            </div>
+            <div class="image-actions">
+              <label class="btn-secondary btn-sm"><lucide-icon [img]="ImagePlus" [size]="15" /> Subir<input type="file" class="sr-only" accept="image/*" (change)="onFileSelected($event, 'logo')" /></label>
+              @if (draft.logoAssetKey) { <button type="button" class="btn-danger btn-sm" (click)="removeImage.emit({ category: 'logo' })"><lucide-icon [img]="Trash2" [size]="15" /> Quitar</button> }
+            </div>
+          </div>
+        }
+
+        @case ('hero') {
+          <div class="form-group">
+            <label class="form-label">Etiqueta superior <span class="counter">{{ draft.heroEyebrow?.length || 0 }}/{{ limits['heroEyebrow'] }}</span></label>
+            <input class="input-field" type="text" [(ngModel)]="draft.heroEyebrow" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Título principal <span class="counter">{{ draft.heroTitle.length || 0 }}/{{ limits['heroTitle'] }}</span></label>
+            <input class="input-field" type="text" [(ngModel)]="draft.heroTitle" [class.input-error]="hasError('heroTitle')" />
+            @if (errorText('heroTitle')) { <p class="field-error">{{ errorText('heroTitle') }}</p> }
+          </div>
+          <div class="form-group">
+            <label class="form-label">Título destacado <span class="counter">{{ draft.heroHighlight?.length || 0 }}/{{ limits['heroHighlight'] }}</span></label>
+            <input class="input-field" type="text" [(ngModel)]="draft.heroHighlight" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Descripción <span class="counter">{{ draft.heroDescription?.length || 0 }}/{{ limits['heroDescription'] }}</span></label>
+            <textarea class="input-field" [(ngModel)]="draft.heroDescription"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Texto del botón principal <span class="counter">{{ draft.heroPrimaryButtonText?.length || 0 }}/{{ limits['heroPrimaryButtonText'] }}</span></label>
+            <input class="input-field" type="text" [(ngModel)]="draft.heroPrimaryButtonText" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Texto del botón secundario <span class="counter">{{ draft.heroSecondaryButtonText?.length || 0 }}/{{ limits['heroSecondaryButtonText'] }}</span></label>
+            <input class="input-field" type="text" [(ngModel)]="draft.heroSecondaryButtonText" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">URL de imagen (externa)</label>
+            <input class="input-field" type="text" [(ngModel)]="draft.heroExternalImageUrl" [class.input-error]="hasError('heroExternalImageUrl')" />
+            @if (errorText('heroExternalImageUrl')) { <p class="field-error">{{ errorText('heroExternalImageUrl') }}</p> }
+          </div>
+          <div class="form-group">
+            <label class="form-label">Imagen</label>
+            <div class="image-preview">
+              @if (imageUrl(draft.heroAssetKey, draft.heroExternalImageUrl); as url) { <img [src]="url" alt="Vista previa de la imagen principal" /> } @else { <span class="image-empty">Sin imagen</span> }
+            </div>
+            <div class="image-actions">
+              <label class="btn-secondary btn-sm"><lucide-icon [img]="ImagePlus" [size]="15" /> Subir imagen<input type="file" class="sr-only" accept="image/*" (change)="onFileSelected($event, 'hero')" /></label>
+              @if (draft.heroAssetKey) { <button type="button" class="btn-danger btn-sm" (click)="removeImage.emit({ category: 'hero' })"><lucide-icon [img]="Trash2" [size]="15" /> Quitar</button> }
+            </div>
+          </div>
+        }
+
+        @case ('approach') {
+          <div class="form-group">
+            <label class="form-label">Título <span class="counter">{{ draft.approachTitle?.length || 0 }}/{{ limits['approachTitle'] }}</span></label>
+            <input class="input-field" type="text" [(ngModel)]="draft.approachTitle" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Título destacado <span class="counter">{{ draft.approachHighlight?.length || 0 }}/{{ limits['approachHighlight'] }}</span></label>
+            <input class="input-field" type="text" [(ngModel)]="draft.approachHighlight" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Descripción <span class="counter">{{ draft.approachDescription?.length || 0 }}/{{ limits['approachDescription'] }}</span></label>
+            <textarea class="input-field" [(ngModel)]="draft.approachDescription"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Descripción secundaria <span class="counter">{{ draft.approachSecondaryDescription?.length || 0 }}/{{ limits['approachSecondaryDescription'] }}</span></label>
+            <textarea class="input-field" [(ngModel)]="draft.approachSecondaryDescription"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Texto del enlace <span class="counter">{{ draft.approachCtaText?.length || 0 }}/{{ limits['approachCtaText'] }}</span></label>
+            <input class="input-field" type="text" [(ngModel)]="draft.approachCtaText" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">URL de imagen (externa)</label>
+            <input class="input-field" type="text" [(ngModel)]="draft.approachExternalImageUrl" [class.input-error]="hasError('approachExternalImageUrl')" />
+            @if (errorText('approachExternalImageUrl')) { <p class="field-error">{{ errorText('approachExternalImageUrl') }}</p> }
+          </div>
+          <div class="form-group">
+            <label class="form-label">Imagen</label>
+            <div class="image-preview">
+              @if (imageUrl(draft.approachAssetKey, draft.approachExternalImageUrl); as url) { <img [src]="url" alt="Vista previa de la imagen de enfoque" /> } @else { <span class="image-empty">Sin imagen</span> }
+            </div>
+            <div class="image-actions">
+              <label class="btn-secondary btn-sm"><lucide-icon [img]="ImagePlus" [size]="15" /> Subir imagen<input type="file" class="sr-only" accept="image/*" (change)="onFileSelected($event, 'approach')" /></label>
+              @if (draft.approachAssetKey) { <button type="button" class="btn-danger btn-sm" (click)="removeImage.emit({ category: 'approach' })"><lucide-icon [img]="Trash2" [size]="15" /> Quitar</button> }
+            </div>
+          </div>
+        }
+
+        @case ('contact') {
+          <div class="form-group">
+            <label class="form-label">Encabezado <span class="counter">{{ draft.contactHeading?.length || 0 }}/{{ limits['contactHeading'] }}</span></label>
+            <input class="input-field" type="text" [(ngModel)]="draft.contactHeading" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Descripción <span class="counter">{{ draft.contactDescription?.length || 0 }}/{{ limits['contactDescription'] }}</span></label>
+            <textarea class="input-field" [(ngModel)]="draft.contactDescription"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Teléfono</label>
+            <input class="input-field" type="text" [(ngModel)]="draft.contactPhone" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">WhatsApp</label>
+            <input class="input-field" type="text" [(ngModel)]="draft.contactWhatsapp" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Correo electrónico</label>
+            <input class="input-field" type="text" [(ngModel)]="draft.contactEmail" [class.input-error]="hasError('contactEmail')" />
+            @if (errorText('contactEmail')) { <p class="field-error">{{ errorText('contactEmail') }}</p> }
+          </div>
+          <div class="form-group">
+            <label class="form-label">Dirección</label>
+            <input class="input-field" type="text" [(ngModel)]="draft.contactAddress" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Horarios</label>
+            <input class="input-field" type="text" [(ngModel)]="draft.contactHours" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">URL del mapa</label>
+            <input class="input-field" type="text" [(ngModel)]="draft.mapUrl" [class.input-error]="hasError('mapUrl')" />
+            @if (errorText('mapUrl')) { <p class="field-error">{{ errorText('mapUrl') }}</p> }
+          </div>
+        }
+
+        @case ('social') {
+          <div class="form-group">
+            <label class="form-label">Facebook</label>
+            <input class="input-field" type="text" [(ngModel)]="draft.facebookUrl" [class.input-error]="hasError('facebookUrl')" />
+            @if (errorText('facebookUrl')) { <p class="field-error">{{ errorText('facebookUrl') }}</p> }
+          </div>
+          <div class="form-group">
+            <label class="form-label">Instagram</label>
+            <input class="input-field" type="text" [(ngModel)]="draft.instagramUrl" [class.input-error]="hasError('instagramUrl')" />
+            @if (errorText('instagramUrl')) { <p class="field-error">{{ errorText('instagramUrl') }}</p> }
+          </div>
+          <div class="form-group">
+            <label class="form-label">TikTok</label>
+            <input class="input-field" type="text" [(ngModel)]="draft.tiktokUrl" [class.input-error]="hasError('tiktokUrl')" />
+            @if (errorText('tiktokUrl')) { <p class="field-error">{{ errorText('tiktokUrl') }}</p> }
+          </div>
+          <div class="form-group">
+            <label class="form-label">LinkedIn</label>
+            <input class="input-field" type="text" [(ngModel)]="draft.linkedinUrl" [class.input-error]="hasError('linkedinUrl')" />
+            @if (errorText('linkedinUrl')) { <p class="field-error">{{ errorText('linkedinUrl') }}</p> }
+          </div>
+        }
+
+        @case ('seo') {
+          <div class="form-group">
+            <label class="form-label">Título SEO <span class="counter">{{ draft.seoTitle?.length || 0 }}/{{ limits['seoTitle'] }}</span></label>
+            <input class="input-field" type="text" [(ngModel)]="draft.seoTitle" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Descripción SEO <span class="counter">{{ draft.seoDescription?.length || 0 }}/{{ limits['seoDescription'] }}</span></label>
+            <textarea class="input-field" [(ngModel)]="draft.seoDescription"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nombre del sitio <span class="counter">{{ draft.seoSiteName?.length || 0 }}/{{ limits['seoSiteName'] }}</span></label>
+            <input class="input-field" type="text" [(ngModel)]="draft.seoSiteName" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">URL de imagen (externa)</label>
+            <input class="input-field" type="text" [(ngModel)]="draft.seoExternalImageUrl" [class.input-error]="hasError('seoExternalImageUrl')" />
+            @if (errorText('seoExternalImageUrl')) { <p class="field-error">{{ errorText('seoExternalImageUrl') }}</p> }
+          </div>
+          <div class="form-group">
+            <label class="form-label">Imagen</label>
+            <div class="image-preview image-preview-sm">
+              @if (imageUrl(draft.seoAssetKey, draft.seoExternalImageUrl); as url) { <img [src]="url" alt="Vista previa de la imagen SEO" /> } @else { <span class="image-empty">Sin imagen</span> }
+            </div>
+            <div class="image-actions">
+              <label class="btn-secondary btn-sm"><lucide-icon [img]="ImagePlus" [size]="15" /> Subir<input type="file" class="sr-only" accept="image/*" (change)="onFileSelected($event, 'seo')" /></label>
+              @if (draft.seoAssetKey) { <button type="button" class="btn-danger btn-sm" (click)="removeImage.emit({ category: 'seo' })"><lucide-icon [img]="Trash2" [size]="15" /> Quitar</button> }
+            </div>
+          </div>
+        }
+
+        @case ('specialties') {
+          <p class="panel-hint">Las especialidades provienen del catálogo clínico. Aquí solo ajustas su presentación.</p>
+          @for (specialty of draft.specialties; track specialty.draftKey || specialty.code; let i = $index) {
+            <div class="collection-card">
+              <div class="collection-card-header">
+                <span class="collection-index">{{ i + 1 }}</span>
+                <div class="collection-card-actions">
+                  <button type="button" class="panel-icon-btn" [disabled]="i === 0" (click)="moveAt(draft.specialties, i, -1)" aria-label="Subir"><lucide-icon [img]="ArrowUp" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn" [disabled]="i === draft.specialties.length - 1" (click)="moveAt(draft.specialties, i, 1)" aria-label="Bajar"><lucide-icon [img]="ArrowDown" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn" [title]="specialty.visible ? 'Ocultar' : 'Mostrar'" (click)="specialty.visible = !specialty.visible"><lucide-icon [img]="specialty.visible ? Eye : EyeOff" [size]="15" /></button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Etiqueta</label>
+                <input class="input-field" type="text" [(ngModel)]="specialty.label" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Título</label>
+                <input class="input-field" type="text" [(ngModel)]="specialty.title" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Subtítulo</label>
+                <textarea class="input-field" [(ngModel)]="specialty.subtitle"></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Icono</label>
+                <app-icon-picker [(value)]="specialty.iconCode"></app-icon-picker>
+              </div>
+              <div class="derived-services">
+                <span class="derived-services-label">Servicios clínicos (se gestionan en su módulo)</span>
+                @if (servicesByCode[specialty.code]; as services) {
+                  <ul class="derived-services-list">
+                    @for (service of services; track service) { <li>{{ service }}</li> }
+                  </ul>
+                } @else {
+                  <p class="derived-services-empty">Sin servicios registrados.</p>
+                }
+                <a class="derived-services-link" routerLink="/services">Gestionar servicios clínicos</a>
+              </div>
+            </div>
+          }
+        }
+
+        @case ('benefits') {
+          @for (benefit of draft.benefits; track benefit.draftKey || benefit.title; let i = $index) {
+            <div class="collection-card">
+              <div class="collection-card-header">
+                <span class="collection-index">{{ i + 1 }}</span>
+                <div class="collection-card-actions">
+                  <button type="button" class="panel-icon-btn" [disabled]="i === 0" (click)="moveAt(draft.benefits, i, -1)" aria-label="Subir"><lucide-icon [img]="ArrowUp" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn" [disabled]="i === draft.benefits.length - 1" (click)="moveAt(draft.benefits, i, 1)" aria-label="Bajar"><lucide-icon [img]="ArrowDown" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn" [title]="benefit.active ? 'Ocultar' : 'Mostrar'" (click)="benefit.active = !benefit.active"><lucide-icon [img]="benefit.active ? Eye : EyeOff" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn panel-icon-btn-danger" aria-label="Eliminar" (click)="removeAt(draft.benefits, i)"><lucide-icon [img]="Trash2" [size]="15" /></button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Título</label>
+                <input class="input-field" type="text" [(ngModel)]="benefit.title" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Descripción</label>
+                <textarea class="input-field" [(ngModel)]="benefit.description"></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Icono</label>
+                <app-icon-picker [(value)]="benefit.iconCode"></app-icon-picker>
+              </div>
+            </div>
+          }
+          <button type="button" class="btn-secondary add-button" (click)="addBenefit()"><lucide-icon [img]="Plus" [size]="16" /> Añadir beneficio</button>
+        }
+
+        @case ('processSteps') {
+          @for (step of draft.processSteps; track step.draftKey || step.title; let i = $index) {
+            <div class="collection-card">
+              <div class="collection-card-header">
+                <span class="collection-index">{{ i + 1 }}</span>
+                <div class="collection-card-actions">
+                  <button type="button" class="panel-icon-btn" [disabled]="i === 0" (click)="moveAt(draft.processSteps, i, -1)" aria-label="Subir"><lucide-icon [img]="ArrowUp" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn" [disabled]="i === draft.processSteps.length - 1" (click)="moveAt(draft.processSteps, i, 1)" aria-label="Bajar"><lucide-icon [img]="ArrowDown" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn" [title]="step.active ? 'Ocultar' : 'Mostrar'" (click)="step.active = !step.active"><lucide-icon [img]="step.active ? Eye : EyeOff" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn panel-icon-btn-danger" aria-label="Eliminar" (click)="removeAt(draft.processSteps, i)"><lucide-icon [img]="Trash2" [size]="15" /></button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Título</label>
+                <input class="input-field" type="text" [(ngModel)]="step.title" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Descripción</label>
+                <textarea class="input-field" [(ngModel)]="step.description"></textarea>
+              </div>
+            </div>
+          }
+          <button type="button" class="btn-secondary add-button" (click)="addProcessStep()"><lucide-icon [img]="Plus" [size]="16" /> Añadir paso</button>
+        }
+
+        @case ('professionals') {
+          @for (professional of draft.professionals; track professional.draftKey || professional.name; let i = $index) {
+            <div class="collection-card">
+              <div class="collection-card-header">
+                <span class="collection-index">{{ i + 1 }}</span>
+                <div class="collection-card-actions">
+                  <button type="button" class="panel-icon-btn" [disabled]="i === 0" (click)="moveAt(draft.professionals, i, -1)" aria-label="Subir"><lucide-icon [img]="ArrowUp" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn" [disabled]="i === draft.professionals.length - 1" (click)="moveAt(draft.professionals, i, 1)" aria-label="Bajar"><lucide-icon [img]="ArrowDown" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn" [title]="professional.active ? 'Ocultar' : 'Mostrar'" (click)="professional.active = !professional.active"><lucide-icon [img]="professional.active ? Eye : EyeOff" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn panel-icon-btn-danger" aria-label="Eliminar" (click)="removeAt(draft.professionals, i)"><lucide-icon [img]="Trash2" [size]="15" /></button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Nombre</label>
+                <input class="input-field" type="text" [(ngModel)]="professional.name" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Especialidad</label>
+                <input class="input-field" type="text" [(ngModel)]="professional.specialty" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Colegiatura</label>
+                <input class="input-field" type="text" [(ngModel)]="professional.licenseNumber" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Descripción</label>
+                <textarea class="input-field" [(ngModel)]="professional.description"></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Foto</label>
+                <div class="image-preview image-preview-sm">
+                  @if (imageUrl(professional.photoAssetKey, professional.photoExternalUrl); as url) { <img [src]="url" alt="Vista previa de la foto" /> } @else { <span class="image-empty">Sin foto</span> }
+                </div>
+                <div class="image-actions">
+                  <label class="btn-secondary btn-sm"><lucide-icon [img]="ImagePlus" [size]="15" /> Subir foto<input type="file" class="sr-only" accept="image/*" (change)="onProfessionalFileSelected($event, professional.draftKey!)" /></label>
+                  @if (professional.photoAssetKey || professional.photoExternalUrl) { <button type="button" class="btn-danger btn-sm" (click)="removeProfessionalPhoto(i)"><lucide-icon [img]="Trash2" [size]="15" /> Quitar</button> }
+                </div>
+              </div>
+            </div>
+          }
+          <button type="button" class="btn-secondary add-button" (click)="addProfessional()"><lucide-icon [img]="Plus" [size]="16" /> Añadir profesional</button>
+        }
+      }
+    </div>
+  </aside>
+}

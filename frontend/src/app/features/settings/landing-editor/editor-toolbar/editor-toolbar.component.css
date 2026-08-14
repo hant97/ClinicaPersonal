@@ -1,0 +1,99 @@
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: #0f172a;
+  color: #fff;
+  flex-wrap: wrap;
+}
+
+.toolbar-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.toolbar-center { flex: 1; justify-content: center; }
+
+.toolbar-title { font-weight: 700; font-size: 15px; }
+
+.toolbar-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  min-width: 36px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #e2e8f0;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.toolbar-button:hover { background: #1e293b; }
+
+.toolbar-button-label { min-width: 0; }
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #065f46;
+  color: #d1fae5;
+}
+
+.status-badge.status-dirty { background: #b45309; color: #fef3c7; }
+
+.status-badge.status-busy { background: #1e293b; color: #cbd5e1; }
+
+.viewport-switch {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 10px;
+  background: #1e293b;
+}
+
+.viewport-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+.viewport-button:hover { color: #e2e8f0; }
+
+.viewport-button.active { background: #334155; color: #fff; }
+
+.spinner-sm { width: 12px; height: 12px; border-width: 2px; border-top-color: #fff; }
+
+.publish-meta {
+  position: sticky;
+  top: 56px;
+  z-index: 59;
+  padding: 6px 16px;
+  background: #0f172a;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+@media (max-width: 900px) {
+  .toolbar-center { order: 3; flex-basis: 100%; justify-content: flex-start; }
+  .toolbar-actions { margin-left: auto; }
+}

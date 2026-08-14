@@ -60,11 +60,11 @@
               <button type="button" class="btn-secondary !text-xs !py-1" (click)="togglePhotos(lesion.id!)">
                 Fotos
               </button>
-              <button type="button" class="btn-text !p-1.5" (click)="openForm(lesion)" title="Editar">
-                ✏️
+              <button type="button" class="btn-text !p-1.5" (click)="openForm(lesion)" title="Editar" aria-label="Editar">
+                <lucide-icon [img]="Edit" [size]="16"></lucide-icon>
               </button>
-              <button type="button" class="btn-text !p-1.5 text-danger hover:bg-red-50" (click)="delete(lesion.id!)" title="Eliminar">
-                🗑️
+              <button type="button" class="btn-text !p-1.5 text-danger hover:bg-red-50" (click)="delete(lesion.id!)" title="Eliminar" aria-label="Eliminar">
+                <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
               </button>
             </div>
           </div>
@@ -92,8 +92,8 @@
                       }
                       <div class="flex items-center justify-between px-2 py-1 bg-surface border-t border-line text-[10px]">
                         <span class="truncate text-muted">{{ item.photo.description || (item.photo.takenDate | date: 'dd/MM/yyyy') || '—' }}</span>
-                        <button type="button" class="btn-text !p-0.5 text-danger" (click)="deletePhoto(item.photo.id!, lesion.id!)" title="Eliminar foto">
-                          🗑️
+                        <button type="button" class="btn-text !p-0.5 text-danger" (click)="deletePhoto(item.photo.id!, lesion.id!)" title="Eliminar foto" aria-label="Eliminar foto">
+                          <lucide-icon [img]="Trash2" [size]="14"></lucide-icon>
                         </button>
                       </div>
                     </div>

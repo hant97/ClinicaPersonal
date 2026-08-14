@@ -1,9 +1,9 @@
 package com.clinica.backend.config;
 
 import com.clinica.backend.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -18,7 +18,7 @@ public class ApplicationConfig {
 
     private final UserRepository userRepository;
 
-    public ApplicationConfig(@org.springframework.context.annotation.Lazy UserRepository userRepository) {
+    public ApplicationConfig(@Lazy UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 

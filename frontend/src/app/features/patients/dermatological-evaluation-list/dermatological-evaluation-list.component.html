@@ -54,11 +54,11 @@
               </td>
               <td class="text-right">
                 <div class="flex items-center justify-end gap-1">
-                  <button type="button" class="btn-text !p-1.5" (click)="openForm(evaluation)" title="Editar">
-                    ✏️
+                  <button type="button" class="btn-text !p-1.5" (click)="openForm(evaluation)" title="Editar" aria-label="Editar">
+                    <lucide-icon [img]="Edit" [size]="16"></lucide-icon>
                   </button>
-                  <button type="button" class="btn-text !p-1.5 text-danger hover:bg-red-50" (click)="deleteEvaluation(evaluation.id!)" title="Eliminar">
-                    🗑️
+                  <button type="button" class="btn-text !p-1.5 text-danger hover:bg-red-50" (click)="deleteEvaluation(evaluation.id!)" title="Eliminar" aria-label="Eliminar">
+                    <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
                   </button>
                 </div>
               </td>

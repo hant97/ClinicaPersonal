@@ -8,7 +8,7 @@ import { LesionPhoto } from '../../../core/models/lesion-photo.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule, Activity, ImagePlus } from 'lucide-angular';
+import { LucideAngularModule, Activity, ImagePlus, Edit, Trash2 } from 'lucide-angular';
 
 interface PhotoView {
   photo: LesionPhoto;
@@ -24,6 +24,8 @@ interface PhotoView {
 export class LesionsSectionComponent implements OnInit, OnDestroy {
   readonly Activity = Activity;
   readonly ImagePlus = ImagePlus;
+  readonly Edit = Edit;
+  readonly Trash2 = Trash2;
 
   @Input() patientId!: number;
 

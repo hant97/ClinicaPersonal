@@ -17,12 +17,17 @@ import { CatalogManagementComponent } from './features/settings/catalog-manageme
 import { UserProfileComponent } from './features/profile/user-profile/user-profile.component';
 import { LandingComponent } from './features/public/landing/landing.component';
 import { NotFoundComponent } from './features/public/not-found/not-found.component';
-import { WebsiteSettingsComponent } from './features/settings/website-settings/website-settings.component';
 import { siteAdminGuard } from './core/guards/site-admin.guard';
 
 export const routes: Routes = [
   { path: '', component: LandingComponent, pathMatch: 'full', title: 'Dermatología y Psicología' },
   { path: 'login', component: LoginComponent, title: 'Iniciar sesión' },
+  {
+    path: 'editar-sitio',
+    canActivate: [siteAdminGuard],
+    loadComponent: () => import('./features/settings/landing-editor/landing-editor.component').then(m => m.LandingEditorComponent),
+    title: 'Editar sitio'
+  },
   {
     path: '',
     component: MainLayoutComponent,
@@ -42,7 +47,7 @@ export const routes: Routes = [
       { path: 'inventory', component: InventoryListComponent, title: 'Inventario' },
       { path: 'services', component: ClinicalServicesListComponent, title: 'Servicios clínicos' },
       { path: 'settings/catalogs', component: CatalogManagementComponent, title: 'Catálogos' },
-      { path: 'settings/website', component: WebsiteSettingsComponent, canActivate: [siteAdminGuard], title: 'Configuración del sitio web' },
+      { path: 'settings/website', redirectTo: '/editar-sitio', pathMatch: 'full' },
       { path: 'profile', component: UserProfileComponent, title: 'Mi perfil' }
     ]
   },

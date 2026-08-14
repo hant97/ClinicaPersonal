@@ -8,6 +8,7 @@ import com.clinica.backend.security.JwtService;
 import com.clinica.backend.security.LoginAttemptService;
 import com.clinica.backend.security.TokenRevocationService;
 import com.clinica.backend.service.RefreshTokenService;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,8 +22,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
+
+import static org.hamcrest.Matchers.containsString;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -160,15 +164,15 @@ class AuthControllerTest {
 
     @Test
     void logoutRevokesBothRefreshAndAccessTokenAndExpiresCookie() throws Exception {
-        java.util.Date expiration = new java.util.Date(System.currentTimeMillis() + 60_000);
+        Date expiration = new Date(System.currentTimeMillis() + 60_000);
         when(jwtService.extractTokenId("access-token")).thenReturn("access-id");
         when(jwtService.extractClaim(eq("access-token"), any())).thenReturn(expiration);
 
         mockMvc.perform(post("/api/v1/auth/logout")
-                        .cookie(new jakarta.servlet.http.Cookie("refresh_token", "refresh-token"))
+                        .cookie(new Cookie("refresh_token", "refresh-token"))
                         .header("Authorization", "Bearer access-token"))
                 .andExpect(status().isNoContent())
-                .andExpect(header().string("Set-Cookie", org.hamcrest.Matchers.containsString("Max-Age=0")));
+                .andExpect(header().string("Set-Cookie", containsString("Max-Age=0")));
 
         verify(refreshTokenService).revoke("refresh-token");
         verify(tokenRevocationService).revoke("access-id", expiration.toInstant());

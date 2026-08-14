@@ -6,7 +6,7 @@ import { PsychologyEvaluation } from '../../../core/models/psychology-evaluation
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule, Brain } from 'lucide-angular';
+import { LucideAngularModule, Brain, Edit, Trash2 } from 'lucide-angular';
 
 @Component({
   selector: 'app-psychology-evaluation-section',
@@ -16,6 +16,8 @@ import { LucideAngularModule, Brain } from 'lucide-angular';
 })
 export class PsychologyEvaluationSectionComponent implements OnInit {
   readonly Brain = Brain;
+  readonly Edit = Edit;
+  readonly Trash2 = Trash2;
 
   @Input() patientId!: number;
 

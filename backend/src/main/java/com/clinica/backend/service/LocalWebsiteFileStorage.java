@@ -11,14 +11,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.FileTime;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Service
 public class LocalWebsiteFileStorage implements WebsiteFileStorage {
-    private static final List<String> ALLOWED_EXTENSIONS = List.of(".png", ".jpg", ".jpeg", ".webp", ".svg");
-    private static final List<String> ALLOWED_TYPES = List.of("image/png", "image/jpeg", "image/webp", "image/svg+xml");
+    private static final List<String> ALLOWED_EXTENSIONS = List.of(".png", ".jpg", ".jpeg", ".webp");
+    private static final List<String> ALLOWED_TYPES = List.of("image/png", "image/jpeg", "image/webp");
     private static final long MAX_FILE_SIZE = 2 * 1024 * 1024;
+    private static final String DRAFT_PREFIX = "draft/";
 
     private final Path root;
 
@@ -41,6 +47,42 @@ public class LocalWebsiteFileStorage implements WebsiteFileStorage {
         } catch (IOException ex) {
             throw new IllegalArgumentException("No se pudo almacenar la imagen", ex);
         }
+    }
+
+    @Override
+    public String storeDraft(MultipartFile file, String category) {
+        validate(file);
+        String extension = extension(file.getOriginalFilename());
+        try {
+            Path categoryPath = safePath(DRAFT_PREFIX + category);
+            Files.createDirectories(categoryPath);
+            String key = DRAFT_PREFIX + category + "/" + UUID.randomUUID() + extension;
+            Path destination = safePath(key);
+            Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
+            return key;
+        } catch (IOException ex) {
+            throw new IllegalArgumentException("No se pudo almacenar la imagen", ex);
+        }
+    }
+
+    @Override
+    public String promote(String draftKey) {
+        if (draftKey == null || draftKey.isBlank() || !isDraftKey(draftKey)) return draftKey;
+        String publishedKey = draftKey.substring(DRAFT_PREFIX.length());
+        try {
+            Path source = safePath(draftKey);
+            Path target = safePath(publishedKey);
+            Files.createDirectories(target.getParent());
+            Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+            return publishedKey;
+        } catch (IOException ex) {
+            throw new IllegalArgumentException("No se pudo publicar la imagen", ex);
+        }
+    }
+
+    @Override
+    public boolean isDraftKey(String key) {
+        return key != null && key.startsWith(DRAFT_PREFIX);
     }
 
     @Override

@@ -19,8 +19,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ClinicSettingsService {
 
-    private static final List<String> ALLOWED_EXTENSIONS = List.of(".png", ".jpg", ".jpeg", ".webp", ".svg");
-    private static final List<String> ALLOWED_CONTENT_TYPES = List.of("image/png", "image/jpeg", "image/webp", "image/svg+xml");
+    private static final List<String> ALLOWED_EXTENSIONS = List.of(".png", ".jpg", ".jpeg", ".webp");
+    private static final List<String> ALLOWED_CONTENT_TYPES = List.of("image/png", "image/jpeg", "image/webp");
     private static final long MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
     private final ClinicSettingsRepository repository;
@@ -57,7 +57,7 @@ public class ClinicSettingsService {
 
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
-            throw new IllegalArgumentException("Tipo de imagen no permitido. Solo se aceptan PNG, JPG, WEBP y SVG.");
+            throw new IllegalArgumentException("Tipo de imagen no permitido. Solo se aceptan PNG, JPG y WEBP.");
         }
 
         String originalFilename = file.getOriginalFilename();

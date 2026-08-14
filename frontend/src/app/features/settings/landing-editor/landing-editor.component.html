@@ -1,0 +1,46 @@
+<div class="editor-root">
+  <app-editor-toolbar
+    [dirty]="dirty"
+    [saving]="saving"
+    [publishing]="publishing"
+    [busy]="saving || publishing"
+    [hasValidationErrors]="hasValidationErrors"
+    [viewport]="viewport"
+    [publishedAt]="editor?.publishedAt"
+    [publishedBy]="editor?.publishedBy"
+    (save)="save()"
+    (publish)="publish()"
+    (reset)="reset()"
+    (exit)="exit()"
+    (openPublic)="openPublic()"
+    (viewportChange)="setViewport($event)"
+  />
+
+  @if (loading) {
+    <div class="editor-state"><span class="spinner"></span><p>Cargando borrador…</p></div>
+  } @else if (error) {
+    <div class="editor-state"><p class="editor-error">{{ error }}</p></div>
+  } @else if (viewLanding) {
+    <div class="editor-layout">
+      <main class="editor-stage">
+        <div class="preview-frame" [class.frame-tablet]="viewport === 'tablet'" [class.frame-mobile]="viewport === 'mobile'">
+          <app-landing-view [landing]="viewLanding" [selectable]="true" [selectedType]="selected?.type ?? null" (blockSelect)="selectBlock($event)" />
+        </div>
+      </main>
+      @if (selected && draft) {
+        <app-editor-panel
+          [draft]="draft"
+          [block]="selected"
+          [validationErrors]="validationErrors"
+          [assetBase]="assetBase"
+          [servicesByCode]="servicesByCode"
+          (close)="closePanel()"
+          (revert)="revertBlock()"
+          (uploadImage)="uploadImage($event.category, $event.file)"
+          (removeImage)="removeImage($event.category)"
+          (uploadProfessionalPhoto)="uploadProfessionalPhoto($event.draftKey, $event.file)"
+        />
+      }
+    </div>
+  }
+</div>

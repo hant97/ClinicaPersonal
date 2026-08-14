@@ -166,13 +166,12 @@
       @if (isSiteAdmin) {
         <p class="px-2.5 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted">Administración</p>
         <a
-          routerLink="/settings/website"
-          routerLinkActive="bg-primary-50 text-primary-700 font-semibold"
+          routerLink="/editar-sitio"
           class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500"
           (click)="closeSidebar()"
         >
           <lucide-icon [img]="Settings" [size]="18" class="shrink-0"></lucide-icon>
-          <span>Configuración Web</span>
+          <span>Editar sitio</span>
         </a>
       }
     </nav>

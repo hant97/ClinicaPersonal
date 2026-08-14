@@ -10,6 +10,7 @@ import com.clinica.backend.repository.AssessmentRepository;
 import com.clinica.backend.repository.PatientRepository;
 import com.clinica.backend.repository.PsychometricTestRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +33,10 @@ public class AssessmentService {
     private final ClinicalAuthorizationService clinicalAuthorizationService;
 
     public Page<AssessmentDto> getAssessmentsByPatientId(Long patientId, Pageable pageable) {
+        String specialty = clinicalAuthorizationService.currentUser().getSpecialty();
+        if (!patientRepository.existsByIdAndSpecialtyAndDeletedFalse(patientId, specialty)) {
+            throw new ResourceNotFoundException("Paciente no encontrado");
+        }
         return assessmentRepository.findByPatientIdOrderByAssessmentDateDesc(patientId, pageable).map(this::mapToDto);
     }
 
@@ -44,11 +49,15 @@ public class AssessmentService {
         PsychometricTest test = psychometricTestRepository.findById(dto.getPsychometricTestId())
                 .orElseThrow(() -> new ResourceNotFoundException("Prueba psicométrica no encontrada"));
 
-        Assessment assessment = new Assessment();
+        Assessment assessment;
         if (dto.getId() != null) {
             assessment = assessmentRepository.findById(dto.getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Evaluación no encontrada"));
+            if (!assessment.getPatient().getId().equals(patient.getId())) {
+                throw new AccessDeniedException("La evaluación no corresponde al paciente especificado");
+            }
         } else {
+            assessment = new Assessment();
             assessment.setPatient(patient);
             assessment.setPsychometricTest(test);
         }

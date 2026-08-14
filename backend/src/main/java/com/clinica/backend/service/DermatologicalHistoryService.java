@@ -22,6 +22,8 @@ public class DermatologicalHistoryService {
     @Transactional(readOnly = true)
     public DermatologicalHistoryDto getHistory(Long patientId) {
         clinicalAuthorizationService.ensureSameSpecialty("DERMATOLOGIA");
+        patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, "DERMATOLOGIA")
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
         DermatologicalHistory history = repository.findByPatientIdAndDeletedFalse(patientId).orElse(null);
         if (history == null) {
             DermatologicalHistoryDto empty = new DermatologicalHistoryDto();

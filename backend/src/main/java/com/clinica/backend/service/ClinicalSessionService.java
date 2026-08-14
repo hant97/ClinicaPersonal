@@ -26,6 +26,8 @@ public class ClinicalSessionService {
     @Transactional(readOnly = true)
     public Page<ClinicalSessionDto> getSessionsByPatientId(Long patientId, Pageable pageable) {
         User user = clinicalAuthorizationService.currentUser();
+        patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, user.getSpecialty())
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
         Page<ClinicalSession> sessions = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
                 ? sessionRepository.findByPatientIdAndSpecialtyAndDeletedFalseOrderBySessionDateDescStartTimeDesc(
                         patientId, user.getSpecialty(), pageable)

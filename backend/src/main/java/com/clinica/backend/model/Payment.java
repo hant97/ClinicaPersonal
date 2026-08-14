@@ -8,6 +8,8 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "payments")
@@ -42,7 +44,7 @@ public class Payment {
     private boolean deleted = false;
 
     @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, orphanRemoval = true)
-    private java.util.List<PaymentItem> items = new java.util.ArrayList<>();
+    private List<PaymentItem> items = new ArrayList<>();
 
     @Column(name = "specialty", nullable = false)
     private String specialty = "PSICOLOGIA";

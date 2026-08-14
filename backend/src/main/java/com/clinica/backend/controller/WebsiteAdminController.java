@@ -1,8 +1,8 @@
 package com.clinica.backend.controller;
 
-import com.clinica.backend.dto.WebsiteSettingsAdminDto;
+import com.clinica.backend.dto.WebsiteDraftDto;
+import com.clinica.backend.dto.WebsiteEditorDto;
 import com.clinica.backend.service.WebsiteSettingsService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,18 +25,38 @@ import org.springframework.web.multipart.MultipartFile;
 public class WebsiteAdminController {
     private final WebsiteSettingsService service;
 
-    @GetMapping
-    public ResponseEntity<WebsiteSettingsAdminDto> get() { return ResponseEntity.ok(service.getAdminSettings()); }
+    @GetMapping("/editor")
+    public ResponseEntity<WebsiteEditorDto> getEditor() {
+        return ResponseEntity.ok(service.getEditor());
+    }
 
-    @PutMapping
-    public ResponseEntity<WebsiteSettingsAdminDto> update(@Valid @RequestBody WebsiteSettingsAdminDto dto) { return ResponseEntity.ok(service.update(dto)); }
+    @PutMapping("/draft")
+    public ResponseEntity<WebsiteEditorDto> saveDraft(@RequestBody WebsiteDraftDto dto, @RequestParam long revision) {
+        return ResponseEntity.ok(service.saveDraft(dto, revision));
+    }
 
-    @PostMapping(value = "/assets/{category}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<WebsiteSettingsAdminDto> upload(@PathVariable String category, @RequestParam("file") MultipartFile file) { return ResponseEntity.ok(service.uploadAsset(category, file)); }
+    @PostMapping("/publish")
+    public ResponseEntity<WebsiteEditorDto> publish(@RequestParam long revision) {
+        return ResponseEntity.ok(service.publish(revision));
+    }
 
-    @DeleteMapping("/assets/{category}")
-    public ResponseEntity<WebsiteSettingsAdminDto> delete(@PathVariable String category) { return ResponseEntity.ok(service.deleteAsset(category)); }
+    @PostMapping("/draft/reset")
+    public ResponseEntity<WebsiteEditorDto> resetDraft(@RequestParam long revision) {
+        return ResponseEntity.ok(service.resetDraft(revision));
+    }
 
-    @PostMapping(value = "/professionals/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<WebsiteSettingsAdminDto> uploadProfessionalPhoto(@PathVariable Long id, @RequestParam("file") MultipartFile file) { return ResponseEntity.ok(service.uploadProfessionalAsset(id, file)); }
+    @PostMapping(value = "/draft/assets/{category}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<WebsiteEditorDto> uploadDraftAsset(@PathVariable String category, @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(service.uploadDraftAsset(category, file));
+    }
+
+    @DeleteMapping("/draft/assets/{category}")
+    public ResponseEntity<WebsiteEditorDto> deleteDraftAsset(@PathVariable String category) {
+        return ResponseEntity.ok(service.deleteDraftAsset(category));
+    }
+
+    @PostMapping(value = "/draft/professionals/{draftKey}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<WebsiteEditorDto> uploadDraftProfessionalPhoto(@PathVariable String draftKey, @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(service.uploadDraftProfessionalPhoto(draftKey, file));
+    }
 }

@@ -6,6 +6,7 @@ import com.clinica.backend.repository.RefreshTokenRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.data.domain.Pageable;
 
@@ -72,7 +73,7 @@ class RefreshTokenServiceTest {
         current.setRevokedAt(LocalDateTime.now());
         when(repository.findByTokenHashForUpdate(anyString())).thenReturn(Optional.of(current));
 
-        assertThrows(org.springframework.security.authentication.BadCredentialsException.class,
+        assertThrows(BadCredentialsException.class,
                 () -> service.rotate("consumed-token"));
         verify(repository, never()).save(any(RefreshToken.class));
     }
@@ -84,7 +85,7 @@ class RefreshTokenServiceTest {
         expired.setExpiresAt(LocalDateTime.now().minusSeconds(1));
         when(repository.findByTokenHashForUpdate(anyString())).thenReturn(Optional.of(expired));
 
-        assertThrows(org.springframework.security.authentication.BadCredentialsException.class,
+        assertThrows(BadCredentialsException.class,
                 () -> service.rotate("expired-token"));
         verify(repository, never()).save(any(RefreshToken.class));
     }

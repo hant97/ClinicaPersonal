@@ -6,7 +6,7 @@ import { Medication } from '../../../core/models/medication.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule, Pill } from 'lucide-angular';
+import { LucideAngularModule, Pill, Edit, Trash2 } from 'lucide-angular';
 
 @Component({
   selector: 'app-medications-section',
@@ -16,6 +16,8 @@ import { LucideAngularModule, Pill } from 'lucide-angular';
 })
 export class MedicationsSectionComponent implements OnInit {
   readonly Pill = Pill;
+  readonly Edit = Edit;
+  readonly Trash2 = Trash2;
 
   @Input() patientId!: number;
 

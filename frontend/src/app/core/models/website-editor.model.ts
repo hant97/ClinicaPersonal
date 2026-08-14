@@ -1,0 +1,118 @@
+export interface WebsiteEditor {
+  draft: WebsiteDraft;
+  revision: number;
+  hasUnpublishedChanges: boolean;
+  draftUpdatedAt?: string;
+  draftUpdatedBy?: number;
+  publishedAt?: string;
+  publishedBy?: number;
+  publishedRevision: number;
+}
+
+export interface WebsiteDraft {
+  commercialName: string;
+  tagline?: string;
+  description?: string;
+  logoExternalImageUrl?: string;
+  logoAssetKey?: string;
+  heroEyebrow?: string;
+  heroTitle: string;
+  heroHighlight?: string;
+  heroDescription?: string;
+  heroPrimaryButtonText?: string;
+  heroSecondaryButtonText?: string;
+  heroExternalImageUrl?: string;
+  heroAssetKey?: string;
+  approachTitle?: string;
+  approachHighlight?: string;
+  approachDescription?: string;
+  approachSecondaryDescription?: string;
+  approachCtaText?: string;
+  approachExternalImageUrl?: string;
+  approachAssetKey?: string;
+  contactHeading?: string;
+  contactDescription?: string;
+  contactPhone?: string;
+  contactWhatsapp?: string;
+  contactEmail?: string;
+  contactAddress?: string;
+  contactHours?: string;
+  mapUrl?: string;
+  facebookUrl?: string;
+  instagramUrl?: string;
+  tiktokUrl?: string;
+  linkedinUrl?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoSiteName?: string;
+  seoExternalImageUrl?: string;
+  seoAssetKey?: string;
+  specialties: WebsiteDraftSpecialty[];
+  benefits: WebsiteDraftBenefit[];
+  processSteps: WebsiteDraftProcessStep[];
+  professionals: WebsiteDraftProfessional[];
+}
+
+export interface WebsiteDraftSpecialty {
+  draftKey?: string;
+  id?: number;
+  code: string;
+  label: string;
+  title: string;
+  subtitle?: string;
+  iconCode: string;
+  displayOrder: number;
+  visible: boolean;
+}
+
+export interface WebsiteDraftBenefit {
+  draftKey?: string;
+  id?: number;
+  title: string;
+  description?: string;
+  iconCode: string;
+  displayOrder: number;
+  active: boolean;
+}
+
+export interface WebsiteDraftProcessStep {
+  draftKey?: string;
+  id?: number;
+  stepNumber: number;
+  title: string;
+  description?: string;
+  displayOrder: number;
+  active: boolean;
+}
+
+export interface WebsiteDraftProfessional {
+  draftKey?: string;
+  id?: number;
+  name: string;
+  specialty?: string;
+  licenseNumber?: string;
+  description?: string;
+  experience?: string;
+  careAreas?: string;
+  photoExternalUrl?: string;
+  photoAssetKey?: string;
+  displayOrder: number;
+  active: boolean;
+}
+
+export type LandingBlockType =
+  | 'general'
+  | 'hero'
+  | 'approach'
+  | 'contact'
+  | 'social'
+  | 'seo'
+  | 'specialties'
+  | 'benefits'
+  | 'processSteps'
+  | 'professionals';
+
+export interface LandingBlockRef {
+  type: LandingBlockType;
+  draftKey?: string;
+}

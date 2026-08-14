@@ -56,12 +56,12 @@
       </a>
 
       <div class="mb-6">
-        <div class="flex items-center gap-2 mb-1">
-          <span class="h-2 w-2 rounded-full bg-primary-600"></span>
-          <p class="text-xs font-bold uppercase tracking-wider text-primary-600">Portal Médico</p>
+        <div class="flex items-center gap-2 mb-2">
+          <span class="h-2.5 w-2.5 rounded-full bg-primary-600"></span>
+          <p class="text-sm font-bold uppercase tracking-wider text-primary-600">Portal Médico</p>
         </div>
-        <h2 class="text-2xl font-bold text-ink tracking-tight">Iniciar Sesión</h2>
-        <p class="text-xs text-muted mt-1">Ingresa tus credenciales profesionales para acceder al sistema.</p>
+        <h2 class="text-3xl font-bold text-ink tracking-tight">Iniciar Sesión</h2>
+        <p class="text-sm text-muted mt-2">Ingresa tus credenciales profesionales para acceder al sistema.</p>
       </div>
 
       @if (errorMessage) {
@@ -70,14 +70,14 @@
         </div>
       }
 
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-4">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-5">
         <div class="login-field">
           <label class="login-label" for="username">Usuario del Sistema</label>
           <input
             type="text"
             id="username"
             formControlName="username"
-            class="input-field !py-2 text-xs"
+            class="input-field !py-3 text-sm"
             placeholder="Ej: doctor.ana"
             autocomplete="username"
           />
@@ -97,7 +97,7 @@
             type="password"
             id="password"
             formControlName="password"
-            class="input-field !py-2 text-xs"
+            class="input-field !py-3 text-sm"
             placeholder="••••••••"
             autocomplete="current-password"
           />
@@ -111,7 +111,7 @@
 
         <button
           type="submit"
-          class="btn-primary w-full !py-2.5 !text-xs mt-2"
+          class="btn-primary w-full !py-3 !text-sm mt-3"
           [disabled]="loginForm.invalid || isLoading"
         >
           @if (!isLoading) {

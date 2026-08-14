@@ -42,8 +42,12 @@
               }
             </div>
             <div class="flex shrink-0 gap-1">
-              <button class="btn-text" (click)="openForm(evaluation)" title="Editar">Editar</button>
-              <button class="btn-text text-danger hover:bg-red-50" (click)="delete(evaluation.id!)" title="Eliminar">Eliminar</button>
+              <button type="button" class="btn-text !p-1.5" (click)="openForm(evaluation)" title="Editar" aria-label="Editar">
+                <lucide-icon [img]="Edit" [size]="16"></lucide-icon>
+              </button>
+              <button type="button" class="btn-text !p-1.5 text-danger hover:bg-red-50" (click)="delete(evaluation.id!)" title="Eliminar" aria-label="Eliminar">
+                <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
+              </button>
             </div>
           </div>
         </div>

@@ -6,7 +6,7 @@ import { Procedure } from '../../../core/models/procedure.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule, Activity } from 'lucide-angular';
+import { LucideAngularModule, Activity, Edit, Trash2 } from 'lucide-angular';
 
 @Component({
   selector: 'app-procedures-section',
@@ -16,6 +16,8 @@ import { LucideAngularModule, Activity } from 'lucide-angular';
 })
 export class ProceduresSectionComponent implements OnInit {
   readonly Activity = Activity;
+  readonly Edit = Edit;
+  readonly Trash2 = Trash2;
 
   @Input() patientId!: number;
 

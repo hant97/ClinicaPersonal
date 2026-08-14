@@ -6,7 +6,7 @@ import { TherapeuticPlan } from '../../../core/models/therapeutic-plan.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule, ClipboardList } from 'lucide-angular';
+import { LucideAngularModule, ClipboardList, Edit, Trash2 } from 'lucide-angular';
 
 @Component({
   selector: 'app-therapeutic-plans-section',
@@ -16,6 +16,8 @@ import { LucideAngularModule, ClipboardList } from 'lucide-angular';
 })
 export class TherapeuticPlansSectionComponent implements OnInit {
   readonly ClipboardList = ClipboardList;
+  readonly Edit = Edit;
+  readonly Trash2 = Trash2;
 
   @Input() patientId!: number;
 

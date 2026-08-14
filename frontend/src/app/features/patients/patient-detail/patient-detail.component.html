@@ -264,6 +264,22 @@
                 >
                   Medicamentos
                 </button>
+                <button
+                  type="button"
+                  class="rounded-md px-3 py-1.5 text-xs font-semibold transition"
+                  [ngClass]="activeExpedienteSubTab === 'recetas' ? 'bg-primary-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                  (click)="setExpedienteSubTab('recetas')"
+                >
+                  Recetas
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md px-3 py-1.5 text-xs font-semibold transition"
+                  [ngClass]="activeExpedienteSubTab === 'documentos' ? 'bg-primary-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                  (click)="setExpedienteSubTab('documentos')"
+                >
+                  Documentos
+                </button>
               </div>
 
               <!-- Sub-tab Content -->
@@ -300,6 +316,12 @@
                 }
                 @case ('medicamentos') {
                   <app-medications-section [patientId]="patient.id!"></app-medications-section>
+                }
+                @case ('recetas') {
+                  <app-prescriptions-section [patientId]="patient.id!"></app-prescriptions-section>
+                }
+                @case ('documentos') {
+                  <app-documents-section [patientId]="patient.id!"></app-documents-section>
                 }
               }
             </div>

@@ -1,5 +1,6 @@
 package com.clinica.backend.security;
 
+import com.clinica.backend.model.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -59,14 +60,14 @@ public class JwtService {
                     .map(GrantedAuthority::getAuthority)
                     .toList());
         }
-        if (userDetails instanceof com.clinica.backend.model.User) {
-            extraClaims.put("specialty", ((com.clinica.backend.model.User) userDetails).getSpecialty());
+        if (userDetails instanceof User user) {
+            extraClaims.put("specialty", user.getSpecialty());
         }
         return generateToken(extraClaims, userDetails);
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-        if (userDetails instanceof com.clinica.backend.model.User user) {
+        if (userDetails instanceof User user) {
             extraClaims.put("tv", user.getTokenVersion());
         }
         return Jwts.builder()
@@ -80,8 +81,14 @@ public class JwtService {
     }
 
     public long extractTokenVersion(String token) {
-        Long version = extractClaim(token, claims -> claims.get("tv", Long.class));
-        return version == null ? -1 : version;
+        Number version = extractClaim(token, claims -> {
+            Object val = claims.get("tv");
+            if (val instanceof Number n) {
+                return n.longValue();
+            }
+            return null;
+        });
+        return version == null ? -1 : version.longValue();
     }
 
     public String extractTokenId(String token) {

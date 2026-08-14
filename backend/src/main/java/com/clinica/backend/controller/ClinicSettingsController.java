@@ -66,14 +66,14 @@ public class ClinicSettingsController {
                 String lower = filename.toLowerCase();
                 if (lower.endsWith(".png")) {
                     contentType = "image/png";
-                } else if (lower.endsWith(".svg")) {
-                    contentType = "image/svg+xml";
                 } else if (lower.endsWith(".webp")) {
                     contentType = "image/webp";
                 }
 
                 return ResponseEntity.ok()
                         .header(HttpHeaders.CONTENT_TYPE, contentType)
+                        .header("X-Content-Type-Options", "nosniff")
+                        .header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'")
                         .body(resource);
             } else {
                 return ResponseEntity.notFound().build();

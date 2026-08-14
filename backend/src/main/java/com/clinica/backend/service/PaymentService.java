@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 @Service
@@ -54,7 +55,8 @@ public class PaymentService {
             throw new IllegalArgumentException("El monto del cobro debe ser mayor a 0");
         }
 
-        Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(dto.getPatientId(), getCurrentUserSpecialty())
+        String specialty = getCurrentUserSpecialty();
+        Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(dto.getPatientId(), specialty)
                 .orElseThrow(() -> new IllegalArgumentException("Paciente no encontrado"));
 
         // Validation: At least one ClinicalService must be present and items totals must match
@@ -91,7 +93,7 @@ public class PaymentService {
         payment.setPaymentDate(dto.getPaymentDate());
         payment.setPaymentMethod(dto.getPaymentMethod());
         payment.setDescription(dto.getDescription());
-        payment.setSpecialty(getCurrentUserSpecialty());
+        payment.setSpecialty(specialty);
         payment.setItems(new ArrayList<>());
 
         Payment savedPayment = paymentRepository.save(payment);
@@ -106,13 +108,13 @@ public class PaymentService {
                 item.setTotalPrice(itemDto.getUnitPrice().multiply(BigDecimal.valueOf(itemDto.getQuantity())));
 
                 if (itemDto.getClinicalServiceId() != null) {
-                    ClinicalService service = clinicalServiceRepository.findById(itemDto.getClinicalServiceId())
+                    ClinicalService service = clinicalServiceRepository.findByIdAndSpecialtyAndDeletedFalse(itemDto.getClinicalServiceId(), specialty)
                             .orElseThrow(() -> new IllegalArgumentException("Servicio clínico no encontrado: " + itemDto.getClinicalServiceId()));
                     item.setClinicalService(service);
                 }
 
                 if (itemDto.getSupplyId() != null) {
-                    Supply supply = supplyRepository.findById(itemDto.getSupplyId())
+                    Supply supply = supplyRepository.findByIdAndSpecialtyAndDeletedFalse(itemDto.getSupplyId(), specialty)
                             .orElseThrow(() -> new IllegalArgumentException("Insumo no encontrado: " + itemDto.getSupplyId()));
                     item.setSupply(supply);
 
@@ -140,7 +142,7 @@ public class PaymentService {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Cobro no encontrado"));
         if (!getCurrentUserSpecialty().equals(payment.getSpecialty())) {
-            throw new org.springframework.security.access.AccessDeniedException("Cobro fuera de la especialidad del usuario");
+            throw new AccessDeniedException("Cobro fuera de la especialidad del usuario");
         }
         payment.setAmount(dto.getAmount());
         payment.setPaymentDate(dto.getPaymentDate());
@@ -154,7 +156,7 @@ public class PaymentService {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Cobro no encontrado"));
         if (!getCurrentUserSpecialty().equals(payment.getSpecialty())) {
-            throw new org.springframework.security.access.AccessDeniedException("Cobro fuera de la especialidad del usuario");
+            throw new AccessDeniedException("Cobro fuera de la especialidad del usuario");
         }
         if (payment.isDeleted()) {
             return;

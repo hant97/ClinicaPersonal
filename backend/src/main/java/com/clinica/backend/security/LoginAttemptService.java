@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class LoginAttemptService {
 
     public static final int MAX_ATTEMPTS = 5;
+    public static final int MAX_IP_ATTEMPTS = 25;
     public static final long LOCK_DURATION_SECONDS = 15 * 60; // 15 minutos
     public static final long ENTRY_EXPIRATION_SECONDS = 30 * 60; // 30 minutos
     public static final int MAX_CACHE_SIZE = 5000;
@@ -34,9 +35,14 @@ public class LoginAttemptService {
         attemptsCache.remove(key.toLowerCase().trim());
     }
 
+    public void loginSucceededFromIp(String ip) {
+        if (ip == null || isLoopbackOrLocal(ip)) return;
+        ipAttemptsCache.remove(ip.trim());
+    }
+
     public void loginFailed(String key) {
         if (key == null) return;
-        cleanupIfNecessary();
+        cleanupIfNecessary(attemptsCache);
 
         String normalizedKey = key.toLowerCase().trim();
         AttemptInfo info = attemptsCache.get(normalizedKey);
@@ -68,11 +74,20 @@ public class LoginAttemptService {
     }
 
     public boolean isIpBlocked(String ip) {
+        if (ip == null || isLoopbackOrLocal(ip)) return false;
         return isBlockedFrom(ipAttemptsCache, ip);
     }
 
     public void loginFailedFromIp(String ip) {
-        recordFailure(ipAttemptsCache, ip);
+        if (ip == null || isLoopbackOrLocal(ip)) return;
+        cleanupIfNecessary(ipAttemptsCache);
+        recordIpFailure(ipAttemptsCache, ip);
+    }
+
+    private boolean isLoopbackOrLocal(String ip) {
+        if (ip == null) return true;
+        String trimmed = ip.trim();
+        return trimmed.equals("127.0.0.1") || trimmed.equals("0:0:0:0:0:0:0:1") || trimmed.equals("::1") || trimmed.equalsIgnoreCase("localhost");
     }
 
     private boolean isBlockedFrom(Map<String, AttemptInfo> cache, String key) {
@@ -87,12 +102,12 @@ public class LoginAttemptService {
         return true;
     }
 
-    private void recordFailure(Map<String, AttemptInfo> cache, String key) {
+    private void recordIpFailure(Map<String, AttemptInfo> cache, String key) {
         if (key == null || key.isBlank()) return;
         String normalizedKey = key.trim();
         AttemptInfo info = cache.get(normalizedKey);
         int attempts = info == null ? 1 : info.attempts + 1;
-        Instant lockedUntil = attempts >= MAX_ATTEMPTS
+        Instant lockedUntil = attempts >= MAX_IP_ATTEMPTS
                 ? Instant.now().plusSeconds(LOCK_DURATION_SECONDS) : null;
         cache.put(normalizedKey, new AttemptInfo(attempts, lockedUntil));
     }
@@ -109,10 +124,10 @@ public class LoginAttemptService {
         return Math.max(1, (seconds + 59) / 60);
     }
 
-    private void cleanupIfNecessary() {
-        if (attemptsCache.size() > MAX_CACHE_SIZE / 2) {
+    private void cleanupIfNecessary(Map<String, AttemptInfo> cache) {
+        if (cache.size() > MAX_CACHE_SIZE / 2) {
             Instant threshold = Instant.now().minusSeconds(ENTRY_EXPIRATION_SECONDS);
-            attemptsCache.entrySet().removeIf(entry -> {
+            cache.entrySet().removeIf(entry -> {
                 AttemptInfo info = entry.getValue();
                 return (info.lockedUntil == null || Instant.now().isAfter(info.lockedUntil))
                         && info.lastAttemptTime.isBefore(threshold);

@@ -1,0 +1,121 @@
+<div class="card">
+  <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h3 class="flex items-center gap-2 text-lg font-semibold">
+      <lucide-icon [img]="FolderOpen" [size]="20" class="text-clinic-600"></lucide-icon>
+      Documentos
+    </h3>
+    <p class="mt-1 text-sm text-muted">{{ totalElements }} registrados</p>
+    <button class="btn btn-primary" (click)="openUpload()">
+      <lucide-icon [img]="Upload" [size]="16"></lucide-icon>
+      Subir documento
+    </button>
+  </div>
+
+  @if (loading) {
+    <p class="text-sm text-muted">Cargando…</p>
+  } @else if (documents.length > 0) {
+    <div class="space-y-3">
+      @for (document of documents; track document.id) {
+        <div class="flex items-start justify-between gap-4 rounded-lg border border-line bg-surface p-4">
+          <div class="flex items-start gap-3 min-w-0">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+              <lucide-icon [img]="isImage(document.mimeType) ? Image : FileText" [size]="20"></lucide-icon>
+            </div>
+            <div class="min-w-0">
+              <p class="truncate text-sm font-semibold text-ink">{{ document.name }}</p>
+              <div class="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted">
+                <span class="rounded-full border border-line bg-canvas px-2 py-0.5 font-semibold">{{ categoryLabel(document.category) }}</span>
+                <span>{{ formatSize(document.sizeBytes) }}</span>
+                @if (document.documentDate) {
+                  <span>{{ document.documentDate | date: 'dd/MM/yyyy' }}</span>
+                }
+              </div>
+            </div>
+          </div>
+          <div class="flex shrink-0 gap-1">
+            <button class="btn-text" (click)="openPreview(document)" title="Ver">
+              <lucide-icon [img]="Eye" [size]="16"></lucide-icon>
+              Ver
+            </button>
+            <button class="btn-text" (click)="download(document)" title="Descargar">
+              <lucide-icon [img]="Download" [size]="16"></lucide-icon>
+              Descargar
+            </button>
+            <button class="btn-text text-danger hover:bg-red-50" (click)="delete(document.id!)" title="Eliminar">
+              <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+    <app-pagination [currentPage]="currentPage" [totalPages]="totalPages" (pageChange)="onPageChange($event)"></app-pagination>
+  } @else {
+    <div class="rounded-lg border border-dashed border-line bg-canvas p-6 text-center text-sm text-muted">
+      No hay documentos registrados para este paciente.
+    </div>
+  }
+</div>
+
+@if (showUpload) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div class="card w-full max-w-lg p-5 md:p-7">
+      <div class="mb-6 flex items-center justify-between border-b border-line pb-4">
+        <h2>Subir Documento</h2>
+        <button class="btn-text text-muted hover:text-danger" aria-label="Cerrar" (click)="closeUpload()">×</button>
+      </div>
+      <form [formGroup]="uploadForm" (ngSubmit)="submitUpload()">
+        <div class="form-group">
+          <label class="form-label">Archivo * (PDF o imagen, máx. 5MB)</label>
+          <input type="file" class="input-field" accept=".pdf,.png,.jpg,.jpeg,.webp" (change)="onFileSelected($event)" />
+          @if (selectedFile) {
+            <p class="mt-1 text-xs text-muted">{{ selectedFile.name }} · {{ formatSize(selectedFile.size) }}</p>
+          }
+        </div>
+        <div class="form-group">
+          <label class="form-label">Categoría</label>
+          <select formControlName="category" class="input-field">
+            <option value="CONSENTIMIENTO">Consentimiento</option>
+            <option value="RESULTADO">Resultado</option>
+            <option value="DERIVACION">Derivación</option>
+            <option value="RECETA">Receta</option>
+            <option value="OTRO">Otro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha del documento</label>
+          <input type="date" formControlName="documentDate" class="input-field" />
+        </div>
+        <div class="mt-6 flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end">
+          <button type="button" class="btn-secondary" (click)="closeUpload()">Cancelar</button>
+          <button type="submit" class="btn-primary" [disabled]="!selectedFile || isUploading">Subir</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (showPreview && previewDoc && previewUrl) {
+  <div class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/50 p-4" role="dialog" aria-modal="true" aria-label="Vista previa de documento" (click)="closePreview()">
+    <section class="flex h-full max-h-[95vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-surface shadow-raised" (click)="$event.stopPropagation()">
+      <div class="flex shrink-0 items-center justify-between gap-2 border-b border-line bg-clinic-50 px-4 py-3">
+        <h2 class="truncate text-sm font-semibold text-clinic-900">{{ previewDoc.name }}</h2>
+        <div class="flex gap-2">
+          <button class="btn btn-primary" (click)="download(previewDoc)">
+            <lucide-icon [img]="Download" [size]="16"></lucide-icon>
+            Descargar
+          </button>
+          <button class="btn-text" (click)="closePreview()" aria-label="Cerrar">
+            <lucide-icon [img]="X" [size]="20"></lucide-icon>
+          </button>
+        </div>
+      </div>
+      <div class="min-h-0 flex-1 overflow-auto bg-slate-100 p-4">
+        @if (isImage(previewDoc.mimeType)) {
+          <img [src]="previewUrl" [alt]="previewDoc.name" class="mx-auto max-h-full max-w-full rounded shadow-card" />
+        } @else {
+          <iframe [src]="previewUrl" class="h-full w-full rounded bg-white shadow-card" title="Vista previa"></iframe>
+        }
+      </div>
+    </section>
+  </div>
+}

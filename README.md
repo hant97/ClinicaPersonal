@@ -43,3 +43,12 @@ npm run build
 ```
 
 La automatización equivalente está en `.github/workflows/ci.yml`, con Java 17 y Node 20.20.2 fijados.
+
+## Limpieza de recursos del sitio
+
+El editor visual de la landing guarda las imágenes en dos espacios: los recursos de
+borrador (`draft/…`) y los publicados. Los archivos huérfanos (que ya no referencia ni el
+borrador ni la versión publicada) se eliminan mediante una tarea programada que corre con el
+cron `${website.asset-cleanup-cron:0 30 3 * * *}` (por defecto, a las 03:30, diario) y solo
+borra archivos con más de 7 días sin referencia. La limpieza nunca ocurre dentro de la
+transacción que reemplaza el contenido publicado.

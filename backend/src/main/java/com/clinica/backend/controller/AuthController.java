@@ -50,7 +50,7 @@ public class AuthController {
                                               HttpServletRequest httpRequest,
                                               HttpServletResponse httpResponse) {
         String username = request.getUsername();
-        String ip = httpRequest.getRemoteAddr();
+        String ip = extractClientIp(httpRequest);
 
         if (loginAttemptService.isBlocked(username) || loginAttemptService.isIpBlocked(ip)) {
             throw new BadCredentialsException("Usuario o contraseña incorrectos");
@@ -70,6 +70,7 @@ public class AuthController {
         }
 
         loginAttemptService.loginSucceeded(username);
+        loginAttemptService.loginSucceededFromIp(ip);
 
         var user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new BadCredentialsException("Usuario o contraseña incorrectos"));
@@ -115,5 +116,27 @@ public class AuthController {
         response.addHeader("Set-Cookie", ResponseCookie.from("refresh_token", value)
                 .httpOnly(true).secure(secureCookie).sameSite(cookieSameSite).path("/api/v1/auth")
                 .maxAge(refreshExpiration / 1000).build().toString());
+    }
+
+    private String extractClientIp(HttpServletRequest request) {
+        if (request == null) {
+            return "127.0.0.1";
+        }
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isBlank()) {
+            String[] parts = xForwardedFor.split(",");
+            for (String part : parts) {
+                String trimmed = part.trim();
+                if (!trimmed.isEmpty() && !trimmed.equalsIgnoreCase("unknown")) {
+                    return trimmed;
+                }
+            }
+        }
+        String xRealIp = request.getHeader("X-Real-IP");
+        if (xRealIp != null && !xRealIp.isBlank() && !xRealIp.equalsIgnoreCase("unknown")) {
+            return xRealIp.trim();
+        }
+        String remoteAddr = request.getRemoteAddr();
+        return (remoteAddr != null && !remoteAddr.isBlank()) ? remoteAddr.trim() : "127.0.0.1";
     }
 }

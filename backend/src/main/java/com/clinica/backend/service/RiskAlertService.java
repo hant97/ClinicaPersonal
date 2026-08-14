@@ -8,6 +8,7 @@ import com.clinica.backend.repository.RiskAlertRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -62,7 +63,7 @@ public class RiskAlertService {
         RiskAlert alert = riskAlertRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Alerta de riesgo no encontrada con ID: " + id));
         if (!specialty().equals(alert.getSpecialty())) {
-            throw new org.springframework.security.access.AccessDeniedException("Alerta fuera de la especialidad del usuario");
+            throw new AccessDeniedException("Alerta fuera de la especialidad del usuario");
         }
         alert.setActive(false);
         alert.setResolvedAt(LocalDateTime.now());

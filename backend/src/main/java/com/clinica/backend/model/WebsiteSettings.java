@@ -64,6 +64,15 @@ public class WebsiteSettings {
     private String seoExternalImageUrl;
     private String seoAssetKey;
 
+    @Column(name = "published_at")
+    private LocalDateTime publishedAt;
+
+    @Column(name = "published_by")
+    private Long publishedBy;
+
+    @Column(name = "published_revision", nullable = false)
+    private long publishedRevision;
+
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 

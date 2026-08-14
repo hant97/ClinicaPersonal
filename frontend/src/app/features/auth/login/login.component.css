@@ -56,10 +56,10 @@
 
 .login-card {
   width: 100%;
-  max-width: 420px;
-  padding: 40px;
+  max-width: 520px;
+  padding: 56px 48px;
   background: #ffffff;
-  border-radius: 16px;
+  border-radius: 20px;
   border: 1px solid #e2e8f0;
   box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.07);
 }
@@ -81,21 +81,21 @@
 }
 
 .login-field {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .login-label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   color: #0f172a;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
 }
 
 .login-validation {
   padding-top: 4px;
   color: #ef4444;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 @media (max-width: 900px) {

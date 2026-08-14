@@ -8,9 +8,10 @@ import com.clinica.backend.model.User;
 import com.clinica.backend.repository.InventoryTransactionRepository;
 import com.clinica.backend.repository.SupplyRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,7 +39,7 @@ public class InventoryTransactionService {
                 .orElseThrow(() -> new IllegalArgumentException("Insumo no encontrado o dado de baja"));
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!user.getSpecialty().equals(supply.getSpecialty())) {
-            throw new org.springframework.security.access.AccessDeniedException("Insumo fuera de la especialidad del usuario");
+            throw new AccessDeniedException("Insumo fuera de la especialidad del usuario");
         }
 
         int currentStock = supply.getCurrentStock() != null ? supply.getCurrentStock() : 0;
@@ -82,7 +83,7 @@ public class InventoryTransactionService {
                 .orElseThrow(() -> new IllegalArgumentException("Insumo no encontrado o dado de baja"));
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!user.getSpecialty().equals(supply.getSpecialty())) {
-            throw new org.springframework.security.access.AccessDeniedException("Insumo fuera de la especialidad del usuario");
+            throw new AccessDeniedException("Insumo fuera de la especialidad del usuario");
         }
         return transactionRepository.findBySupplyIdOrderByTransactionDateDesc(supplyId)
                 .stream()

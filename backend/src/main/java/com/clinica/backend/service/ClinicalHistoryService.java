@@ -1,7 +1,9 @@
 package com.clinica.backend.service;
 
 import com.clinica.backend.dto.ClinicalHistoryDto;
+import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.User;
+import com.clinica.backend.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +17,7 @@ public class ClinicalHistoryService {
 
     private static final int AGGREGATE_PAGE_SIZE = 1000;
 
+    private final PatientRepository patientRepository;
     private final GeneralHistoryService generalHistoryService;
     private final AllergyService allergyService;
     private final MedicationService medicationService;
@@ -32,6 +35,8 @@ public class ClinicalHistoryService {
     @Transactional(readOnly = true)
     public ClinicalHistoryDto getClinicalHistory(Long patientId) {
         User user = clinicalAuthorizationService.currentUser();
+        patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, user.getSpecialty())
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
         Pageable pageable = PageRequest.of(0, AGGREGATE_PAGE_SIZE);
 
         ClinicalHistoryDto dto = new ClinicalHistoryDto();

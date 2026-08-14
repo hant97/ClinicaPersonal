@@ -1,29 +1,50 @@
 package com.clinica.backend.service;
 
 import com.clinica.backend.dto.PublicLandingDto;
-import com.clinica.backend.dto.WebsiteSettingsAdminDto;
+import com.clinica.backend.dto.WebsiteDraftDto;
+import com.clinica.backend.dto.WebsiteEditorDto;
+import com.clinica.backend.exception.ConflictException;
 import com.clinica.backend.model.WebsiteBenefit;
 import com.clinica.backend.model.ClinicalService;
+import com.clinica.backend.model.User;
+import com.clinica.backend.model.WebsiteLandingDraft;
 import com.clinica.backend.model.WebsiteProcessStep;
 import com.clinica.backend.model.WebsiteProfessional;
 import com.clinica.backend.model.WebsiteSettings;
 import com.clinica.backend.model.WebsiteSpecialty;
-import com.clinica.backend.model.WebsiteSpecialtyService;
 import com.clinica.backend.repository.WebsiteBenefitRepository;
 import com.clinica.backend.repository.ClinicalServiceRepository;
+import com.clinica.backend.repository.WebsiteLandingDraftRepository;
 import com.clinica.backend.repository.WebsiteProcessStepRepository;
 import com.clinica.backend.repository.WebsiteProfessionalRepository;
 import com.clinica.backend.repository.WebsiteSettingsRepository;
 import com.clinica.backend.repository.WebsiteSpecialtyRepository;
-import com.clinica.backend.repository.WebsiteSpecialtyServiceRepository;
 import jakarta.transaction.Transactional;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,72 +52,17 @@ import java.util.stream.Collectors;
 public class WebsiteSettingsService {
     private static final String SINGLETON_KEY = "S";
     private static final Set<String> ALLOWED_ICON_CODES = Set.of("HEART_HANDSHAKE", "SHIELD_CHECK", "STETHOSCOPE", "SPARKLES", "MICROSCOPE", "BRAIN");
+    private static final Set<String> ALLOWED_IMAGE_CATEGORIES = Set.of("logo", "hero", "approach", "seo");
     private final WebsiteSettingsRepository settingsRepository;
+    private final WebsiteLandingDraftRepository draftRepository;
     private final ClinicalServiceRepository clinicalServiceRepository;
     private final WebsiteSpecialtyRepository specialtyRepository;
-    private final WebsiteSpecialtyServiceRepository specialtyServiceRepository;
     private final WebsiteBenefitRepository benefitRepository;
     private final WebsiteProcessStepRepository processStepRepository;
     private final WebsiteProfessionalRepository professionalRepository;
     private final WebsiteFileStorage fileStorage;
-
-    @Transactional
-    public WebsiteSettingsAdminDto getAdminSettings() {
-        WebsiteSettings settings = settingsRepository.findBySingletonKey(SINGLETON_KEY).orElseThrow();
-        WebsiteSettingsAdminDto dto = mapAdmin(settings);
-        dto.setLogoExternalImageUrl(settings.getLogoExternalImageUrl());
-        dto.setLogoAssetKey(settings.getLogoAssetKey());
-        return dto;
-    }
-
-    @Transactional
-    public WebsiteSettingsAdminDto update(WebsiteSettingsAdminDto dto) {
-        validateUrls(dto);
-        validateIconCodes(dto);
-        WebsiteSettings settings = settingsRepository.findBySingletonKey(SINGLETON_KEY).orElseThrow();
-        copySettings(dto, settings);
-        settingsRepository.save(settings);
-
-        specialtyServiceRepository.deleteAllInBatch();
-        specialtyRepository.deleteAllInBatch();
-        for (WebsiteSettingsAdminDto.Specialty item : dto.getSpecialties()) {
-            WebsiteSpecialty specialty = new WebsiteSpecialty();
-            specialty.setCode(item.getCode().trim().toUpperCase());
-            specialty.setLabel(item.getLabel().trim());
-            specialty.setTitle(item.getTitle().trim());
-            specialty.setSubtitle(trimToNull(item.getSubtitle()));
-            specialty.setIconCode(item.getIconCode().trim().toUpperCase());
-            specialty.setDisplayOrder(item.getDisplayOrder());
-            specialty.setVisible(item.isVisible());
-            specialtyRepository.save(specialty);
-        }
-
-        benefitRepository.deleteAllInBatch();
-        dto.getBenefits().forEach(item -> {
-            WebsiteBenefit benefit = new WebsiteBenefit();
-            benefit.setTitle(item.getTitle().trim()); benefit.setDescription(trimToNull(item.getDescription()));
-            benefit.setIconCode(item.getIconCode().trim().toUpperCase()); benefit.setDisplayOrder(item.getDisplayOrder()); benefit.setActive(item.isActive());
-            benefitRepository.save(benefit);
-        });
-
-        processStepRepository.deleteAllInBatch();
-        dto.getProcessSteps().forEach(item -> {
-            WebsiteProcessStep step = new WebsiteProcessStep();
-            step.setStepNumber(item.getStepNumber()); step.setTitle(item.getTitle().trim()); step.setDescription(trimToNull(item.getDescription()));
-            step.setDisplayOrder(item.getDisplayOrder()); step.setActive(item.isActive()); processStepRepository.save(step);
-        });
-
-        professionalRepository.deleteAllInBatch();
-        dto.getProfessionals().forEach(item -> {
-            WebsiteProfessional professional = new WebsiteProfessional();
-            professional.setName(item.getName().trim()); professional.setSpecialty(trimToNull(item.getSpecialty()));
-            professional.setLicenseNumber(trimToNull(item.getLicenseNumber())); professional.setDescription(trimToNull(item.getDescription()));
-            professional.setExperience(trimToNull(item.getExperience())); professional.setCareAreas(trimToNull(item.getCareAreas()));
-            professional.setPhotoExternalUrl(trimToNull(item.getPhotoExternalUrl())); professional.setPhotoAssetKey(trimToNull(item.getPhotoAssetKey()));
-            professional.setDisplayOrder(item.getDisplayOrder()); professional.setActive(item.isActive()); professionalRepository.save(professional);
-        });
-        return getAdminSettings();
-    }
+    private final ObjectMapper objectMapper;
+    private final Validator validator;
 
     @Transactional
     public PublicLandingDto getPublicLanding() {
@@ -121,48 +87,500 @@ public class WebsiteSettingsService {
         return dto;
     }
 
-    public org.springframework.core.io.Resource loadAsset(String key) { return fileStorage.load(key); }
+    public Resource loadAsset(String key) { return fileStorage.load(key); }
+
+    // ===================== Editor visual (borrador) =====================
 
     @Transactional
-    public WebsiteSettingsAdminDto uploadAsset(String category, org.springframework.web.multipart.MultipartFile file) {
-        if (!List.of("logo", "hero", "approach", "seo").contains(category)) throw new IllegalArgumentException("Tipo de imagen no permitido");
-        WebsiteSettings settings = settingsRepository.findBySingletonKey(SINGLETON_KEY).orElseThrow();
-        String previous = switch (category) { case "logo" -> settings.getLogoAssetKey(); case "hero" -> settings.getHeroAssetKey(); case "approach" -> settings.getApproachAssetKey(); default -> settings.getSeoAssetKey(); };
-        String key = fileStorage.store(file, category, previous);
-        switch (category) { case "logo" -> settings.setLogoAssetKey(key); case "hero" -> settings.setHeroAssetKey(key); case "approach" -> settings.setApproachAssetKey(key); default -> settings.setSeoAssetKey(key); }
-        settingsRepository.save(settings);
-        return getAdminSettings();
+    public WebsiteEditorDto getEditor() {
+        WebsiteLandingDraft draft = requireDraft();
+        WebsiteSettings settings = requireSettings();
+        WebsiteDraftDto dto = parseDraft(draft.getContent());
+        if (ensureDraftKeys(dto)) {
+            draft.setContent(serializeDraft(dto));
+            draftRepository.save(draft);
+        }
+        return toEditor(draft, settings, dto);
     }
 
     @Transactional
-    public WebsiteSettingsAdminDto deleteAsset(String category) {
-        WebsiteSettings settings = settingsRepository.findBySingletonKey(SINGLETON_KEY).orElseThrow();
-        String previous = switch (category) { case "logo" -> settings.getLogoAssetKey(); case "hero" -> settings.getHeroAssetKey(); case "approach" -> settings.getApproachAssetKey(); case "seo" -> settings.getSeoAssetKey(); default -> throw new IllegalArgumentException("Tipo de imagen no permitido"); };
-        fileStorage.delete(previous);
-        switch (category) { case "logo" -> settings.setLogoAssetKey(null); case "hero" -> settings.setHeroAssetKey(null); case "approach" -> settings.setApproachAssetKey(null); default -> settings.setSeoAssetKey(null); }
-        settingsRepository.save(settings);
-        return getAdminSettings();
+    public WebsiteEditorDto saveDraft(WebsiteDraftDto dto, long revision) {
+        WebsiteLandingDraft draft = requireDraft();
+        requireRevision(draft, revision);
+        ensureDraftKeys(dto);
+        normalizeDisplayOrder(dto);
+        draft.setContent(serializeDraft(dto));
+        draft.setRevision(draft.getRevision() + 1);
+        draft.setUpdatedBy(currentUserId());
+        draftRepository.save(draft);
+        return getEditor();
     }
 
     @Transactional
-    public WebsiteSettingsAdminDto uploadProfessionalAsset(Long professionalId, org.springframework.web.multipart.MultipartFile file) {
-        WebsiteProfessional professional = professionalRepository.findById(professionalId).orElseThrow();
-        String key = fileStorage.store(file, "professionals", professional.getPhotoAssetKey());
+    public WebsiteEditorDto publish(long revision) {
+        WebsiteLandingDraft draft = requireDraft();
+        requireRevision(draft, revision);
+        WebsiteDraftDto dto = parseDraft(draft.getContent());
+        ensureDraftKeys(dto);
+        validateDraft(dto);
+        normalizeDisplayOrder(dto);
+
+        Long userId = currentUserId();
+        WebsiteSettings settings = requireSettings();
+
+        copyDraftSettings(dto, settings);
+        reconcileSpecialties(dto);
+        reconcileBenefits(dto);
+        reconcileProcessSteps(dto);
+        reconcileProfessionals(dto);
+        promoteSettingsImages(dto, settings);
+
+        settings.setPublishedRevision(draft.getRevision());
+        settings.setPublishedAt(LocalDateTime.now());
+        settings.setPublishedBy(userId);
+        settingsRepository.save(settings);
+
+        draft.setContent(serializeDraft(dto));
+        draft.setUpdatedBy(userId);
+        draftRepository.save(draft);
+
+        return getEditor();
+    }
+
+    @Transactional
+    public WebsiteEditorDto resetDraft(long revision) {
+        WebsiteLandingDraft draft = requireDraft();
+        requireRevision(draft, revision);
+        WebsiteDraftDto dto = buildDraftFromPublished();
+        draft.setContent(serializeDraft(dto));
+        draft.setRevision(draft.getRevision() + 1);
+        draft.setUpdatedBy(currentUserId());
+        draftRepository.save(draft);
+        return getEditor();
+    }
+
+    @Transactional
+    public WebsiteEditorDto uploadDraftAsset(String category, MultipartFile file) {
+        if (!ALLOWED_IMAGE_CATEGORIES.contains(category)) throw new IllegalArgumentException("Tipo de imagen no permitido");
+        WebsiteLandingDraft draft = requireDraft();
+        WebsiteDraftDto dto = parseDraft(draft.getContent());
+        ensureDraftKeys(dto);
+        String previous = getDraftAssetKey(dto, category);
+        String key = fileStorage.storeDraft(file, category);
+        if (previous != null && fileStorage.isDraftKey(previous)) fileStorage.delete(previous);
+        setDraftAssetKey(dto, category, key);
+        draft.setContent(serializeDraft(dto));
+        draft.setRevision(draft.getRevision() + 1);
+        draft.setUpdatedBy(currentUserId());
+        draftRepository.save(draft);
+        return getEditor();
+    }
+
+    @Transactional
+    public WebsiteEditorDto deleteDraftAsset(String category) {
+        if (!ALLOWED_IMAGE_CATEGORIES.contains(category)) throw new IllegalArgumentException("Tipo de imagen no permitido");
+        WebsiteLandingDraft draft = requireDraft();
+        WebsiteDraftDto dto = parseDraft(draft.getContent());
+        String previous = getDraftAssetKey(dto, category);
+        if (previous != null && fileStorage.isDraftKey(previous)) fileStorage.delete(previous);
+        setDraftAssetKey(dto, category, null);
+        draft.setContent(serializeDraft(dto));
+        draft.setRevision(draft.getRevision() + 1);
+        draft.setUpdatedBy(currentUserId());
+        draftRepository.save(draft);
+        return getEditor();
+    }
+
+    @Transactional
+    public WebsiteEditorDto uploadDraftProfessionalPhoto(String draftKey, MultipartFile file) {
+        WebsiteLandingDraft draft = requireDraft();
+        WebsiteDraftDto dto = parseDraft(draft.getContent());
+        WebsiteDraftDto.Professional professional = dto.getProfessionals().stream()
+                .filter(p -> draftKey.equals(p.getDraftKey()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Profesional no encontrado en el borrador"));
+        String key = fileStorage.storeDraft(file, "professionals");
+        if (professional.getPhotoAssetKey() != null && fileStorage.isDraftKey(professional.getPhotoAssetKey())) {
+            fileStorage.delete(professional.getPhotoAssetKey());
+        }
         professional.setPhotoAssetKey(key);
-        professionalRepository.save(professional);
-        return getAdminSettings();
+        draft.setContent(serializeDraft(dto));
+        draft.setRevision(draft.getRevision() + 1);
+        draft.setUpdatedBy(currentUserId());
+        draftRepository.save(draft);
+        return getEditor();
+    }
+
+    // ===================== Helpers del editor =====================
+
+    private WebsiteLandingDraft requireDraft() {
+        return draftRepository.findBySingletonKey(SINGLETON_KEY).orElseThrow();
+    }
+
+    private WebsiteSettings requireSettings() {
+        return settingsRepository.findBySingletonKey(SINGLETON_KEY).orElseThrow();
+    }
+
+    private void requireRevision(WebsiteLandingDraft draft, long revision) {
+        if (draft.getRevision() != revision) {
+            throw new ConflictException("La revisión del borrador está desactualizada. Recarga el editor e inténtalo de nuevo.");
+        }
+    }
+
+    private WebsiteDraftDto parseDraft(String content) {
+        try {
+            return objectMapper.readValue(content, WebsiteDraftDto.class);
+        } catch (JacksonException ex) {
+            throw new IllegalStateException("El borrador guardado no es válido", ex);
+        }
+    }
+
+    private String serializeDraft(WebsiteDraftDto dto) {
+        try {
+            return objectMapper.writeValueAsString(dto);
+        } catch (JacksonException ex) {
+            throw new IllegalStateException("No se pudo guardar el borrador", ex);
+        }
+    }
+
+    private boolean ensureDraftKeys(WebsiteDraftDto dto) {
+        boolean changed = false;
+        for (WebsiteDraftDto.Specialty item : dto.getSpecialties()) changed |= assignDraftKey(item::getDraftKey, item::setDraftKey);
+        for (WebsiteDraftDto.Benefit item : dto.getBenefits()) changed |= assignDraftKey(item::getDraftKey, item::setDraftKey);
+        for (WebsiteDraftDto.ProcessStep item : dto.getProcessSteps()) changed |= assignDraftKey(item::getDraftKey, item::setDraftKey);
+        for (WebsiteDraftDto.Professional item : dto.getProfessionals()) changed |= assignDraftKey(item::getDraftKey, item::setDraftKey);
+        return changed;
+    }
+
+    private boolean assignDraftKey(Supplier<String> getter, Consumer<String> setter) {
+        String key = getter.get();
+        if (key == null || key.isBlank()) {
+            setter.accept(UUID.randomUUID().toString());
+            return true;
+        }
+        return false;
+    }
+
+    private void normalizeDisplayOrder(WebsiteDraftDto dto) {
+        int order = 1;
+        for (WebsiteDraftDto.Specialty item : dto.getSpecialties()) item.setDisplayOrder(order++);
+        order = 1;
+        for (WebsiteDraftDto.Benefit item : dto.getBenefits()) item.setDisplayOrder(order++);
+        order = 1;
+        for (WebsiteDraftDto.ProcessStep item : dto.getProcessSteps()) {
+            item.setDisplayOrder(order);
+            item.setStepNumber(order);
+            order++;
+        }
+        order = 1;
+        for (WebsiteDraftDto.Professional item : dto.getProfessionals()) item.setDisplayOrder(order++);
+    }
+
+    private void validateDraft(WebsiteDraftDto dto) {
+        Set<ConstraintViolation<WebsiteDraftDto>> violations = validator.validate(dto);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
+        validateDraftUrlsAndIcons(dto);
+    }
+
+    private void validateDraftUrlsAndIcons(WebsiteDraftDto dto) {
+        List<String> urls = Arrays.asList(
+                dto.getHeroExternalImageUrl(),
+                dto.getApproachExternalImageUrl(),
+                dto.getSeoExternalImageUrl(),
+                dto.getMapUrl(),
+                dto.getFacebookUrl(),
+                dto.getInstagramUrl(),
+                dto.getTiktokUrl(),
+                dto.getLinkedinUrl());
+        urls.forEach(this::validateUrl);
+        dto.getProfessionals().forEach(p -> validateUrl(p.getPhotoExternalUrl()));
+        dto.getSpecialties().forEach(s -> validateIcon(s.getIconCode()));
+        dto.getBenefits().forEach(b -> validateIcon(b.getIconCode()));
+    }
+
+    private void copyDraftSettings(WebsiteDraftDto d, WebsiteSettings s) {
+        s.setCommercialName(d.getCommercialName().trim());
+        s.setTagline(trimToNull(d.getTagline()));
+        s.setDescription(trimToNull(d.getDescription()));
+        s.setLogoExternalImageUrl(trimToNull(d.getLogoExternalImageUrl()));
+        s.setHeroEyebrow(trimToNull(d.getHeroEyebrow()));
+        s.setHeroTitle(d.getHeroTitle().trim());
+        s.setHeroHighlight(trimToNull(d.getHeroHighlight()));
+        s.setHeroDescription(trimToNull(d.getHeroDescription()));
+        s.setHeroPrimaryButtonText(trimToNull(d.getHeroPrimaryButtonText()));
+        s.setHeroSecondaryButtonText(trimToNull(d.getHeroSecondaryButtonText()));
+        s.setHeroExternalImageUrl(trimToNull(d.getHeroExternalImageUrl()));
+        s.setApproachTitle(trimToNull(d.getApproachTitle()));
+        s.setApproachHighlight(trimToNull(d.getApproachHighlight()));
+        s.setApproachDescription(trimToNull(d.getApproachDescription()));
+        s.setApproachSecondaryDescription(trimToNull(d.getApproachSecondaryDescription()));
+        s.setApproachCtaText(trimToNull(d.getApproachCtaText()));
+        s.setApproachExternalImageUrl(trimToNull(d.getApproachExternalImageUrl()));
+        s.setContactHeading(trimToNull(d.getContactHeading()));
+        s.setContactDescription(trimToNull(d.getContactDescription()));
+        s.setContactPhone(trimToNull(d.getContactPhone()));
+        s.setContactWhatsapp(trimToNull(d.getContactWhatsapp()));
+        s.setContactEmail(trimToNull(d.getContactEmail()));
+        s.setContactAddress(trimToNull(d.getContactAddress()));
+        s.setContactHours(trimToNull(d.getContactHours()));
+        s.setMapUrl(trimToNull(d.getMapUrl()));
+        s.setFacebookUrl(trimToNull(d.getFacebookUrl()));
+        s.setInstagramUrl(trimToNull(d.getInstagramUrl()));
+        s.setTiktokUrl(trimToNull(d.getTiktokUrl()));
+        s.setLinkedinUrl(trimToNull(d.getLinkedinUrl()));
+        s.setSeoTitle(trimToNull(d.getSeoTitle()));
+        s.setSeoDescription(trimToNull(d.getSeoDescription()));
+        s.setSeoSiteName(trimToNull(d.getSeoSiteName()));
+        s.setSeoExternalImageUrl(trimToNull(d.getSeoExternalImageUrl()));
+    }
+
+    private void promoteSettingsImages(WebsiteDraftDto d, WebsiteSettings s) {
+        String logo = promote(d.getLogoAssetKey());
+        s.setLogoAssetKey(logo);
+        d.setLogoAssetKey(logo);
+        String hero = promote(d.getHeroAssetKey());
+        s.setHeroAssetKey(hero);
+        d.setHeroAssetKey(hero);
+        String approach = promote(d.getApproachAssetKey());
+        s.setApproachAssetKey(approach);
+        d.setApproachAssetKey(approach);
+        String seo = promote(d.getSeoAssetKey());
+        s.setSeoAssetKey(seo);
+        d.setSeoAssetKey(seo);
+    }
+
+    private String promote(String draftKey) {
+        if (draftKey == null || draftKey.isBlank()) return null;
+        return fileStorage.promote(draftKey);
+    }
+
+    private void reconcileSpecialties(WebsiteDraftDto dto) {
+        Map<String, WebsiteSpecialty> existing = specialtyRepository.findAll().stream()
+                .collect(Collectors.toMap(WebsiteSpecialty::getCode, Function.identity(), (a, b) -> a));
+        for (WebsiteDraftDto.Specialty item : dto.getSpecialties()) {
+            String code = item.getCode().trim().toUpperCase();
+            WebsiteSpecialty entity = existing.get(code);
+            if (entity == null) {
+                entity = new WebsiteSpecialty();
+                entity.setCode(code);
+                existing.put(code, entity);
+            }
+            entity.setLabel(item.getLabel().trim());
+            entity.setTitle(item.getTitle().trim());
+            entity.setSubtitle(trimToNull(item.getSubtitle()));
+            entity.setIconCode(item.getIconCode().trim().toUpperCase());
+            entity.setDisplayOrder(item.getDisplayOrder());
+            entity.setVisible(item.isVisible());
+            specialtyRepository.save(entity);
+            item.setId(entity.getId());
+            item.setCode(code);
+        }
+    }
+
+    private void reconcileBenefits(WebsiteDraftDto dto) {
+        Map<Long, WebsiteBenefit> existing = benefitRepository.findAll().stream()
+                .collect(Collectors.toMap(WebsiteBenefit::getId, Function.identity()));
+        Set<Long> kept = new HashSet<>();
+        for (WebsiteDraftDto.Benefit item : dto.getBenefits()) {
+            WebsiteBenefit entity = item.getId() == null ? null : existing.get(item.getId());
+            if (entity == null) entity = new WebsiteBenefit();
+            entity.setTitle(item.getTitle().trim());
+            entity.setDescription(trimToNull(item.getDescription()));
+            entity.setIconCode(item.getIconCode().trim().toUpperCase());
+            entity.setDisplayOrder(item.getDisplayOrder());
+            entity.setActive(item.isActive());
+            benefitRepository.save(entity);
+            item.setId(entity.getId());
+            kept.add(entity.getId());
+        }
+        existing.values().stream().filter(b -> !kept.contains(b.getId())).forEach(benefitRepository::delete);
+    }
+
+    private void reconcileProcessSteps(WebsiteDraftDto dto) {
+        Map<Long, WebsiteProcessStep> existing = processStepRepository.findAll().stream()
+                .collect(Collectors.toMap(WebsiteProcessStep::getId, Function.identity()));
+        Set<Long> kept = new HashSet<>();
+        for (WebsiteDraftDto.ProcessStep item : dto.getProcessSteps()) {
+            WebsiteProcessStep entity = item.getId() == null ? null : existing.get(item.getId());
+            if (entity == null) entity = new WebsiteProcessStep();
+            entity.setStepNumber(item.getStepNumber());
+            entity.setTitle(item.getTitle().trim());
+            entity.setDescription(trimToNull(item.getDescription()));
+            entity.setDisplayOrder(item.getDisplayOrder());
+            entity.setActive(item.isActive());
+            processStepRepository.save(entity);
+            item.setId(entity.getId());
+            kept.add(entity.getId());
+        }
+        existing.values().stream().filter(p -> !kept.contains(p.getId())).forEach(processStepRepository::delete);
+    }
+
+    private void reconcileProfessionals(WebsiteDraftDto dto) {
+        Map<Long, WebsiteProfessional> existing = professionalRepository.findAll().stream()
+                .collect(Collectors.toMap(WebsiteProfessional::getId, Function.identity()));
+        Set<Long> kept = new HashSet<>();
+        for (WebsiteDraftDto.Professional item : dto.getProfessionals()) {
+            WebsiteProfessional entity = item.getId() == null ? null : existing.get(item.getId());
+            if (entity == null) entity = new WebsiteProfessional();
+            entity.setName(item.getName().trim());
+            entity.setSpecialty(trimToNull(item.getSpecialty()));
+            entity.setLicenseNumber(trimToNull(item.getLicenseNumber()));
+            entity.setDescription(trimToNull(item.getDescription()));
+            entity.setExperience(trimToNull(item.getExperience()));
+            entity.setCareAreas(trimToNull(item.getCareAreas()));
+            entity.setPhotoExternalUrl(trimToNull(item.getPhotoExternalUrl()));
+            String publishedPhoto = promote(item.getPhotoAssetKey());
+            entity.setPhotoAssetKey(trimToNull(publishedPhoto));
+            entity.setDisplayOrder(item.getDisplayOrder());
+            entity.setActive(item.isActive());
+            professionalRepository.save(entity);
+            item.setId(entity.getId());
+            item.setPhotoAssetKey(trimToNull(publishedPhoto));
+            kept.add(entity.getId());
+        }
+        existing.values().stream().filter(p -> !kept.contains(p.getId())).forEach(professionalRepository::delete);
+    }
+
+    private WebsiteDraftDto buildDraftFromPublished() {
+        WebsiteSettings settings = requireSettings();
+        WebsiteDraftDto dto = new WebsiteDraftDto();
+        dto.setCommercialName(settings.getCommercialName());
+        dto.setTagline(settings.getTagline());
+        dto.setDescription(settings.getDescription());
+        dto.setLogoExternalImageUrl(settings.getLogoExternalImageUrl());
+        dto.setLogoAssetKey(settings.getLogoAssetKey());
+        dto.setHeroEyebrow(settings.getHeroEyebrow());
+        dto.setHeroTitle(settings.getHeroTitle());
+        dto.setHeroHighlight(settings.getHeroHighlight());
+        dto.setHeroDescription(settings.getHeroDescription());
+        dto.setHeroPrimaryButtonText(settings.getHeroPrimaryButtonText());
+        dto.setHeroSecondaryButtonText(settings.getHeroSecondaryButtonText());
+        dto.setHeroExternalImageUrl(settings.getHeroExternalImageUrl());
+        dto.setHeroAssetKey(settings.getHeroAssetKey());
+        dto.setApproachTitle(settings.getApproachTitle());
+        dto.setApproachHighlight(settings.getApproachHighlight());
+        dto.setApproachDescription(settings.getApproachDescription());
+        dto.setApproachSecondaryDescription(settings.getApproachSecondaryDescription());
+        dto.setApproachCtaText(settings.getApproachCtaText());
+        dto.setApproachExternalImageUrl(settings.getApproachExternalImageUrl());
+        dto.setApproachAssetKey(settings.getApproachAssetKey());
+        dto.setContactHeading(settings.getContactHeading());
+        dto.setContactDescription(settings.getContactDescription());
+        dto.setContactPhone(settings.getContactPhone());
+        dto.setContactWhatsapp(settings.getContactWhatsapp());
+        dto.setContactEmail(settings.getContactEmail());
+        dto.setContactAddress(settings.getContactAddress());
+        dto.setContactHours(settings.getContactHours());
+        dto.setMapUrl(settings.getMapUrl());
+        dto.setFacebookUrl(settings.getFacebookUrl());
+        dto.setInstagramUrl(settings.getInstagramUrl());
+        dto.setTiktokUrl(settings.getTiktokUrl());
+        dto.setLinkedinUrl(settings.getLinkedinUrl());
+        dto.setSeoTitle(settings.getSeoTitle());
+        dto.setSeoDescription(settings.getSeoDescription());
+        dto.setSeoSiteName(settings.getSeoSiteName());
+        dto.setSeoExternalImageUrl(settings.getSeoExternalImageUrl());
+        dto.setSeoAssetKey(settings.getSeoAssetKey());
+
+        specialtyRepository.findAllByOrderByDisplayOrderAscIdAsc().forEach(s -> {
+            WebsiteDraftDto.Specialty x = new WebsiteDraftDto.Specialty();
+            x.setDraftKey(UUID.randomUUID().toString());
+            x.setId(s.getId());
+            x.setCode(s.getCode());
+            x.setLabel(s.getLabel());
+            x.setTitle(s.getTitle());
+            x.setSubtitle(s.getSubtitle());
+            x.setIconCode(s.getIconCode());
+            x.setDisplayOrder(s.getDisplayOrder());
+            x.setVisible(s.isVisible());
+            dto.getSpecialties().add(x);
+        });
+        benefitRepository.findAllByOrderByDisplayOrderAscIdAsc().forEach(b -> {
+            WebsiteDraftDto.Benefit x = new WebsiteDraftDto.Benefit();
+            x.setDraftKey(UUID.randomUUID().toString());
+            x.setId(b.getId());
+            x.setTitle(b.getTitle());
+            x.setDescription(b.getDescription());
+            x.setIconCode(b.getIconCode());
+            x.setDisplayOrder(b.getDisplayOrder());
+            x.setActive(b.isActive());
+            dto.getBenefits().add(x);
+        });
+        processStepRepository.findAllByOrderByDisplayOrderAscIdAsc().forEach(p -> {
+            WebsiteDraftDto.ProcessStep x = new WebsiteDraftDto.ProcessStep();
+            x.setDraftKey(UUID.randomUUID().toString());
+            x.setId(p.getId());
+            x.setStepNumber(p.getStepNumber());
+            x.setTitle(p.getTitle());
+            x.setDescription(p.getDescription());
+            x.setDisplayOrder(p.getDisplayOrder());
+            x.setActive(p.isActive());
+            dto.getProcessSteps().add(x);
+        });
+        professionalRepository.findAllByOrderByDisplayOrderAscIdAsc().forEach(p -> {
+            WebsiteDraftDto.Professional x = new WebsiteDraftDto.Professional();
+            x.setDraftKey(UUID.randomUUID().toString());
+            x.setId(p.getId());
+            x.setName(p.getName());
+            x.setSpecialty(p.getSpecialty());
+            x.setLicenseNumber(p.getLicenseNumber());
+            x.setDescription(p.getDescription());
+            x.setExperience(p.getExperience());
+            x.setCareAreas(p.getCareAreas());
+            x.setPhotoExternalUrl(p.getPhotoExternalUrl());
+            x.setPhotoAssetKey(p.getPhotoAssetKey());
+            x.setDisplayOrder(p.getDisplayOrder());
+            x.setActive(p.isActive());
+            dto.getProfessionals().add(x);
+        });
+        return dto;
+    }
+
+    private WebsiteEditorDto toEditor(WebsiteLandingDraft draft, WebsiteSettings settings, WebsiteDraftDto dto) {
+        WebsiteEditorDto editor = new WebsiteEditorDto();
+        editor.setDraft(dto);
+        editor.setRevision(draft.getRevision());
+        editor.setPublishedRevision(settings.getPublishedRevision());
+        editor.setHasUnpublishedChanges(draft.getRevision() != settings.getPublishedRevision());
+        editor.setDraftUpdatedAt(draft.getUpdatedAt());
+        editor.setDraftUpdatedBy(draft.getUpdatedBy());
+        editor.setPublishedAt(settings.getPublishedAt());
+        editor.setPublishedBy(settings.getPublishedBy());
+        return editor;
+    }
+
+    private Long currentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof User user) {
+            return user.getId();
+        }
+        return null;
+    }
+
+    private String getDraftAssetKey(WebsiteDraftDto d, String category) {
+        return switch (category) {
+            case "logo" -> d.getLogoAssetKey();
+            case "hero" -> d.getHeroAssetKey();
+            case "approach" -> d.getApproachAssetKey();
+            case "seo" -> d.getSeoAssetKey();
+            default -> throw new IllegalArgumentException("Tipo de imagen no permitido");
+        };
+    }
+
+    private void setDraftAssetKey(WebsiteDraftDto d, String category, String key) {
+        switch (category) {
+            case "logo" -> d.setLogoAssetKey(key);
+            case "hero" -> d.setHeroAssetKey(key);
+            case "approach" -> d.setApproachAssetKey(key);
+            case "seo" -> d.setSeoAssetKey(key);
+            default -> throw new IllegalArgumentException("Tipo de imagen no permitido");
+        }
     }
 
     private String resolve(String assetKey, String externalUrl) { return assetKey == null || assetKey.isBlank() ? externalUrl : fileStorage.publicUrl(assetKey); }
     private String trimToNull(String value) { return value == null || value.trim().isEmpty() ? null : value.trim(); }
-    private void copySettings(WebsiteSettingsAdminDto d, WebsiteSettings s) {
-        s.setLogoExternalImageUrl(trimToNull(d.getLogoExternalImageUrl()));
-        if (d.getLogoAssetKey() != null) s.setLogoAssetKey(trimToNull(d.getLogoAssetKey()));
-        s.setCommercialName(d.getCommercialName().trim()); s.setTagline(trimToNull(d.getTagline())); s.setDescription(trimToNull(d.getDescription())); s.setHeroEyebrow(trimToNull(d.getHeroEyebrow())); s.setHeroTitle(d.getHeroTitle().trim()); s.setHeroHighlight(trimToNull(d.getHeroHighlight())); s.setHeroDescription(trimToNull(d.getHeroDescription())); s.setHeroPrimaryButtonText(trimToNull(d.getHeroPrimaryButtonText())); s.setHeroSecondaryButtonText(trimToNull(d.getHeroSecondaryButtonText())); s.setHeroExternalImageUrl(trimToNull(d.getHeroExternalImageUrl())); s.setHeroAssetKey(trimToNull(d.getHeroAssetKey())); s.setApproachTitle(trimToNull(d.getApproachTitle())); s.setApproachHighlight(trimToNull(d.getApproachHighlight())); s.setApproachDescription(trimToNull(d.getApproachDescription())); s.setApproachSecondaryDescription(trimToNull(d.getApproachSecondaryDescription())); s.setApproachCtaText(trimToNull(d.getApproachCtaText())); s.setApproachExternalImageUrl(trimToNull(d.getApproachExternalImageUrl())); s.setApproachAssetKey(trimToNull(d.getApproachAssetKey())); s.setContactHeading(trimToNull(d.getContactHeading())); s.setContactDescription(trimToNull(d.getContactDescription())); s.setContactPhone(trimToNull(d.getContactPhone())); s.setContactWhatsapp(trimToNull(d.getContactWhatsapp())); s.setContactEmail(trimToNull(d.getContactEmail())); s.setContactAddress(trimToNull(d.getContactAddress())); s.setContactHours(trimToNull(d.getContactHours())); s.setMapUrl(trimToNull(d.getMapUrl())); s.setFacebookUrl(trimToNull(d.getFacebookUrl())); s.setInstagramUrl(trimToNull(d.getInstagramUrl())); s.setTiktokUrl(trimToNull(d.getTiktokUrl())); s.setLinkedinUrl(trimToNull(d.getLinkedinUrl())); s.setSeoTitle(trimToNull(d.getSeoTitle())); s.setSeoDescription(trimToNull(d.getSeoDescription())); s.setSeoSiteName(trimToNull(d.getSeoSiteName())); s.setSeoExternalImageUrl(trimToNull(d.getSeoExternalImageUrl())); s.setSeoAssetKey(trimToNull(d.getSeoAssetKey()));
-    }
-    private void validateUrls(WebsiteSettingsAdminDto dto) { List<String> urls = java.util.Arrays.asList(dto.getHeroExternalImageUrl(), dto.getApproachExternalImageUrl(), dto.getSeoExternalImageUrl(), dto.getMapUrl(), dto.getFacebookUrl(), dto.getInstagramUrl(), dto.getTiktokUrl(), dto.getLinkedinUrl()); urls.forEach(this::validateUrl); dto.getProfessionals().forEach(p -> validateUrl(p.getPhotoExternalUrl())); }
-    private void validateIconCodes(WebsiteSettingsAdminDto dto) { dto.getSpecialties().forEach(s -> validateIcon(s.getIconCode())); dto.getBenefits().forEach(b -> validateIcon(b.getIconCode())); }
     private void validateIcon(String code) { if (code == null || !ALLOWED_ICON_CODES.contains(code.trim().toUpperCase())) throw new IllegalArgumentException("El icono seleccionado no está permitido"); }
     private void validateUrl(String value) { if (value == null || value.isBlank()) return; URI uri; try { uri = URI.create(value.trim()); } catch (IllegalArgumentException ex) { throw new IllegalArgumentException("Una URL del sitio no es válida"); } if (!("http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme())) || uri.getHost() == null) throw new IllegalArgumentException("Las URLs deben usar http o https"); }
-    private WebsiteSettingsAdminDto mapAdmin(WebsiteSettings settings) { WebsiteSettingsAdminDto d = new WebsiteSettingsAdminDto(); d.setId(settings.getId()); d.setCommercialName(settings.getCommercialName()); d.setTagline(settings.getTagline()); d.setDescription(settings.getDescription()); d.setHeroEyebrow(settings.getHeroEyebrow()); d.setHeroTitle(settings.getHeroTitle()); d.setHeroHighlight(settings.getHeroHighlight()); d.setHeroDescription(settings.getHeroDescription()); d.setHeroPrimaryButtonText(settings.getHeroPrimaryButtonText()); d.setHeroSecondaryButtonText(settings.getHeroSecondaryButtonText()); d.setHeroExternalImageUrl(settings.getHeroExternalImageUrl()); d.setHeroAssetKey(settings.getHeroAssetKey()); d.setApproachTitle(settings.getApproachTitle()); d.setApproachHighlight(settings.getApproachHighlight()); d.setApproachDescription(settings.getApproachDescription()); d.setApproachSecondaryDescription(settings.getApproachSecondaryDescription()); d.setApproachCtaText(settings.getApproachCtaText()); d.setApproachExternalImageUrl(settings.getApproachExternalImageUrl()); d.setApproachAssetKey(settings.getApproachAssetKey()); d.setContactHeading(settings.getContactHeading()); d.setContactDescription(settings.getContactDescription()); d.setContactPhone(settings.getContactPhone()); d.setContactWhatsapp(settings.getContactWhatsapp()); d.setContactEmail(settings.getContactEmail()); d.setContactAddress(settings.getContactAddress()); d.setContactHours(settings.getContactHours()); d.setMapUrl(settings.getMapUrl()); d.setFacebookUrl(settings.getFacebookUrl()); d.setInstagramUrl(settings.getInstagramUrl()); d.setTiktokUrl(settings.getTiktokUrl()); d.setLinkedinUrl(settings.getLinkedinUrl()); d.setSeoTitle(settings.getSeoTitle()); d.setSeoDescription(settings.getSeoDescription()); d.setSeoSiteName(settings.getSeoSiteName()); d.setSeoExternalImageUrl(settings.getSeoExternalImageUrl()); d.setSeoAssetKey(settings.getSeoAssetKey()); specialtyRepository.findAllByOrderByDisplayOrderAscIdAsc().forEach(s -> { WebsiteSettingsAdminDto.Specialty x = new WebsiteSettingsAdminDto.Specialty(); x.setId(s.getId()); x.setCode(s.getCode()); x.setLabel(s.getLabel()); x.setTitle(s.getTitle()); x.setSubtitle(s.getSubtitle()); x.setIconCode(s.getIconCode()); x.setDisplayOrder(s.getDisplayOrder()); x.setVisible(s.isVisible()); specialtyServiceRepository.findAllByOrderByDisplayOrderAscIdAsc().stream().filter(child -> child.getSpecialty().getId().equals(s.getId())).forEach(child -> { WebsiteSettingsAdminDto.SpecialtyService c = new WebsiteSettingsAdminDto.SpecialtyService(); c.setId(child.getId()); c.setName(child.getName()); c.setDisplayOrder(child.getDisplayOrder()); c.setActive(child.isActive()); x.getServices().add(c); }); d.getSpecialties().add(x); }); benefitRepository.findAllByOrderByDisplayOrderAscIdAsc().forEach(b -> { WebsiteSettingsAdminDto.Benefit x = new WebsiteSettingsAdminDto.Benefit(); x.setId(b.getId()); x.setTitle(b.getTitle()); x.setDescription(b.getDescription()); x.setIconCode(b.getIconCode()); x.setDisplayOrder(b.getDisplayOrder()); x.setActive(b.isActive()); d.getBenefits().add(x); }); processStepRepository.findAllByOrderByDisplayOrderAscIdAsc().forEach(p -> { WebsiteSettingsAdminDto.ProcessStep x = new WebsiteSettingsAdminDto.ProcessStep(); x.setId(p.getId()); x.setStepNumber(p.getStepNumber()); x.setTitle(p.getTitle()); x.setDescription(p.getDescription()); x.setDisplayOrder(p.getDisplayOrder()); x.setActive(p.isActive()); d.getProcessSteps().add(x); }); professionalRepository.findAllByOrderByDisplayOrderAscIdAsc().forEach(p -> { WebsiteSettingsAdminDto.Professional x = new WebsiteSettingsAdminDto.Professional(); x.setId(p.getId()); x.setName(p.getName()); x.setSpecialty(p.getSpecialty()); x.setLicenseNumber(p.getLicenseNumber()); x.setDescription(p.getDescription()); x.setExperience(p.getExperience()); x.setCareAreas(p.getCareAreas()); x.setPhotoExternalUrl(p.getPhotoExternalUrl()); x.setPhotoAssetKey(p.getPhotoAssetKey()); x.setDisplayOrder(p.getDisplayOrder()); x.setActive(p.isActive()); d.getProfessionals().add(x); }); return d; }
 }

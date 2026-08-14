@@ -16,6 +16,18 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     Page<Appointment> findAllBySpecialtyOrderByAppointmentDateAscStartTimeAsc(String specialty, Pageable pageable);
     List<Appointment> findByAppointmentDateAndStatusNotAndSpecialty(LocalDate date, String status, String specialty);
 
+    @Query("SELECT a FROM Appointment a WHERE a.appointmentDate = :date " +
+           "AND a.status NOT IN ('CANCELADA') " +
+           "AND a.specialty = :specialty " +
+           "AND (:professionalId IS NULL OR a.professionalId IS NULL OR a.professionalId = :professionalId) " +
+           "AND (a.startTime < :endTime AND a.endTime > :startTime)")
+    List<Appointment> findOverlappingAppointments(
+            @Param("date") LocalDate date,
+            @Param("startTime") LocalTime startTime,
+            @Param("endTime") LocalTime endTime,
+            @Param("specialty") String specialty,
+            @Param("professionalId") Long professionalId);
+
     long countByAppointmentDateAndSpecialty(LocalDate date, String specialty);
 
     @Query("SELECT a FROM Appointment a WHERE a.appointmentDate >= :startDate AND a.appointmentDate <= :endDate AND a.specialty = :specialty")

@@ -38,7 +38,8 @@ public class SupplyService {
 
     @Transactional(readOnly = true)
     public SupplyDto getSupplyById(Long id) {
-        Supply supply = supplyRepository.findByIdAndDeletedFalse(id)
+        String specialty = getCurrentUserSpecialty();
+        Supply supply = supplyRepository.findByIdAndSpecialtyAndDeletedFalse(id, specialty)
                 .orElseThrow(() -> new ResourceNotFoundException("Suministro", "id", id));
         return mapToDto(supply);
     }
@@ -61,7 +62,8 @@ public class SupplyService {
 
     @Transactional
     public SupplyDto updateSupply(Long id, SupplyDto supplyDto) {
-        Supply supply = supplyRepository.findByIdAndDeletedFalse(id)
+        String specialty = getCurrentUserSpecialty();
+        Supply supply = supplyRepository.findByIdAndSpecialtyAndDeletedFalse(id, specialty)
                 .orElseThrow(() -> new ResourceNotFoundException("Suministro", "id", id));
 
         supply.setName(supplyDto.getName());
@@ -79,7 +81,8 @@ public class SupplyService {
 
     @Transactional
     public void deleteSupply(Long id) {
-        Supply supply = supplyRepository.findByIdAndDeletedFalse(id)
+        String specialty = getCurrentUserSpecialty();
+        Supply supply = supplyRepository.findByIdAndSpecialtyAndDeletedFalse(id, specialty)
                 .orElseThrow(() -> new ResourceNotFoundException("Suministro", "id", id));
         supply.setDeleted(true);
         supplyRepository.save(supply);
@@ -87,7 +90,8 @@ public class SupplyService {
 
     @Transactional
     public SupplyDto uploadImage(Long id, MultipartFile file) {
-        Supply supply = supplyRepository.findByIdAndDeletedFalse(id)
+        String specialty = getCurrentUserSpecialty();
+        Supply supply = supplyRepository.findByIdAndSpecialtyAndDeletedFalse(id, specialty)
                 .orElseThrow(() -> new ResourceNotFoundException("Suministro", "id", id));
         String previousKey = toAssetKey(supply.getImageUrl());
         String key = fileStorage.store(file, "supplies", previousKey);

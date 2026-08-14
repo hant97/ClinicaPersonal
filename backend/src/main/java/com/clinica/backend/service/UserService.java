@@ -90,6 +90,9 @@ public class UserService {
 
     @Transactional
     public void resetPassword(Long userId, String newPassword) {
+        if (newPassword == null || !newPassword.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d]).{8,100}$")) {
+            throw new IllegalArgumentException("La nueva contraseña debe tener al menos 8 caracteres e incluir mayúsculas, minúsculas, un número y un símbolo");
+        }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         user.setPassword(passwordEncoder.encode(newPassword));

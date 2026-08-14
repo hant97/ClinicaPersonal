@@ -13,6 +13,7 @@ public interface ClinicalServiceRepository extends JpaRepository<ClinicalService
     Page<ClinicalService> findBySpecialtyAndDeletedFalse(String specialty, Pageable pageable);
     Page<ClinicalService> findBySpecialtyAndNameContainingIgnoreCaseAndDeletedFalse(String specialty, String name, Pageable pageable);
     Optional<ClinicalService> findByIdAndDeletedFalse(Long id);
+    Optional<ClinicalService> findByIdAndSpecialtyAndDeletedFalse(Long id, String specialty);
     List<ClinicalService> findBySpecialtyAndDeletedFalse(String specialty);
     List<ClinicalService> findAllByDeletedFalseOrderBySpecialtyAscNameAsc();
 }

@@ -38,7 +38,8 @@ public class ClinicalServiceService {
     }
 
     public ClinicalServiceDto getServiceById(Long id) {
-        ClinicalService service = clinicalServiceRepository.findByIdAndDeletedFalse(id)
+        String specialty = getCurrentUserSpecialty();
+        ClinicalService service = clinicalServiceRepository.findByIdAndSpecialtyAndDeletedFalse(id, specialty)
                 .orElseThrow(() -> new ResourceNotFoundException("Servicio clínico no encontrado"));
         return mapToDto(service);
     }
@@ -54,7 +55,8 @@ public class ClinicalServiceService {
     }
 
     public ClinicalServiceDto updateService(Long id, ClinicalServiceDto dto) {
-        ClinicalService service = clinicalServiceRepository.findByIdAndDeletedFalse(id)
+        String specialty = getCurrentUserSpecialty();
+        ClinicalService service = clinicalServiceRepository.findByIdAndSpecialtyAndDeletedFalse(id, specialty)
                 .orElseThrow(() -> new ResourceNotFoundException("Servicio clínico no encontrado"));
         service.setName(dto.getName());
         service.setDescription(dto.getDescription());
@@ -64,7 +66,8 @@ public class ClinicalServiceService {
     }
 
     public void deleteService(Long id) {
-        ClinicalService service = clinicalServiceRepository.findByIdAndDeletedFalse(id)
+        String specialty = getCurrentUserSpecialty();
+        ClinicalService service = clinicalServiceRepository.findByIdAndSpecialtyAndDeletedFalse(id, specialty)
                 .orElseThrow(() -> new ResourceNotFoundException("Servicio clínico no encontrado"));
         service.setDeleted(true);
         clinicalServiceRepository.save(service);

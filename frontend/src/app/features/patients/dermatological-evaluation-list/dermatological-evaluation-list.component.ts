@@ -6,7 +6,7 @@ import { DermatologicalEvaluationFormComponent } from '../dermatological-evaluat
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule, Activity, Stethoscope } from 'lucide-angular';
+import { LucideAngularModule, Activity, Stethoscope, Edit, Trash2 } from 'lucide-angular';
 
 @Component({
   selector: 'app-dermatological-evaluation-list',
@@ -17,6 +17,8 @@ import { LucideAngularModule, Activity, Stethoscope } from 'lucide-angular';
 export class DermatologicalEvaluationListComponent implements OnInit {
   readonly Activity = Activity;
   readonly Stethoscope = Stethoscope;
+  readonly Edit = Edit;
+  readonly Trash2 = Trash2;
 
   @Input() patientId!: number;
   

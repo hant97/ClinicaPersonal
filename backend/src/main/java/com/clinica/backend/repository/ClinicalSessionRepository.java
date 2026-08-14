@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
+
 @Repository
 public interface ClinicalSessionRepository extends JpaRepository<ClinicalSession, Long> {
     Page<ClinicalSession> findByPatientIdAndSpecialtyAndDeletedFalseOrderBySessionDateDescStartTimeDesc(Long patientId, String specialty, Pageable pageable);
@@ -23,5 +25,5 @@ public interface ClinicalSessionRepository extends JpaRepository<ClinicalSession
             @Param("specialty") String specialty,
             @Param("professionalId") Long professionalId,
             Pageable pageable);
-    java.util.Optional<ClinicalSession> findByIdAndDeletedFalse(Long id);
+    Optional<ClinicalSession> findByIdAndDeletedFalse(Long id);
 }

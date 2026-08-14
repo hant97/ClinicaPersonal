@@ -37,7 +37,7 @@ export class LoginComponent {
     if (returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//') && returnUrl !== '/login') {
       return returnUrl;
     }
-    return this.authService.hasRole('ROLE_SITE_ADMIN') ? '/settings/website' : '/dashboard';
+    return this.authService.hasRole('ROLE_SITE_ADMIN') ? '/editar-sitio' : '/dashboard';
   }
 
   onSubmit(): void {

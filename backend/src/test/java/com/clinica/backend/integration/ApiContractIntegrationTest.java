@@ -191,6 +191,19 @@ class ApiContractIntegrationTest {
                 .andExpect(jsonPath("$.fieldErrors.email").exists());
     }
 
+    @Test
+    void websiteEditorEndpointsRequireSiteAdminRole() throws Exception {
+        User staff = createUser("editor.staff", "password", "PSICOLOGIA", "ROLE_STAFF");
+
+        mockMvc.perform(get("/api/v1/admin/website/editor")
+                        .header("Authorization", bearer(staff)))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/api/v1/admin/website/publish").param("revision", "0")
+                        .header("Authorization", bearer(staff)))
+                .andExpect(status().isForbidden());
+    }
+
     private User createUser(String username, String password, String specialty, String role) {
         User user = new User();
         user.setUsername(username);
