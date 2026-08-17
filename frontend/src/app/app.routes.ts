@@ -8,20 +8,24 @@ import { AgendaComponent } from './features/agenda/agenda/agenda.component';
 import { BillingComponent } from './features/billing/billing/billing.component';
 import { authGuard } from './core/guards/auth.guard';
 import { specialtyGuard } from './core/guards/specialty.guard';
+import { adminGuard } from './core/guards/admin.guard';
+import { siteAdminGuard } from './core/guards/site-admin.guard';
 
 import { TestsCatalogListComponent } from './features/tests-catalog/tests-catalog-list/tests-catalog-list.component';
 import { TestsCatalogFormComponent } from './features/tests-catalog/tests-catalog-form/tests-catalog-form.component';
 import { InventoryListComponent } from './features/inventory/inventory-list/inventory-list.component';
 import { ClinicalServicesListComponent } from './features/clinical-services/clinical-services-list/clinical-services-list.component';
 import { CatalogManagementComponent } from './features/settings/catalog-management/catalog-management.component';
+import { UserManagementComponent } from './features/settings/user-management/user-management.component';
 import { UserProfileComponent } from './features/profile/user-profile/user-profile.component';
 import { LandingComponent } from './features/public/landing/landing.component';
+import { PrescriptionVerifyComponent } from './features/public/prescription-verify/prescription-verify.component';
 import { NotFoundComponent } from './features/public/not-found/not-found.component';
-import { siteAdminGuard } from './core/guards/site-admin.guard';
 
 export const routes: Routes = [
   { path: '', component: LandingComponent, pathMatch: 'full', title: 'Dermatología y Psicología' },
   { path: 'login', component: LoginComponent, title: 'Iniciar sesión' },
+  { path: 'verificar-receta/:code', component: PrescriptionVerifyComponent, title: 'Verificación de Receta Médica' },
   {
     path: 'editar-sitio',
     canActivate: [siteAdminGuard],
@@ -47,6 +51,7 @@ export const routes: Routes = [
       { path: 'inventory', component: InventoryListComponent, title: 'Inventario' },
       { path: 'services', component: ClinicalServicesListComponent, title: 'Servicios clínicos' },
       { path: 'settings/catalogs', component: CatalogManagementComponent, title: 'Catálogos' },
+      { path: 'settings/users', component: UserManagementComponent, canActivate: [adminGuard], title: 'Gestión de Personal y Cuentas' },
       { path: 'settings/website', redirectTo: '/editar-sitio', pathMatch: 'full' },
       { path: 'profile', component: UserProfileComponent, title: 'Mi perfil' }
     ]

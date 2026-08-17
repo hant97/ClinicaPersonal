@@ -1,6 +1,7 @@
 package com.clinica.backend.service;
 
 import com.clinica.backend.dto.DashboardAppointmentDto;
+import com.clinica.backend.dto.DashboardPendingNoteDto;
 import com.clinica.backend.dto.DashboardRiskAlertDto;
 import com.clinica.backend.dto.DashboardStatsDto;
 import com.clinica.backend.dto.SupplyDto;
@@ -8,6 +9,7 @@ import com.clinica.backend.model.Appointment;
 import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.RiskAlert;
 import com.clinica.backend.repository.AppointmentRepository;
+import com.clinica.backend.repository.ClinicalSessionRepository;
 import com.clinica.backend.repository.PatientRepository;
 import com.clinica.backend.repository.PaymentRepository;
 import com.clinica.backend.repository.RiskAlertRepository;
@@ -41,6 +43,7 @@ public class DashboardService {
     private final AssessmentRepository assessmentRepository;
     private final DermatologicalEvaluationRepository dermatologicalEvaluationRepository;
     private final CatalogRepository catalogRepository;
+    private final ClinicalSessionRepository clinicalSessionRepository;
 
     @Transactional(readOnly = true)
     public DashboardStatsDto getDashboardStats(String specialty) {
@@ -103,24 +106,13 @@ public class DashboardService {
         );
 
         List<DashboardAppointmentDto> upcomingAppointments = upcomingList.stream()
-                .map(app -> {
-                    String patientName = app.getPatient() != null
-                            ? (app.getPatient().getFirstName() + " " + app.getPatient().getLastName()).trim()
-                            : "Paciente #" + app.getId();
-                    return DashboardAppointmentDto.builder()
-                            .id(app.getId())
-                            .patientId(app.getPatient() != null ? app.getPatient().getId() : null)
-                            .patientName(patientName)
-                            .appointmentDate(app.getAppointmentDate())
-                            .startTime(app.getStartTime())
-                            .endTime(app.getEndTime())
-                            .status(app.getStatus())
-                            .modality(app.getModality())
-                            .videoCallLink(app.getVideoCallLink())
-                            .isFirstTime(app.isFirstTime())
-                            .notes(app.getNotes())
-                            .build();
-                })
+                .map(this::toDashboardAppointmentDto)
+                .collect(Collectors.toList());
+
+        // 6b. Citas del día (agenda completa, con estado real)
+        List<DashboardAppointmentDto> todaysAppointments = appointmentRepository
+                .findTodayAppointmentsBySpecialty(today, specialty).stream()
+                .map(this::toDashboardAppointmentDto)
                 .collect(Collectors.toList());
 
         // 7. Alertas de riesgo activas (filtradas por especialidad si es necesario)
@@ -130,19 +122,30 @@ public class DashboardService {
         List<RiskAlert> riskAlerts = riskAlertsPage.getContent();
 
         // Obtenemos los items del catálogo de riesgos de la especialidad actual
-        String catalogCode = "PSICOLOGIA".equals(specialty) ? "RISK_ALERT_TYPE" : "RISK_ALERT_TYPE_DERM";
         Set<String> validAlertTypes = new HashSet<>();
-        catalogRepository.findByCode(catalogCode).ifPresent(catalog -> {
-            catalog.getItems().stream()
-                .filter(item -> item.isActive())
-                .forEach(item -> validAlertTypes.add(item.getItemName()));
-        });
+        List<String> candidateCodes = List.of("RISK_ALERT_TYPE_" + (specialty != null ? specialty.toUpperCase() : ""), "RISK_ALERT_TYPE", "RISK_ALERT_TYPE_DERM");
+        for (String code : candidateCodes) {
+            catalogRepository.findByCode(code).ifPresent(catalog -> {
+                if (specialty == null || "ALL".equalsIgnoreCase(specialty) || "GENERAL".equalsIgnoreCase(catalog.getSpecialty()) || specialty.equalsIgnoreCase(catalog.getSpecialty())) {
+                    catalog.getItems().stream()
+                            .filter(com.clinica.backend.model.CatalogItem::isActive)
+                            .forEach(item -> validAlertTypes.add(item.getItemName()));
+                }
+            });
+            if (!validAlertTypes.isEmpty()) {
+                break;
+            }
+        }
 
         // Filtramos las alertas
-        riskAlerts = riskAlerts.stream()
-            .filter(alert -> validAlertTypes.contains(alert.getType()))
-            .limit(10)
-            .collect(Collectors.toList());
+        if (!validAlertTypes.isEmpty()) {
+            riskAlerts = riskAlerts.stream()
+                    .filter(alert -> validAlertTypes.contains(alert.getType()))
+                    .limit(10)
+                    .collect(Collectors.toList());
+        } else {
+            riskAlerts = riskAlerts.stream().limit(10).collect(Collectors.toList());
+        }
 
         Set<Long> patientIds = riskAlerts.stream()
                 .map(RiskAlert::getPatientId)
@@ -174,6 +177,20 @@ public class DashboardService {
         // 8. Insumos con bajo stock
         List<SupplyDto> lowStockSupplies = supplyService.getLowStockSupplies();
 
+        // 8b. Notas SOAP pendientes de registro
+        List<DashboardPendingNoteDto> pendingSoapNotes = clinicalSessionRepository
+                .findPendingNotesBySpecialty(specialty, today, PageRequest.of(0, 10)).stream()
+                .map(s -> DashboardPendingNoteDto.builder()
+                        .id(s.getId())
+                        .patientId(s.getPatient() != null ? s.getPatient().getId() : null)
+                        .patientName(s.getPatient() != null
+                                ? (s.getPatient().getFirstName() + " " + s.getPatient().getLastName()).trim()
+                                : "Paciente #" + s.getId())
+                        .sessionDate(s.getSessionDate())
+                        .sessionType(s.getSessionType())
+                        .build())
+                .collect(Collectors.toList());
+
         // 9. Métricas por especialidad
         long psychometricEvaluationsThisMonth = 0;
         long dermatologicalEvaluationsThisMonth = 0;
@@ -193,15 +210,36 @@ public class DashboardService {
                 .appointmentsToday(appointmentsToday)
                 .monthlyIncome(monthlyIncome != null ? monthlyIncome : BigDecimal.ZERO)
                 .upcomingAppointments(upcomingAppointments)
+                .todaysAppointments(todaysAppointments)
                 .attendanceRate(attendanceRate)
                 .cancelledAppointments(cancelledAppointments)
                 .newPatientsThisMonth(newPatientsThisMonth)
                 .monthlyIncomeGrowth(monthlyIncomeGrowth)
                 .activeRiskAlerts(activeRiskAlerts)
                 .lowStockSupplies(lowStockSupplies)
+                .pendingSoapNotes(pendingSoapNotes)
                 .psychometricEvaluationsThisMonth(psychometricEvaluationsThisMonth)
                 .dermatologicalEvaluationsThisMonth(dermatologicalEvaluationsThisMonth)
                 .dermatologicalProceduresThisMonth(dermatologicalProceduresThisMonth)
+                .build();
+    }
+
+    private DashboardAppointmentDto toDashboardAppointmentDto(Appointment app) {
+        String patientName = app.getPatient() != null
+                ? (app.getPatient().getFirstName() + " " + app.getPatient().getLastName()).trim()
+                : "Paciente #" + app.getId();
+        return DashboardAppointmentDto.builder()
+                .id(app.getId())
+                .patientId(app.getPatient() != null ? app.getPatient().getId() : null)
+                .patientName(patientName)
+                .appointmentDate(app.getAppointmentDate())
+                .startTime(app.getStartTime())
+                .endTime(app.getEndTime())
+                .status(app.getStatus())
+                .modality(app.getModality())
+                .videoCallLink(app.getVideoCallLink())
+                .isFirstTime(app.isFirstTime())
+                .notes(app.getNotes())
                 .build();
     }
 }

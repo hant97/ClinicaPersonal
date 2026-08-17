@@ -6,9 +6,9 @@ import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.ClinicalService;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.ClinicalServiceRepository;
-import com.clinica.backend.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,8 +17,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,7 +26,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class ClinicalServiceService {
 
     private final ClinicalServiceRepository clinicalServiceRepository;
-    private final PaymentRepository paymentRepository;
 
     private String getCurrentUserSpecialty() {
         return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getSpecialty();
@@ -60,18 +57,11 @@ public class ClinicalServiceService {
         LocalDateTime startOfMonth = currentMonth.atDay(1).atStartOfDay();
         LocalDateTime startOfNextMonth = currentMonth.plusMonths(1).atDay(1).atStartOfDay();
 
-        List<Object[]> rows = paymentRepository.findTopServicesWithIdBySpecialty(startOfMonth, startOfNextMonth, specialty);
-        List<ClinicalServiceStatsDto.ServicePerformance> topByRevenue = rows.stream()
-                .map(row -> ClinicalServiceStatsDto.ServicePerformance.builder()
-                        .serviceId(((Number) row[0]).longValue())
-                        .name(row[1].toString())
-                        .quantity(((Number) row[2]).longValue())
-                        .total((BigDecimal) row[3])
-                        .build())
-                .collect(Collectors.toList());
+        List<Object[]> rows = clinicalServiceRepository.findTopServicesByRevenueWithIdBySpecialty(startOfMonth, startOfNextMonth, specialty, PageRequest.of(0, 5));
+        List<ClinicalServiceStatsDto.ServicePerformance> topByRevenue = toPerformanceList(rows);
 
-        List<ClinicalServiceStatsDto.ServicePerformance> topByQuantity = new ArrayList<>(topByRevenue);
-        topByQuantity.sort(Comparator.comparingLong(ClinicalServiceStatsDto.ServicePerformance::getQuantity).reversed());
+        List<ClinicalServiceStatsDto.ServicePerformance> topByQuantity = toPerformanceList(
+                clinicalServiceRepository.findTopServicesByQuantityWithIdBySpecialty(startOfMonth, startOfNextMonth, specialty, PageRequest.of(0, 5)));
 
         return ClinicalServiceStatsDto.builder()
                 .totalServices(totalServices)
@@ -80,6 +70,17 @@ public class ClinicalServiceService {
                 .topByRevenue(topByRevenue)
                 .topByQuantity(topByQuantity)
                 .build();
+    }
+
+    private List<ClinicalServiceStatsDto.ServicePerformance> toPerformanceList(List<Object[]> rows) {
+        return rows.stream()
+                .map(row -> ClinicalServiceStatsDto.ServicePerformance.builder()
+                        .serviceId(((Number) row[0]).longValue())
+                        .name(row[1].toString())
+                        .quantity(((Number) row[2]).longValue())
+                        .total((BigDecimal) row[3])
+                        .build())
+                .collect(Collectors.toList());
     }
 
     public ClinicalServiceDto getServiceById(Long id) {

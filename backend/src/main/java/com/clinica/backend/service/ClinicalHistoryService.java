@@ -4,12 +4,14 @@ import com.clinica.backend.dto.ClinicalHistoryDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.PatientRepository;
+import com.clinica.backend.service.provider.ClinicalHistorySectionProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -22,15 +24,8 @@ public class ClinicalHistoryService {
     private final AllergyService allergyService;
     private final MedicationService medicationService;
     private final DiagnosisService diagnosisService;
-    private final PsychologyEvaluationService psychologyEvaluationService;
-    private final TherapeuticPlanService therapeuticPlanService;
-    private final DermatologicalHistoryService dermatologicalHistoryService;
-    private final LesionService lesionService;
-    private final AuxiliaryExamService auxiliaryExamService;
-    private final TreatmentService treatmentService;
-    private final ProcedureService procedureService;
-    private final EvolutionService evolutionService;
     private final ClinicalAuthorizationService clinicalAuthorizationService;
+    private final List<ClinicalHistorySectionProvider> sectionProviders;
 
     @Transactional(readOnly = true)
     public ClinicalHistoryDto getClinicalHistory(Long patientId) {
@@ -43,23 +38,17 @@ public class ClinicalHistoryService {
         dto.setPatientId(patientId);
         dto.setSpecialty(user.getSpecialty());
 
+        // Secciones clínicas transversales comunes
         dto.setGeneralHistory(generalHistoryService.getGeneralHistory(patientId));
         dto.setAllergies(allergyService.getAllergies(patientId, pageable).getContent());
         dto.setMedications(medicationService.getMedications(patientId, pageable).getContent());
         dto.setDiagnoses(diagnosisService.getDiagnoses(patientId, pageable).getContent());
 
-        if ("PSICOLOGIA".equals(user.getSpecialty())) {
-            Pageable byEvaluationDate = PageRequest.of(0, AGGREGATE_PAGE_SIZE, Sort.by("evaluationDate").descending());
-            dto.setPsychologyEvaluations(psychologyEvaluationService.getEvaluationsByPatientId(patientId, byEvaluationDate).getContent());
-            dto.setTherapeuticPlans(therapeuticPlanService.getPlans(patientId, pageable).getContent());
-        } else if ("DERMATOLOGIA".equals(user.getSpecialty())) {
-            dto.setDermatologicalHistory(dermatologicalHistoryService.getHistory(patientId));
-            dto.setLesions(lesionService.getLesions(patientId, pageable).getContent());
-            dto.setAuxiliaryExams(auxiliaryExamService.getExams(patientId, pageable).getContent());
-            dto.setTreatments(treatmentService.getTreatments(patientId, pageable).getContent());
-            dto.setProcedures(procedureService.getProcedures(patientId, pageable).getContent());
-            dto.setEvolutions(evolutionService.getEvolutions(patientId, pageable).getContent());
-        }
+        // Delegación dinámica al provider de la especialidad activa
+        sectionProviders.stream()
+                .filter(provider -> provider.getSupportedSpecialty().equalsIgnoreCase(user.getSpecialty()))
+                .findFirst()
+                .ifPresent(provider -> provider.populateSections(patientId, dto, pageable));
 
         return dto;
     }

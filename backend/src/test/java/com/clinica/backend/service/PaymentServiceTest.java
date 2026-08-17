@@ -314,6 +314,96 @@ class PaymentServiceTest {
     }
 
     @Test
+    void updateShouldRejectChangingPatient() {
+        Patient patient = new Patient();
+        patient.setId(5L);
+
+        Payment existing = new Payment();
+        existing.setId(100L);
+        existing.setPatient(patient);
+        existing.setSpecialty("PSICOLOGIA");
+        existing.setItems(new ArrayList<>());
+
+        when(paymentRepository.findById(100L)).thenReturn(Optional.of(existing));
+
+        PaymentDto dto = new PaymentDto();
+        dto.setPatientId(99L);
+        dto.setAmount(new BigDecimal("50.00"));
+        dto.setPaymentDate(LocalDateTime.now());
+        dto.setItems(List.of(serviceItem(3L, 1, "50.00")));
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> paymentService.update(100L, dto));
+        assertTrue(ex.getMessage().contains("No se puede cambiar el paciente"));
+        verify(paymentRepository, never()).save(any());
+        verify(inventoryTransactionService, never()).recordTransaction(any());
+    }
+
+    @Test
+    void updateShouldRequireItems() {
+        Patient patient = new Patient();
+        patient.setId(5L);
+
+        Payment existing = new Payment();
+        existing.setId(100L);
+        existing.setPatient(patient);
+        existing.setSpecialty("PSICOLOGIA");
+        existing.setItems(new ArrayList<>());
+
+        when(paymentRepository.findById(100L)).thenReturn(Optional.of(existing));
+
+        PaymentDto dto = new PaymentDto();
+        dto.setPatientId(5L);
+        dto.setAmount(new BigDecimal("50.00"));
+        dto.setPaymentDate(LocalDateTime.now());
+        dto.setItems(null);
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> paymentService.update(100L, dto));
+        assertTrue(ex.getMessage().contains("al menos un servicio clínico"));
+        verify(paymentRepository, never()).save(any());
+        verify(inventoryTransactionService, never()).recordTransaction(any());
+    }
+
+    @Test
+    void updateShouldUnlinkAppointmentWhenNull() {
+        Patient patient = new Patient();
+        patient.setId(5L);
+
+        Appointment appointment = new Appointment();
+        appointment.setId(77L);
+        appointment.setSpecialty("PSICOLOGIA");
+        appointment.setPatient(patient);
+
+        Payment existing = new Payment();
+        existing.setId(100L);
+        existing.setPatient(patient);
+        existing.setSpecialty("PSICOLOGIA");
+        existing.setAppointment(appointment);
+        existing.setItems(new ArrayList<>());
+
+        when(paymentRepository.findById(100L)).thenReturn(Optional.of(existing));
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ClinicalService service = new ClinicalService();
+        service.setId(3L);
+        when(clinicalServiceRepository.findByIdAndSpecialtyAndDeletedFalse(3L, "PSICOLOGIA"))
+                .thenReturn(Optional.of(service));
+
+        PaymentDto dto = new PaymentDto();
+        dto.setPatientId(5L);
+        dto.setAmount(new BigDecimal("50.00"));
+        dto.setPaymentDate(LocalDateTime.now());
+        dto.setAppointmentId(null);
+        dto.setItems(List.of(serviceItem(3L, 1, "50.00")));
+
+        PaymentDto updated = paymentService.update(100L, dto);
+
+        assertNull(updated.getAppointmentId());
+        assertNull(existing.getAppointment());
+    }
+
+    @Test
     void deleteShouldRestoreStock() {
         Supply supply = new Supply();
         supply.setId(9L);

@@ -54,13 +54,34 @@
         <div
           class="mb-5 flex flex-col gap-3 border-b border-line pb-3 sm:flex-row sm:items-center sm:justify-between"
         >
-          <h3 class="text-lg font-semibold">
-            Preguntas ({{ questions.length }})
-          </h3>
-          <button type="button" class="btn-secondary" (click)="addQuestion()">
-            Añadir pregunta
-          </button>
+          <div>
+            <h3 class="text-lg font-semibold">
+              Preguntas ({{ questions.length }})
+            </h3>
+            <p class="mt-0.5 text-xs text-muted">
+              Puntaje máximo posible:
+              <span class="font-semibold text-violet-700">{{ maxPossibleScore }}</span>
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" class="btn-secondary" (click)="openPreview()">
+              <lucide-icon [img]="Eye" [size]="14"></lucide-icon>
+              Vista previa
+            </button>
+            <button type="button" class="btn-secondary" (click)="addQuestion()">
+              <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
+              Añadir pregunta
+            </button>
+          </div>
         </div>
+
+        @if (questions.length === 0) {
+          <div class="list-state">
+            <lucide-icon [img]="ClipboardList" [size]="28" class="text-muted mb-1"></lucide-icon>
+            <p class="text-sm">No hay preguntas. Añade la primera.</p>
+          </div>
+        }
+
         <div formArrayName="questions" class="space-y-5">
           @for (
             question of questions.controls;
@@ -72,9 +93,32 @@
               class="rounded-xl border border-line bg-clinic-50/50 p-4"
             >
               <div class="mb-4 flex items-center justify-between">
-                <span class="font-display font-semibold text-clinic-900"
-                  >Pregunta {{ qIndex + 1 }}</span
-                ><button
+                <div class="flex items-center gap-2">
+                  <span class="font-display font-semibold text-clinic-900"
+                    >Pregunta {{ qIndex + 1 }}</span
+                  >
+                  <div class="flex items-center gap-0.5">
+                    <button
+                      type="button"
+                      class="rounded p-1 text-muted hover:bg-slate-100 hover:text-ink disabled:opacity-40"
+                      (click)="moveQuestion(qIndex, -1)"
+                      title="Subir"
+                      [disabled]="qIndex === 0"
+                    >
+                      <lucide-icon [img]="ChevronUp" [size]="14"></lucide-icon>
+                    </button>
+                    <button
+                      type="button"
+                      class="rounded p-1 text-muted hover:bg-slate-100 hover:text-ink disabled:opacity-40"
+                      (click)="moveQuestion(qIndex, 1)"
+                      title="Bajar"
+                      [disabled]="qIndex === questions.length - 1"
+                    >
+                      <lucide-icon [img]="ChevronDown" [size]="14"></lucide-icon>
+                    </button>
+                  </div>
+                </div>
+                <button
                   type="button"
                   class="rounded-lg p-2 text-danger hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-danger"
                   (click)="removeQuestion(qIndex)"
@@ -89,6 +133,13 @@
                 class="input-field"
                 placeholder="Escribe el enunciado de la pregunta..."
               />
+              @if (
+                question.get("text")?.invalid && question.get("text")?.touched
+              ) {
+                <small class="mt-1 block text-sm text-danger"
+                  >El enunciado es requerido.</small
+                >
+              }
               <div class="mt-4 rounded-lg border border-line bg-surface p-4">
                 <div
                   class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
@@ -101,9 +152,16 @@
                     class="btn-secondary px-3 py-2 text-xs"
                     (click)="addOption(qIndex)"
                   >
+                    <lucide-icon [img]="Plus" [size]="12"></lucide-icon>
                     Añadir opción
                   </button>
                 </div>
+                @if (optionCountOf(qIndex) < 2) {
+                  <p class="mb-3 flex items-center gap-1.5 text-[11px] font-semibold text-amber-600">
+                    <lucide-icon [img]="ClipboardList" [size]="12"></lucide-icon>
+                    Añade al menos 2 opciones para que la pregunta sea válida.
+                  </p>
+                }
                 <div formArrayName="options" class="space-y-3">
                   @for (
                     option of options(qIndex).controls;
@@ -132,16 +190,136 @@
                           placeholder="Ej. A veces"
                         />
                       </div>
-                      <button
-                        type="button"
-                        class="mb-0.5 rounded-lg p-2 text-danger hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-danger"
-                        (click)="removeOption(qIndex, oIndex)"
-                        title="Quitar opción"
-                      >
-                        ×
-                      </button>
+                      <div class="mb-0.5 flex items-center gap-0.5">
+                        <button
+                          type="button"
+                          class="rounded p-1 text-muted hover:bg-slate-100 hover:text-ink disabled:opacity-40"
+                          (click)="moveOption(qIndex, oIndex, -1)"
+                          title="Subir"
+                          [disabled]="oIndex === 0"
+                        >
+                          <lucide-icon [img]="ChevronUp" [size]="14"></lucide-icon>
+                        </button>
+                        <button
+                          type="button"
+                          class="rounded p-1 text-muted hover:bg-slate-100 hover:text-ink disabled:opacity-40"
+                          (click)="moveOption(qIndex, oIndex, 1)"
+                          title="Bajar"
+                          [disabled]="oIndex === options(qIndex).length - 1"
+                        >
+                          <lucide-icon [img]="ChevronDown" [size]="14"></lucide-icon>
+                        </button>
+                        <button
+                          type="button"
+                          class="mb-0.5 rounded-lg p-2 text-danger hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-danger"
+                          (click)="removeOption(qIndex, oIndex)"
+                          title="Quitar opción"
+                        >
+                          ×
+                        </button>
+                      </div>
                     </div>
                   }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+      <section class="mt-8">
+        <div
+          class="mb-5 flex flex-col gap-3 border-b border-line pb-3 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div>
+            <h3 class="text-lg font-semibold">Bandas de interpretación</h3>
+            <p class="mt-0.5 text-xs text-muted">
+              Define rangos de puntaje y su nivel clínico asociado.
+            </p>
+          </div>
+          <button type="button" class="btn-secondary" (click)="addBand()">
+            <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
+            Añadir banda
+          </button>
+        </div>
+
+        @if (hasOverlappingBands) {
+          <p class="mb-3 flex items-center gap-1.5 text-[11px] font-semibold text-danger">
+            <lucide-icon [img]="ClipboardList" [size]="12"></lucide-icon>
+            Las bandas se solapan. Ajusta los rangos para que no coincidan.
+          </p>
+        }
+
+        @if (interpretations.length === 0) {
+          <div class="list-state">
+            <lucide-icon [img]="ClipboardList" [size]="28" class="text-muted mb-1"></lucide-icon>
+            <p class="text-sm">Sin bandas definidas. El puntaje se mostrará sin interpretación.</p>
+          </div>
+        }
+
+        <div formArrayName="interpretations" class="space-y-3">
+          @for (band of interpretations.controls; track $index; let bIndex = $index) {
+            <div [formGroupName]="bIndex" class="rounded-xl border border-line bg-clinic-50/50 p-4">
+              <div class="mb-3 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="font-display font-semibold text-clinic-900">Banda {{ bIndex + 1 }}</span>
+                  <div class="flex items-center gap-0.5">
+                    <button
+                      type="button"
+                      class="rounded p-1 text-muted hover:bg-slate-100 hover:text-ink disabled:opacity-40"
+                      (click)="moveBand(bIndex, -1)"
+                      title="Subir"
+                      [disabled]="bIndex === 0"
+                    >
+                      <lucide-icon [img]="ChevronUp" [size]="14"></lucide-icon>
+                    </button>
+                    <button
+                      type="button"
+                      class="rounded p-1 text-muted hover:bg-slate-100 hover:text-ink disabled:opacity-40"
+                      (click)="moveBand(bIndex, 1)"
+                      title="Bajar"
+                      [disabled]="bIndex === interpretations.length - 1"
+                    >
+                      <lucide-icon [img]="ChevronDown" [size]="14"></lucide-icon>
+                    </button>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  class="rounded-lg p-2 text-danger hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-danger"
+                  (click)="removeBand(bIndex)"
+                  title="Eliminar banda"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div class="grid gap-3 sm:grid-cols-[8rem_8rem_1fr]">
+                <div>
+                  <label class="form-label text-xs">Mínimo</label>
+                  <input type="number" formControlName="minScore" class="input-field px-2 py-2" />
+                </div>
+                <div>
+                  <label class="form-label text-xs">Máximo</label>
+                  <input type="number" formControlName="maxScore" class="input-field px-2 py-2" />
+                </div>
+                <div>
+                  <label class="form-label text-xs">Etiqueta</label>
+                  <input type="text" formControlName="label" class="input-field px-2 py-2" placeholder="Ej. Leve" />
+                </div>
+              </div>
+
+              <div class="mt-3 grid gap-3 sm:grid-cols-[10rem_1fr]">
+                <div>
+                  <label class="form-label text-xs">Color</label>
+                  <select formControlName="color" class="input-field px-2 py-2">
+                    @for (c of BAND_COLOR_PALETTE; track c.key) {
+                      <option [value]="c.key">{{ c.label }}</option>
+                    }
+                  </select>
+                </div>
+                <div>
+                  <label class="form-label text-xs">Descripción</label>
+                  <input type="text" formControlName="description" class="input-field px-2 py-2" placeholder="Descripción del nivel..." />
                 </div>
               </div>
             </div>
@@ -164,3 +342,52 @@
     </form>
   </div>
 </section>
+
+<!-- Preview Modal -->
+@if (showPreview) {
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm"
+    role="dialog"
+    aria-modal="true"
+    (click)="closePreview()"
+  >
+    <div
+      class="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-line bg-surface p-5 shadow-raised"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="flex items-start justify-between border-b border-line pb-4">
+        <div>
+          <h3 class="text-lg font-bold text-ink">
+            {{ testForm.get("name")?.value || "Vista previa" }}
+          </h3>
+          <p class="mt-0.5 text-xs text-muted">
+            {{ testForm.get("description")?.value }}
+          </p>
+        </div>
+        <button class="btn-text !p-1.5" (click)="closePreview()" title="Cerrar">
+          <lucide-icon [img]="X" [size]="18"></lucide-icon>
+        </button>
+      </div>
+
+      <div class="mt-4 space-y-4">
+        @for (question of questions.controls; track $index; let i = $index) {
+          <div class="rounded-lg border border-line bg-clinic-50/50 p-3">
+            <p class="text-sm font-semibold text-ink">
+              {{ i + 1 }}. {{ question.get("text")?.value }}
+            </p>
+            <ul class="mt-2 space-y-1.5">
+              @for (option of options(i).controls; track $index) {
+                <li class="flex items-center gap-2 text-xs text-muted">
+                  <span class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-slate-600">
+                    {{ option.get("score")?.value }}
+                  </span>
+                  {{ option.get("text")?.value }}
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

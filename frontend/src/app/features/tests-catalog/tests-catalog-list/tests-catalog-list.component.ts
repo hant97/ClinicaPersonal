@@ -2,12 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AssessmentService } from '../../../core/services/assessment.service';
-import { PsychometricTest } from '../../../core/models/assessment.model';
+import { PsychometricTest, Question } from '../../../core/models/assessment.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 
-import { LucideAngularModule, Edit, Trash2 } from 'lucide-angular';
+import {
+  LucideAngularModule, Plus, Edit, Trash2, Eye, Brain, ClipboardList, LayoutGrid, List, X, Activity, Clock
+} from 'lucide-angular';
 
 @Component({
   selector: 'app-tests-catalog-list',
@@ -16,11 +18,22 @@ import { LucideAngularModule, Edit, Trash2 } from 'lucide-angular';
   templateUrl: './tests-catalog-list.component.html'
 })
 export class TestsCatalogListComponent implements OnInit {
+  readonly Plus = Plus;
   readonly Edit = Edit;
   readonly Trash2 = Trash2;
+  readonly Eye = Eye;
+  readonly Brain = Brain;
+  readonly ClipboardList = ClipboardList;
+  readonly LayoutGrid = LayoutGrid;
+  readonly List = List;
+  readonly X = X;
+  readonly Activity = Activity;
+  readonly Clock = Clock;
 
   tests: PsychometricTest[] = [];
-  
+  viewMode: 'table' | 'cards' = 'cards';
+  previewingTest: PsychometricTest | null = null;
+
   currentPage: number = 0;
   pageSize: number = 10;
   totalPages: number = 0;
@@ -56,7 +69,7 @@ export class TestsCatalogListComponent implements OnInit {
       }
     });
   }
-  
+
   onPageChange(page: number): void {
     this.currentPage = page;
     this.loadTests();
@@ -88,5 +101,30 @@ export class TestsCatalogListComponent implements OnInit {
         }
       });
     }
+  }
+
+  getQuestions(test: PsychometricTest): Question[] {
+    try {
+      const parsed = JSON.parse(test.questionsJson);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  questionCount(test: PsychometricTest): number {
+    return this.getQuestions(test).length;
+  }
+
+  optionCount(test: PsychometricTest): number {
+    return this.getQuestions(test).reduce((sum, q) => sum + (q.options?.length ?? 0), 0);
+  }
+
+  openPreview(test: PsychometricTest): void {
+    this.previewingTest = test;
+  }
+
+  closePreview(): void {
+    this.previewingTest = null;
   }
 }

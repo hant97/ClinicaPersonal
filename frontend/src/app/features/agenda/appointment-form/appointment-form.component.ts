@@ -2,7 +2,6 @@ import { Component, EventEmitter, Output, OnInit, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { AppointmentService } from '../../../core/services/appointment.service';
-import { PatientService } from '../../../core/services/patient/patient.service';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { ClinicalServiceService } from '../../../core/services/clinical-service.service';
 import { Appointment } from '../../../core/models/appointment.model';
@@ -11,7 +10,7 @@ import { CatalogItem } from '../../../core/models/catalog.model';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { PatientAutocompleteComponent } from '../../../shared/components/patient-autocomplete/patient-autocomplete.component';
-import { LucideAngularModule, Clock, Calendar, Video, User, AlertTriangle } from 'lucide-angular';
+import { LucideAngularModule, Clock, AlertTriangle } from 'lucide-angular';
 import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
 
 export function futureDateValidator(): ValidatorFn {
@@ -40,9 +39,6 @@ export function timeOrderValidator(): ValidatorFn {
 })
 export class AppointmentFormComponent implements OnInit {
   readonly Clock = Clock;
-  readonly Calendar = Calendar;
-  readonly Video = Video;
-  readonly User = User;
   readonly AlertTriangle = AlertTriangle;
 
   @Output() saved = new EventEmitter<void>();
@@ -55,7 +51,6 @@ export class AppointmentFormComponent implements OnInit {
   
   appointmentModalities: CatalogItem[] = [];
   clinicalServices: ClinicalService[] = [];
-  patientMap = new Map<number, string>();
   dayAppointments: Appointment[] = [];
   conflicts: Appointment[] = [];
 
@@ -71,7 +66,6 @@ export class AppointmentFormComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private appointmentService: AppointmentService,
-    private patientService: PatientService,
     private catalogService: CatalogService,
     private clinicalServiceService: ClinicalServiceService,
     private notificationService: NotificationService,
@@ -80,7 +74,6 @@ export class AppointmentFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadCatalogs();
-    this.loadPatients();
 
     const now = new Date();
     const tzOffset = now.getTimezoneOffset() * 60000;
@@ -149,18 +142,6 @@ export class AppointmentFormComponent implements OnInit {
         // Opcional si es virtual
       } else {
         linkControl?.setValue('');
-      }
-    });
-  }
-
-  loadPatients(): void {
-    this.patientService.getAll(0, 1000).subscribe({
-      next: (page) => {
-        page.content.forEach(p => {
-          if (p.id) {
-            this.patientMap.set(Number(p.id), `${p.firstName} ${p.lastName}`);
-          }
-        });
       }
     });
   }

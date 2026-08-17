@@ -32,6 +32,7 @@ public class AssessmentService {
 
     private final ClinicalAuthorizationService clinicalAuthorizationService;
 
+    @Transactional(readOnly = true)
     public Page<AssessmentDto> getAssessmentsByPatientId(Long patientId, Pageable pageable) {
         String specialty = clinicalAuthorizationService.currentUser().getSpecialty();
         if (!patientRepository.existsByIdAndSpecialtyAndDeletedFalse(patientId, specialty)) {
@@ -80,6 +81,7 @@ public class AssessmentService {
         dto.setTotalScore(assessment.getTotalScore());
         dto.setAnswersJson(assessment.getAnswersJson());
         dto.setNotes(assessment.getNotes());
+        dto.setInterpretationJson(assessment.getPsychometricTest().getInterpretationJson());
         return dto;
     }
 }

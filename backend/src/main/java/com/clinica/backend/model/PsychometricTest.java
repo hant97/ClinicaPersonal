@@ -26,4 +26,9 @@ public class PsychometricTest {
     // Example: [{"id": 1, "text": "Pregunta 1", "options": [{"score": 0, "text": "Nunca"}, {"score": 1, "text": "A veces"}]}]
     @Column(name = "questions_json", columnDefinition = "TEXT", nullable = false)
     private String questionsJson;
+
+    // JSON representation of the interpretation bands
+    // Example: [{"minScore": 0, "maxScore": 13, "label": "Mínimo", "color": "emerald", "description": "..."}]
+    @Column(name = "interpretation_json", columnDefinition = "TEXT")
+    private String interpretationJson;
 }

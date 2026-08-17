@@ -17,12 +17,14 @@ public class DashboardStatsDto {
     private long appointmentsToday;
     private BigDecimal monthlyIncome;
     private List<DashboardAppointmentDto> upcomingAppointments;
+    private List<DashboardAppointmentDto> todaysAppointments;
     private int attendanceRate;
     private long cancelledAppointments;
     private long newPatientsThisMonth;
     private int monthlyIncomeGrowth;
     private List<DashboardRiskAlertDto> activeRiskAlerts;
     private List<SupplyDto> lowStockSupplies;
+    private List<DashboardPendingNoteDto> pendingSoapNotes;
 
     // Specialty specific metrics
     private long psychometricEvaluationsThisMonth;

@@ -200,8 +200,18 @@
 
             <div class="mt-5 flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p class="font-display text-lg font-bold uppercase tracking-wide text-clinic-900">Receta Médica</p>
+                <div class="flex items-center gap-2">
+                  <p class="font-display text-lg font-bold uppercase tracking-wide text-clinic-900">Receta Médica</p>
+                  @if (printPrescription.verificationCode) {
+                    <span class="rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 tracking-wider">
+                      {{ printPrescription.verificationCode }}
+                    </span>
+                  }
+                </div>
                 <p class="text-sm text-muted">Fecha de emisión: {{ printPrescription.prescriptionDate | date: 'dd/MM/yyyy' }}</p>
+                @if (printPrescription.validUntil) {
+                  <p class="text-xs text-muted">Vigencia hasta: {{ printPrescription.validUntil | date: 'dd/MM/yyyy' }}</p>
+                }
               </div>
               <div class="text-right text-xs text-muted">
                 <p>Paciente: <span class="font-semibold text-ink">{{ patient?.firstName }} {{ patient?.lastName }}</span></p>
@@ -256,16 +266,35 @@
             </section>
           }
 
-          <footer class="mt-10">
-            <div class="mt-12 grid gap-10 sm:grid-cols-2">
-              <div class="text-center">
-                <div class="border-t border-ink pt-1">
-                  <p class="text-sm font-medium text-ink">Profesional responsable</p>
+          <footer class="mt-8 border-t border-slate-200 pt-6">
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 items-end">
+              <!-- QR Code & Public Verification -->
+              <div class="flex items-center gap-3.5 rounded-lg border border-slate-200 bg-slate-50/70 p-3">
+                <div class="shrink-0 bg-white p-1 rounded border border-slate-200 shadow-sm">
+                  <app-qr-code [value]="getVerificationUrl(printPrescription)" [size]="88"></app-qr-code>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-800">
+                    <lucide-icon [img]="ShieldCheck" [size]="14" class="text-emerald-600 shrink-0"></lucide-icon>
+                    <span>Receta Verificada</span>
+                  </div>
+                  <p class="mt-0.5 text-[11px] font-mono text-slate-600 font-medium">
+                    {{ printPrescription.verificationCode || ('REC-' + printPrescription.id) }}
+                  </p>
+                  <p class="mt-1 text-[10px] text-slate-500 leading-tight">
+                    Escanee con la cámara para verificar la autenticidad y vigencia de este documento clínico.
+                  </p>
                 </div>
               </div>
-              <div class="text-center">
-                <div class="border-t border-ink pt-1">
-                  <p class="text-sm text-muted">Firma del profesional</p>
+
+              <!-- Signature & Professional Info -->
+              <div class="text-center sm:text-right flex flex-col justify-end">
+                <div class="mx-auto sm:ml-auto sm:mr-0 w-52 border-t-2 border-slate-800 pt-2">
+                  <p class="text-sm font-bold text-slate-900">{{ getProfessionalDisplayName() }}</p>
+                  <p class="text-xs text-slate-600 font-medium">
+                    {{ printPrescription.specialty === 'PSICOLOGIA' ? 'Psicología Clínica' : 'Dermatología' }}
+                  </p>
+                  <p class="text-[10px] text-muted">Firma & Sello del Profesional</p>
                 </div>
               </div>
             </div>

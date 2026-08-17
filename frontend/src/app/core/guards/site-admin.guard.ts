@@ -15,7 +15,10 @@ export const siteAdminGuard: CanActivateFn = (_route, _state) => {
   };
 
   return userService.getCurrentUserProfile().pipe(
-    map(profile => profile.roles?.includes('ROLE_SITE_ADMIN') === true || deny()),
+    map(profile => {
+      const hasAdmin = profile.roles?.some(r => r === 'ROLE_SITE_ADMIN' || r === 'ROLE_ADMIN');
+      return hasAdmin ? true : deny();
+    }),
     catchError(() => of(deny()))
   );
 };

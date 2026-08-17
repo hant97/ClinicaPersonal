@@ -121,7 +121,7 @@ export class ClinicalSessionFormComponent implements OnInit {
       analysis: [this.session?.analysis || savedDraft?.analysis || ''],
       plan: [this.session?.plan || savedDraft?.plan || ''],
       isConfidential: [this.session?.isConfidential || savedDraft?.isConfidential || false]
-    }, { validators: this.isPsychology ? this.soapValidator : null });
+    }, { validators: this.soapValidator });
 
     // Auto-save draft on value changes
     if (!this.session) {
@@ -131,6 +131,17 @@ export class ClinicalSessionFormComponent implements OnInit {
           this.draftSaved = true;
         } catch (e) {}
       });
+    }
+  }
+
+  setDuration(minutes: number): void {
+    const start = this.sessionForm.get('startTime')?.value;
+    if (start && start.includes(':')) {
+      const [h, m] = start.split(':').map(Number);
+      const totalMins = h * 60 + m + minutes;
+      const endH = String(Math.floor(totalMins / 60) % 24).padStart(2, '0');
+      const endM = String(totalMins % 60).padStart(2, '0');
+      this.sessionForm.patchValue({ endTime: `${endH}:${endM}` });
     }
   }
 
@@ -166,6 +177,7 @@ export class ClinicalSessionFormComponent implements OnInit {
     }
     return null;
   }
+
 
   onSubmit(): void {
     if (this.sessionForm.invalid) {

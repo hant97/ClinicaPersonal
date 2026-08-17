@@ -5,10 +5,10 @@ import com.clinica.backend.dto.ClinicalServiceStatsDto;
 import com.clinica.backend.model.ClinicalService;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.ClinicalServiceRepository;
-import com.clinica.backend.repository.PaymentRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -25,14 +25,12 @@ import static org.mockito.Mockito.*;
 class ClinicalServiceServiceTest {
 
     private ClinicalServiceRepository clinicalServiceRepository;
-    private PaymentRepository paymentRepository;
     private ClinicalServiceService clinicalServiceService;
 
     @BeforeEach
     void setUp() {
         clinicalServiceRepository = mock(ClinicalServiceRepository.class);
-        paymentRepository = mock(PaymentRepository.class);
-        clinicalServiceService = new ClinicalServiceService(clinicalServiceRepository, paymentRepository);
+        clinicalServiceService = new ClinicalServiceService(clinicalServiceRepository);
 
         User user = new User();
         user.setId(1L);
@@ -109,10 +107,14 @@ class ClinicalServiceServiceTest {
         when(clinicalServiceRepository.countActiveBySpecialty("PSICOLOGIA")).thenReturn(4L);
         when(clinicalServiceRepository.averagePriceBySpecialty("PSICOLOGIA"))
                 .thenReturn(new BigDecimal("75.00"));
-        when(paymentRepository.findTopServicesWithIdBySpecialty(any(), any(), eq("PSICOLOGIA")))
+        when(clinicalServiceRepository.findTopServicesByRevenueWithIdBySpecialty(any(), any(), eq("PSICOLOGIA"), any(Pageable.class)))
                 .thenReturn(List.<Object[]>of(
                         new Object[]{2L, "Consulta General", 10L, new BigDecimal("500.00")},
                         new Object[]{1L, "Terapia de Pareja", 3L, new BigDecimal("240.00")}));
+        when(clinicalServiceRepository.findTopServicesByQuantityWithIdBySpecialty(any(), any(), eq("PSICOLOGIA"), any(Pageable.class)))
+                .thenReturn(List.<Object[]>of(
+                        new Object[]{3L, "Sesión Grupal", 15L, new BigDecimal("300.00")},
+                        new Object[]{2L, "Consulta General", 10L, new BigDecimal("500.00")}));
 
         ClinicalServiceStatsDto stats = clinicalServiceService.getStats();
 
@@ -123,9 +125,9 @@ class ClinicalServiceServiceTest {
         // Por ingresos: Consulta General (500) primero
         assertEquals("Consulta General", stats.getTopByRevenue().get(0).getName());
 
-        // Por cantidad: Consulta General (10) primero
-        assertEquals("Consulta General", stats.getTopByQuantity().get(0).getName());
-        assertEquals(10L, stats.getTopByQuantity().get(0).getQuantity());
+        // Por cantidad: Sesión Grupal (15) primero, independiente del ingreso
+        assertEquals("Sesión Grupal", stats.getTopByQuantity().get(0).getName());
+        assertEquals(15L, stats.getTopByQuantity().get(0).getQuantity());
     }
 
     @Test

@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -26,4 +28,19 @@ public interface ClinicalSessionRepository extends JpaRepository<ClinicalSession
             @Param("professionalId") Long professionalId,
             Pageable pageable);
     Optional<ClinicalSession> findByIdAndDeletedFalse(Long id);
+
+    @Query("""
+            SELECT s FROM ClinicalSession s JOIN FETCH s.patient p
+            WHERE s.specialty = :specialty AND s.deleted = false
+              AND s.sessionDate < :today
+              AND (s.subjective IS NULL OR s.subjective = ''
+                   OR s.objective IS NULL OR s.objective = ''
+                   OR s.analysis IS NULL OR s.analysis = ''
+                   OR s.plan IS NULL OR s.plan = '')
+            ORDER BY s.sessionDate ASC, s.startTime ASC
+            """)
+    List<ClinicalSession> findPendingNotesBySpecialty(
+            @Param("specialty") String specialty,
+            @Param("today") LocalDate today,
+            Pageable pageable);
 }

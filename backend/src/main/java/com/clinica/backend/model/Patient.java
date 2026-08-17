@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
@@ -12,6 +13,7 @@ import org.hibernate.annotations.CreationTimestamp;
 @Table(name = "patients", uniqueConstraints = @UniqueConstraint(
         name = "uq_patients_specialty_identification_document",
         columnNames = {"specialty", "identification_document"}))
+@BatchSize(size = 100)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

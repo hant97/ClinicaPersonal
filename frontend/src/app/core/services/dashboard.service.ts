@@ -6,17 +6,27 @@ import { Appointment } from '../models/appointment.model';
 import { RiskAlert } from '../models/risk-alert.model';
 import { Supply } from './inventory.service';
 
+export interface PendingSoapNote {
+  id: number;
+  patientId: number | null;
+  patientName: string;
+  sessionDate: string;
+  sessionType: string;
+}
+
 export interface DashboardStats {
   activePatients: number;
   appointmentsToday: number;
   monthlyIncome: number;
   upcomingAppointments: Appointment[];
+  todaysAppointments: Appointment[];
   attendanceRate: number;
   cancelledAppointments: number;
   newPatientsThisMonth: number;
   monthlyIncomeGrowth: number;
   activeRiskAlerts: RiskAlert[];
   lowStockSupplies: Supply[];
+  pendingSoapNotes: PendingSoapNote[];
   psychometricEvaluationsThisMonth: number;
   dermatologicalEvaluationsThisMonth: number;
   dermatologicalProceduresThisMonth: number;
@@ -42,11 +52,16 @@ export class DashboardService {
     return this.http.get<DashboardStats>(`${this.apiUrl}/stats`).pipe(
       map(stats => ({
         ...stats,
-        upcomingAppointments: (stats.upcomingAppointments || []).map(app => ({
-          ...app,
-          status: this.statusTranslations[app.status] || app.status
-        }))
+        upcomingAppointments: this.translateStatuses(stats.upcomingAppointments),
+        todaysAppointments: this.translateStatuses(stats.todaysAppointments)
       }))
     );
+  }
+
+  private translateStatuses(appointments: Appointment[] | undefined): Appointment[] {
+    return (appointments || []).map(app => ({
+      ...app,
+      status: this.statusTranslations[app.status] || app.status
+    }));
   }
 }

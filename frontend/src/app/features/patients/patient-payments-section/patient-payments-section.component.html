@@ -1,0 +1,73 @@
+<div class="space-y-4">
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-sm font-bold uppercase tracking-wider text-slate-800">Historial de Cobros</h2>
+      <p class="text-xs text-muted">Pagos y facturación asociados a este paciente.</p>
+    </div>
+    <button
+      type="button"
+      class="btn-primary !text-xs !py-1.5 !bg-emerald-600 hover:!bg-emerald-700"
+      (click)="registerPayment()"
+    >
+      <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
+      <span>Registrar Cobro</span>
+    </button>
+  </div>
+
+  <div class="grid grid-cols-2 gap-3">
+    <div class="rounded-xl border border-line p-3.5 bg-surface">
+      <span class="text-[11px] font-semibold uppercase tracking-wider text-muted">Total Facturado</span>
+      <p class="mt-1.5 text-xl font-bold text-emerald-700">{{ paymentsTotal | currency:'PEN':'S/ ':'1.2-2' }}</p>
+    </div>
+    <div class="rounded-xl border border-line p-3.5 bg-surface">
+      <span class="text-[11px] font-semibold uppercase tracking-wider text-muted">Cobros Registrados</span>
+      <p class="mt-1.5 text-xl font-bold text-ink">{{ payments.length }}</p>
+    </div>
+  </div>
+
+  @if (payments.length === 0) {
+    <div class="list-state">
+      <lucide-icon [img]="Receipt" [size]="32" class="text-muted mb-1"></lucide-icon>
+      <p class="text-sm font-medium text-ink">Sin cobros registrados</p>
+      <p class="text-xs text-muted">Este paciente aún no tiene pagos asociados.</p>
+    </div>
+  } @else {
+    <div class="table-responsive">
+      <table class="minimal-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Concepto</th>
+            <th>Método</th>
+            <th class="text-right">Monto</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (payment of payments; track payment.id) {
+            <tr class="transition hover:bg-slate-50">
+              <td class="font-mono text-xs text-slate-700">{{ payment.paymentDate | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td class="text-xs text-muted max-w-xs truncate">
+                <span>{{ payment.description || 'Servicio / Consulta' }}</span>
+                @if (payment.appointmentId) {
+                  <span class="ml-1.5 rounded bg-sky-50 px-1.5 py-0.5 text-[10px] font-semibold text-sky-700 border border-sky-200">Cita</span>
+                }
+              </td>
+              <td>
+                <span
+                  class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold border"
+                  [ngClass]="getPaymentMethodVisual(payment.paymentMethod).classes"
+                >
+                  <lucide-icon [img]="getPaymentMethodVisual(payment.paymentMethod).icon" [size]="11"></lucide-icon>
+                  {{ getPaymentMethodText(payment.paymentMethod) }}
+                </span>
+              </td>
+              <td class="text-right">
+                <span class="font-mono font-bold text-xs text-emerald-700">{{ payment.amount | currency:'PEN':'S/ ':'1.2-2' }}</span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

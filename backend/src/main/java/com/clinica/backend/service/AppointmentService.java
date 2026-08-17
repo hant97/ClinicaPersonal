@@ -64,7 +64,8 @@ public class AppointmentService {
     @Transactional
     public AppointmentDto create(AppointmentDto dto) {
         validateAppointmentTime(dto.getAppointmentDate(), dto.getStartTime(), dto.getEndTime(), dto.getProfessionalId(), null);
-        Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(dto.getPatientId(), getCurrentUserSpecialty()).orElseThrow();
+        Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(dto.getPatientId(), getCurrentUserSpecialty())
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
         Appointment appointment = new Appointment();
         appointment.setPatient(patient);
 
@@ -87,7 +88,8 @@ public class AppointmentService {
     @Transactional
     public AppointmentDto update(Long id, AppointmentDto dto) {
         validateAppointmentTime(dto.getAppointmentDate(), dto.getStartTime(), dto.getEndTime(), dto.getProfessionalId(), id);
-        Appointment appointment = appointmentRepository.findById(id).orElseThrow();
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cita no encontrada con ID: " + id));
         if (!getCurrentUserSpecialty().equals(appointment.getSpecialty())) {
             throw new AccessDeniedException("Cita fuera de la especialidad del usuario");
         }
@@ -107,7 +109,8 @@ public class AppointmentService {
 
     @Transactional
     public AppointmentDto updateStatus(Long id, String newStatus) {
-        Appointment appointment = appointmentRepository.findById(id).orElseThrow();
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cita no encontrada con ID: " + id));
         if (!getCurrentUserSpecialty().equals(appointment.getSpecialty())) {
             throw new AccessDeniedException("Cita fuera de la especialidad del usuario");
         }
@@ -167,6 +170,7 @@ public class AppointmentService {
         AppointmentDto dto = new AppointmentDto();
         dto.setId(appointment.getId());
         dto.setPatientId(appointment.getPatient().getId());
+        dto.setPatientName((appointment.getPatient().getFirstName() + " " + appointment.getPatient().getLastName()).trim());
         dto.setAppointmentDate(appointment.getAppointmentDate());
         dto.setStartTime(appointment.getStartTime());
         dto.setEndTime(appointment.getEndTime());

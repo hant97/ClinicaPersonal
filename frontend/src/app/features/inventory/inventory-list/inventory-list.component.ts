@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InventoryService, Supply, SupplyStats } from '../../../core/services/inventory.service';
 import { InventoryTransaction } from '../../../core/models/inventory-transaction.model';
+import { SpecialtyService } from '../../../core/services/specialty.service';
+import { SpecialtyItem } from '../../../core/models/specialty.model';
 import { InventoryFormComponent } from '../inventory-form/inventory-form.component';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
@@ -37,6 +39,7 @@ export class InventoryListComponent implements OnInit, OnDestroy {
   readonly SlidersHorizontal = SlidersHorizontal;
 
   filteredSupplies: Supply[] = [];
+  specialties: SpecialtyItem[] = [];
   stats: SupplyStats | null = null;
   recentTransactions: InventoryTransaction[] = [];
 
@@ -72,11 +75,17 @@ export class InventoryListComponent implements OnInit, OnDestroy {
 
   constructor(
     private inventoryService: InventoryService,
+    private specialtyService: SpecialtyService,
     private toastService: ToastService,
     private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
+    this.specialtyService.getActiveSpecialties().subscribe({
+      next: (list) => this.specialties = list || [],
+      error: () => {}
+    });
+
     this.searchSubject.pipe(
       debounceTime(300),
       distinctUntilChanged(),
@@ -282,9 +291,12 @@ export class InventoryListComponent implements OnInit, OnDestroy {
   }
 
   getSpecialtyLabel(specialty?: string): string {
+    if (!specialty || specialty === 'GENERAL') return 'General';
+    const found = this.specialties.find(s => s.code.toUpperCase() === specialty.toUpperCase());
+    if (found) return found.name;
     if (specialty === 'PSICOLOGIA') return 'Psicología';
     if (specialty === 'DERMATOLOGIA') return 'Dermatología';
-    return specialty || 'General';
+    return specialty.charAt(0) + specialty.slice(1).toLowerCase();
   }
 
   typeLabel(type: string): string {

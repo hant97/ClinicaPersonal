@@ -1,0 +1,143 @@
+<div class="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8 font-sans">
+  <div class="max-w-2xl mx-auto">
+    <!-- Top Brand Header -->
+    <div class="flex items-center justify-between pb-6">
+      <a routerLink="/" class="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-slate-900 transition">
+        <lucide-icon [img]="ArrowLeft" [size]="16"></lucide-icon>
+        <span>Volver a la clínica</span>
+      </a>
+      <span class="inline-flex items-center gap-1 text-xs text-slate-500 font-medium">
+        <lucide-icon [img]="ShieldCheck" [size]="14" class="text-emerald-600"></lucide-icon>
+        Verificación Oficial
+      </span>
+    </div>
+
+    @if (loading) {
+      <div class="card p-12 text-center shadow-raised">
+        <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-r-transparent"></div>
+        <p class="mt-4 text-sm font-medium text-slate-600">Verificando autenticidad de la receta médica…</p>
+      </div>
+    } @else if (error || !verification) {
+      <div class="card p-8 sm:p-10 text-center shadow-raised border-red-200">
+        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-100 text-red-600">
+          <lucide-icon [img]="AlertTriangle" [size]="28"></lucide-icon>
+        </div>
+        <h1 class="mt-4 text-xl font-bold text-slate-900">Documento no encontrado</h1>
+        <p class="mt-2 text-sm text-slate-600 max-w-md mx-auto">
+          El código <span class="font-mono font-semibold text-slate-800">{{ code }}</span> no coincide con ninguna receta registrada o ha sido revocado.
+        </p>
+        <div class="mt-6">
+          <a routerLink="/" class="btn-primary !text-xs">Ir a la página principal</a>
+        </div>
+      </div>
+    } @else {
+      <div class="card overflow-hidden shadow-raised border-line bg-white">
+        <!-- Verification Banner Header -->
+        <div [class]="verification.valid ? 'bg-emerald-600' : 'bg-amber-600'" class="p-6 text-white text-center">
+          <div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm mb-2">
+            @if (verification.valid) {
+              <lucide-icon [img]="CheckCircle2" [size]="28" class="text-white"></lucide-icon>
+            } @else {
+              <lucide-icon [img]="Clock" [size]="28" class="text-white"></lucide-icon>
+            }
+          </div>
+          <h1 class="text-xl font-bold tracking-tight">
+            {{ verification.valid ? 'Receta Médica Auténtica y Vigente' : 'Receta Médica Expirada' }}
+          </h1>
+          <p class="text-xs text-white/80 mt-1">
+            Emitida formalmente en el sistema clínico de {{ verification.clinicName }}
+          </p>
+          <div class="mt-3 inline-block rounded-full bg-white/20 px-3 py-1 text-xs font-mono font-semibold tracking-wider">
+            Código: {{ verification.verificationCode }}
+          </div>
+        </div>
+
+        <!-- Verification Document Body -->
+        <div class="p-6 sm:p-8 space-y-6">
+          <!-- Overview Grid -->
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 rounded-xl bg-slate-50 p-4 border border-slate-200">
+            <div>
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Paciente</span>
+              <p class="text-sm font-bold text-slate-900 mt-0.5">{{ verification.patientName }}</p>
+              @if (verification.patientIdentificationDocument) {
+                <p class="text-xs text-slate-500">Doc: {{ verification.patientIdentificationDocument }}</p>
+              }
+            </div>
+            <div>
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Profesional Emisor</span>
+              <p class="text-sm font-bold text-slate-900 mt-0.5">{{ verification.professionalName }}</p>
+              <p class="text-xs text-slate-500 font-medium">
+                {{ verification.specialty === 'PSICOLOGIA' ? 'Psicología Clínica' : 'Dermatología' }}
+              </p>
+            </div>
+            <div>
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Fecha de Emisión</span>
+              <p class="text-sm font-semibold text-slate-800 mt-0.5">
+                {{ verification.prescriptionDate | date: 'dd/MM/yyyy' }}
+              </p>
+            </div>
+            <div>
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Vigencia</span>
+              <p class="text-sm font-semibold text-slate-800 mt-0.5">
+                {{ verification.validUntil ? (verification.validUntil | date: 'dd/MM/yyyy') : 'Indefinida' }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Prescribed Items Table -->
+          <div>
+            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-1.5">
+              <lucide-icon [img]="FileText" [size]="16" class="text-primary-600"></lucide-icon>
+              <span>Medicamentos e Indicaciones Prescritas</span>
+            </h2>
+            <div class="overflow-x-auto rounded-lg border border-slate-200">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200">
+                  <tr>
+                    <th class="p-3">Medicamento / Indicación</th>
+                    <th class="p-3">Dosis</th>
+                    <th class="p-3">Frecuencia</th>
+                    <th class="p-3">Duración</th>
+                    <th class="p-3">Vía</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                  @for (item of verification.items; track $index) {
+                    <tr class="hover:bg-slate-50/70 transition">
+                      <td class="p-3 font-semibold text-slate-900">
+                        {{ item.name }}
+                        @if (item.instructions) {
+                          <p class="text-[11px] font-normal text-slate-500 mt-0.5">
+                            <span class="font-medium text-slate-600">Instrucción:</span> {{ item.instructions }}
+                          </p>
+                        }
+                      </td>
+                      <td class="p-3 text-slate-700">{{ item.dose || '—' }}</td>
+                      <td class="p-3 text-slate-700">{{ item.frequency || '—' }}</td>
+                      <td class="p-3 text-slate-700">{{ item.duration || '—' }}</td>
+                      <td class="p-3 text-slate-700">{{ item.route || '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          @if (verification.notes) {
+            <div class="rounded-lg bg-amber-50/70 p-4 border border-amber-200/80">
+              <span class="text-xs font-bold text-amber-900 uppercase tracking-wide">Notas del facultativo</span>
+              <p class="text-xs text-amber-950 mt-1">{{ verification.notes }}</p>
+            </div>
+          }
+
+          <!-- Security Footer Notice -->
+          <div class="border-t border-slate-200 pt-5 text-center">
+            <p class="text-[11px] text-slate-500">
+              Este registro digital certifica que la receta fue generada y autorizada por el profesional médico correspondiente a través de la plataforma clínica.
+            </p>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

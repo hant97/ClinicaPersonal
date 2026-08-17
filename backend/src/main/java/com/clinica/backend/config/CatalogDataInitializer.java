@@ -20,38 +20,39 @@ public class CatalogDataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        initializeCatalogIfNotFound("MARITAL_STATUS", "Estado Civil", "Estados civiles para pacientes", 
+        initializeCatalogIfNotFound("MARITAL_STATUS", "Estado Civil", "Estados civiles para pacientes", "GENERAL",
             Arrays.asList("Soltero(a)", "Casado(a)", "Viudo(a)", "Divorciado(a)", "Conviviente"));
             
-        initializeCatalogIfNotFound("GENDER", "Género", "Identidad de género", 
+        initializeCatalogIfNotFound("GENDER", "Género", "Identidad de género", "GENERAL",
             Arrays.asList("Masculino", "Femenino", "Otro", "Prefiero no decirlo"));
             
-        initializeCatalogIfNotFound("DOCUMENT_TYPE", "Tipo de Documento", "Tipos de documento de identidad", 
+        initializeCatalogIfNotFound("DOCUMENT_TYPE", "Tipo de Documento", "Tipos de documento de identidad", "GENERAL",
             Arrays.asList("DNI", "Pasaporte", "Carné de Extranjería"));
             
-        initializeCatalogIfNotFound("APPOINTMENT_MODALITY", "Modalidad de Cita", "Modalidad de atención", 
+        initializeCatalogIfNotFound("APPOINTMENT_MODALITY", "Modalidad de Cita", "Modalidad de atención", "GENERAL",
             Arrays.asList("Presencial", "Virtual"));
             
-        initializeCatalogIfNotFound("PAYMENT_METHOD", "Método de Pago", "Formas de pago aceptadas", 
+        initializeCatalogIfNotFound("PAYMENT_METHOD", "Método de Pago", "Formas de pago aceptadas", "GENERAL",
             Arrays.asList("Efectivo", "Transferencia", "Tarjeta de Crédito/Débito", "Yape", "Plin"));
             
-        initializeCatalogIfNotFound("SUPPLY_UNIT", "Unidad de Medida", "Unidades para el inventario", 
+        initializeCatalogIfNotFound("SUPPLY_UNIT", "Unidad de Medida", "Unidades para el inventario", "GENERAL",
             Arrays.asList("Unidades", "Cajas", "Paquetes", "Litros", "Mililitros"));
             
-        initializeCatalogIfNotFound("RISK_ALERT_TYPE", "Tipo de Alerta de Riesgo", "Tipos de riesgo para pacientes", 
+        initializeCatalogIfNotFound("RISK_ALERT_TYPE", "Tipo de Alerta de Riesgo", "Tipos de riesgo para pacientes", "PSICOLOGIA",
             Arrays.asList("Ideación Suicida", "Autolesión", "Violencia Familiar", "Abuso de Sustancias", "Riesgo de Fuga", "Deserción del Tratamiento", "Otro"));
             
-        initializeCatalogIfNotFound("RISK_ALERT_LEVEL", "Nivel de Riesgo", "Niveles de gravedad de riesgo", 
+        initializeCatalogIfNotFound("RISK_ALERT_LEVEL", "Nivel de Riesgo", "Niveles de gravedad de riesgo", "GENERAL",
             Arrays.asList("Bajo", "Moderado", "Alto", "Crítico"));
     }
 
-    private void initializeCatalogIfNotFound(String code, String name, String description, List<String> itemNames) {
-        if (catalogRepository.findByCode(code).isEmpty()) {
+    private void initializeCatalogIfNotFound(String code, String name, String description, String specialty, List<String> itemNames) {
+        var existingOpt = catalogRepository.findByCode(code);
+        if (existingOpt.isEmpty()) {
             Catalog catalog = new Catalog();
             catalog.setCode(code);
             catalog.setName(name);
             catalog.setDescription(description);
-            catalog.setSpecialty("PSICOLOGIA");
+            catalog.setSpecialty(specialty);
 
             int index = 0;
             for (String itemName : itemNames) {
@@ -65,6 +66,13 @@ public class CatalogDataInitializer implements CommandLineRunner {
             }
 
             catalogRepository.save(catalog);
+        } else {
+            Catalog existing = existingOpt.get();
+            // Si el catálogo transversal estaba marcado como PSICOLOGIA, actualizar a GENERAL
+            if ("GENERAL".equals(specialty) && "PSICOLOGIA".equals(existing.getSpecialty())) {
+                existing.setSpecialty("GENERAL");
+                catalogRepository.save(existing);
+            }
         }
     }
 }

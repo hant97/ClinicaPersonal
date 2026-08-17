@@ -3,11 +3,9 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PatientService } from '../../../core/services/patient/patient.service';
 import { ClinicalSessionService } from '../../../core/services/clinical-session.service';
-import { PaymentService } from '../../../core/services/payment.service';
 import { AppointmentService } from '../../../core/services/appointment.service';
 import { Patient } from '../../../core/models/patient.model';
 import { ClinicalSession } from '../../../core/models/clinical-session.model';
-import { Payment } from '../../../core/models/payment.model';
 import { Appointment } from '../../../core/models/appointment.model';
 import { ClinicalSessionFormComponent } from '../clinical-session-form/clinical-session-form.component';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
@@ -37,6 +35,7 @@ import { ProceduresSectionComponent } from '../procedures-section/procedures-sec
 import { EvolutionsSectionComponent } from '../evolutions-section/evolutions-section.component';
 import { DermatologicalEvaluationListComponent } from '../dermatological-evaluation-list/dermatological-evaluation-list.component';
 import { ClinicalHistoryPrintComponent } from '../clinical-history-print/clinical-history-print.component';
+import { PatientPaymentsSectionComponent } from '../patient-payments-section/patient-payments-section.component';
 import { StatusPillComponent } from '../../../shared/components/status-pill/status-pill.component';
 import {
   LucideAngularModule,
@@ -63,10 +62,12 @@ import {
   Sparkles,
   ChevronRight,
   ChevronDown,
+  ChevronUp,
   Receipt,
-  Wallet,
   CalendarCheck,
-  ImagePlus
+  ImagePlus,
+  Layers,
+  HeartPulse
 } from 'lucide-angular';
 
 export type MainTabType = 'timeline' | 'expediente' | 'especialidad' | 'cobros';
@@ -96,6 +97,7 @@ export type MainTabType = 'timeline' | 'expediente' | 'especialidad' | 'cobros';
     EvolutionsSectionComponent,
     DermatologicalEvaluationListComponent,
     ClinicalHistoryPrintComponent,
+    PatientPaymentsSectionComponent,
     RiskAlertBannerComponent,
     LucideAngularModule,
     StatusPillComponent
@@ -119,52 +121,58 @@ export class PatientDetailComponent implements OnInit {
   readonly Trash2 = Trash2;
   readonly CheckCircle2 = CheckCircle2;
   readonly FolderOpen = FolderOpen;
+  readonly Sparkles = Sparkles;
   readonly Brain = Brain;
   readonly Stethoscope = Stethoscope;
   readonly Microscope = Microscope;
   readonly AlertTriangle = AlertTriangle;
-  readonly Sparkles = Sparkles;
   readonly ChevronRight = ChevronRight;
   readonly ChevronDown = ChevronDown;
+  readonly ChevronUp = ChevronUp;
   readonly Receipt = Receipt;
-  readonly Wallet = Wallet;
   readonly CalendarCheck = CalendarCheck;
   readonly ImagePlus = ImagePlus;
+  readonly Layers = Layers;
+  readonly HeartPulse = HeartPulse;
 
   patient: Patient | null = null;
   sessions: ClinicalSession[] = [];
-  activeAlerts: RiskAlert[] = [];
-  payments: Payment[] = [];
-  paymentsTotal = 0;
   upcomingAppointments: Appointment[] = [];
   recentAppointments: Appointment[] = [];
-  paymentMethodMap = new Map<string, string>();
+  selectedSession?: ClinicalSession;
   showForm = false;
   showAlertForm = false;
   showPrint = false;
+  expandedSessionId: number | null = null;
   showAlertsModal = false;
   showContact = false;
-  expandedSessionId: number | null = null;
-  selectedSession: ClinicalSession | undefined;
+  paymentsCount = 0;
+  activeAlerts: RiskAlert[] = [];
   esMenorEdad = false;
   age: number | null = null;
 
   // FlowGrid 360 Workspace Tabs
   activeTab: MainTabType = 'timeline';
   activeSpecialtySubTab = 'evaluacion-inicial';
-  activeExpedienteSubTab = 'datos-personales';
+  activeExpedienteSubTab = 'todo';
+  collapsedSections: Record<string, boolean> = {};
 
   counts: Record<string, number> = {};
   allergies: any[] = [];
   medications: any[] = [];
   diagnoses: any[] = [];
 
+  isPsychology = false;
+  isDermatology = false;
+  specialtyElementsCount = 0;
+  expedienteElementsCount = 0;
+  nextUpcomingAppointment?: Appointment;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private patientService: PatientService,
     private sessionService: ClinicalSessionService,
-    private paymentService: PaymentService,
     private appointmentService: AppointmentService,
     private riskAlertService: RiskAlertService,
     private catalogService: CatalogService,
@@ -174,28 +182,19 @@ export class PatientDetailComponent implements OnInit {
     private clinicalHistoryService: ClinicalHistoryService
   ) {}
 
-  get isPsychology(): boolean {
-    return this.specialtyService.isPsychology();
-  }
-
-  get isDermatology(): boolean {
-    return this.specialtyService.isDermatology();
-  }
-
   ngOnInit(): void {
+    this.isPsychology = this.specialtyService.isPsychology();
+    this.isDermatology = this.specialtyService.isDermatology();
+
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this.loadPatient(Number(id));
-      this.loadSessions(Number(id));
-      this.loadAlerts(Number(id));
-      this.loadCounts(Number(id));
-      this.loadPayments(Number(id));
-      this.loadAppointments(Number(id));
+      const patientId = Number(id);
+      this.loadPatient(patientId);
+      this.loadSessions(patientId);
+      this.loadAlerts(patientId);
+      this.loadCounts(patientId);
+      this.loadAppointments(patientId);
     }
-
-    this.catalogService.getActiveItemsByCatalogCode('PAYMENT_METHOD').subscribe({
-      next: (items) => items.forEach(item => this.paymentMethodMap.set(item.itemCode, item.itemName))
-    });
 
     if (this.isPsychology) {
       this.activeSpecialtySubTab = 'evaluacion-psicologica';
@@ -213,9 +212,6 @@ export class PatientDetailComponent implements OnInit {
 
   setTab(tab: MainTabType): void {
     this.activeTab = tab;
-    if (this.patient?.id) {
-      this.loadCounts(this.patient.id);
-    }
   }
 
   setSpecialtySubTab(subTab: string): void {
@@ -235,6 +231,16 @@ export class PatientDetailComponent implements OnInit {
     this.activeExpedienteSubTab = 'alergias';
   }
 
+  openMedicationsSection(): void {
+    this.activeTab = 'expediente';
+    this.activeExpedienteSubTab = 'medicamentos';
+  }
+
+  openDiagnosesSection(): void {
+    this.activeTab = 'especialidad';
+    this.activeSpecialtySubTab = 'diagnosticos';
+  }
+
   closeAlertsModal(): void {
     this.showAlertsModal = false;
   }
@@ -243,30 +249,68 @@ export class PatientDetailComponent implements OnInit {
     this.showContact = !this.showContact;
   }
 
-  sessionStatusBadge(status?: string): string {
-    switch ((status || '').toUpperCase()) {
-      case 'COMPLETADA':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      case 'CANCELADA':
-        return 'bg-slate-100 text-slate-500 border-slate-200';
-      case 'NO_ASISTIO':
-        return 'bg-red-50 text-red-700 border-red-200';
-      default:
-        return 'bg-amber-50 text-amber-700 border-amber-200';
+  isSectionCollapsed(section: string): boolean {
+    return !!this.collapsedSections[section];
+  }
+
+  toggleSectionCollapse(section: string): void {
+    this.collapsedSections[section] = !this.collapsedSections[section];
+  }
+
+  expandAllSections(): void {
+    this.collapsedSections = {};
+  }
+
+  collapseAllSections(): void {
+    this.collapsedSections = {
+      'datos-personales': true,
+      'antecedentes': true,
+      'alergias': true,
+      'medicamentos': true,
+      'recetas': true,
+      'documentos': true
+    };
+  }
+
+  private updateComputedCounts(): void {
+    if (this.isPsychology) {
+      this.specialtyElementsCount = (this.counts['evaluacion-psicologica'] || 0) +
+                                    (this.counts['diagnosticos'] || 0) +
+                                    (this.counts['plan-terapeutico'] || 0);
+    } else if (this.isDermatology) {
+      this.specialtyElementsCount = (this.counts['lesiones'] || 0) +
+                                    (this.counts['examenes-auxiliares'] || 0) +
+                                    (this.counts['tratamientos'] || 0) +
+                                    (this.counts['procedimientos'] || 0) +
+                                    (this.counts['controles'] || 0) +
+                                    (this.counts['diagnosticos'] || 0);
+    } else {
+      this.specialtyElementsCount = 0;
     }
+
+    this.expedienteElementsCount = (this.counts['alergias'] || 0) +
+                                   (this.counts['medicamentos'] || 0) +
+                                   (this.counts['antecedentes-generales'] || 0);
+  }
+
+  private readonly badgeMap: Record<string, string> = {
+    COMPLETADA: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    CANCELADA: 'bg-slate-100 text-slate-500 border-slate-200',
+    NO_ASISTIO: 'bg-red-50 text-red-700 border-red-200'
+  };
+
+  private readonly dotMap: Record<string, string> = {
+    COMPLETADA: 'bg-emerald-500',
+    CANCELADA: 'bg-slate-400',
+    NO_ASISTIO: 'bg-red-500'
+  };
+
+  sessionStatusBadge(status?: string): string {
+    return this.badgeMap[(status || '').toUpperCase()] || 'bg-amber-50 text-amber-700 border-amber-200';
   }
 
   sessionStatusDot(status?: string): string {
-    switch ((status || '').toUpperCase()) {
-      case 'COMPLETADA':
-        return 'bg-emerald-500';
-      case 'CANCELADA':
-        return 'bg-slate-400';
-      case 'NO_ASISTIO':
-        return 'bg-red-500';
-      default:
-        return 'bg-amber-500';
-    }
+    return this.dotMap[(status || '').toUpperCase()] || 'bg-amber-500';
   }
 
   loadCounts(patientId: number): void {
@@ -289,6 +333,7 @@ export class PatientDetailComponent implements OnInit {
           'procedimientos': history.procedures?.length ?? 0,
           'controles': history.evolutions?.length ?? 0
         };
+        this.updateComputedCounts();
       },
       error: () => {}
     });
@@ -401,18 +446,8 @@ export class PatientDetailComponent implements OnInit {
     });
   }
 
-  loadPayments(patientId: number): void {
-    this.paymentService.getByPatientId(patientId, 0, 100).subscribe({
-      next: (page) => {
-        this.payments = page.content;
-        this.paymentsTotal = page.content.reduce((sum, p) => sum + (p.amount || 0), 0);
-      },
-      error: (err) => console.error('Error fetching payments', err)
-    });
-  }
-
   loadAppointments(patientId: number): void {
-    this.appointmentService.getByPatientId(patientId, 0, 200).subscribe({
+    this.appointmentService.getByPatientId(patientId, 0, 10).subscribe({
       next: (page) => {
         const today = new Date().toISOString().split('T')[0];
         const all = page.content;
@@ -423,13 +458,10 @@ export class PatientDetailComponent implements OnInit {
           .filter(a => a.appointmentDate < today || a.status === 'COMPLETADA')
           .sort((a, b) => b.appointmentDate.localeCompare(a.appointmentDate))
           .slice(0, 3);
+        this.nextUpcomingAppointment = this.upcomingAppointments.length > 0 ? this.upcomingAppointments[0] : undefined;
       },
       error: (err) => console.error('Error fetching appointments', err)
     });
-  }
-
-  getPaymentMethodText(method: string): string {
-    return this.paymentMethodMap.get(method) || method;
   }
 
   onPhotoSelected(event: Event): void {
@@ -507,14 +539,6 @@ export class PatientDetailComponent implements OnInit {
     if (this.patient?.id) {
       this.router.navigate(['/agenda'], {
         queryParams: { newAppointment: 'true', patientId: this.patient.id }
-      });
-    }
-  }
-
-  registerPayment(): void {
-    if (this.patient?.id) {
-      this.router.navigate(['/billing'], {
-        queryParams: { newPayment: 'true', patientId: this.patient.id }
       });
     }
   }

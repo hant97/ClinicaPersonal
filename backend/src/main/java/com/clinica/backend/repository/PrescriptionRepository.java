@@ -13,4 +13,5 @@ public interface PrescriptionRepository extends JpaRepository<Prescription, Long
     Page<Prescription> findByPatientIdAndSpecialtyAndDeletedFalseOrderByCreatedAtDesc(Long patientId, String specialty, Pageable pageable);
     Page<Prescription> findByPatientIdAndSpecialtyAndProfessionalIdAndDeletedFalseOrderByCreatedAtDesc(Long patientId, String specialty, Long professionalId, Pageable pageable);
     Optional<Prescription> findByIdAndDeletedFalse(Long id);
+    Optional<Prescription> findByVerificationCodeAndDeletedFalse(String verificationCode);
 }

@@ -1,0 +1,230 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CatalogManagementComponent } from './catalog-management.component';
+import { CatalogService } from '../../../core/services/catalog.service';
+import { SpecialtyService } from '../../../core/services/specialty.service';
+import { NotificationService } from '../../../shared/services/notification/notification.service';
+import { of } from 'rxjs';
+import { Catalog, CatalogItem } from '../../../core/models/catalog.model';
+import { SpecialtyItem } from '../../../core/models/specialty.model';
+
+describe('CatalogManagementComponent', () => {
+  let component: CatalogManagementComponent;
+  let fixture: ComponentFixture<CatalogManagementComponent>;
+  let catalogServiceSpy: jasmine.SpyObj<CatalogService>;
+  let specialtyServiceSpy: jasmine.SpyObj<SpecialtyService>;
+  let notificationServiceSpy: jasmine.SpyObj<NotificationService>;
+
+  const mockSpecialties: SpecialtyItem[] = [
+    { id: 1, code: 'PSICOLOGIA', name: 'Psicología', active: true, displayOrder: 1 },
+    { id: 2, code: 'DERMATOLOGIA', name: 'Dermatología', active: true, displayOrder: 2 }
+  ];
+
+  const mockCatalogs: Catalog[] = [
+    {
+      id: 1,
+      code: 'PAYMENT_METHOD',
+      name: 'Método de Pago',
+      description: 'Formas de pago',
+      specialty: 'GENERAL',
+      items: [
+        { id: 101, catalogId: 1, itemCode: 'EFECTIVO', itemName: 'Efectivo', isActive: true, orderIndex: 0 },
+        { id: 102, catalogId: 1, itemCode: 'YAPE', itemName: 'Yape', isActive: true, orderIndex: 1 },
+        { id: 103, catalogId: 1, itemCode: 'PLIN', itemName: 'Plin', isActive: false, orderIndex: 2 }
+      ]
+    },
+    {
+      id: 2,
+      code: 'RISK_ALERT_TYPE',
+      name: 'Tipo de Alerta de Riesgo',
+      description: 'Riesgos clínicos',
+      specialty: 'PSICOLOGIA',
+      items: [
+        { id: 201, catalogId: 2, itemCode: 'AUTOLESION', itemName: 'Autolesión', isActive: true, orderIndex: 0 }
+      ]
+    },
+    {
+      id: 3,
+      code: 'SKIN_TYPE',
+      name: 'Tipo de Piel',
+      description: 'Dermatología piel',
+      specialty: 'DERMATOLOGIA',
+      items: [
+        { id: 301, catalogId: 3, itemCode: 'PIEL_SECA', itemName: 'Piel Seca', isActive: true, orderIndex: 0 }
+      ]
+    }
+  ];
+
+  beforeEach(async () => {
+    catalogServiceSpy = jasmine.createSpyObj('CatalogService', [
+      'getAllAccessibleCatalogs',
+      'addCatalogItem',
+      'updateCatalogItem',
+      'deleteCatalogItem',
+      'reorderCatalogItems',
+      'createCatalog',
+      'updateCatalog'
+    ]);
+    specialtyServiceSpy = jasmine.createSpyObj('SpecialtyService', ['getActiveSpecialties']);
+    notificationServiceSpy = jasmine.createSpyObj('NotificationService', ['alert']);
+
+    specialtyServiceSpy.getActiveSpecialties.and.returnValue(of(mockSpecialties));
+
+    const clonedCatalogs: Catalog[] = JSON.parse(JSON.stringify(mockCatalogs));
+    catalogServiceSpy.getAllAccessibleCatalogs.and.returnValue(of(clonedCatalogs));
+
+    await TestBed.configureTestingModule({
+      imports: [CatalogManagementComponent],
+      providers: [
+        { provide: CatalogService, useValue: catalogServiceSpy },
+        { provide: SpecialtyService, useValue: specialtyServiceSpy },
+        { provide: NotificationService, useValue: notificationServiceSpy }
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(CatalogManagementComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('debe inicializarse y cargar los catálogos seleccionando el primero', () => {
+    expect(component.catalogs.length).toBe(3);
+    expect(component.selectedCatalog?.code).toBe('PAYMENT_METHOD');
+    expect(component.items.length).toBe(3);
+  });
+
+  it('debe filtrar catálogos por especialidad', () => {
+    component.setSpecialtyFilter('PSICOLOGIA');
+    expect(component.filteredCatalogs.length).toBe(1);
+    expect(component.filteredCatalogs[0].code).toBe('RISK_ALERT_TYPE');
+    expect(component.selectedCatalog?.code).toBe('RISK_ALERT_TYPE');
+
+    component.setSpecialtyFilter('DERMATOLOGIA');
+    expect(component.filteredCatalogs.length).toBe(1);
+    expect(component.filteredCatalogs[0].code).toBe('SKIN_TYPE');
+
+    component.setSpecialtyFilter('ALL');
+    expect(component.filteredCatalogs.length).toBe(3);
+  });
+
+  it('debe filtrar catálogos por texto de búsqueda', () => {
+    component.catalogSearchQuery = 'Piel';
+    expect(component.filteredCatalogs.length).toBe(1);
+    expect(component.filteredCatalogs[0].name).toBe('Tipo de Piel');
+  });
+
+  it('debe auto-generar el código interno al escribir el nombre de una nueva opción', () => {
+    component.newItemName = 'Tarjeta de Crédito / Débito';
+    component.onNewItemNameChange();
+    expect(component.newItemCode).toBe('TARJETA_DE_CREDITO_DEBITO');
+  });
+
+  it('debe agregar una nueva opción con código auto-generado', () => {
+    const savedItem: CatalogItem = {
+      id: 104,
+      catalogId: 1,
+      itemCode: 'TRANSFERENCIA',
+      itemName: 'Transferencia',
+      isActive: true,
+      orderIndex: 3
+    };
+    catalogServiceSpy.addCatalogItem.and.returnValue(of(savedItem));
+
+    component.newItemName = 'Transferencia';
+    component.addItem();
+
+    expect(catalogServiceSpy.addCatalogItem).toHaveBeenCalledWith('PAYMENT_METHOD', jasmine.objectContaining({
+      itemCode: 'TRANSFERENCIA',
+      itemName: 'Transferencia',
+      isActive: true
+    }));
+    expect(component.items.length).toBe(4);
+    expect(notificationServiceSpy.alert).toHaveBeenCalledWith('Éxito', jasmine.any(String), 'success');
+  });
+
+  it('debe permitir la edición inline del nombre de una opción', () => {
+    const targetItem = component.items[0];
+    component.startEditItem(targetItem);
+    expect(component.editingItemId).toBe(targetItem.id!);
+
+    component.editingItemName = 'Efectivo en Caja';
+    const updatedItem = { ...targetItem, itemName: 'Efectivo en Caja' };
+    catalogServiceSpy.updateCatalogItem.and.returnValue(of(updatedItem));
+
+    component.saveEditItem(targetItem);
+
+    expect(catalogServiceSpy.updateCatalogItem).toHaveBeenCalledWith(targetItem.id!, jasmine.objectContaining({
+      itemName: 'Efectivo en Caja'
+    }), 'PAYMENT_METHOD');
+    expect(targetItem.itemName).toBe('Efectivo en Caja');
+    expect(component.editingItemId).toBeNull();
+  });
+
+  it('debe alternar el estado activo/inactivo', () => {
+    const item = component.items[0];
+    item.isActive = false;
+    catalogServiceSpy.updateCatalogItem.and.returnValue(of(item));
+
+    component.toggleActive(item);
+
+    expect(catalogServiceSpy.updateCatalogItem).toHaveBeenCalled();
+    expect(notificationServiceSpy.alert).toHaveBeenCalledWith('Éxito', jasmine.stringMatching(/desactivada/), 'success');
+  });
+
+  it('debe reordenar opciones hacia arriba y abajo', () => {
+    const reordered: CatalogItem[] = [component.items[1], component.items[0], component.items[2]];
+    catalogServiceSpy.reorderCatalogItems.and.returnValue(of(reordered));
+
+    component.moveItemDown(0);
+
+    expect(catalogServiceSpy.reorderCatalogItems).toHaveBeenCalledWith('PAYMENT_METHOD', [102, 101, 103]);
+    expect(component.items[0].itemCode).toBe('YAPE');
+  });
+
+  it('debe eliminar una opción tras confirmar en el modal', () => {
+    const itemToDelete = component.items[0];
+    component.confirmDeleteItem(itemToDelete);
+    expect(component.showDeleteModal).toBeTrue();
+    expect(component.itemToDelete).toBe(itemToDelete);
+
+    catalogServiceSpy.deleteCatalogItem.and.returnValue(of(void 0));
+    component.executeDeleteItem();
+
+    expect(catalogServiceSpy.deleteCatalogItem).toHaveBeenCalledWith(itemToDelete.id!, 'PAYMENT_METHOD');
+    expect(component.items.find(i => i.id === itemToDelete.id)).toBeUndefined();
+    expect(component.showDeleteModal).toBeFalse();
+  });
+
+  it('debe crear un nuevo catálogo maestro', () => {
+    component.openCreateCatalogModal();
+    expect(component.showCatalogModal).toBeTrue();
+    expect(component.isEditingCatalog).toBeFalse();
+
+    component.catalogFormName = 'Tipo de Sangre';
+    component.onCatalogFormNameChange();
+    expect(component.catalogFormCode).toBe('TIPO_DE_SANGRE');
+
+    const createdCatalog: Catalog = {
+      id: 4,
+      name: 'Tipo de Sangre',
+      code: 'TIPO_DE_SANGRE',
+      specialty: 'GENERAL',
+      items: []
+    };
+    catalogServiceSpy.createCatalog.and.returnValue(of(createdCatalog));
+
+    component.saveCatalog();
+
+    expect(catalogServiceSpy.createCatalog).toHaveBeenCalledWith(jasmine.objectContaining({
+      name: 'Tipo de Sangre',
+      code: 'TIPO_DE_SANGRE'
+    }));
+    expect(component.showCatalogModal).toBeFalse();
+  });
+
+  it('debe resolver la etiqueta de especialidad dinámicamente', () => {
+    expect(component.getSpecialtyLabel('GENERAL')).toBe('General');
+    expect(component.getSpecialtyLabel('PSICOLOGIA')).toBe('Psicología');
+    expect(component.getSpecialtyLabel('DERMATOLOGIA')).toBe('Dermatología');
+    expect(component.getSpecialtyLabel('NUTRICION')).toBe('Nutricion');
+  });
+});

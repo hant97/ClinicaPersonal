@@ -177,29 +177,28 @@ public class PaymentService {
         if (!specialty.equals(payment.getSpecialty())) {
             throw new AccessDeniedException("Cobro fuera de la especialidad del usuario");
         }
+        if (dto.getPatientId() != null && !dto.getPatientId().equals(payment.getPatient().getId())) {
+            throw new IllegalArgumentException("No se puede cambiar el paciente de un cobro");
+        }
 
         validateAmount(dto.getAmount());
-        if (dto.getItems() != null) {
-            validateItems(dto);
-        }
+        validateItems(dto);
 
         payment.setAmount(dto.getAmount());
         payment.setPaymentDate(dto.getPaymentDate());
         payment.setPaymentMethod(dto.getPaymentMethod());
         payment.setDescription(dto.getDescription());
 
-        if (dto.getAppointmentId() != null) {
-            payment.setAppointment(resolveAppointment(dto.getAppointmentId(), payment.getPatient().getId(), specialty));
-        }
+        payment.setAppointment(dto.getAppointmentId() != null
+                ? resolveAppointment(dto.getAppointmentId(), payment.getPatient().getId(), specialty)
+                : null);
 
-        if (dto.getItems() != null) {
-            // Revertir el stock consumido por los ítems anteriores y aplicar el de los nuevos
-            restoreStockFromItems(payment, "AJUSTE_PAGO_" + payment.getId(),
-                    "Reversión de stock por edición de cobro #" + payment.getId());
-            payment.getItems().clear();
-            for (PaymentItemDto itemDto : dto.getItems()) {
-                payment.getItems().add(buildItem(payment, itemDto, specialty));
-            }
+        // Revertir el stock consumido por los ítems anteriores y aplicar el de los nuevos
+        restoreStockFromItems(payment, "AJUSTE_PAGO_" + payment.getId(),
+                "Reversión de stock por edición de cobro #" + payment.getId());
+        payment.getItems().clear();
+        for (PaymentItemDto itemDto : dto.getItems()) {
+            payment.getItems().add(buildItem(payment, itemDto, specialty));
         }
 
         return mapToDto(paymentRepository.save(payment));
@@ -339,6 +338,9 @@ public class PaymentService {
         dto.setPaymentMethod(payment.getPaymentMethod());
         dto.setDescription(payment.getDescription());
         dto.setSpecialty(payment.getSpecialty());
+        if (payment.getPatient() != null) {
+            dto.setPatientName(payment.getPatient().getFirstName() + " " + payment.getPatient().getLastName());
+        }
         if (payment.getAppointment() != null) {
             dto.setAppointmentId(payment.getAppointment().getId());
         }

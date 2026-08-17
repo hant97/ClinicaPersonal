@@ -14,6 +14,9 @@ import {
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ClinicalServicesFormComponent } from '../clinical-services-form/clinical-services-form.component';
 
+import { SpecialtyService } from '../../../core/services/specialty.service';
+import { SpecialtyItem } from '../../../core/models/specialty.model';
+
 const SERVICE_CATEGORIES = ['Evaluación', 'Terapia', 'Procedimiento', 'Control', 'Diagnóstico', 'Otro'];
 
 @Component({
@@ -25,6 +28,7 @@ const SERVICE_CATEGORIES = ['Evaluación', 'Terapia', 'Procedimiento', 'Control'
 export class ClinicalServicesListComponent implements OnInit, OnDestroy {
   services: ClinicalService[] = [];
   stats: ClinicalServiceStats | null = null;
+  specialties: SpecialtyItem[] = [];
   categories = SERVICE_CATEGORIES;
 
   // Icons
@@ -56,7 +60,7 @@ export class ClinicalServicesListComponent implements OnInit, OnDestroy {
   filterStatus = 'ALL';
   filterMinPrice: number | null = null;
   filterMaxPrice: number | null = null;
-  viewMode: 'table' | 'cards' = 'cards';
+  viewMode: 'cards' | 'table' = 'cards';
 
   private searchSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
@@ -68,11 +72,17 @@ export class ClinicalServicesListComponent implements OnInit, OnDestroy {
 
   constructor(
     private serviceService: ClinicalServiceService,
+    private specialtyService: SpecialtyService,
     private toastService: ToastService,
     private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
+    this.specialtyService.getActiveSpecialties().subscribe({
+      next: (list) => this.specialties = list || [],
+      error: () => {}
+    });
+
     this.searchSubject.pipe(
       debounceTime(300),
       distinctUntilChanged(),
@@ -205,8 +215,11 @@ export class ClinicalServicesListComponent implements OnInit, OnDestroy {
   }
 
   getSpecialtyLabel(specialty?: string): string {
+    if (!specialty || specialty === 'GENERAL') return 'General';
+    const found = this.specialties.find(s => s.code.toUpperCase() === specialty.toUpperCase());
+    if (found) return found.name;
     if (specialty === 'PSICOLOGIA') return 'Psicología';
     if (specialty === 'DERMATOLOGIA') return 'Dermatología';
-    return specialty || 'General';
+    return specialty.charAt(0) + specialty.slice(1).toLowerCase();
   }
 }

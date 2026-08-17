@@ -3,13 +3,13 @@
   <div class="flex items-center justify-between border-b border-line pb-4">
     <div>
       <div class="flex items-center gap-2">
-        <span class="h-2 w-2 rounded-full bg-primary-600"></span>
-        <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">
-          {{ isPsychology ? 'Atención Psicológica (S.O.A.P.)' : 'Atención Dermatológica' }}
+        <span class="h-2.5 w-2.5 rounded-full" [ngClass]="isPsychology ? 'bg-purple-600' : 'bg-cyan-600'"></span>
+        <p class="text-xs font-semibold uppercase tracking-wider" [ngClass]="isPsychology ? 'text-purple-700' : 'text-cyan-700'">
+          {{ isPsychology ? 'Atención Psicológica (Registro S.O.A.P.)' : 'Atención Dermatológica & Consulta Clínica' }}
         </p>
       </div>
       <h2 class="text-xl font-bold text-ink mt-0.5">
-        {{ session ? 'Editar Sesión Clínica' : 'Nueva Sesión Clínica' }}
+        {{ session ? 'Editar Registro de Consulta' : 'Nueva Sesión de Atención Clínica' }}
       </h2>
     </div>
 
@@ -25,17 +25,26 @@
     <!-- Meta Fields Grid -->
     <div class="grid gap-3 sm:grid-cols-3">
       <div>
-        <label class="form-label">Fecha de Sesión *</label>
+        <label class="form-label text-xs font-semibold">Fecha de Atención *</label>
         <input type="date" formControlName="sessionDate" class="input-field !py-1.5 text-xs" />
       </div>
 
       <div>
-        <label class="form-label">Hora Inicio *</label>
+        <div class="flex items-center justify-between">
+          <label class="form-label text-xs font-semibold">Hora Inicio *</label>
+        </div>
         <input type="time" formControlName="startTime" class="input-field !py-1.5 text-xs font-mono" />
       </div>
 
       <div>
-        <label class="form-label">Hora Fin *</label>
+        <div class="flex items-center justify-between">
+          <label class="form-label text-xs font-semibold">Hora Fin *</label>
+          <div class="flex items-center gap-1">
+            <button type="button" class="btn-ghost !p-0.5 !text-[10px] text-primary-700" (click)="setDuration(30)">+30m</button>
+            <button type="button" class="btn-ghost !p-0.5 !text-[10px] text-primary-700" (click)="setDuration(45)">+45m</button>
+            <button type="button" class="btn-ghost !p-0.5 !text-[10px] text-primary-700" (click)="setDuration(60)">+60m</button>
+          </div>
+        </div>
         <input type="time" formControlName="endTime" class="input-field !py-1.5 text-xs font-mono" />
       </div>
     </div>
@@ -43,7 +52,7 @@
     <!-- Modality & Status Grid -->
     <div class="grid gap-3 sm:grid-cols-3">
       <div>
-        <label class="form-label">Tipo de Sesión *</label>
+        <label class="form-label text-xs font-semibold">Tipo de Consulta *</label>
         <select formControlName="sessionType" class="input-field !py-1.5 text-xs">
           @if (isPsychology) {
             <option value="INDIVIDUAL">Terapia Individual</option>
@@ -61,7 +70,7 @@
       </div>
 
       <div>
-        <label class="form-label">Modalidad *</label>
+        <label class="form-label text-xs font-semibold">Modalidad *</label>
         <select formControlName="modality" class="input-field !py-1.5 text-xs">
           <option value="">Seleccione modalidad</option>
           @for (modality of appointmentModalities; track modality.id) {
@@ -71,7 +80,7 @@
       </div>
 
       <div>
-        <label class="form-label">Estado de la Sesión</label>
+        <label class="form-label text-xs font-semibold">Estado de la Atención</label>
         <select formControlName="status" class="input-field !py-1.5 text-xs">
           <option value="COMPLETADA">Completada</option>
           <option value="CANCELADA">Cancelada</option>
@@ -80,103 +89,123 @@
       </div>
     </div>
 
-    <!-- S.O.A.P. Block Editor for Psychology -->
-    @if (isPsychology) {
-      <div class="space-y-4 rounded-xl border border-line bg-slate-50/70 p-4">
-        <div class="flex items-center justify-between border-b border-line pb-2">
-          <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Registro Estructurado S.O.A.P.</span>
-          <span class="text-[11px] text-muted">Complete al menos un bloque clínico</span>
-        </div>
+    <!-- S.O.A.P. Structured Clinical Documentation -->
+    <div class="space-y-4 rounded-xl border border-line bg-slate-50/70 p-4">
+      <div class="flex items-center justify-between border-b border-line pb-2">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-700">
+          {{ isPsychology ? 'Evolución Estructurada S.O.A.P.' : 'Notas de Evolución Clínica' }}
+        </span>
+        <span class="text-[11px] text-muted">Complete al menos un bloque de evolución</span>
+      </div>
 
-        <!-- S: Subjetivo -->
-        <div class="space-y-1.5">
-          <div class="flex items-center justify-between">
-            <label class="text-xs font-bold text-primary-700 uppercase tracking-wide">
-              Subjetivo (S) <span class="text-muted font-normal text-[11px]">— Reporte del paciente</span>
-            </label>
-            <div class="flex items-center gap-1">
+      <!-- S: Subjetivo -->
+      <div class="space-y-1.5">
+        <div class="flex flex-wrap items-center justify-between gap-1">
+          <label class="text-xs font-bold uppercase tracking-wide" [ngClass]="isPsychology ? 'text-purple-700' : 'text-cyan-700'">
+            {{ isPsychology ? 'Subjetivo (S) — Reporte del paciente' : 'Subjetivo (S) — Motivo de Consulta & Anamnesis' }}
+          </label>
+          <div class="flex flex-wrap items-center gap-1">
+            @if (isPsychology) {
               <button type="button" class="btn-ghost !p-1 !text-[10px]" (click)="insertTemplate('subjective', '• Motivo de consulta actual: ')">+ Motivo</button>
               <button type="button" class="btn-ghost !p-1 !text-[10px]" (click)="insertTemplate('subjective', '• Estado anímico referido: ')">+ Estado de ánimo</button>
-            </div>
+              <button type="button" class="btn-ghost !p-1 !text-[10px]" (click)="insertTemplate('subjective', '• Eventos detonantes: ')">+ Detonantes</button>
+            } @else {
+              <button type="button" class="btn-ghost !p-1 !text-[10px]" (click)="insertTemplate('subjective', '• Motivo de consulta: ')">+ Motivo</button>
+              <button type="button" class="btn-ghost !p-1 !text-[10px]" (click)="insertTemplate('subjective', '• Tiempo de evolución: ')">+ Evolución</button>
+              <button type="button" class="btn-ghost !p-1 !text-[10px]" (click)="insertTemplate('subjective', '• Síntomas asociados (prurito/dolor): ')">+ Síntomas</button>
+              <button type="button" class="btn-ghost !p-1 !text-[10px]" (click)="insertTemplate('subjective', '• Tratamientos previos: ')">+ Ttos previos</button>
+            }
           </div>
-          <textarea
-            formControlName="subjective"
-            class="input-field !bg-surface"
-            rows="2"
-            placeholder="¿Qué expresa el paciente sobre su motivo de consulta, síntomas o evolución en la semana?"
-          ></textarea>
         </div>
+        <textarea
+          formControlName="subjective"
+          class="input-field !bg-surface"
+          rows="2"
+          [placeholder]="isPsychology ? '¿Qué expresa el paciente sobre su motivo de consulta, síntomas o evolución en la semana?' : 'Historia de la enfermedad actual, tiempo de evolución, síntomas asociados y tratamientos previos.'"
+        ></textarea>
+      </div>
 
-        <!-- O: Objetivo -->
-        <div class="space-y-1.5">
-          <div class="flex items-center justify-between">
-            <label class="text-xs font-bold text-primary-700 uppercase tracking-wide">
-              Objetivo (O) <span class="text-muted font-normal text-[11px]">— Observaciones clínicas</span>
-            </label>
-            <div class="flex items-center gap-1">
+      <!-- O: Objetivo -->
+      <div class="space-y-1.5">
+        <div class="flex flex-wrap items-center justify-between gap-1">
+          <label class="text-xs font-bold uppercase tracking-wide" [ngClass]="isPsychology ? 'text-purple-700' : 'text-cyan-700'">
+            {{ isPsychology ? 'Objetivo (O) — Observaciones clínicas' : 'Objetivo (O) — Examen Físico & Dermatoscopía' }}
+          </label>
+          <div class="flex flex-wrap items-center gap-1">
+            @if (isPsychology) {
               <button type="button" class="btn-ghost !p-1 !text-[10px]" (click)="insertTemplate('objective', '• Porte y actitud: Orientado en tiempo y espacio. ')">+ Porte y actitud</button>
               <button type="button" class="btn-ghost !p-1 !text-[10px]" (click)="insertTemplate('objective', '• Afecto: Congruente con el discurso. ')">+ Afecto</button>
-            </div>
+              <button type="button" class="btn-ghost !p-1 !text-[10px]" (click)="insertTemplate('objective', '• Pensamiento y lenguaje: Fluido y coherente. ')">+ Pensamiento</button>
+            } @else {
+              <button type="button" class="btn-ghost !p-1 !text-[10px]" (click)="insertTemplate('objective', '• Topografía (localización): ')">+ Topografía</button>
+              <button type="button" class="btn-ghost !p-1 !text-[10px]" (click)="insertTemplate('objective', '• Morfología de lesión: ')">+ Lesión</button>
+              <button type="button" class="btn-ghost !p-1 !text-[10px]" (click)="insertTemplate('objective', '• Hallazgos dermatoscópicos: ')">+ Dermatoscopía</button>
+            }
           </div>
-          <textarea
-            formControlName="objective"
-            class="input-field !bg-surface"
-            rows="2"
-            placeholder="Conducta observable, signos no verbales, tono afectivo y hallazgos objetivos."
-          ></textarea>
         </div>
+        <textarea
+          formControlName="objective"
+          class="input-field !bg-surface"
+          rows="2"
+          [placeholder]="isPsychology ? 'Conducta observable, signos no verbales, tono afectivo y examen mental.' : 'Examen físico, topografía de lesiones, morfología clínica, signos dermatoscópicos y hallazgos objetivos.'"
+        ></textarea>
+      </div>
 
-        <!-- A: Análisis -->
-        <div class="space-y-1.5">
-          <div class="flex items-center justify-between">
-            <label class="text-xs font-bold text-primary-700 uppercase tracking-wide">
-              Análisis (A) <span class="text-muted font-normal text-[11px]">— Evaluación e hipótesis</span>
-            </label>
-            <div class="flex items-center gap-1">
+      <!-- A: Análisis -->
+      <div class="space-y-1.5">
+        <div class="flex flex-wrap items-center justify-between gap-1">
+          <label class="text-xs font-bold uppercase tracking-wide" [ngClass]="isPsychology ? 'text-purple-700' : 'text-cyan-700'">
+            {{ isPsychology ? 'Análisis (A) — Evaluación e hipótesis' : 'Análisis (A) — Impresión Diagnóstica' }}
+          </label>
+          <div class="flex flex-wrap items-center gap-1">
+            @if (isPsychology) {
               <button type="button" class="btn-ghost !p-1 !text-[10px]" (click)="insertTemplate('analysis', '• Avance en objetivos terapéuticos: ')">+ Avance</button>
-            </div>
+              <button type="button" class="btn-ghost !p-1 !text-[10px]" (click)="insertTemplate('analysis', '• Hipótesis diagnóstica: ')">+ Hipótesis</button>
+            } @else {
+              <button type="button" class="btn-ghost !p-1 !text-[10px]" (click)="insertTemplate('analysis', '• Impresión diagnóstica: ')">+ Diagnóstico</button>
+              <button type="button" class="btn-ghost !p-1 !text-[10px]" (click)="insertTemplate('analysis', '• Diagnósticos diferenciales: ')">+ Diferenciales</button>
+            }
           </div>
-          <textarea
-            formControlName="analysis"
-            class="input-field !bg-surface"
-            rows="2"
-            placeholder="Interpretación clínica, hipótesis diagnóstica y conceptualización del caso."
-          ></textarea>
         </div>
+        <textarea
+          formControlName="analysis"
+          class="input-field !bg-surface"
+          rows="2"
+          [placeholder]="isPsychology ? 'Interpretación clínica, hipótesis diagnóstica y conceptualización del caso.' : 'Diagnóstico clínico presuntivo, diagnósticos diferenciales y juicio clínico del especialista.'"
+        ></textarea>
+      </div>
 
-        <!-- P: Plan -->
-        <div class="space-y-1.5">
-          <div class="flex items-center justify-between">
-            <label class="text-xs font-bold text-primary-700 uppercase tracking-wide">
-              Plan (P) <span class="text-muted font-normal text-[11px]">— Estrategia terapéutica</span>
-            </label>
-            <div class="flex items-center gap-1">
+      <!-- P: Plan -->
+      <div class="space-y-1.5">
+        <div class="flex flex-wrap items-center justify-between gap-1">
+          <label class="text-xs font-bold uppercase tracking-wide" [ngClass]="isPsychology ? 'text-purple-700' : 'text-cyan-700'">
+            {{ isPsychology ? 'Plan (P) — Estrategia terapéutica' : 'Plan (P) — Tratamiento, Indicaciones & Control' }}
+          </label>
+          <div class="flex flex-wrap items-center gap-1">
+            @if (isPsychology) {
               <button type="button" class="btn-ghost !p-1 !text-[10px]" (click)="insertTemplate('plan', '• Tarea para la siguiente sesión: ')">+ Tarea</button>
               <button type="button" class="btn-ghost !p-1 !text-[10px]" (click)="insertTemplate('plan', '• Frecuencia: Sesión semanal programada.')">+ Frecuencia</button>
-            </div>
+            } @else {
+              <button type="button" class="btn-ghost !p-1 !text-[10px]" (click)="insertTemplate('plan', '• Tratamiento indicado: ')">+ Tratamiento</button>
+              <button type="button" class="btn-ghost !p-1 !text-[10px]" (click)="insertTemplate('plan', '• Cuidados y fotoprotección: ')">+ Fotoprotección</button>
+              <button type="button" class="btn-ghost !p-1 !text-[10px]" (click)="insertTemplate('plan', '• Próximo control: en ')">+ Control</button>
+            }
           </div>
-          <textarea
-            formControlName="plan"
-            class="input-field !bg-surface"
-            rows="2"
-            placeholder="Intervenciones realizadas, tareas intersesión y acuerdos para la próxima cita."
-          ></textarea>
         </div>
+        <textarea
+          formControlName="plan"
+          class="input-field !bg-surface"
+          rows="2"
+          [placeholder]="isPsychology ? 'Intervenciones realizadas, tareas intersesión y acuerdos para la próxima cita.' : 'Plan terapéutico farmacológico/tópico, cuidados dermatológicos, exámenes auxiliares solicitados y pautas de control.'"
+        ></textarea>
       </div>
-    }
+    </div>
 
-    <!-- Dermatology Note Notice -->
-    @if (isDermatology) {
-      <div class="rounded-xl border border-line bg-slate-50 p-4 text-xs text-muted leading-relaxed">
-        <p class="font-semibold text-slate-700 mb-1">Notas de Consulta Dermatológica</p>
-        Los antecedentes específicos, lesiones anatómicas, fotos comparativas, procedimientos y recetas se gestionan en sus respectivas secciones del expediente para mantener la trazabilidad clínica.
-      </div>
-    }
-
-    <!-- Validation message if SOAP empty in Psychology -->
-    @if (isPsychology && sessionForm.hasError('soapRequired') && sessionForm.touched) {
-      <div class="rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-medium text-danger">
-        Debe registrar información en al menos uno de los bloques S.O.A.P.
+    <!-- Validation message if SOAP empty -->
+    @if (sessionForm.hasError('soapRequired') && sessionForm.touched) {
+      <div class="rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-medium text-danger flex items-center gap-2">
+        <lucide-icon [img]="AlertCircle" [size]="15"></lucide-icon>
+        <span>Debe registrar información clínica en al menos uno de los bloques S.O.A.P.</span>
       </div>
     }
 
@@ -202,3 +231,4 @@
     </div>
   </form>
 </div>
+

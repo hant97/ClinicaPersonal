@@ -1,4 +1,0 @@
-ALTER TABLE risk_alerts
-    ALTER COLUMN id TYPE BIGINT;
-
-ALTER SEQUENCE IF EXISTS risk_alerts_id_seq AS BIGINT;

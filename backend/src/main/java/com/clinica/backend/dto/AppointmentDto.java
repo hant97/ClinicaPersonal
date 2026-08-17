@@ -15,6 +15,7 @@ import jakarta.validation.constraints.Size;
 public class AppointmentDto {
     private Long id;
     @NotNull(message = "El paciente es obligatorio") private Long patientId;
+    private String patientName;
     @NotNull(message = "La fecha de cita es obligatoria") private LocalDate appointmentDate;
     @NotNull(message = "La hora de inicio es obligatoria") private LocalTime startTime;
     @NotNull(message = "La hora de fin es obligatoria") private LocalTime endTime;

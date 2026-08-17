@@ -2,22 +2,28 @@ package com.clinica.backend.service;
 
 import com.clinica.backend.dto.PrescriptionDto;
 import com.clinica.backend.dto.PrescriptionItemDto;
+import com.clinica.backend.dto.PublicPrescriptionVerificationDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
+import com.clinica.backend.model.ClinicSettings;
 import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.Prescription;
 import com.clinica.backend.model.PrescriptionItem;
 import com.clinica.backend.model.User;
+import com.clinica.backend.repository.ClinicSettingsRepository;
 import com.clinica.backend.repository.PatientRepository;
 import com.clinica.backend.repository.PrescriptionRepository;
+import com.clinica.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +32,8 @@ public class PrescriptionService {
     private final PrescriptionRepository repository;
     private final PatientRepository patientRepository;
     private final ClinicalAuthorizationService clinicalAuthorizationService;
+    private final UserRepository userRepository;
+    private final ClinicSettingsRepository clinicSettingsRepository;
 
     @Transactional(readOnly = true)
     public Page<PrescriptionDto> getPrescriptions(Long patientId, Pageable pageable) {
@@ -46,6 +54,7 @@ public class PrescriptionService {
         prescription.setPatient(patient);
         prescription.setSpecialty(user.getSpecialty());
         prescription.setProfessionalId(user.getId());
+        prescription.setVerificationCode(generateVerificationCode());
         copyEditableFields(dto, prescription);
         return mapToDto(repository.save(prescription));
     }
@@ -54,6 +63,9 @@ public class PrescriptionService {
     public PrescriptionDto updatePrescription(Long id, PrescriptionDto dto) {
         Prescription prescription = getActivePrescription(id);
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator(prescription.getSpecialty(), prescription.getProfessionalId());
+        if (prescription.getVerificationCode() == null || prescription.getVerificationCode().isBlank()) {
+            prescription.setVerificationCode(generateVerificationCode());
+        }
         copyEditableFields(dto, prescription);
         return mapToDto(repository.save(prescription));
     }
@@ -66,6 +78,55 @@ public class PrescriptionService {
         prescription.setDeletedAt(LocalDateTime.now());
         prescription.setDeletedBy(clinicalAuthorizationService.currentUser().getId());
         repository.save(prescription);
+    }
+
+    @Transactional(readOnly = true)
+    public PublicPrescriptionVerificationDto verifyPrescription(String verificationCode) {
+        Prescription prescription = repository.findByVerificationCodeAndDeletedFalse(verificationCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Receta médica no encontrada para el código: " + verificationCode));
+
+        LocalDate today = LocalDate.now();
+        boolean isValid = prescription.getValidUntil() == null || !today.isAfter(prescription.getValidUntil());
+
+        String patientName = prescription.getPatient() != null 
+                ? (prescription.getPatient().getFirstName() + " " + prescription.getPatient().getLastName())
+                : "Paciente";
+
+        String patientDoc = prescription.getPatient() != null ? prescription.getPatient().getIdentificationDocument() : null;
+
+        String professionalName = "Profesional Responsable";
+        if (prescription.getProfessionalId() != null) {
+            User prof = userRepository.findById(prescription.getProfessionalId()).orElse(null);
+            if (prof != null) {
+                professionalName = ((prof.getFirstName() != null ? prof.getFirstName() + " " : "") + 
+                                   (prof.getLastName() != null ? prof.getLastName() : prof.getUsername())).trim();
+            }
+        }
+
+        String clinicName = "Clínica Personal";
+        ClinicSettings settings = clinicSettingsRepository.findTopBySpecialtyAndDeletedFalseOrderByIdAsc(prescription.getSpecialty()).orElse(null);
+        if (settings != null && settings.getClinicName() != null && !settings.getClinicName().isBlank()) {
+            clinicName = settings.getClinicName();
+        }
+
+        return PublicPrescriptionVerificationDto.builder()
+                .verificationCode(prescription.getVerificationCode())
+                .patientName(patientName)
+                .patientIdentificationDocument(patientDoc)
+                .prescriptionDate(prescription.getPrescriptionDate())
+                .validUntil(prescription.getValidUntil())
+                .valid(isValid)
+                .statusMessage(isValid ? "VIGENTE Y AUTÉNTICA" : "VENCIDA")
+                .professionalName(professionalName)
+                .specialty(prescription.getSpecialty())
+                .clinicName(clinicName)
+                .notes(prescription.getNotes())
+                .items(mapItems(prescription))
+                .build();
+    }
+
+    private String generateVerificationCode() {
+        return "REC-" + UUID.randomUUID().toString().replace("-", "").substring(0, 10).toUpperCase();
     }
 
     private Prescription getActivePrescription(Long id) {
@@ -109,6 +170,7 @@ public class PrescriptionService {
         dto.setValidUntil(prescription.getValidUntil());
         dto.setNotes(prescription.getNotes());
         dto.setProfessionalId(prescription.getProfessionalId());
+        dto.setVerificationCode(prescription.getVerificationCode());
         dto.setCreatedAt(prescription.getCreatedAt());
         dto.setUpdatedAt(prescription.getUpdatedAt());
         dto.setItems(mapItems(prescription));

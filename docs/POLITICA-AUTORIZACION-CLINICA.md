@@ -16,6 +16,10 @@ Esta política cubre sesiones clínicas, evaluaciones psicológicas, evaluacione
 
 Un administrador clínico es un usuario con `ROLE_ADMIN` cuya especialidad coincide con la del recurso. `ROLE_SITE_ADMIN` no concede acceso clínico. El acceso fuera de especialidad o sin propiedad devuelve `403` sin revelar detalles del registro. Una petición sin autenticación es rechazada por Spring Security con `401`; los registros borrados lógicamente responden `404`.
 
+## Catálogo de servicios clínicos
+
+El catálogo de servicios clínicos (`clinical_services`) es un recurso compartido por especialidad y su administración (crear, editar y borrar) está reservada exclusivamente a `ROLE_ADMIN` mediante `@PreAuthorize("hasRole('ADMIN')")` en el controlador. A diferencia de los registros clínicos (que admiten a profesionales de la misma especialidad), la lectura sigue el alcance por especialidad y la escritura es solo de administradores. Esto es intencional: el catálogo define precios, categorías y duración de los servicios, por lo que no se expone a profesionales no administradores.
+
 ## Retención y auditoría
 
 Por trazabilidad clínica, sesiones, historias y evaluaciones no se borran físicamente. La eliminación registra `deleted`, `deleted_at` y `deleted_by`; las consultas operativas excluyen los registros eliminados. No existe endpoint para consultar registros eliminados: una futura consulta de auditoría deberá requerir explícitamente un rol clínico autorizado y conservar esta restricción por especialidad.

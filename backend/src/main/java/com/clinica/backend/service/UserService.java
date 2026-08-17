@@ -1,5 +1,6 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.dto.AdminUpdateUserRequest;
 import com.clinica.backend.dto.CreateUserRequest;
 import com.clinica.backend.dto.UpdatePasswordRequest;
 import com.clinica.backend.dto.UpdateProfileRequest;
@@ -10,6 +11,8 @@ import com.clinica.backend.exception.ConflictException;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +27,20 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
 
+    @Transactional(readOnly = true)
+    public Page<UserProfileDTO> getAllUsers(String query, String specialty, Boolean enabled, Pageable pageable) {
+        return userRepository.searchUsers(query, specialty, enabled, pageable)
+                .map(this::mapToDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public UserProfileDTO getUserById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
+        return mapToDTO(user);
+    }
+
+    @Transactional
     public UserProfileDTO createUser(CreateUserRequest request) {
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
             throw new ConflictException("El nombre de usuario ya está registrado");
@@ -38,18 +55,21 @@ public class UserService {
         user.setPhone(request.getPhone());
         user.setRoles(request.getRoles() != null && !request.getRoles().isEmpty() 
                 ? request.getRoles() 
-                : Set.of("ROLE_STAFF"));
+                : Set.of("ROLE_ADMIN"));
         user.setSpecialty(request.getSpecialty());
+        user.setEnabled(true);
         userRepository.save(user);
         return mapToDTO(user);
     }
 
+    @Transactional(readOnly = true)
     public UserProfileDTO getUserProfile(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         return mapToDTO(user);
     }
 
+    @Transactional
     public UserProfileDTO updateProfile(String username, UpdateProfileRequest request) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
@@ -58,6 +78,34 @@ public class UserService {
         user.setLastName(request.getLastName());
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
+
+        userRepository.save(user);
+        return mapToDTO(user);
+    }
+
+    @Transactional
+    public UserProfileDTO adminUpdateUser(Long id, AdminUpdateUserRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
+
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        user.setEmail(request.getEmail());
+        user.setPhone(request.getPhone());
+        user.setSpecialty(request.getSpecialty());
+
+        if (request.getRoles() != null && !request.getRoles().isEmpty()) {
+            user.setRoles(request.getRoles());
+        }
+
+        if (request.getEnabled() != null) {
+            boolean wasEnabled = user.isEnabled();
+            user.setEnabled(request.getEnabled());
+            if (wasEnabled && !request.getEnabled()) {
+                user.setTokenVersion(user.getTokenVersion() + 1);
+                refreshTokenService.revokeAllForUser(user.getId());
+            }
+        }
 
         userRepository.save(user);
         return mapToDTO(user);
@@ -80,12 +128,19 @@ public class UserService {
 
     @Transactional
     public void disableUser(Long userId) {
+        toggleUserStatus(userId, false);
+    }
+
+    @Transactional
+    public void toggleUserStatus(Long userId, boolean enabled) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
-        user.setEnabled(false);
-        user.setTokenVersion(user.getTokenVersion() + 1);
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + userId));
+        user.setEnabled(enabled);
+        if (!enabled) {
+            user.setTokenVersion(user.getTokenVersion() + 1);
+            refreshTokenService.revokeAllForUser(userId);
+        }
         userRepository.save(user);
-        refreshTokenService.revokeAllForUser(userId);
     }
 
     @Transactional
@@ -94,7 +149,7 @@ public class UserService {
             throw new IllegalArgumentException("La nueva contraseña debe tener al menos 8 caracteres e incluir mayúsculas, minúsculas, un número y un símbolo");
         }
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + userId));
         user.setPassword(passwordEncoder.encode(newPassword));
         user.setTokenVersion(user.getTokenVersion() + 1);
         userRepository.save(user);
@@ -111,6 +166,7 @@ public class UserService {
                 .phone(user.getPhone())
                 .roles(user.getRoles())
                 .specialty(user.getSpecialty())
+                .enabled(user.isEnabled())
                 .build();
     }
 }

@@ -86,11 +86,17 @@ public class MockDataSeeder {
             // 3. Crear 3 Tests Psicométricos
             List<PsychometricTest> tests = new ArrayList<>();
             String[] testNames = {"Test de Personalidad MMPI-2", "Test de Rorschach", "Escala de Ansiedad de Hamilton (HAM-A)"};
+            String[] testInterpretations = {
+                "[{\"minScore\":0,\"maxScore\":25,\"label\":\"Bajo\",\"color\":\"emerald\",\"description\":\"Puntaje dentro del rango bajo.\"},{\"minScore\":26,\"maxScore\":50,\"label\":\"Moderado\",\"color\":\"amber\",\"description\":\"Puntaje dentro del rango moderado.\"},{\"minScore\":51,\"maxScore\":100,\"label\":\"Elevado\",\"color\":\"red\",\"description\":\"Puntaje dentro del rango elevado.\"}]",
+                "[{\"minScore\":0,\"maxScore\":25,\"label\":\"Bajo\",\"color\":\"emerald\",\"description\":\"Puntaje dentro del rango bajo.\"},{\"minScore\":26,\"maxScore\":50,\"label\":\"Moderado\",\"color\":\"amber\",\"description\":\"Puntaje dentro del rango moderado.\"},{\"minScore\":51,\"maxScore\":100,\"label\":\"Elevado\",\"color\":\"red\",\"description\":\"Puntaje dentro del rango elevado.\"}]",
+                "[{\"minScore\":0,\"maxScore\":13,\"label\":\"Sin ansiedad\",\"color\":\"emerald\",\"description\":\"No se observan síntomas de ansiedad significativos.\"},{\"minScore\":14,\"maxScore\":17,\"label\":\"Leve\",\"color\":\"blue\",\"description\":\"Síntomas de ansiedad leves.\"},{\"minScore\":18,\"maxScore\":24,\"label\":\"Moderada\",\"color\":\"orange\",\"description\":\"Síntomas de ansiedad moderados.\"},{\"minScore\":25,\"maxScore\":56,\"label\":\"Severa\",\"color\":\"red\",\"description\":\"Síntomas de ansiedad severos.\"}]"
+            };
             for (int i = 0; i < 3; i++) {
                 PsychometricTest test = new PsychometricTest();
                 test.setName(testNames[i]);
                 test.setDescription("Evaluación clínica estructurada para el test " + testNames[i]);
                 test.setQuestionsJson("[{\"id\": 1, \"text\": \"Pregunta de ejemplo\", \"options\": [{\"score\": 0, \"text\": \"Falso\"}, {\"score\": 1, \"text\": \"Verdadero\"}]}]");
+                test.setInterpretationJson(testInterpretations[i]);
                 tests.add(psychometricTestRepository.save(test));
             }
 

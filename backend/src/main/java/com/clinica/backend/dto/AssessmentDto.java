@@ -14,4 +14,5 @@ public class AssessmentDto {
     private Integer totalScore;
     private String answersJson;
     private String notes;
+    private String interpretationJson;
 }

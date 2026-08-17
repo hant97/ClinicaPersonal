@@ -12,5 +12,6 @@ export interface Catalog {
   code: string;
   name: string;
   description?: string;
+  specialty?: string;
   items?: CatalogItem[];
 }

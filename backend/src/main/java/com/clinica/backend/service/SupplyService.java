@@ -1,9 +1,12 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.dto.InventoryTransactionDto;
 import com.clinica.backend.dto.SupplyDto;
 import com.clinica.backend.dto.SupplyStatsDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.Supply;
+import com.clinica.backend.model.TransactionReason;
+import com.clinica.backend.model.TransactionType;
 import com.clinica.backend.repository.SupplyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,6 +28,7 @@ public class SupplyService {
 
     private final SupplyRepository supplyRepository;
     private final WebsiteFileStorage fileStorage;
+    private final InventoryTransactionService inventoryTransactionService;
 
     private String getCurrentUserSpecialty() {
         return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getSpecialty();
@@ -88,9 +92,12 @@ public class SupplyService {
         Supply supply = supplyRepository.findByIdAndSpecialtyAndDeletedFalse(id, specialty)
                 .orElseThrow(() -> new ResourceNotFoundException("Suministro", "id", id));
 
+        int oldStock = supply.getCurrentStock() != null ? supply.getCurrentStock() : 0;
+        int newStock = supplyDto.getCurrentStock() != null ? supplyDto.getCurrentStock() : 0;
+        int stockDiff = newStock - oldStock;
+
         supply.setName(supplyDto.getName());
         supply.setDescription(supplyDto.getDescription());
-        supply.setCurrentStock(supplyDto.getCurrentStock());
         supply.setMinStockLevel(supplyDto.getMinStockLevel());
         supply.setUnit(supplyDto.getUnit());
         supply.setPrice(supplyDto.getPrice());
@@ -98,6 +105,18 @@ public class SupplyService {
         supply.setImageUrl(trimToNull(supplyDto.getImageUrl()));
 
         Supply updatedSupply = supplyRepository.save(supply);
+
+        if (stockDiff != 0) {
+            InventoryTransactionDto txDto = new InventoryTransactionDto();
+            txDto.setSupplyId(updatedSupply.getId());
+            txDto.setQuantity(Math.abs(stockDiff));
+            txDto.setType(stockDiff > 0 ? TransactionType.IN : TransactionType.OUT);
+            txDto.setReason(stockDiff > 0 ? TransactionReason.RESTOCK : TransactionReason.DAMAGED);
+            txDto.setNotes("Ajuste manual de stock en edición de insumo");
+            inventoryTransactionService.recordTransaction(txDto);
+            updatedSupply.setCurrentStock(newStock);
+        }
+
         return mapToDto(updatedSupply);
     }
 

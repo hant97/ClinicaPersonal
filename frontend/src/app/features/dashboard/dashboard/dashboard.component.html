@@ -94,33 +94,27 @@
 
     <!-- 3. KPI Metrics Grid (Unified Neutral Palette with Focused Semantics) -->
     <div class="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-      <!-- Pacientes Activos -->
-      <div class="card !p-4 bg-white border border-slate-200 shadow-card flex items-center justify-between transition hover:border-slate-300 hover:shadow-raised">
-        <div>
-          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Pacientes Activos</p>
-          <p class="text-2xl font-bold text-slate-900 mt-1 tracking-tight">{{ stats.activePatients }}</p>
-          <div class="flex items-center gap-1 mt-1 text-[11px] text-slate-600 font-medium">
-            <lucide-icon [img]="TrendingUp" [size]="13" class="text-emerald-600"></lucide-icon>
-            <span>+{{ stats.newPatientsThisMonth }} este mes</span>
-          </div>
-        </div>
-        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-600 border border-slate-200/70">
-          <lucide-icon [img]="Users" [size]="20"></lucide-icon>
-        </div>
-      </div>
-
       <!-- Citas de Hoy -->
       <div class="card !p-4 bg-white border border-slate-200 shadow-card flex items-center justify-between transition hover:border-slate-300 hover:shadow-raised">
         <div>
           <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Citas de Hoy</p>
           <p class="text-2xl font-bold text-slate-900 mt-1 tracking-tight">{{ stats.appointmentsToday }}</p>
-          <div class="flex items-center gap-1.5 mt-1 text-[11px] text-slate-600 font-medium">
-            <span class="h-1.5 w-1.5 rounded-full bg-primary-600"></span>
-            <span>{{ stats.attendanceRate }}% asistencia</span>
-          </div>
+          <p class="text-[11px] text-slate-500 font-medium mt-1">{{ stats.attendanceRate }}% asistencia del mes</p>
         </div>
         <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-600 border border-slate-200/70">
           <lucide-icon [img]="Calendar" [size]="20"></lucide-icon>
+        </div>
+      </div>
+
+      <!-- En Espera / Confirmadas -->
+      <div class="card !p-4 bg-white border border-slate-200 shadow-card flex items-center justify-between transition hover:border-slate-300 hover:shadow-raised">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">En Espera / Confirmadas</p>
+          <p class="text-2xl font-bold text-slate-900 mt-1 tracking-tight">{{ pendingAppointmentsCount }}</p>
+          <p class="text-[11px] text-slate-500 font-medium mt-1">{{ nextAppointmentLabel }}</p>
+        </div>
+        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-600 border border-slate-200/70">
+          <lucide-icon [img]="Clock" [size]="20"></lucide-icon>
         </div>
       </div>
 
@@ -139,364 +133,221 @@
         </div>
       </div>
 
-      <!-- Specialty Metric -->
-      @if (isPsychology) {
-        <div class="card !p-4 bg-white border border-slate-200 shadow-card flex items-center justify-between transition hover:border-slate-300 hover:shadow-raised">
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Evaluaciones Psico</p>
-            <p class="text-2xl font-bold text-slate-900 mt-1 tracking-tight">{{ stats.psychometricEvaluationsThisMonth }}</p>
-            <p class="text-[11px] text-slate-500 font-medium mt-1">Pruebas del mes</p>
-          </div>
-          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-600 border border-slate-200/70">
-            <lucide-icon [img]="BrainCircuit" [size]="20"></lucide-icon>
+      <!-- Pacientes Activos -->
+      <div class="card !p-4 bg-white border border-slate-200 shadow-card flex items-center justify-between transition hover:border-slate-300 hover:shadow-raised">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Pacientes Activos</p>
+          <p class="text-2xl font-bold text-slate-900 mt-1 tracking-tight">{{ stats.activePatients }}</p>
+          <div class="flex items-center gap-1 mt-1 text-[11px] text-slate-600 font-medium">
+            <lucide-icon [img]="TrendingUp" [size]="13" class="text-emerald-600"></lucide-icon>
+            <span>+{{ stats.newPatientsThisMonth }} este mes</span>
           </div>
         </div>
-      } @else if (isDermatology) {
-        <div class="card !p-4 bg-white border border-slate-200 shadow-card flex items-center justify-between transition hover:border-slate-300 hover:shadow-raised">
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Procedimientos Dermato</p>
-            <p class="text-2xl font-bold text-slate-900 mt-1 tracking-tight">{{ stats.dermatologicalProceduresThisMonth }}</p>
-            <p class="text-[11px] text-slate-500 font-medium mt-1">Intervenciones del mes</p>
-          </div>
-          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-600 border border-slate-200/70">
-            <lucide-icon [img]="Sparkles" [size]="20"></lucide-icon>
-          </div>
-        </div>
-      } @else {
-        <div class="card !p-4 bg-white border border-slate-200 shadow-card flex items-center justify-between transition hover:border-slate-300 hover:shadow-raised">
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Atenciones Totales</p>
-            <p class="text-2xl font-bold text-slate-900 mt-1 tracking-tight">{{ stats.upcomingAppointments.length }}</p>
-            <p class="text-[11px] text-slate-500 font-medium mt-1">Registros agendados</p>
-          </div>
-          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-600 border border-slate-200/70">
-            <lucide-icon [img]="Activity" [size]="20"></lucide-icon>
-          </div>
-        </div>
-      }
-    </div>
-
-    <!-- 4. Interactive Visual Analytics Section (Clean Charts Grid) -->
-    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <!-- Left Chart: Evolution Trend -->
-      <div class="card !p-5 space-y-3 bg-white border border-slate-200 shadow-card">
-        <div class="flex items-center justify-between border-b border-slate-200 pb-3">
-          <div>
-            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">Evolución de Atenciones Clínicas</h2>
-            <p class="text-xs text-slate-500">Frecuencia y volumen de pacientes en las últimas 4 semanas</p>
-          </div>
-          <span class="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 border border-slate-200">
-            Últimas 4 semanas
-          </span>
-        </div>
-
-        <div class="h-64 w-full relative">
-          <canvas #trendCanvas></canvas>
-        </div>
-      </div>
-
-      <!-- Right Chart: Attendance & Efficiency Doughnut -->
-      <div class="card !p-5 space-y-3 flex flex-col justify-between bg-white border border-slate-200 shadow-card">
-        <div class="border-b border-slate-200 pb-3">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">Efectividad de Asistencia</h2>
-          <p class="text-xs text-slate-500">Tasa de cumplimiento de citas</p>
-        </div>
-
-        <div class="h-44 w-full relative flex items-center justify-center">
-          <canvas #attendanceCanvas></canvas>
-          <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span class="text-2xl font-bold text-slate-900">{{ stats.attendanceRate }}%</span>
-            <span class="text-[10px] text-slate-500 uppercase font-semibold tracking-wider">Asistencia</span>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2 text-center text-xs pt-2 border-t border-slate-200">
-          <div class="p-2 rounded-lg bg-slate-50 border border-slate-200/80">
-            <span class="text-[10px] text-slate-500 block font-medium">Asistieron</span>
-            <span class="font-bold text-slate-900 text-sm">{{ stats.attendanceRate }}%</span>
-          </div>
-          <div class="p-2 rounded-lg bg-slate-50 border border-slate-200/80">
-            <span class="text-[10px] text-slate-500 block font-medium">Canceladas</span>
-            <span class="font-bold text-slate-700 text-sm">{{ 100 - stats.attendanceRate }}%</span>
-          </div>
+        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-600 border border-slate-200/70">
+          <lucide-icon [img]="Users" [size]="20"></lucide-icon>
         </div>
       </div>
     </div>
 
-    <!-- 5. Real-Time Clinical Kanban Board (Clean Neutral Structure with Status Dots) -->
+    <!-- 5. Agenda de Hoy (Lista ordenada por hora con estado real) -->
     <div class="space-y-3">
       <div class="flex items-center justify-between border-b border-slate-200 pb-2">
         <div>
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">Flujo Clínico del Día (Kanban)</h2>
-          <p class="text-xs text-slate-500">Supervisión en tiempo real de pacientes y citas del día</p>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">Agenda de Hoy</h2>
+          <p class="text-xs text-slate-500">Citas del día con su estado actual</p>
         </div>
         <a routerLink="/agenda" class="text-xs font-semibold text-primary-700 hover:text-primary-800 flex items-center gap-1">
           Abrir agenda completa <lucide-icon [img]="ArrowRight" [size]="13"></lucide-icon>
         </a>
       </div>
 
-      <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <!-- Columna 1: Programadas -->
-        <div class="rounded-xl border border-slate-200/90 bg-slate-50/75 p-3.5 flex flex-col min-h-[290px]">
-          <div class="flex items-center justify-between mb-3 border-b border-slate-200/80 pb-2">
-            <div class="flex items-center gap-2">
-              <span class="h-2 w-2 rounded-full bg-amber-500"></span>
-              <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-800">Programadas</h3>
-            </div>
-            <span class="rounded-full bg-white border border-slate-200 px-2 py-0.5 text-[11px] font-bold text-slate-700 shadow-2xs">
-              {{ scheduledList.length }}
-            </span>
+      @if (todaysAppointments.length > 0) {
+        <div class="card !p-0 bg-white border border-slate-200 shadow-card divide-y divide-slate-100 overflow-hidden">
+          @for (app of todaysAppointments; track app.id) {
+            <button
+              type="button"
+              class="w-full flex items-center gap-3 px-4 py-3 text-left transition hover:bg-slate-50"
+              (click)="navigateToPatient(app.patientId)"
+            >
+              <span class="w-12 shrink-0 font-mono text-sm font-semibold text-slate-700">
+                {{ app.startTime ? app.startTime.substring(0,5) : '—' }}
+              </span>
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 text-xs font-bold">
+                {{ getInitials(app.patientName) }}
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block text-sm font-bold text-slate-900 truncate">{{ app.patientName || 'Paciente #' + app.patientId }}</span>
+                <span class="block text-xs text-slate-500 truncate">{{ app.notes || 'Sin observaciones' }}</span>
+              </span>
+              <span class="flex items-center gap-2 shrink-0">
+                <span class="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600 border border-slate-200/60">
+                  {{ app.modality || 'Presencial' }}
+                </span>
+                <app-status-pill
+                  [label]="app.status"
+                  [variant]="getAppointmentStatusVariant(app.status)"
+                  [showDot]="true"
+                ></app-status-pill>
+              </span>
+            </button>
+          }
+        </div>
+      } @else {
+        <div class="card flex flex-col items-center justify-center gap-3 p-8 text-center">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+            <lucide-icon [img]="Calendar" [size]="20"></lucide-icon>
           </div>
-
-          <div class="space-y-2 flex-1">
-            @for (app of scheduledList; track app.id) {
-              <div
-                class="rounded-lg border border-slate-200 bg-white p-3 shadow-2xs transition hover:border-slate-300 hover:shadow-card cursor-pointer"
-                (click)="navigateToPatient(app.patientId)"
-              >
-                <div class="flex items-center justify-between text-xs mb-1.5">
-                  <span class="font-mono font-semibold text-slate-800 flex items-center gap-1.5">
-                    <lucide-icon [img]="Clock" [size]="12" class="text-slate-400"></lucide-icon>
-                    {{ app.startTime ? app.startTime.substring(0,5) : '00:00' }}
-                  </span>
-                  <span class="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600 border border-slate-200/60">
-                    {{ app.modality || 'Presencial' }}
-                  </span>
-                </div>
-                <p class="text-xs font-bold text-slate-900 truncate">{{ app.patientName || 'Paciente #' + app.patientId }}</p>
-                <p class="text-[11px] text-slate-500 truncate mt-0.5">{{ app.notes || 'Sin observaciones' }}</p>
-              </div>
-            } @empty {
-              <div class="flex flex-col items-center justify-center h-full py-8 text-center rounded-lg border border-dashed border-slate-300/80 bg-white/60 p-4">
-                <div class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-400 mb-1.5">
-                  <lucide-icon [img]="CheckCircle2" [size]="16"></lucide-icon>
-                </div>
-                <p class="text-xs font-semibold text-slate-700">Sin citas pendientes</p>
-                <p class="text-[11px] text-slate-500">Todas las citas fueron atendidas</p>
-              </div>
-            }
+          <div>
+            <p class="text-sm font-semibold text-slate-800">Sin citas para hoy</p>
+            <p class="text-xs text-slate-500">Agenda una cita desde el botón superior.</p>
           </div>
         </div>
-
-        <!-- Columna 2: Confirmadas / En Espera -->
-        <div class="rounded-xl border border-slate-200/90 bg-slate-50/75 p-3.5 flex flex-col min-h-[290px]">
-          <div class="flex items-center justify-between mb-3 border-b border-slate-200/80 pb-2">
-            <div class="flex items-center gap-2">
-              <span class="h-2 w-2 rounded-full bg-blue-500"></span>
-              <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-800">Confirmadas / Espera</h3>
-            </div>
-            <span class="rounded-full bg-white border border-slate-200 px-2 py-0.5 text-[11px] font-bold text-slate-700 shadow-2xs">
-              {{ confirmedList.length }}
-            </span>
-          </div>
-
-          <div class="space-y-2 flex-1">
-            @for (app of confirmedList; track app.id) {
-              <div
-                class="rounded-lg border border-slate-200 bg-white p-3 shadow-2xs transition hover:border-slate-300 hover:shadow-card cursor-pointer"
-                (click)="navigateToPatient(app.patientId)"
-              >
-                <div class="flex items-center justify-between text-xs mb-1.5">
-                  <span class="font-mono font-semibold text-slate-800 flex items-center gap-1.5">
-                    <lucide-icon [img]="Clock" [size]="12" class="text-slate-400"></lucide-icon>
-                    {{ app.startTime ? app.startTime.substring(0,5) : '00:00' }}
-                  </span>
-                  <span class="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600 border border-slate-200/60">
-                    {{ app.modality || 'Presencial' }}
-                  </span>
-                </div>
-                <p class="text-xs font-bold text-slate-900 truncate">{{ app.patientName || 'Paciente #' + app.patientId }}</p>
-                <p class="text-[11px] text-slate-500 truncate mt-0.5">{{ app.notes || 'Confirmado para consulta' }}</p>
-              </div>
-            } @empty {
-              <div class="flex flex-col items-center justify-center h-full py-8 text-center rounded-lg border border-dashed border-slate-300/80 bg-white/60 p-4">
-                <div class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-400 mb-1.5">
-                  <lucide-icon [img]="Users" [size]="16"></lucide-icon>
-                </div>
-                <p class="text-xs font-semibold text-slate-700">Ningún paciente en sala</p>
-                <p class="text-[11px] text-slate-500">No hay pacientes esperando turno</p>
-              </div>
-            }
-          </div>
-        </div>
-
-        <!-- Columna 3: En Box / Consulta -->
-        <div class="rounded-xl border border-slate-200/90 bg-slate-50/75 p-3.5 flex flex-col min-h-[290px]">
-          <div class="flex items-center justify-between mb-3 border-b border-slate-200/80 pb-2">
-            <div class="flex items-center gap-2">
-              <span class="h-2 w-2 rounded-full bg-primary-600 animate-pulse"></span>
-              <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-800">En Box / Consulta</h3>
-            </div>
-            <span class="rounded-full bg-white border border-slate-200 px-2 py-0.5 text-[11px] font-bold text-slate-700 shadow-2xs">
-              {{ inProgressList.length }}
-            </span>
-          </div>
-
-          <div class="space-y-2 flex-1">
-            @for (app of inProgressList; track app.id) {
-              <div
-                class="rounded-lg border border-slate-200 bg-white p-3 shadow-2xs transition hover:border-slate-300 hover:shadow-card cursor-pointer"
-                (click)="navigateToPatient(app.patientId)"
-              >
-                <div class="flex items-center justify-between text-xs mb-1.5">
-                  <span class="font-mono font-semibold text-primary-700 flex items-center gap-1.5">
-                    <span class="h-1.5 w-1.5 rounded-full bg-primary-600 animate-pulse"></span>
-                    En Atención
-                  </span>
-                  <span class="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600 border border-slate-200/60">
-                    {{ app.modality || 'Presencial' }}
-                  </span>
-                </div>
-                <p class="text-xs font-bold text-slate-900 truncate">{{ app.patientName || 'Paciente #' + app.patientId }}</p>
-                <p class="text-[11px] text-slate-500 truncate mt-0.5">{{ app.notes || 'Consulta en curso' }}</p>
-              </div>
-            } @empty {
-              <div class="flex flex-col items-center justify-center h-full py-8 text-center rounded-lg border border-dashed border-slate-300/80 bg-white/60 p-4">
-                <div class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-400 mb-1.5">
-                  <lucide-icon [img]="Stethoscope" [size]="16"></lucide-icon>
-                </div>
-                <p class="text-xs font-semibold text-slate-700">Box Disponible</p>
-                <p class="text-[11px] text-slate-500">Listo para iniciar siguiente sesión</p>
-              </div>
-            }
-          </div>
-        </div>
-
-        <!-- Columna 4: Completadas -->
-        <div class="rounded-xl border border-slate-200/90 bg-slate-50/75 p-3.5 flex flex-col min-h-[290px]">
-          <div class="flex items-center justify-between mb-3 border-b border-slate-200/80 pb-2">
-            <div class="flex items-center gap-2">
-              <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-              <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-800">Completadas</h3>
-            </div>
-            <span class="rounded-full bg-white border border-slate-200 px-2 py-0.5 text-[11px] font-bold text-slate-700 shadow-2xs">
-              {{ completedList.length }}
-            </span>
-          </div>
-
-          <div class="space-y-2 flex-1">
-            @for (app of completedList; track app.id) {
-              <div
-                class="rounded-lg border border-slate-200 bg-white p-3 shadow-2xs transition hover:border-slate-300 hover:shadow-card cursor-pointer"
-                (click)="navigateToPatient(app.patientId)"
-              >
-                <div class="flex items-center justify-between text-xs mb-1.5">
-                  <span class="font-mono font-semibold text-slate-700 flex items-center gap-1.5">
-                    <lucide-icon [img]="Check" [size]="13" class="text-emerald-600"></lucide-icon>
-                    Finalizada
-                  </span>
-                  <span class="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600 border border-slate-200/60">
-                    Listo
-                  </span>
-                </div>
-                <p class="text-xs font-bold text-slate-900 truncate">{{ app.patientName || 'Paciente #' + app.patientId }}</p>
-                <p class="text-[11px] text-slate-500 truncate mt-0.5">Atención concluida con éxito</p>
-              </div>
-            } @empty {
-              <div class="flex flex-col items-center justify-center h-full py-8 text-center rounded-lg border border-dashed border-slate-300/80 bg-white/60 p-4">
-                <div class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-400 mb-1.5">
-                  <lucide-icon [img]="Activity" [size]="16"></lucide-icon>
-                </div>
-                <p class="text-xs font-semibold text-slate-700">Sin atenciones concluidas</p>
-                <p class="text-[11px] text-slate-500">Se registrarán al finalizar cada cita</p>
-              </div>
-            }
-          </div>
-        </div>
-      </div>
+      }
     </div>
 
-    <!-- 6. Bottom Row: Alertas Clínicas & Radar de Inventario (Clean & High Contrast) -->
-    <div class="grid gap-6 lg:grid-cols-2">
-      <!-- Centro de Alertas Clínicas de Riesgo -->
-      <div class="card !p-5 bg-white border border-slate-200 shadow-card">
-        <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
-          <div class="flex items-center gap-2">
-            <lucide-icon [img]="AlertTriangle" [size]="17" [ngClass]="stats.activeRiskAlerts.length > 0 ? 'text-danger' : 'text-slate-400'"></lucide-icon>
-            <h2 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Alertas de Riesgo Clínico</h2>
-          </div>
-          <span
-            class="rounded-full px-2.5 py-0.5 text-xs font-bold border"
-            [ngClass]="stats.activeRiskAlerts.length > 0 ? 'bg-red-50 text-danger border-red-200' : 'bg-slate-100 text-slate-600 border-slate-200'"
-          >
-            {{ stats.activeRiskAlerts.length }}
-          </span>
+    <!-- 6. Atención Requerida (Alertas + Insumos + Notas S.O.A.P.) -->
+    <div class="card !p-0 bg-white border border-slate-200 shadow-card overflow-hidden">
+      <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+        <div class="flex items-center gap-2">
+          <lucide-icon [img]="AlertTriangle" [size]="17" [ngClass]="attentionTotal > 0 ? 'text-danger' : 'text-slate-400'"></lucide-icon>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">Atención Requerida</h2>
         </div>
-
-        @if (stats.activeRiskAlerts.length > 0) {
-          <div class="space-y-2.5 max-h-64 overflow-y-auto pr-1">
-            @for (alert of stats.activeRiskAlerts; track alert.id) {
-              <div
-                class="flex items-start justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50/70 p-3 hover:bg-slate-100/80 transition cursor-pointer"
-                (click)="navigateToPatient(alert.patientId)"
-              >
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-center gap-2 mb-1 flex-wrap">
-                    <p class="text-xs font-bold text-slate-900 truncate">{{ alert.patientName || 'Paciente #' + alert.patientId }}</p>
-                    <app-status-pill
-                      [label]="alert.level"
-                      [variant]="getAlertLevelVariant(alert.level)"
-                      [showDot]="true"
-                      [pulse]="alert.level === 'ALTA' || alert.level === 'CRITICA'"
-                    ></app-status-pill>
-                  </div>
-                  <p class="text-xs text-slate-600 line-clamp-1">{{ alert.type }}: {{ alert.description }}</p>
-                </div>
-                <button type="button" class="btn-text !p-1 text-primary-700 font-bold" title="Ver ficha">
-                  <lucide-icon [img]="ArrowRight" [size]="15"></lucide-icon>
-                </button>
-              </div>
-            }
-          </div>
-        } @else {
-          <div class="flex items-center gap-3.5 rounded-lg border border-slate-200/80 bg-slate-50/60 p-4">
-            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600">
-              <lucide-icon [img]="CheckCircle2" [size]="18" class="text-emerald-600"></lucide-icon>
-            </div>
-            <div>
-              <p class="text-xs font-semibold text-slate-800">Sin alertas clínicas activas</p>
-              <p class="text-[11px] text-slate-500">Todos los pacientes registrados se encuentran en estado estable.</p>
-            </div>
-          </div>
-        }
+        <span
+          class="rounded-full px-2.5 py-0.5 text-xs font-bold border"
+          [ngClass]="attentionTotal > 0 ? 'bg-red-50 text-danger border-red-200' : 'bg-slate-100 text-slate-600 border-slate-200'"
+        >
+          {{ attentionTotal }}
+        </span>
       </div>
 
-      <!-- Insumos en Nivel Crítico & Radar de Stock -->
-      <div class="card !p-5 bg-white border border-slate-200 shadow-card">
-        <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
-          <div class="flex items-center gap-2">
-            <lucide-icon [img]="Package" [size]="17" class="text-slate-500"></lucide-icon>
-            <h2 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Insumos con Stock Bajo</h2>
-          </div>
-          <a routerLink="/inventory" class="text-xs font-semibold text-primary-700 hover:text-primary-800">
-            Gestionar
-          </a>
-        </div>
+      <div class="flex gap-1 px-4 pt-2 border-b border-slate-200">
+        <button
+          type="button"
+          class="px-3 py-2 text-xs font-semibold border-b-2 transition"
+          [ngClass]="activeAttentionTab === 'alertas' ? 'border-primary-600 text-primary-700' : 'border-transparent text-slate-500 hover:text-slate-700'"
+          (click)="activeAttentionTab = 'alertas'"
+        >
+          Alertas ({{ stats.activeRiskAlerts.length }})
+        </button>
+        <button
+          type="button"
+          class="px-3 py-2 text-xs font-semibold border-b-2 transition"
+          [ngClass]="activeAttentionTab === 'insumos' ? 'border-primary-600 text-primary-700' : 'border-transparent text-slate-500 hover:text-slate-700'"
+          (click)="activeAttentionTab = 'insumos'"
+        >
+          Insumos ({{ stats.lowStockSupplies.length }})
+        </button>
+        <button
+          type="button"
+          class="px-3 py-2 text-xs font-semibold border-b-2 transition"
+          [ngClass]="activeAttentionTab === 'notas' ? 'border-primary-600 text-primary-700' : 'border-transparent text-slate-500 hover:text-slate-700'"
+          (click)="activeAttentionTab = 'notas'"
+        >
+          Notas S.O.A.P. ({{ stats.pendingSoapNotes.length }})
+        </button>
+      </div>
 
-        @if (stats.lowStockSupplies.length > 0) {
-          <div class="space-y-2.5 max-h-64 overflow-y-auto pr-1">
-            @for (item of stats.lowStockSupplies; track item.id) {
-              <div class="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50/70 p-2.5">
-                <div class="min-w-0 flex-1 pr-3">
-                  <p class="text-xs font-bold text-slate-900 truncate">{{ item.name }}</p>
-                  <p class="text-[11px] text-slate-500">Mínimo sugerido: {{ item.minStockLevel }} {{ item.unit }}</p>
+      <div class="p-5">
+        @switch (activeAttentionTab) {
+          @case ('alertas') {
+            @if (stats.activeRiskAlerts.length > 0) {
+              <div class="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+                @for (alert of stats.activeRiskAlerts; track alert.id) {
+                  <div
+                    class="flex items-start justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50/70 p-3 hover:bg-slate-100/80 transition cursor-pointer"
+                    (click)="navigateToPatient(alert.patientId)"
+                  >
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-center gap-2 mb-1 flex-wrap">
+                        <p class="text-xs font-bold text-slate-900 truncate">{{ alert.patientName || 'Paciente #' + alert.patientId }}</p>
+                        <app-status-pill
+                          [label]="alert.level"
+                          [variant]="getAlertLevelVariant(alert.level)"
+                          [showDot]="true"
+                          [pulse]="alert.level === 'ALTA' || alert.level === 'CRITICA'"
+                        ></app-status-pill>
+                      </div>
+                      <p class="text-xs text-slate-600 line-clamp-1">{{ alert.type }}: {{ alert.description }}</p>
+                    </div>
+                    <button type="button" class="btn-text !p-1 text-primary-700 font-bold" title="Ver ficha">
+                      <lucide-icon [img]="ArrowRight" [size]="15"></lucide-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="flex items-center gap-3.5 rounded-lg border border-slate-200/80 bg-slate-50/60 p-4">
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600">
+                  <lucide-icon [img]="CheckCircle2" [size]="18" class="text-emerald-600"></lucide-icon>
                 </div>
-                <span class="rounded-md bg-amber-50 border border-amber-200 px-2 py-0.5 text-xs font-bold text-amber-800">
-                  {{ item.currentStock }} {{ item.unit }}
-                </span>
+                <div>
+                  <p class="text-xs font-semibold text-slate-800">Sin alertas clínicas activas</p>
+                  <p class="text-[11px] text-slate-500">Todos los pacientes registrados se encuentran en estado estable.</p>
+                </div>
               </div>
             }
-          </div>
-        } @else {
-          <div class="flex items-center gap-3.5 rounded-lg border border-slate-200/80 bg-slate-50/60 p-4">
-            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600">
-              <lucide-icon [img]="CheckCircle2" [size]="18" class="text-emerald-600"></lucide-icon>
+          }
+          @case ('insumos') {
+            <div class="flex items-center justify-between mb-3">
+              <p class="text-xs font-semibold text-slate-700">Insumos por debajo del stock mínimo sugerido</p>
+              <a routerLink="/inventory" class="text-xs font-semibold text-primary-700 hover:text-primary-800">Gestionar</a>
             </div>
-            <div>
-              <p class="text-xs font-semibold text-slate-800">Inventario en niveles óptimos</p>
-              <p class="text-[11px] text-slate-500">No hay insumos críticos por debajo del stock mínimo sugerido.</p>
-            </div>
-          </div>
+            @if (stats.lowStockSupplies.length > 0) {
+              <div class="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+                @for (item of stats.lowStockSupplies; track item.id) {
+                  <div class="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50/70 p-2.5">
+                    <div class="min-w-0 flex-1 pr-3">
+                      <p class="text-xs font-bold text-slate-900 truncate">{{ item.name }}</p>
+                      <p class="text-[11px] text-slate-500">Mínimo sugerido: {{ item.minStockLevel }} {{ item.unit }}</p>
+                    </div>
+                    <span class="rounded-md bg-amber-50 border border-amber-200 px-2 py-0.5 text-xs font-bold text-amber-800">
+                      {{ item.currentStock }} {{ item.unit }}
+                    </span>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="flex items-center gap-3.5 rounded-lg border border-slate-200/80 bg-slate-50/60 p-4">
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600">
+                  <lucide-icon [img]="CheckCircle2" [size]="18" class="text-emerald-600"></lucide-icon>
+                </div>
+                <div>
+                  <p class="text-xs font-semibold text-slate-800">Inventario en niveles óptimos</p>
+                  <p class="text-[11px] text-slate-500">No hay insumos críticos por debajo del stock mínimo sugerido.</p>
+                </div>
+              </div>
+            }
+          }
+          @case ('notas') {
+            @if (stats.pendingSoapNotes.length > 0) {
+              <div class="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+                @for (note of stats.pendingSoapNotes; track note.id) {
+                  <div
+                    class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50/70 p-3 hover:bg-slate-100/80 transition cursor-pointer"
+                    (click)="navigateToPatient(note.patientId ?? undefined)"
+                  >
+                    <div class="min-w-0 flex-1">
+                      <p class="text-xs font-bold text-slate-900 truncate">{{ note.patientName || 'Paciente #' + note.patientId }}</p>
+                      <p class="text-[11px] text-slate-500">{{ note.sessionType || 'Sesión' }} · {{ note.sessionDate }}</p>
+                    </div>
+                    <span class="rounded-md bg-amber-50 border border-amber-200 px-2 py-0.5 text-xs font-bold text-amber-800">
+                      Pendiente
+                    </span>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="flex items-center gap-3.5 rounded-lg border border-slate-200/80 bg-slate-50/60 p-4">
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600">
+                  <lucide-icon [img]="CheckCircle2" [size]="18" class="text-emerald-600"></lucide-icon>
+                </div>
+                <div>
+                  <p class="text-xs font-semibold text-slate-800">Sin notas S.O.A.P. pendientes</p>
+                  <p class="text-[11px] text-slate-500">Todas las sesiones tienen su nota clínica registrada.</p>
+                </div>
+              </div>
+            }
+          }
         }
       </div>
     </div>

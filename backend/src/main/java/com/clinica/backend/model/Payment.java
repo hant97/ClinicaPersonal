@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.hibernate.annotations.BatchSize;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
 import java.util.List;
@@ -48,6 +49,7 @@ public class Payment {
     private boolean deleted = false;
 
     @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 100)
     private List<PaymentItem> items = new ArrayList<>();
 
     @Column(name = "specialty", nullable = false)

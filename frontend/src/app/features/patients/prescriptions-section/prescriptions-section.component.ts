@@ -4,17 +4,20 @@ import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } fr
 import { PrescriptionService } from '../../../core/services/prescription.service';
 import { Prescription, PrescriptionItem } from '../../../core/models/prescription.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { QrCodeComponent } from '../../../shared/components/qr-code/qr-code.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { PatientService } from '../../../core/services/patient/patient.service';
 import { Patient } from '../../../core/models/patient.model';
 import { ClinicSettingsService, ClinicSettings } from '../../../core/services/clinic-settings.service';
-import { LucideAngularModule, FileText, Printer, Plus, Trash2, X, Edit } from 'lucide-angular';
+import { UserService } from '../../../core/services/user.service';
+import { UserProfile } from '../../../core/models/user-profile.model';
+import { LucideAngularModule, FileText, Printer, Plus, Trash2, X, Edit, QrCode, ShieldCheck } from 'lucide-angular';
 
 @Component({
   selector: 'app-prescriptions-section',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PaginationComponent, LucideAngularModule],
+  imports: [CommonModule, ReactiveFormsModule, PaginationComponent, QrCodeComponent, LucideAngularModule],
   templateUrl: './prescriptions-section.component.html',
   styleUrls: ['./prescriptions-section.component.css'],
 })
@@ -25,12 +28,15 @@ export class PrescriptionsSectionComponent implements OnInit {
   readonly Trash2 = Trash2;
   readonly X = X;
   readonly Edit = Edit;
+  readonly QrCode = QrCode;
+  readonly ShieldCheck = ShieldCheck;
 
   @Input() patientId!: number;
 
   prescriptions: Prescription[] = [];
   patient: Patient | null = null;
   clinicSettings: ClinicSettings | null = null;
+  currentProfessional: UserProfile | null = null;
   showForm = false;
   showPrint = false;
   selected?: Prescription;
@@ -50,7 +56,8 @@ export class PrescriptionsSectionComponent implements OnInit {
     private toast: ToastService,
     private notification: NotificationService,
     private patientService: PatientService,
-    private clinicSettingsService: ClinicSettingsService
+    private clinicSettingsService: ClinicSettingsService,
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
@@ -60,6 +67,11 @@ export class PrescriptionsSectionComponent implements OnInit {
       error: () => {}
     });
     this.clinicSettingsService.settings$.subscribe((settings) => (this.clinicSettings = settings));
+    this.clinicSettingsService.loadSettings();
+    this.userService.getCurrentUserProfile().subscribe({
+      next: (profile) => (this.currentProfessional = profile),
+      error: () => {}
+    });
   }
 
   get items(): FormArray {
@@ -192,6 +204,18 @@ export class PrescriptionsSectionComponent implements OnInit {
 
   hasInstructions(prescription: Prescription): boolean {
     return prescription.items.some((item) => !!item.instructions);
+  }
+
+  getVerificationUrl(prescription?: Prescription): string {
+    if (!prescription) return '';
+    const code = prescription.verificationCode || `REC-${prescription.id}`;
+    return `${window.location.origin}/verificar-receta/${code}`;
+  }
+
+  getProfessionalDisplayName(): string {
+    if (!this.currentProfessional) return 'Profesional de la Salud';
+    const name = `${this.currentProfessional.firstName || ''} ${this.currentProfessional.lastName || ''}`.trim();
+    return name || this.currentProfessional.username;
   }
 
   private todayIso(): string {

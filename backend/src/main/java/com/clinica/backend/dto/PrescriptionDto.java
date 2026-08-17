@@ -21,6 +21,7 @@ public class PrescriptionDto {
     private LocalDate validUntil;
     private String notes;
     private Long professionalId;
+    private String verificationCode;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     @Valid

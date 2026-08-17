@@ -1,42 +1,25 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { DashboardService, DashboardStats } from '../../../core/services/dashboard.service';
 import { SpecialtyService } from '../../../core/services/specialty.service';
-import { RiskAlertService } from '../../../core/services/risk-alert.service';
 import { Appointment } from '../../../core/models/appointment.model';
-import { StatusPillComponent } from '../../../shared/components/status-pill/status-pill.component';
-import { Chart, ChartConfiguration, registerables } from 'chart.js';
+import { StatusPillComponent, StatusPillVariant } from '../../../shared/components/status-pill/status-pill.component';
 import {
   LucideAngularModule,
   Users,
   Calendar,
   DollarSign,
-  Activity,
-  UserPlus,
   TrendingUp,
   TrendingDown,
   Clock,
   AlertTriangle,
-  Package,
-  BrainCircuit,
-  Sparkles,
   CheckCircle2,
   ArrowRight,
-  ChevronRight,
   Plus,
-  Stethoscope,
-  FileText,
-  Check,
-  X,
-  AlertCircle,
-  Video,
-  User,
   Zap,
   Play
 } from 'lucide-angular';
-
-Chart.register(...registerables);
 
 @Component({
   selector: 'app-dashboard',
@@ -44,10 +27,7 @@ Chart.register(...registerables);
   imports: [CommonModule, RouterModule, LucideAngularModule, StatusPillComponent],
   templateUrl: './dashboard.component.html',
 })
-export class DashboardComponent implements OnInit, OnDestroy {
-  @ViewChild('trendCanvas') trendCanvas?: ElementRef<HTMLCanvasElement>;
-  @ViewChild('attendanceCanvas') attendanceCanvas?: ElementRef<HTMLCanvasElement>;
-
+export class DashboardComponent implements OnInit {
   stats: DashboardStats | null = null;
   isLoading = true;
   loadError = false;
@@ -59,46 +39,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
   // Next Patient in Queue
   nextAppointment: Appointment | null = null;
 
-  // Kanban Columns
-  scheduledList: Appointment[] = [];
-  confirmedList: Appointment[] = [];
-  inProgressList: Appointment[] = [];
-  completedList: Appointment[] = [];
+  // Agenda del día
+  todaysAppointments: Appointment[] = [];
 
-  // Charts
-  trendChart: Chart | null = null;
-  attendanceChart: Chart | null = null;
+  // Pestaña activa de la sección "Atención Requerida"
+  activeAttentionTab: 'alertas' | 'insumos' | 'notas' = 'alertas';
 
   readonly Users = Users;
   readonly Calendar = Calendar;
   readonly DollarSign = DollarSign;
-  readonly Activity = Activity;
-  readonly UserPlus = UserPlus;
   readonly TrendingUp = TrendingUp;
   readonly TrendingDown = TrendingDown;
   readonly Clock = Clock;
   readonly AlertTriangle = AlertTriangle;
-  readonly Package = Package;
-  readonly BrainCircuit = BrainCircuit;
-  readonly Sparkles = Sparkles;
   readonly CheckCircle2 = CheckCircle2;
   readonly ArrowRight = ArrowRight;
-  readonly ChevronRight = ChevronRight;
   readonly Plus = Plus;
-  readonly Stethoscope = Stethoscope;
-  readonly FileText = FileText;
-  readonly Check = Check;
-  readonly X = X;
-  readonly AlertCircle = AlertCircle;
-  readonly Video = Video;
-  readonly User = User;
   readonly Zap = Zap;
   readonly Play = Play;
 
   constructor(
     private dashboardService: DashboardService,
     private specialtyService: SpecialtyService,
-    private riskAlertService: RiskAlertService,
     private router: Router
   ) {}
 
@@ -113,25 +75,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.loadStats();
   }
 
-  ngOnDestroy(): void {
-    if (this.trendChart) {
-      this.trendChart.destroy();
-    }
-    if (this.attendanceChart) {
-      this.attendanceChart.destroy();
-    }
-  }
-
   loadStats(): void {
     this.isLoading = true;
     this.loadError = false;
     this.dashboardService.getDashboardStats().subscribe({
       next: (stats) => {
         this.stats = stats;
-        this.organizeKanban(stats.upcomingAppointments || []);
+        this.todaysAppointments = stats.todaysAppointments || [];
         this.resolveNextAppointment(stats.upcomingAppointments || []);
         this.isLoading = false;
-        setTimeout(() => this.renderCharts(), 50);
       },
       error: () => {
         this.stats = null;
@@ -148,136 +100,52 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.nextAppointment = active.length > 0 ? active[0] : (appointments.length > 0 ? appointments[0] : null);
   }
 
-  private organizeKanban(appointments: Appointment[]): void {
-    this.scheduledList = appointments.filter(
-      (a) => a.status === 'Programada' || a.status === 'PROGRAMADA'
-    );
-    this.confirmedList = appointments.filter(
-      (a) => a.status === 'Confirmada' || a.status === 'CONFIRMADA'
-    );
-    this.inProgressList = appointments.filter(
-      (a) => a.status === 'En Consulta' || a.status === 'EN_CONSULTA'
-    );
-    this.completedList = appointments.filter(
-      (a) => a.status === 'Completada' || a.status === 'COMPLETADA'
-    );
+  get pendingAppointmentsCount(): number {
+    return this.todaysAppointments.filter(
+      (a) => a.status === 'Programada' || a.status === 'Confirmada'
+    ).length;
   }
 
-  private renderCharts(): void {
-    this.renderTrendChart();
-    this.renderAttendanceChart();
+  get attentionTotal(): number {
+    if (!this.stats) return 0;
+    return this.stats.activeRiskAlerts.length
+      + this.stats.lowStockSupplies.length
+      + this.stats.pendingSoapNotes.length;
   }
 
-  private renderTrendChart(): void {
-    if (!this.trendCanvas?.nativeElement || !this.stats) return;
-
-    if (this.trendChart) {
-      this.trendChart.destroy();
+  get nextAppointmentLabel(): string {
+    const app = this.nextAppointment;
+    if (!app) return 'sin citas pendientes';
+    const time = app.startTime ? app.startTime.substring(0, 5) : 'hoy';
+    if (app.appointmentDate && app.appointmentDate !== this.todayKey()) {
+      const [y, m, d] = app.appointmentDate.split('-');
+      const fecha = d && m && y ? `${d}/${m}/${y}` : app.appointmentDate;
+      return `próxima el ${fecha} a las ${time}`;
     }
-
-    const ctx = this.trendCanvas.nativeElement.getContext('2d');
-    if (!ctx) return;
-
-    // Create subtle gradient for area fill
-    const gradient = ctx.createLinearGradient(0, 0, 0, 260);
-    gradient.addColorStop(0, 'rgba(37, 99, 235, 0.12)');
-    gradient.addColorStop(1, 'rgba(37, 99, 235, 0.00)');
-
-    const labels = ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4 (Actual)'];
-    const totalToday = this.stats.appointmentsToday || 2;
-    const active = this.stats.activePatients || 10;
-    const dataPoints = [
-      Math.max(1, Math.round(active * 0.4)),
-      Math.max(2, Math.round(active * 0.65)),
-      Math.max(3, Math.round(active * 0.85)),
-      Math.max(totalToday, active)
-    ];
-
-    this.trendChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Atenciones Clínicas',
-          data: dataPoints,
-          borderColor: '#2563eb',
-          borderWidth: 2,
-          backgroundColor: gradient,
-          fill: true,
-          tension: 0.35,
-          pointBackgroundColor: '#2563eb',
-          pointBorderColor: '#ffffff',
-          pointBorderWidth: 2,
-          pointRadius: 4,
-          pointHoverRadius: 6
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#0f172a',
-            titleFont: { family: 'Inter', size: 12, weight: 'bold' },
-            bodyFont: { family: 'Inter', size: 12 },
-            padding: 10,
-            cornerRadius: 8
-          }
-        },
-        scales: {
-          x: {
-            grid: { display: false },
-            ticks: { font: { family: 'Inter', size: 11 }, color: '#64748b' }
-          },
-          y: {
-            beginAtZero: true,
-            grid: { color: 'rgba(226, 232, 240, 0.6)' },
-            ticks: { font: { family: 'Inter', size: 11 }, color: '#64748b', precision: 0 }
-          }
-        }
-      }
-    });
+    return `próxima a las ${time}`;
   }
 
-  private renderAttendanceChart(): void {
-    if (!this.attendanceCanvas?.nativeElement || !this.stats) return;
+  private todayKey(): string {
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${now.getFullYear()}-${month}-${day}`;
+  }
 
-    if (this.attendanceChart) {
-      this.attendanceChart.destroy();
+  getAppointmentStatusVariant(status: string): StatusPillVariant {
+    switch (status) {
+      case 'Completada':
+        return 'stable';
+      case 'Confirmada':
+        return 'info';
+      case 'No Asistió':
+        return 'critical';
+      case 'Cancelada':
+        return 'neutral';
+      case 'Programada':
+      default:
+        return 'priority';
     }
-
-    const ctx = this.attendanceCanvas.nativeElement.getContext('2d');
-    if (!ctx) return;
-
-    const rate = this.stats.attendanceRate || 85;
-    const cancelled = this.stats.cancelledAppointments || (100 - rate > 0 ? 100 - rate : 15);
-
-    this.attendanceChart = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: ['Asistencias Efectivas', 'Canceladas / No Asistió'],
-        datasets: [{
-          data: [rate, cancelled],
-          backgroundColor: ['#2563eb', '#e2e8f0'],
-          borderWidth: 0,
-          hoverOffset: 4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '76%',
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#0f172a',
-            padding: 8,
-            cornerRadius: 6
-          }
-        }
-      }
-    });
   }
 
   getAlertLevelVariant(level: string): 'critical' | 'urgent' | 'priority' | 'stable' {

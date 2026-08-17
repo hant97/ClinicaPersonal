@@ -21,7 +21,8 @@ import {
   Brain,
   Shield,
   X,
-  Plus
+  Plus,
+  UserCog
 } from 'lucide-angular';
 import { UserService } from '../../core/services/user.service';
 import { ClinicSettingsService, ClinicSettings } from '../../core/services/clinic-settings.service';
@@ -57,6 +58,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   readonly Shield = Shield;
   readonly X = X;
   readonly Plus = Plus;
+  readonly UserCog = UserCog;
 
   isSidebarOpen = false;
   isSidebarExpanded = true;
@@ -68,6 +70,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   clinicSettings: ClinicSettings | null = null;
   isPsychology = false;
   isDermatology = false;
+  isAdmin = false;
   isSiteAdmin = false;
   currentRouteTitle = 'Dashboard';
 
@@ -97,6 +100,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.isPsychology = this.specialtyService.isPsychology();
     this.isDermatology = this.specialtyService.isDermatology();
+    this.isAdmin = this.authService.hasRole('ROLE_ADMIN');
     this.isSiteAdmin = this.authService.hasRole('ROLE_SITE_ADMIN');
     
     this.loadProfile();
@@ -137,6 +141,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     else if (url.includes('/services')) this.currentRouteTitle = 'Servicios Clínicos';
     else if (url.includes('/inventory')) this.currentRouteTitle = 'Inventario';
     else if (url.includes('/tests-catalog')) this.currentRouteTitle = 'Pruebas Psicométricas';
+    else if (url.includes('/settings/users')) this.currentRouteTitle = 'Personal y Cuentas';
     else if (url.includes('/settings')) this.currentRouteTitle = 'Configuración';
     else if (url.includes('/profile')) this.currentRouteTitle = 'Mi Perfil';
     else this.currentRouteTitle = 'FlowGrid OS';
@@ -151,7 +156,8 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
 
   private updateHeaderProfile(profile: UserProfile): void {
     this.userProfile = profile;
-    this.isSiteAdmin = profile.roles?.includes('ROLE_SITE_ADMIN') === true;
+    this.isAdmin = profile.roles?.some(r => r === 'ROLE_ADMIN') === true;
+    this.isSiteAdmin = profile.roles?.some(r => r === 'ROLE_SITE_ADMIN') === true;
     if (profile.firstName) {
       this.greetingName = profile.firstName;
       this.avatarLetter = profile.firstName.charAt(0).toUpperCase();

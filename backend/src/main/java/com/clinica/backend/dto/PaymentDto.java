@@ -19,4 +19,5 @@ public class PaymentDto {
     
     @Valid private List<PaymentItemDto> items;
     private String specialty;
+    private String patientName;
 }

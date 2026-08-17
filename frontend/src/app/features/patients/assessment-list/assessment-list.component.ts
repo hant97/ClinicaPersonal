@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, AfterViewInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AssessmentService } from '../../../core/services/assessment.service';
-import { Assessment } from '../../../core/models/assessment.model';
+import { Assessment, InterpretationBand, interpretScore, bandColorClasses } from '../../../core/models/assessment.model';
 import { AssessmentFormComponent } from '../assessment-form/assessment-form.component';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
@@ -161,6 +161,14 @@ export class AssessmentListComponent implements OnInit, OnDestroy {
       '#38b2ac', // teal
     ];
     return colors[index % colors.length];
+  }
+
+  interpretationOf(assessment: Assessment): InterpretationBand | null {
+    return interpretScore(assessment.interpretationJson, assessment.totalScore);
+  }
+
+  bandClasses(assessment: Assessment): { badge: string; dot: string } {
+    return bandColorClasses(this.interpretationOf(assessment)?.color);
   }
 
   openForm() {

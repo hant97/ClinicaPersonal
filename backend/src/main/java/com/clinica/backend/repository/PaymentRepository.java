@@ -50,10 +50,4 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
            "AND i.payment.paymentDate >= :startDate AND i.payment.paymentDate < :endDate " +
            "GROUP BY i.clinicalService.name ORDER BY SUM(i.totalPrice) DESC")
     List<Object[]> findTopServicesBySpecialty(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate, @Param("specialty") String specialty, Pageable pageable);
-
-    @Query("SELECT i.clinicalService.id, i.clinicalService.name, SUM(i.quantity), SUM(i.totalPrice) FROM PaymentItem i " +
-           "WHERE i.payment.deleted = false AND i.payment.specialty = :specialty AND i.clinicalService IS NOT NULL " +
-           "AND i.payment.paymentDate >= :startDate AND i.payment.paymentDate < :endDate " +
-           "GROUP BY i.clinicalService.id, i.clinicalService.name ORDER BY SUM(i.totalPrice) DESC")
-    List<Object[]> findTopServicesWithIdBySpecialty(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate, @Param("specialty") String specialty);
 }

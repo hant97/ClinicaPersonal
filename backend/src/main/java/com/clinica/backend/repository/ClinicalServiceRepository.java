@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.List;
 
@@ -44,4 +45,16 @@ public interface ClinicalServiceRepository extends JpaRepository<ClinicalService
 
     @Query("SELECT COALESCE(AVG(c.price), 0) FROM ClinicalService c WHERE c.deleted = false AND c.specialty = :specialty AND c.active = true")
     BigDecimal averagePriceBySpecialty(@Param("specialty") String specialty);
+
+    @Query("SELECT i.clinicalService.id, i.clinicalService.name, SUM(i.quantity), SUM(i.totalPrice) FROM PaymentItem i " +
+           "WHERE i.payment.deleted = false AND i.payment.specialty = :specialty AND i.clinicalService IS NOT NULL " +
+           "AND i.payment.paymentDate >= :startDate AND i.payment.paymentDate < :endDate " +
+           "GROUP BY i.clinicalService.id, i.clinicalService.name ORDER BY SUM(i.totalPrice) DESC")
+    List<Object[]> findTopServicesByRevenueWithIdBySpecialty(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate, @Param("specialty") String specialty, Pageable pageable);
+
+    @Query("SELECT i.clinicalService.id, i.clinicalService.name, SUM(i.quantity), SUM(i.totalPrice) FROM PaymentItem i " +
+           "WHERE i.payment.deleted = false AND i.payment.specialty = :specialty AND i.clinicalService IS NOT NULL " +
+           "AND i.payment.paymentDate >= :startDate AND i.payment.paymentDate < :endDate " +
+           "GROUP BY i.clinicalService.id, i.clinicalService.name ORDER BY SUM(i.quantity) DESC")
+    List<Object[]> findTopServicesByQuantityWithIdBySpecialty(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate, @Param("specialty") String specialty, Pageable pageable);
 }

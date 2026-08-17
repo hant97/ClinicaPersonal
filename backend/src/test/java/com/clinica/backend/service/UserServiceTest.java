@@ -112,4 +112,42 @@ class UserServiceTest {
         assertEquals(6L, user.getTokenVersion());
         verify(refreshTokenService, times(2)).revokeAllForUser(10L);
     }
+
+    @Test
+    void adminUpdateUserUpdatesFieldsAndRevokesTokensWhenDisabled() {
+        User user = new User();
+        user.setId(10L);
+        user.setUsername("assistant");
+        user.setFirstName("Laura");
+        user.setLastName("Gomez");
+        user.setSpecialty("PSICOLOGIA");
+        user.setRoles(Set.of("ROLE_ASISTENTE"));
+        user.setEnabled(true);
+        user.setTokenVersion(1L);
+
+        when(userRepository.findById(10L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        com.clinica.backend.dto.AdminUpdateUserRequest request = com.clinica.backend.dto.AdminUpdateUserRequest.builder()
+                .firstName("Laura Elena")
+                .lastName("Gomez Perez")
+                .email("laura@clinica.com")
+                .phone("999111222")
+                .specialty("DERMATOLOGIA")
+                .roles(Set.of("ROLE_ADMIN"))
+                .enabled(false)
+                .build();
+
+        UserProfileDTO updated = userService.adminUpdateUser(10L, request);
+
+        assertNotNull(updated);
+        assertEquals("Laura Elena", updated.getFirstName());
+        assertEquals("Gomez Perez", updated.getLastName());
+        assertEquals("laura@clinica.com", updated.getEmail());
+        assertEquals("999111222", updated.getPhone());
+        assertEquals("DERMATOLOGIA", updated.getSpecialty());
+        assertFalse(updated.isEnabled());
+        assertEquals(2L, user.getTokenVersion());
+        verify(refreshTokenService).revokeAllForUser(10L);
+    }
 }

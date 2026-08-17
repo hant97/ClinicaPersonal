@@ -1,21 +1,100 @@
-@if (allergies.length > 0) {
-  <div
-    role="alert"
-    class="flex items-start gap-3 rounded-[10px] border border-red-200 border-l-4 border-l-danger bg-gradient-to-r from-red-50 to-red-50/60 px-4 py-3"
-  >
-    <lucide-icon [img]="AlertTriangle" [size]="18" class="mt-0.5 shrink-0 text-danger"></lucide-icon>
-    <div class="min-w-0 flex-1">
-      <p class="text-sm font-bold text-danger">
-        {{ allergies.length }} alergias registradas · verificar antes de prescribir
-      </p>
-      <p class="mt-0.5 text-xs text-slate-700">{{ summary }}</p>
+<div class="rounded-xl border border-line bg-surface shadow-sm overflow-hidden" role="region" aria-label="Cintillo de Seguridad Médica y Resumen Clínico">
+  <div class="flex flex-wrap items-center justify-between gap-2.5 p-2.5 sm:px-3.5 bg-gradient-to-r from-slate-50 via-surface to-slate-50">
+    <div class="flex flex-wrap items-center gap-2 text-xs">
+      
+      <!-- 1. Alergias Badge -->
+      @if (activeAllergiesList.length > 0) {
+        <button
+          type="button"
+          class="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 font-medium transition cursor-pointer"
+          [ngClass]="hasSevereAllergy 
+            ? 'bg-red-50 text-danger border-red-300 hover:bg-red-100 hover:border-red-400 animate-pulse' 
+            : 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100 hover:border-amber-400'"
+          (click)="openAllergies.emit()"
+          title="Ver detalle de alergias registradas"
+        >
+          <lucide-icon [img]="AlertTriangle" [size]="14" [ngClass]="hasSevereAllergy ? 'text-danger' : 'text-amber-600'"></lucide-icon>
+          <span class="font-bold">Alergias ({{ activeAllergiesList.length }}):</span>
+          <span class="truncate max-w-[180px] sm:max-w-[240px]">{{ allergiesSummary }}</span>
+        </button>
+      } @else {
+        <span class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50/70 px-2.5 py-1 text-[11px] font-medium text-emerald-800">
+          <lucide-icon [img]="CheckCircle2" [size]="13" class="text-emerald-600"></lucide-icon>
+          <span>Sin alergias conocidas</span>
+        </span>
+      }
+
+      <!-- 2. Alertas de Riesgo Clínico Badge -->
+      @if (activeAlerts.length > 0) {
+        <button
+          type="button"
+          class="inline-flex items-center gap-1.5 rounded-lg border border-red-300 bg-red-50 px-2.5 py-1 font-medium text-danger transition hover:bg-red-100 hover:border-red-400 cursor-pointer"
+          (click)="openAlerts.emit()"
+          title="Ver alertas de riesgo activas"
+        >
+          <lucide-icon [img]="ShieldAlert" [size]="14" class="text-danger"></lucide-icon>
+          <span class="font-bold">Alertas de Riesgo ({{ activeAlerts.length }})</span>
+        </button>
+      } @else {
+        <span class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-600">
+          <lucide-icon [img]="CheckCircle2" [size]="13" class="text-slate-400"></lucide-icon>
+          <span>Sin alertas activas</span>
+        </span>
+      }
+
+      <!-- 3. Medicación Activa Badge -->
+      @if (activeMedicationsList.length > 0) {
+        <button
+          type="button"
+          class="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50/80 px-2.5 py-1 font-medium text-blue-900 transition hover:bg-blue-100 hover:border-blue-300 cursor-pointer"
+          (click)="openMedications.emit()"
+          title="Ver detalle de medicación activa"
+        >
+          <lucide-icon [img]="Pill" [size]="14" class="text-blue-600"></lucide-icon>
+          <span class="font-bold">Medicación ({{ activeMedicationsList.length }}):</span>
+          <span class="truncate max-w-[160px] sm:max-w-[200px]">{{ medicationsSummary }}</span>
+        </button>
+      }
+
+      <!-- 4. Diagnóstico Activo Principal Badge -->
+      @if (primaryDiagnosis) {
+        <button
+          type="button"
+          class="inline-flex items-center gap-1.5 rounded-lg border border-cyan-200 bg-cyan-50/80 px-2.5 py-1 font-medium text-cyan-950 transition hover:bg-cyan-100 hover:border-cyan-300 cursor-pointer"
+          (click)="openDiagnoses.emit()"
+          title="Ver diagnósticos activos"
+        >
+          <lucide-icon [img]="Stethoscope" [size]="14" class="text-cyan-600"></lucide-icon>
+          <span class="font-bold">Dx:</span>
+          <span class="truncate max-w-[160px] sm:max-w-[220px]">{{ primaryDiagnosis.description }}</span>
+        </button>
+      }
+
     </div>
-    <button
-      type="button"
-      class="btn-secondary !text-xs !py-1.5 shrink-0"
-      (click)="openAllergies.emit()"
-    >
-      Ver todas las alergias
-    </button>
+
+    <!-- 5. Próxima Cita / Status Badge -->
+    <div class="flex items-center gap-2">
+      @if (upcomingAppointment) {
+        <button
+          type="button"
+          class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-900 transition hover:bg-emerald-100 cursor-pointer"
+          (click)="scheduleAppointment.emit()"
+          title="Ver o gestionar cita"
+        >
+          <lucide-icon [img]="CalendarCheck" [size]="14" class="text-emerald-600"></lucide-icon>
+          <span>Próx. Cita: {{ upcomingAppointment.appointmentDate | date:'dd/MM' }} · {{ upcomingAppointment.startTime.substring(0, 5) }}</span>
+        </button>
+      } @else {
+        <button
+          type="button"
+          class="inline-flex items-center gap-1 text-[11px] text-muted hover:text-primary-700 hover:underline transition"
+          (click)="scheduleAppointment.emit()"
+        >
+          <lucide-icon [img]="Calendar" [size]="12"></lucide-icon>
+          <span>Sin cita programada · Agendar</span>
+        </button>
+      }
+    </div>
   </div>
-}
+</div>
+

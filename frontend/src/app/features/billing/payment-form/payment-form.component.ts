@@ -264,7 +264,7 @@ export class PaymentFormComponent implements OnInit {
       paymentDate: formValue.paymentDate,
       paymentMethod: formValue.paymentMethod,
       description: formValue.description,
-      appointmentId: this.initialData?.appointmentId,
+      appointmentId: this.payment?.appointmentId ?? this.initialData?.appointmentId,
       items: mappedItems
     };
     

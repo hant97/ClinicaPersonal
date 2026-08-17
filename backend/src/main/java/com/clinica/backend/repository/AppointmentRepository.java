@@ -30,6 +30,11 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     long countByAppointmentDateAndSpecialty(LocalDate date, String specialty);
 
+    @Query("SELECT a FROM Appointment a JOIN FETCH a.patient p " +
+           "WHERE a.appointmentDate = :date AND a.specialty = :specialty " +
+           "ORDER BY a.startTime ASC NULLS LAST")
+    List<Appointment> findTodayAppointmentsBySpecialty(@Param("date") LocalDate date, @Param("specialty") String specialty);
+
     @Query("SELECT a FROM Appointment a WHERE a.appointmentDate >= :startDate AND a.appointmentDate <= :endDate AND a.specialty = :specialty")
     List<Appointment> findByAppointmentDateBetweenAndSpecialty(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate, @Param("specialty") String specialty);
 

@@ -1,137 +1,691 @@
-<section class="space-y-6">
-  <!-- Header -->
-  <div class="border-b border-line pb-4">
-    <div class="flex items-center gap-2">
-      <span class="h-2 w-2 rounded-full bg-slate-600"></span>
-      <p class="text-xs font-semibold uppercase tracking-wider text-muted">Configuración del Sistema</p>
+<section class="space-y-6 animate-fade-in">
+  <!-- Header Principal -->
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-line pb-4">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="h-2 w-2 rounded-full bg-primary-600 animate-pulse"></span>
+        <p class="text-xs font-semibold uppercase tracking-wider text-muted">Configuración del Sistema</p>
+      </div>
+      <h1 class="text-2xl font-bold text-ink mt-0.5">Administración de Catálogos</h1>
+      <p class="text-xs text-muted mt-1">
+        Gestiona las opciones maestras y diccionarios utilizados en historias clínicas, agenda, caja e inventario.
+      </p>
     </div>
-    <h1 class="text-2xl font-bold text-ink mt-0.5">Administración de Catálogos</h1>
-    <p class="text-xs text-muted mt-1">Gestiona las opciones maestras y diccionarios utilizados en la operación clínica.</p>
+
+    <div class="flex items-center gap-2">
+      <button
+        type="button"
+        (click)="loadCatalogs()"
+        [disabled]="loadingCatalogs"
+        class="btn-secondary !text-xs !py-2 flex items-center gap-1.5"
+        title="Recargar catálogos"
+      >
+        <lucide-icon [img]="RefreshCw" [size]="14" [class.animate-spin]="loadingCatalogs"></lucide-icon>
+        <span>Refrescar</span>
+      </button>
+
+      <button
+        type="button"
+        (click)="openCreateCatalogModal()"
+        class="btn-primary !text-xs !py-2 flex items-center gap-1.5 shadow-sm"
+      >
+        <lucide-icon [img]="Plus" [size]="15"></lucide-icon>
+        <span>Nuevo Catálogo</span>
+      </button>
+    </div>
   </div>
 
-  <div class="grid items-start gap-6 lg:grid-cols-[20rem_minmax(0,1fr)]">
-    <!-- Catalogs List Panel -->
-    <aside class="card !p-4 space-y-3">
-      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700 border-b border-line pb-2">Catálogos Disponibles</h2>
-      <div class="max-h-[32rem] space-y-1.5 overflow-y-auto pr-1">
-        @for (catalog of catalogs; track catalog.id) {
+  <!-- Barra de Estadísticas Rápidas -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div class="card !p-3.5 flex items-center gap-3">
+      <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600 border border-primary-100">
+        <lucide-icon [img]="FolderTree" [size]="20"></lucide-icon>
+      </div>
+      <div class="min-w-0">
+        <p class="text-[11px] font-semibold text-muted uppercase">Catálogos</p>
+        <p class="text-lg font-bold text-ink">{{ catalogs.length }}</p>
+      </div>
+    </div>
+
+    <div class="card !p-3.5 flex items-center gap-3">
+      <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100">
+        <lucide-icon [img]="Layers" [size]="20"></lucide-icon>
+      </div>
+      <div class="min-w-0">
+        <p class="text-[11px] font-semibold text-muted uppercase">Opciones Totales</p>
+        <p class="text-lg font-bold text-ink">{{ totalItemsAcrossAllCatalogs }}</p>
+      </div>
+    </div>
+
+    <div class="card !p-3.5 flex items-center gap-3">
+      <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-purple-50 text-purple-600 border border-purple-100">
+        <lucide-icon [img]="Sparkles" [size]="20"></lucide-icon>
+      </div>
+      <div class="min-w-0">
+        <p class="text-[11px] font-semibold text-muted uppercase">En Catálogo Actual</p>
+        <p class="text-lg font-bold text-ink">{{ items.length }} <span class="text-xs font-normal text-muted">({{ activeItemsCount }} activos)</span></p>
+      </div>
+    </div>
+
+    <div class="card !p-3.5 flex items-center gap-3">
+      <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
+        <lucide-icon [img]="Globe" [size]="20"></lucide-icon>
+      </div>
+      <div class="min-w-0">
+        <p class="text-[11px] font-semibold text-muted uppercase">Ámbito Seleccionado</p>
+        <p class="text-xs font-bold text-ink truncate">{{ getSpecialtyLabel(selectedCatalog?.specialty) }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layout Maestro-Detalle -->
+  <div class="grid items-start gap-6 lg:grid-cols-[22rem_minmax(0,1fr)]">
+    
+    <!-- PANEL IZQUIERDO: Explorador de Catálogos -->
+    <aside class="card !p-4 space-y-3.5">
+      <div class="flex items-center justify-between border-b border-line pb-2.5">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+          <lucide-icon [img]="BookOpen" [size]="14" class="text-primary-600"></lucide-icon>
+          <span>Catálogos Maestros</span>
+        </h2>
+        <span class="text-[11px] font-medium text-muted">
+          {{ filteredCatalogs.length }} de {{ catalogs.length }}
+        </span>
+      </div>
+
+      <!-- Pestañas de Ámbito / Especialidad -->
+      <div class="flex rounded-lg bg-slate-100 p-1 text-xs font-medium text-muted">
+        <button
+          type="button"
+          (click)="setSpecialtyFilter('ALL')"
+          class="flex-1 rounded-md py-1 text-center transition px-1.5"
+          [ngClass]="specialtyFilter === 'ALL' ? 'bg-white text-ink shadow-sm font-semibold' : 'hover:text-ink'"
+        >
+          Todos
+        </button>
+        <button
+          type="button"
+          (click)="setSpecialtyFilter('GENERAL')"
+          class="flex-1 rounded-md py-1 text-center transition px-1.5"
+          [ngClass]="specialtyFilter === 'GENERAL' ? 'bg-white text-ink shadow-sm font-semibold' : 'hover:text-ink'"
+        >
+          General
+        </button>
+        @for (s of specialties; track s.code) {
           <button
             type="button"
-            class="flex w-full items-center justify-between rounded-lg border p-3 text-left transition focus:outline-none focus:ring-2 focus:ring-primary-500"
-            [ngClass]="selectedCatalog?.id === catalog.id ? 'border-primary-600 bg-primary-50 text-primary-900 shadow-sm' : 'border-line bg-surface hover:bg-slate-50 text-ink'"
-            (click)="selectCatalog(catalog)"
+            (click)="setSpecialtyFilter(s.code)"
+            class="flex-1 rounded-md py-1 text-center transition truncate px-1.5"
+            [ngClass]="specialtyFilter === s.code ? 'bg-white text-ink shadow-sm font-semibold' : 'hover:text-ink'"
+            [title]="s.name"
           >
-            <div class="min-w-0 flex-1 pr-2">
-              <span class="block text-xs font-bold truncate">{{ catalog.name }}</span>
-              <span class="block text-[11px] text-muted truncate mt-0.5">{{ catalog.description }}</span>
-            </div>
-            <span class="text-xs font-bold text-muted">›</span>
+            {{ s.name }}
           </button>
-        } @empty {
-          <div class="rounded-lg border border-dashed border-line bg-slate-50 px-4 py-8 text-center text-xs text-muted">
-            No hay catálogos disponibles.
-          </div>
         }
       </div>
 
-      <app-pagination
-        [currentPage]="currentPage"
-        [totalPages]="totalPages"
-        (pageChange)="onPageChange($event)"
-      ></app-pagination>
+      <!-- Buscador de Catálogos -->
+      <div class="relative">
+        <lucide-icon [img]="Search" [size]="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-muted"></lucide-icon>
+        <input
+          type="text"
+          [(ngModel)]="catalogSearchQuery"
+          placeholder="Buscar catálogo por nombre..."
+          class="input-field !pl-8 !py-1.5 text-xs w-full"
+        />
+        @if (catalogSearchQuery) {
+          <button
+            type="button"
+            (click)="catalogSearchQuery = ''"
+            class="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-ink"
+          >
+            <lucide-icon [img]="X" [size]="12"></lucide-icon>
+          </button>
+        }
+      </div>
+
+      <!-- Lista Scrollable de Catálogos -->
+      <div class="max-h-[34rem] space-y-2 overflow-y-auto pr-1">
+        @for (catalog of filteredCatalogs; track catalog.id) {
+          <button
+            type="button"
+            (click)="selectCatalog(catalog)"
+            class="group flex w-full flex-col rounded-xl border p-3 text-left transition-all focus:outline-none focus:ring-2 focus:ring-primary-500"
+            [ngClass]="selectedCatalog?.id === catalog.id
+              ? 'border-primary-500 bg-primary-50/70 text-ink shadow-sm ring-1 ring-primary-400/30'
+              : 'border-line bg-surface hover:border-slate-300 hover:bg-slate-50/80 text-ink'"
+          >
+            <div class="flex items-start justify-between gap-2 w-full">
+              <span class="text-xs font-bold text-ink group-hover:text-primary-700 transition">
+                {{ catalog.name }}
+              </span>
+              <span
+                class="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-semibold border"
+                [ngClass]="getSpecialtyBadgeClass(catalog.specialty)"
+              >
+                {{ getSpecialtyLabel(catalog.specialty) }}
+              </span>
+            </div>
+
+            @if (catalog.description) {
+              <p class="text-[11px] text-muted line-clamp-1 mt-1">{{ catalog.description }}</p>
+            }
+
+            <div class="mt-2.5 flex items-center justify-between text-[11px] text-muted pt-2 border-t border-slate-200/60 w-full">
+              <span class="font-mono text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200">
+                {{ catalog.code }}
+              </span>
+              <span class="font-semibold text-slate-600">
+                {{ catalog.items?.length || 0 }} {{ (catalog.items?.length === 1) ? 'opción' : 'opciones' }}
+              </span>
+            </div>
+          </button>
+        } @empty {
+          <div class="rounded-xl border border-dashed border-line bg-slate-50 px-4 py-10 text-center text-xs text-muted">
+            <lucide-icon [img]="FolderTree" [size]="28" class="mx-auto mb-2 text-slate-400"></lucide-icon>
+            <p class="font-semibold text-slate-700">No se encontraron catálogos</p>
+            <p class="text-[11px] text-muted mt-0.5">Prueba con otro término de búsqueda o cambia de filtro.</p>
+          </div>
+        }
+      </div>
     </aside>
 
-    <!-- Selected Catalog Items Workspace -->
-    <section class="card !p-5">
+    <!-- PANEL DERECHO: Espacio de Trabajo del Catálogo Seleccionado -->
+    <main class="space-y-4">
       @if (selectedCatalog) {
-        <header class="mb-5 border-b border-line pb-4">
-          <div class="flex items-center justify-between">
-            <h2 class="text-base font-bold text-ink">{{ selectedCatalog.name }}</h2>
-            <span class="inline-flex rounded font-mono text-[11px] font-semibold text-primary-700 bg-primary-50 px-2 py-0.5 border border-primary-200">
-              {{ selectedCatalog.code }}
-            </span>
-          </div>
-          <p class="text-xs text-muted mt-1">{{ selectedCatalog.description }}</p>
-        </header>
+        <!-- Cabecera del Catálogo -->
+        <section class="card !p-5">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between border-b border-line pb-4">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2.5 flex-wrap">
+                <h2 class="text-xl font-bold text-ink">{{ selectedCatalog.name }}</h2>
+                
+                <span
+                  class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border"
+                  [ngClass]="getSpecialtyBadgeClass(selectedCatalog.specialty)"
+                >
+                  {{ getSpecialtyLabel(selectedCatalog.specialty) }}
+                </span>
 
-        <!-- Add Option Section -->
-        <div class="mb-5 rounded-lg border border-line bg-slate-50 p-3.5">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3">Agregar Nueva Opción</h3>
-          <div class="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
-            <div>
-              <label class="form-label" for="newItemName">Nombre Visible *</label>
-              <input id="newItemName" type="text" [(ngModel)]="newItemName" placeholder="Ej: Consulta Presencial" class="input-field !py-1.5 text-xs" />
+                <div class="inline-flex items-center gap-1 bg-slate-100 border border-line rounded px-2 py-0.5 text-xs font-mono text-slate-700">
+                  <span>{{ selectedCatalog.code }}</span>
+                  <button
+                    type="button"
+                    (click)="copyCatalogCode(selectedCatalog.code)"
+                    class="text-muted hover:text-ink transition ml-1"
+                    [title]="copiedCode ? '¡Copiado!' : 'Copiar código'"
+                  >
+                    <lucide-icon [img]="copiedCode ? CheckCheck : Copy" [size]="12" [class.text-emerald-600]="copiedCode"></lucide-icon>
+                  </button>
+                </div>
+              </div>
+              <p class="text-xs text-muted">{{ selectedCatalog.description || 'Sin descripción adicional para este catálogo.' }}</p>
             </div>
-            <div>
-              <label class="form-label" for="newItemCode">Código Interno *</label>
-              <input id="newItemCode" type="text" [(ngModel)]="newItemCode" placeholder="Ej: PRESENCIAL" class="input-field !py-1.5 text-xs uppercase font-mono" />
-            </div>
+
             <button
               type="button"
-              (click)="addItem()"
-              [disabled]="!newItemName || !newItemCode"
-              class="btn-primary !text-xs !py-2"
+              (click)="openEditCatalogModal(selectedCatalog)"
+              class="btn-secondary !text-xs !py-1.5 flex items-center gap-1.5 shrink-0 self-start"
             >
-              Agregar
+              <lucide-icon [img]="Edit2" [size]="13"></lucide-icon>
+              <span>Editar Catálogo</span>
             </button>
           </div>
-        </div>
 
-        <!-- Options Table -->
-        <div class="space-y-3">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Opciones Registradas</h3>
-          <div class="table-responsive">
-            <table class="minimal-table">
-              <thead>
-                <tr>
-                  <th>Nombre Visible</th>
-                  <th>Código</th>
-                  <th>Estado</th>
-                  <th class="text-right">Habilitar / Deshabilitar</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (item of items; track item.id) {
-                  <tr [class.opacity-50]="!item.isActive" class="transition hover:bg-slate-50">
-                    <td class="font-semibold text-xs text-ink">{{ item.itemName }}</td>
-                    <td>
-                      <code class="rounded bg-slate-100 px-2 py-0.5 text-xs font-mono text-slate-700 border border-line">
-                        {{ item.itemCode }}
-                      </code>
-                    </td>
-                    <td>
-                      <span
-                        class="inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                        [ngClass]="item.isActive ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-danger border border-red-200'"
-                      >
-                        {{ item.isActive ? 'Activo' : 'Inactivo' }}
-                      </span>
-                    </td>
-                    <td class="text-right">
-                      <label class="relative inline-flex cursor-pointer items-center justify-end">
-                        <input type="checkbox" [(ngModel)]="item.isActive" (change)="toggleActive(item)" class="peer sr-only">
-                        <span class="h-5 w-9 rounded-full bg-slate-300 transition peer-checked:bg-primary-600 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:bg-white after:transition peer-checked:after:translate-x-4"></span>
-                        <span class="sr-only">{{ item.isActive ? 'Desactivar' : 'Activar' }} {{ item.itemName }}</span>
-                      </label>
-                    </td>
-                  </tr>
-                } @empty {
-                  <tr>
-                    <td colspan="4" class="px-4 py-8 text-center text-xs italic text-muted">
-                      No hay opciones registradas para este catálogo.
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
+          <!-- SECCIÓN: Agregar Nueva Opción Rápida (Zero Friction) -->
+          <div class="mt-4 rounded-xl border border-primary-200/80 bg-gradient-to-r from-primary-50/60 to-blue-50/40 p-4 shadow-sm">
+            <div class="flex items-center justify-between mb-2.5">
+              <div class="flex items-center gap-2">
+                <span class="flex h-5 w-5 items-center justify-center rounded-full bg-primary-600 text-white text-[11px] font-bold">⚡</span>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-primary-950">Agregar Nueva Opción</h3>
+              </div>
+              <button
+                type="button"
+                (click)="toggleCustomItemCode()"
+                class="text-[11px] font-medium text-primary-700 hover:text-primary-900 underline flex items-center gap-1"
+              >
+                <lucide-icon [img]="SlidersHorizontal" [size]="11"></lucide-icon>
+                <span>{{ isCustomItemCodeExpanded ? 'Ocultar código técnico' : 'Personalizar código técnico' }}</span>
+              </button>
+            </div>
+
+            <div class="grid gap-3" [ngClass]="isCustomItemCodeExpanded ? 'sm:grid-cols-[1.5fr_1fr_auto]' : 'sm:grid-cols-[1fr_auto]'">
+              <div>
+                <label class="form-label !text-[11px]" for="newItemName">Nombre Visible *</label>
+                <input
+                  id="newItemName"
+                  type="text"
+                  [(ngModel)]="newItemName"
+                  (input)="onNewItemNameChange()"
+                  (keydown.enter)="addItem()"
+                  placeholder="Ej: Tarjeta de Crédito, Piel Sensible, Consulta Virtual..."
+                  class="input-field !py-2 text-xs bg-white shadow-inner"
+                  autofocus
+                />
+              </div>
+
+              @if (isCustomItemCodeExpanded) {
+                <div class="animate-fade-in">
+                  <label class="form-label !text-[11px]" for="newItemCode">Código Interno</label>
+                  <input
+                    id="newItemCode"
+                    type="text"
+                    [(ngModel)]="newItemCode"
+                    (keydown.enter)="addItem()"
+                    placeholder="Auto-generado"
+                    class="input-field !py-2 text-xs uppercase font-mono bg-white"
+                  />
+                </div>
+              }
+
+              <div class="flex items-end">
+                <button
+                  type="button"
+                  (click)="addItem()"
+                  [disabled]="!newItemName.trim() || savingItem"
+                  class="btn-primary !text-xs !py-2 w-full sm:w-auto flex items-center justify-center gap-1.5 shadow-sm"
+                >
+                  <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
+                  <span>{{ savingItem ? 'Guardando...' : 'Agregar Opción' }}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Previsualización inteligente del código técnico auto-generado -->
+            @if (newItemName.trim() && !isCustomItemCodeExpanded) {
+              <div class="mt-2 flex items-center gap-1.5 text-[11px] text-muted">
+                <span>Código que se registrará:</span>
+                <code class="rounded bg-white/90 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-primary-800 border border-primary-200">
+                  {{ newItemCode || slugify(newItemName) }}
+                </code>
+              </div>
+            }
           </div>
-        </div>
+
+          <!-- SECCIÓN: Tabla y Filtros de Opciones Registradas -->
+          <div class="mt-6 space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <!-- Filtro de estado de items -->
+              <div class="flex items-center gap-1 rounded-lg bg-slate-100 p-1 text-xs font-medium text-muted w-fit">
+                <button
+                  type="button"
+                  (click)="itemStatusFilter = 'ALL'"
+                  class="rounded-md px-3 py-1 text-center transition"
+                  [ngClass]="itemStatusFilter === 'ALL' ? 'bg-white text-ink shadow-sm font-semibold' : 'hover:text-ink'"
+                >
+                  Todas ({{ items.length }})
+                </button>
+                <button
+                  type="button"
+                  (click)="itemStatusFilter = 'ACTIVE'"
+                  class="rounded-md px-3 py-1 text-center transition"
+                  [ngClass]="itemStatusFilter === 'ACTIVE' ? 'bg-white text-emerald-700 shadow-sm font-semibold' : 'hover:text-ink'"
+                >
+                  Activas ({{ activeItemsCount }})
+                </button>
+                <button
+                  type="button"
+                  (click)="itemStatusFilter = 'INACTIVE'"
+                  class="rounded-md px-3 py-1 text-center transition"
+                  [ngClass]="itemStatusFilter === 'INACTIVE' ? 'bg-white text-red-700 shadow-sm font-semibold' : 'hover:text-ink'"
+                >
+                  Inactivas ({{ items.length - activeItemsCount }})
+                </button>
+              </div>
+
+              <!-- Buscador de items dentro del catálogo -->
+              <div class="relative w-full sm:w-64">
+                <lucide-icon [img]="Search" [size]="13" class="absolute left-3 top-1/2 -translate-y-1/2 text-muted"></lucide-icon>
+                <input
+                  type="text"
+                  [(ngModel)]="itemSearchQuery"
+                  placeholder="Filtrar opciones..."
+                  class="input-field !pl-8 !py-1 text-xs w-full"
+                />
+                @if (itemSearchQuery) {
+                  <button
+                    type="button"
+                    (click)="itemSearchQuery = ''"
+                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-ink"
+                  >
+                    <lucide-icon [img]="X" [size]="12"></lucide-icon>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Tabla de Opciones -->
+            <div class="table-responsive rounded-xl border border-line overflow-hidden bg-surface">
+              <table class="minimal-table">
+                <thead>
+                  <tr class="bg-slate-50/80">
+                    <th class="w-12 text-center">#</th>
+                    <th class="w-20 text-center">Orden</th>
+                    <th>Nombre de la Opción</th>
+                    <th>Código Interno</th>
+                    <th class="w-24 text-center">Estado</th>
+                    <th class="w-32 text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-line">
+                  @for (item of filteredItems; track item.id; let i = $index) {
+                    <tr
+                      class="transition hover:bg-slate-50/60"
+                      [class.bg-slate-50]="editingItemId === item.id"
+                      [class.opacity-60]="!item.isActive && editingItemId !== item.id"
+                    >
+                      <!-- Índice -->
+                      <td class="text-center text-xs text-muted font-mono font-medium">
+                        {{ i + 1 }}
+                      </td>
+
+                      <!-- Controles de Reordenamiento -->
+                      <td class="text-center">
+                        <div class="inline-flex items-center gap-1">
+                          <button
+                            type="button"
+                            (click)="moveItemUp(i)"
+                            [disabled]="i === 0"
+                            class="rounded p-1 text-muted hover:bg-slate-200 hover:text-ink disabled:opacity-30 disabled:cursor-not-allowed transition"
+                            title="Mover arriba"
+                          >
+                            <lucide-icon [img]="ArrowUp" [size]="13"></lucide-icon>
+                          </button>
+                          <button
+                            type="button"
+                            (click)="moveItemDown(i)"
+                            [disabled]="i === filteredItems.length - 1"
+                            class="rounded p-1 text-muted hover:bg-slate-200 hover:text-ink disabled:opacity-30 disabled:cursor-not-allowed transition"
+                            title="Mover abajo"
+                          >
+                            <lucide-icon [img]="ArrowDown" [size]="13"></lucide-icon>
+                          </button>
+                        </div>
+                      </td>
+
+                      <!-- Nombre con Edición Inline -->
+                      <td>
+                        @if (editingItemId === item.id) {
+                          <div class="flex items-center gap-1.5 animate-fade-in">
+                            <input
+                              type="text"
+                              [(ngModel)]="editingItemName"
+                              (keydown.enter)="saveEditItem(item)"
+                              (keydown.escape)="cancelEditItem()"
+                              class="input-field !py-1 text-xs !bg-white border-primary-500 font-semibold"
+                              autofocus
+                            />
+                            <button
+                              type="button"
+                              (click)="saveEditItem(item)"
+                              class="rounded bg-emerald-600 text-white p-1 hover:bg-emerald-700 shadow-sm transition"
+                              title="Guardar (Enter)"
+                            >
+                              <lucide-icon [img]="Check" [size]="14"></lucide-icon>
+                            </button>
+                            <button
+                              type="button"
+                              (click)="cancelEditItem()"
+                              class="rounded bg-slate-200 text-slate-700 p-1 hover:bg-slate-300 transition"
+                              title="Cancelar (Esc)"
+                            >
+                              <lucide-icon [img]="X" [size]="14"></lucide-icon>
+                            </button>
+                          </div>
+                        } @else {
+                          <div
+                            class="flex items-center gap-2 group/edit cursor-pointer"
+                            (dblclick)="startEditItem(item)"
+                            title="Doble clic para editar nombre"
+                          >
+                            <span class="font-semibold text-xs text-ink">{{ item.itemName }}</span>
+                            <button
+                              type="button"
+                              (click)="startEditItem(item)"
+                              class="opacity-0 group-hover/edit:opacity-100 text-muted hover:text-primary-600 transition"
+                              title="Editar nombre"
+                            >
+                              <lucide-icon [img]="Edit2" [size]="12"></lucide-icon>
+                            </button>
+                          </div>
+                        }
+                      </td>
+
+                      <!-- Código Técnico -->
+                      <td>
+                        <code class="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-mono text-slate-700 border border-slate-200">
+                          {{ item.itemCode }}
+                        </code>
+                      </td>
+
+                      <!-- Estado Activo / Inactivo -->
+                      <td class="text-center">
+                        <span
+                          class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold border"
+                          [ngClass]="item.isActive
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-red-50 text-danger border-red-200'"
+                        >
+                          {{ item.isActive ? 'Activo' : 'Inactivo' }}
+                        </span>
+                      </td>
+
+                      <!-- Acciones (Switch Toggle + Eliminar) -->
+                      <td class="text-right">
+                        <div class="inline-flex items-center justify-end gap-3">
+                          <!-- Switch Toggle -->
+                          <label class="relative inline-flex cursor-pointer items-center" title="Activar / Desactivar">
+                            <input
+                              type="checkbox"
+                              [(ngModel)]="item.isActive"
+                              (change)="toggleActive(item)"
+                              class="peer sr-only"
+                            />
+                            <span class="h-5 w-9 rounded-full bg-slate-300 transition peer-checked:bg-primary-600 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:bg-white after:transition peer-checked:after:translate-x-4"></span>
+                          </label>
+
+                          <!-- Botón Eliminar -->
+                          <button
+                            type="button"
+                            (click)="confirmDeleteItem(item)"
+                            class="text-muted hover:text-danger rounded p-1 hover:bg-red-50 transition"
+                            title="Eliminar opción"
+                          >
+                            <lucide-icon [img]="Trash2" [size]="14"></lucide-icon>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="6" class="px-4 py-10 text-center text-xs text-muted">
+                        <lucide-icon [img]="Layers" [size]="26" class="mx-auto mb-2 text-slate-300"></lucide-icon>
+                        <p class="font-semibold text-slate-700">No hay opciones registradas</p>
+                        <p class="text-[11px] text-muted mt-0.5">Usa la barra superior para agregar la primera opción a este catálogo.</p>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
       } @else {
-        <div class="flex min-h-80 flex-col items-center justify-center rounded-lg border border-dashed border-line bg-slate-50 p-6 text-center text-muted">
-          <p class="text-sm font-semibold text-ink">Selecciona un catálogo</p>
-          <p class="text-xs text-muted mt-0.5">Elige un catálogo del panel izquierdo para administrar sus valores.</p>
+        <!-- Estado sin selección -->
+        <div class="card flex min-h-[30rem] flex-col items-center justify-center p-8 text-center text-muted">
+          <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-50 text-primary-600 mb-4 border border-primary-100">
+            <lucide-icon [img]="FolderTree" [size]="32"></lucide-icon>
+          </div>
+          <h3 class="text-base font-bold text-ink">Selecciona un catálogo</h3>
+          <p class="text-xs text-muted mt-1 max-w-sm">
+            Elige un catálogo de la lista izquierda para visualizar y configurar sus opciones maestras, o crea uno nuevo.
+          </p>
+          <button
+            type="button"
+            (click)="openCreateCatalogModal()"
+            class="btn-primary !text-xs !py-2 mt-4 flex items-center gap-1.5 shadow-sm"
+          >
+            <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
+            <span>Crear Nuevo Catálogo</span>
+          </button>
         </div>
       }
-    </section>
+    </main>
   </div>
+
+  <!-- MODAL: Crear / Editar Catálogo Maestro -->
+  @if (showCatalogModal) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-fade-in">
+      <div class="card !p-6 w-full max-w-md shadow-2xl space-y-4 animate-scale-in">
+        <div class="flex items-center justify-between border-b border-line pb-3">
+          <div class="flex items-center gap-2">
+            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-50 text-primary-600">
+              <lucide-icon [img]="FolderTree" [size]="18"></lucide-icon>
+            </div>
+            <h3 class="text-base font-bold text-ink">
+              {{ isEditingCatalog ? 'Editar Catálogo Maestro' : 'Nuevo Catálogo Maestro' }}
+            </h3>
+          </div>
+          <button
+            type="button"
+            (click)="closeCatalogModal()"
+            class="rounded-lg p-1 text-muted hover:bg-slate-100 hover:text-ink transition"
+          >
+            <lucide-icon [img]="X" [size]="18"></lucide-icon>
+          </button>
+        </div>
+
+        <form (ngSubmit)="saveCatalog()" class="space-y-3.5">
+          <div>
+            <label class="form-label" for="catalogFormName">Nombre del Catálogo *</label>
+            <input
+              id="catalogFormName"
+              type="text"
+              [(ngModel)]="catalogFormName"
+              (input)="onCatalogFormNameChange()"
+              name="catalogFormName"
+              required
+              placeholder="Ej: Tipos de Consulta, Modalidad de Pago..."
+              class="input-field text-xs"
+            />
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="form-label !mb-0" for="catalogFormCode">Código Interno *</label>
+              @if (!isEditingCatalog) {
+                <button
+                  type="button"
+                  (click)="toggleCustomCatalogCode()"
+                  class="text-[11px] text-primary-700 hover:underline"
+                >
+                  {{ isCustomCatalogCodeExpanded ? 'Auto-generar' : 'Editar código' }}
+                </button>
+              }
+            </div>
+            <input
+              id="catalogFormCode"
+              type="text"
+              [(ngModel)]="catalogFormCode"
+              name="catalogFormCode"
+              [disabled]="isEditingCatalog"
+              required
+              placeholder="Ej: CONSULTATION_TYPE"
+              class="input-field text-xs font-mono uppercase"
+              [class.bg-slate-100]="isEditingCatalog"
+            />
+            @if (isEditingCatalog) {
+              <p class="text-[10px] text-muted mt-0.5">El código identificador único no se puede modificar.</p>
+            }
+          </div>
+
+          <div>
+            <label class="form-label" for="catalogFormSpecialty">Ámbito / Especialidad *</label>
+            <select
+              id="catalogFormSpecialty"
+              [(ngModel)]="catalogFormSpecialty"
+              name="catalogFormSpecialty"
+              class="input-field text-xs"
+            >
+              <option value="GENERAL">🌐 General (Toda la clínica y administración)</option>
+              @for (s of specialties; track s.code) {
+                <option [value]="s.code">🩺 {{ s.name }}</option>
+              }
+            </select>
+          </div>
+
+          <div>
+            <label class="form-label" for="catalogFormDescription">Descripción</label>
+            <textarea
+              id="catalogFormDescription"
+              [(ngModel)]="catalogFormDescription"
+              name="catalogFormDescription"
+              rows="2"
+              placeholder="Breve explicación del uso de este catálogo..."
+              class="input-field text-xs resize-none"
+            ></textarea>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-2 border-t border-line">
+            <button
+              type="button"
+              (click)="closeCatalogModal()"
+              class="btn-secondary !text-xs !py-2"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              [disabled]="!catalogFormName.trim() || savingCatalog"
+              class="btn-primary !text-xs !py-2 flex items-center gap-1.5 shadow-sm"
+            >
+              <lucide-icon [img]="Check" [size]="14"></lucide-icon>
+              <span>{{ savingCatalog ? 'Guardando...' : (isEditingCatalog ? 'Guardar Cambios' : 'Crear Catálogo') }}</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: Confirmar Eliminación de Opción -->
+  @if (showDeleteModal) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-fade-in">
+      <div class="card !p-6 w-full max-w-sm shadow-2xl space-y-4 animate-scale-in text-center">
+        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-danger">
+          <lucide-icon [img]="AlertCircle" [size]="24"></lucide-icon>
+        </div>
+
+        <div>
+          <h3 class="text-base font-bold text-ink">¿Eliminar esta opción?</h3>
+          <p class="text-xs text-muted mt-1.5">
+            Estás por eliminar <strong class="text-slate-800">"{{ itemToDelete?.itemName }}"</strong> del catálogo.
+          </p>
+          <p class="text-[11px] text-slate-500 bg-amber-50 border border-amber-200 rounded-lg p-2.5 mt-3 text-left">
+            💡 <strong>Recomendación:</strong> Si esta opción ya fue utilizada en pacientes o registros históricos, es más seguro <strong>desactivarla</strong> con el interruptor en vez de eliminarla.
+          </p>
+        </div>
+
+        <div class="flex items-center justify-center gap-2 pt-2 border-t border-line">
+          <button
+            type="button"
+            (click)="closeDeleteModal()"
+            class="btn-secondary !text-xs !py-2 flex-1"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            (click)="executeDeleteItem()"
+            [disabled]="isDeletingItem"
+            class="btn-danger !text-xs !py-2 flex-1 flex items-center justify-center gap-1 shadow-sm"
+          >
+            <lucide-icon [img]="Trash2" [size]="13"></lucide-icon>
+            <span>{{ isDeletingItem ? 'Eliminando...' : 'Eliminar' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </section>
+

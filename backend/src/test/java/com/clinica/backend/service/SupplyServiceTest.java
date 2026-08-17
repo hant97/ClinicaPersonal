@@ -22,13 +22,15 @@ class SupplyServiceTest {
 
     private SupplyRepository supplyRepository;
     private WebsiteFileStorage websiteFileStorage;
+    private InventoryTransactionService inventoryTransactionService;
     private SupplyService supplyService;
 
     @BeforeEach
     void setUp() {
         supplyRepository = mock(SupplyRepository.class);
         websiteFileStorage = mock(WebsiteFileStorage.class);
-        supplyService = new SupplyService(supplyRepository, websiteFileStorage);
+        inventoryTransactionService = mock(InventoryTransactionService.class);
+        supplyService = new SupplyService(supplyRepository, websiteFileStorage, inventoryTransactionService);
 
         User user = new User();
         user.setId(1L);

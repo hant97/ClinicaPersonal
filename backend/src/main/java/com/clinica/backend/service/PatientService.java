@@ -2,6 +2,7 @@ package com.clinica.backend.service;
 
 import com.clinica.backend.dto.PatientDto;
 import com.clinica.backend.dto.PatientStatsDto;
+import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.PatientRepository;
@@ -17,6 +18,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,17 +30,21 @@ public class PatientService {
     private final RiskAlertRepository riskAlertRepository;
     private final WebsiteFileStorage fileStorage;
 
+    @Transactional(readOnly = true)
     public Page<PatientDto> getAllPatients(Boolean active, String gender, Pageable pageable) {
-        return patientRepository.findAllBySpecialty(currentSpecialty(), active, gender, pageable)
-                .map(this::mapToDto);
+        String specialty = currentSpecialty();
+        Page<Patient> patientsPage = patientRepository.findAllBySpecialty(specialty, active, gender, pageable);
+        return mapPageToDto(patientsPage, specialty);
     }
 
+    @Transactional(readOnly = true)
     public Page<PatientDto> searchPatients(String query, Boolean active, String gender, Pageable pageable) {
         if (query == null || query.trim().isEmpty()) {
             return getAllPatients(active, gender, pageable);
         }
-        return patientRepository.searchPatients(query, currentSpecialty(), active, gender, pageable)
-                .map(this::mapToDto);
+        String specialty = currentSpecialty();
+        Page<Patient> patientsPage = patientRepository.searchPatients(query, specialty, active, gender, pageable);
+        return mapPageToDto(patientsPage, specialty);
     }
 
     @Transactional(readOnly = true)
@@ -60,20 +68,28 @@ public class PatientService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
     public PatientDto getPatientById(Long id) {
-        Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(id, currentSpecialty()).orElseThrow();
-        return mapToDto(patient);
+        String specialty = currentSpecialty();
+        Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(id, specialty)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
+        boolean hasAlerts = riskAlertRepository.existsByPatientIdAndSpecialtyAndActiveTrue(patient.getId(), specialty);
+        return mapToDto(patient, hasAlerts);
     }
 
+    @Transactional
     public PatientDto createPatient(PatientDto patientDto) {
         Patient patient = mapToEntity(patientDto);
         patient.setSpecialty(currentSpecialty());
         Patient savedPatient = patientRepository.save(patient);
-        return mapToDto(savedPatient);
+        return mapToDto(savedPatient, false);
     }
 
+    @Transactional
     public PatientDto updatePatient(Long id, PatientDto patientDto) {
-        Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(id, currentSpecialty()).orElseThrow();
+        String specialty = currentSpecialty();
+        Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(id, specialty)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
 
         patient.setFirstName(patientDto.getFirstName());
         patient.setLastName(patientDto.getLastName());
@@ -94,23 +110,30 @@ public class PatientService {
         patient.setActive(patientDto.getActive() == null || patientDto.getActive());
 
         Patient updatedPatient = patientRepository.save(patient);
-        return mapToDto(updatedPatient);
+        boolean hasAlerts = riskAlertRepository.existsByPatientIdAndSpecialtyAndActiveTrue(updatedPatient.getId(), specialty);
+        return mapToDto(updatedPatient, hasAlerts);
     }
 
+    @Transactional
     public void deletePatient(Long id) {
-        Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(id, currentSpecialty()).orElseThrow();
+        String specialty = currentSpecialty();
+        Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(id, specialty)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
         patient.setDeleted(true);
         patientRepository.save(patient);
     }
 
     @Transactional
     public PatientDto uploadPhoto(Long id, MultipartFile file) {
-        Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(id, currentSpecialty()).orElseThrow();
+        String specialty = currentSpecialty();
+        Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(id, specialty)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
         String previousKey = toAssetKey(patient.getPhotoUrl());
         String key = fileStorage.store(file, "patients", previousKey);
         patient.setPhotoUrl(fileStorage.publicUrl(key));
         patientRepository.save(patient);
-        return mapToDto(patient);
+        boolean hasAlerts = riskAlertRepository.existsByPatientIdAndSpecialtyAndActiveTrue(patient.getId(), specialty);
+        return mapToDto(patient, hasAlerts);
     }
 
     private String currentSpecialty() {
@@ -118,7 +141,19 @@ public class PatientService {
         return user.getSpecialty();
     }
 
-    private PatientDto mapToDto(Patient patient) {
+    private Page<PatientDto> mapPageToDto(Page<Patient> patientsPage, String specialty) {
+        List<Long> patientIds = patientsPage.getContent().stream()
+                .map(Patient::getId)
+                .collect(Collectors.toList());
+
+        Set<Long> alertPatientIds = patientIds.isEmpty()
+                ? Set.of()
+                : riskAlertRepository.findPatientIdsWithActiveAlertsByPatientIdsAndSpecialty(patientIds, specialty);
+
+        return patientsPage.map(p -> mapToDto(p, alertPatientIds.contains(p.getId())));
+    }
+
+    private PatientDto mapToDto(Patient patient, boolean hasActiveAlerts) {
         PatientDto dto = new PatientDto();
         dto.setId(patient.getId());
         dto.setFirstName(patient.getFirstName());
@@ -140,7 +175,7 @@ public class PatientService {
         dto.setActive(patient.isActive());
         dto.setSpecialty(patient.getSpecialty());
         dto.setDeleted(patient.isDeleted());
-        dto.setHasActiveAlerts(riskAlertRepository.existsByPatientIdAndSpecialtyAndActiveTrue(patient.getId(), patient.getSpecialty()));
+        dto.setHasActiveAlerts(hasActiveAlerts);
         return dto;
     }
 

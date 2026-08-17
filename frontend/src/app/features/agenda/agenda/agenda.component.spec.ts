@@ -5,13 +5,11 @@ import { of } from 'rxjs';
 
 import { AgendaComponent } from './agenda.component';
 import { AppointmentService } from '../../../core/services/appointment.service';
-import { PatientService } from '../../../core/services/patient/patient.service';
 
 describe('AgendaComponent', () => {
   let component: AgendaComponent;
   let fixture: ComponentFixture<AgendaComponent>;
   let appointmentService: jasmine.SpyObj<AppointmentService>;
-  let patientService: jasmine.SpyObj<PatientService>;
 
   beforeEach(async () => {
     const appointmentSpy = jasmine.createSpyObj('AppointmentService', ['search', 'updateStatus', 'create', 'update']);
@@ -27,30 +25,15 @@ describe('AgendaComponent', () => {
       empty: true
     }));
 
-    const patientSpy = jasmine.createSpyObj('PatientService', ['getAll']);
-    patientSpy.getAll.and.returnValue(of({
-      content: [{ id: 1, firstName: 'Juan', lastName: 'Perez' }],
-      totalElements: 1,
-      totalPages: 1,
-      size: 1000,
-      number: 0,
-      numberOfElements: 1,
-      first: true,
-      last: true,
-      empty: false
-    }));
-
     await TestBed.configureTestingModule({
       imports: [AgendaComponent, HttpClientTestingModule, RouterTestingModule],
       providers: [
-        { provide: AppointmentService, useValue: appointmentSpy },
-        { provide: PatientService, useValue: patientSpy }
+        { provide: AppointmentService, useValue: appointmentSpy }
       ]
     })
     .compileComponents();
 
     appointmentService = TestBed.inject(AppointmentService) as jasmine.SpyObj<AppointmentService>;
-    patientService = TestBed.inject(PatientService) as jasmine.SpyObj<PatientService>;
 
     fixture = TestBed.createComponent(AgendaComponent);
     component = fixture.componentInstance;

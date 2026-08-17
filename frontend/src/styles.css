@@ -41,13 +41,13 @@
 
   /* --- FlowGrid Cards & Containers --- */
   .card {
-    @apply rounded-lg border border-line bg-surface p-4 shadow-card transition-all md:p-6;
+    @apply rounded-lg border border-line bg-surface p-4 shadow-card transition-[border-color,box-shadow] duration-150 ease-in-out md:p-6;
   }
   .card-header {
     @apply mb-4 flex items-center justify-between border-b border-line pb-3;
   }
   .card-interactive {
-    @apply cursor-pointer transition-all hover:border-slate-300 hover:shadow-raised;
+    @apply cursor-pointer transition-[border-color,box-shadow] duration-150 ease-in-out hover:border-slate-300 hover:shadow-raised;
   }
 
   /* --- FlowGrid Buttons --- */
@@ -236,31 +236,65 @@ select.input-field { cursor: pointer; }
 }
 
 @page {
-  size: A4;
-  margin: 12mm;
+  size: A4 portrait;
+  margin: 0;
 }
 
+
+
+
 @media print {
+  /* Ocultar elementos de navegación, menús, cabeceras del layout y utilidades no imprimibles */
+  aside,
+  app-sidebar,
+  app-command-palette,
+  .app-header,
+  header.sticky,
+  header.app-header,
+  .toast-container,
+  .print\:hidden,
+  [class*="print:hidden"] {
+    display: none !important;
+  }
+
+  /* Resetear el flujo del documento para evitar páginas en blanco o desplazamientos */
+  html,
   body {
-    background: #fff;
-    visibility: hidden;
-  }
-  .print-area,
-  .print-area * {
-    visibility: visible;
-  }
-  .print-area {
-    position: absolute;
-    top: 0;
-    left: 0;
     width: 100%;
+    height: auto;
+    min-height: 0;
     margin: 0;
     padding: 0;
     background: #fff;
-    box-shadow: none;
+    color: #111827;
+    overflow: visible;
+    font-size: 10pt;
+    line-height: 1.35;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  app-root,
+  main,
+  #contenido,
+  .flex-1,
+  .min-h-screen,
+  .w-full {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    position: static;
+    background: transparent;
     border: none;
+    box-shadow: none;
   }
 }
+
+
 
 .spinner {
   display: inline-block;

@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@RequestMapping({"/api/v1/clinical-services", "/api/clinical-services"})
+@RequestMapping("/api/v1/clinical-services")
 @RequiredArgsConstructor
 public class ClinicalServiceController {
 

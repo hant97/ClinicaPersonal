@@ -21,7 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/v1/admin/website")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('SITE_ADMIN')")
+@PreAuthorize("hasAnyRole('SITE_ADMIN', 'ADMIN')")
 public class WebsiteAdminController {
     private final WebsiteSettingsService service;
 

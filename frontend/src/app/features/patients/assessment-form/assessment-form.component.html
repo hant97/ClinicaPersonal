@@ -85,7 +85,19 @@
     >
       @if (selectedTest) {
         <div class="text-sm text-ink">
-          Puntaje Total Calculado: <strong>{{ calculateTotalScore() }}</strong>
+          <div>Puntaje Total: <strong>{{ calculateTotalScore() }}</strong></div>
+          @if (currentInterpretation) {
+            <span
+              class="mt-1.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold border"
+              [ngClass]="currentBandClasses.badge"
+            >
+              <span class="h-2 w-2 rounded-full" [ngClass]="currentBandClasses.dot"></span>
+              {{ currentInterpretation.label }}
+            </span>
+            @if (currentInterpretation.description) {
+              <p class="mt-1.5 max-w-xs text-xs text-muted">{{ currentInterpretation.description }}</p>
+            }
+          }
         </div>
       }
       @if (!selectedTest) {

@@ -70,6 +70,10 @@ public class DataSeeder {
                         "        ]\n" +
                         "      }\n" +
                         "    ]");
+                bdiTest.setInterpretationJson("[{\"minScore\":0,\"maxScore\":13,\"label\":\"Mínima\",\"color\":\"emerald\",\"description\":\"Rango mínimo de síntomas depresivos.\"}," +
+                        "{\"minScore\":14,\"maxScore\":19,\"label\":\"Leve\",\"color\":\"blue\",\"description\":\"Síntomas depresivos leves.\"}," +
+                        "{\"minScore\":20,\"maxScore\":28,\"label\":\"Moderada\",\"color\":\"orange\",\"description\":\"Síntomas depresivos moderados.\"}," +
+                        "{\"minScore\":29,\"maxScore\":63,\"label\":\"Severa\",\"color\":\"red\",\"description\":\"Síntomas depresivos severos.\"}]");
                 testRepository.save(bdiTest);
             }
         };

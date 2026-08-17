@@ -73,7 +73,7 @@
                 @for (c of conflicts; track c.id) {
                   <li class="flex flex-wrap items-center gap-2 font-medium">
                     <span class="inline-block h-1.5 w-1.5 rounded-full bg-amber-600"></span>
-                    <span>{{ patientMap.get(c.patientId) || ('Paciente #' + c.patientId) }}:</span>
+                    <span>{{ c.patientName || ('Paciente #' + c.patientId) }}:</span>
                     <span class="font-bold text-amber-950">{{ c.startTime.substring(0,5) }} - {{ c.endTime.substring(0,5) }}</span>
                     <span class="rounded bg-amber-200/80 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900">{{ c.status }}</span>
                   </li>

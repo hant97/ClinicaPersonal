@@ -8,6 +8,9 @@ import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Collection;
+import java.util.Set;
+
 @Repository
 public interface RiskAlertRepository extends JpaRepository<RiskAlert, Long> {
     Page<RiskAlert> findByPatientIdAndSpecialtyOrderByCreatedAtDesc(Long patientId, String specialty, Pageable pageable);
@@ -22,4 +25,7 @@ public interface RiskAlertRepository extends JpaRepository<RiskAlert, Long> {
 
     @Query("SELECT COUNT(DISTINCT r.patientId) FROM RiskAlert r WHERE r.specialty = :specialty AND r.active = true")
     long countDistinctPatientsWithActiveAlerts(@Param("specialty") String specialty);
+
+    @Query("SELECT DISTINCT r.patientId FROM RiskAlert r WHERE r.specialty = :specialty AND r.active = true AND r.patientId IN :patientIds")
+    Set<Long> findPatientIdsWithActiveAlertsByPatientIdsAndSpecialty(@Param("patientIds") Collection<Long> patientIds, @Param("specialty") String specialty);
 }

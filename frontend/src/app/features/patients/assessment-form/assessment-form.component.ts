@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AssessmentService } from '../../../core/services/assessment.service';
-import { Assessment, PsychometricTest, Question } from '../../../core/models/assessment.model';
+import { Assessment, PsychometricTest, Question, InterpretationBand, interpretScore, bandColorClasses } from '../../../core/models/assessment.model';
 import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
 
 @Component({
@@ -49,6 +49,14 @@ export class AssessmentFormComponent implements OnInit {
       }
     }
     return total;
+  }
+
+  get currentInterpretation(): InterpretationBand | null {
+    return interpretScore(this.selectedTest?.interpretationJson, this.calculateTotalScore());
+  }
+
+  get currentBandClasses(): { badge: string; dot: string } {
+    return bandColorClasses(this.currentInterpretation?.color);
   }
 
   isValid(): boolean {

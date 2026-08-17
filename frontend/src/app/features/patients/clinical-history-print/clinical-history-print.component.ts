@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { forkJoin, Observable, of } from 'rxjs';
 import { ClinicalHistoryService } from '../../../core/services/clinical-history.service';
 import { ClinicalHistory } from '../../../core/models/clinical-history.model';
@@ -14,18 +15,74 @@ import { ClinicSettingsService, ClinicSettings } from '../../../core/services/cl
 import { UserService } from '../../../core/services/user.service';
 import { UserProfile } from '../../../core/models/user-profile.model';
 import { SpecialtyService } from '../../../core/services/specialty.service';
-import { LucideAngularModule, Printer, X } from 'lucide-angular';
+import { ToastService } from '../../../shared/services/toast/toast.service';
+import {
+  LucideAngularModule,
+  Printer,
+  X,
+  FileText,
+  Check,
+  Filter,
+  Calendar,
+  AlertTriangle,
+  Lock,
+  User,
+  Layers,
+  Settings2,
+  ChevronDown,
+  ChevronUp,
+  MapPin,
+  Phone,
+  Mail,
+  ShieldCheck,
+  Building2,
+  Stethoscope,
+  RotateCw
+} from 'lucide-angular';
+
+export type PrintMode = 'completa' | 'resumen' | 'ultima' | 'personalizada';
+export type SessionFilterType = 'all' | 'last1' | 'last3' | 'last5' | 'custom';
+
+export interface PrintSectionsConfig {
+  patientInfo: boolean;
+  alertsBanner: boolean;
+  generalHistory: boolean;
+  allergies: boolean;
+  medications: boolean;
+  diagnoses: boolean;
+  specialtyModule: boolean;
+  sessions: boolean;
+  signatureBlock: boolean;
+}
 
 @Component({
   selector: 'app-clinical-history-print',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule],
   templateUrl: './clinical-history-print.component.html',
   styleUrls: ['./clinical-history-print.component.css'],
 })
 export class ClinicalHistoryPrintComponent implements OnInit {
   readonly Printer = Printer;
   readonly X = X;
+  readonly FileText = FileText;
+  readonly Check = Check;
+  readonly Filter = Filter;
+  readonly Calendar = Calendar;
+  readonly AlertTriangle = AlertTriangle;
+  readonly Lock = Lock;
+  readonly User = User;
+  readonly Layers = Layers;
+  readonly Settings2 = Settings2;
+  readonly ChevronDown = ChevronDown;
+  readonly ChevronUp = ChevronUp;
+  readonly MapPin = MapPin;
+  readonly Phone = Phone;
+  readonly Mail = Mail;
+  readonly ShieldCheck = ShieldCheck;
+  readonly Building2 = Building2;
+  readonly Stethoscope = Stethoscope;
+  readonly RotateCw = RotateCw;
 
   @Input() patientId!: number;
   @Output() close = new EventEmitter<void>();
@@ -37,6 +94,27 @@ export class ClinicalHistoryPrintComponent implements OnInit {
   clinicSettings: ClinicSettings | null = null;
   professional: UserProfile | null = null;
   loading = true;
+  loadError = false;
+
+  // Print Configuration State
+  showConfigPanel = false;
+  printMode: PrintMode = 'completa';
+  sessionFilter: SessionFilterType = 'all';
+  sessionDateFrom = '';
+  sessionDateTo = '';
+  excludeConfidential = true;
+
+  sections: PrintSectionsConfig = {
+    patientInfo: true,
+    alertsBanner: true,
+    generalHistory: true,
+    allergies: true,
+    medications: true,
+    diagnoses: true,
+    specialtyModule: true,
+    sessions: true,
+    signatureBlock: true,
+  };
 
   constructor(
     private clinicalHistoryService: ClinicalHistoryService,
@@ -45,7 +123,8 @@ export class ClinicalHistoryPrintComponent implements OnInit {
     private dermatologicalEvaluationService: DermatologicalEvaluationService,
     private clinicSettingsService: ClinicSettingsService,
     private userService: UserService,
-    private specialtyService: SpecialtyService
+    private specialtyService: SpecialtyService,
+    private toastService: ToastService
   ) {}
 
   get isPsychology(): boolean {
@@ -85,6 +164,18 @@ export class ClinicalHistoryPrintComponent implements OnInit {
     return `${profile.firstName || ''} ${profile.lastName || ''}`.trim() || profile.username;
   }
 
+  get clinicDisplayName(): string {
+    const name = this.clinicSettings?.clinicName || this.clinicSettings?.shortName;
+    if (name && name !== 'Cargando...' && name !== 'Clínica' && name !== '...') {
+      return name;
+    }
+    return 'CENTRO MÉDICO VIDA SALUDABLE';
+  }
+
+  get documentIdFormatted(): string {
+    return `HC-${this.patientId.toString().padStart(6, '0')}`;
+  }
+
   get specialtyLabel(): string {
     return this.isPsychology ? 'Psicología' : 'Dermatología';
   }
@@ -92,6 +183,8 @@ export class ClinicalHistoryPrintComponent implements OnInit {
   get printDate(): Date {
     return new Date();
   }
+
+
 
   statusLabel(status?: string): string {
     switch (status) {
@@ -106,6 +199,112 @@ export class ClinicalHistoryPrintComponent implements OnInit {
       default:
         return status || '—';
     }
+  }
+
+  setPrintMode(mode: PrintMode): void {
+    this.printMode = mode;
+    switch (mode) {
+      case 'completa':
+        this.sections = {
+          patientInfo: true,
+          alertsBanner: true,
+          generalHistory: true,
+          allergies: true,
+          medications: true,
+          diagnoses: true,
+          specialtyModule: true,
+          sessions: true,
+          signatureBlock: true,
+        };
+        this.sessionFilter = 'all';
+        break;
+
+      case 'resumen':
+        this.sections = {
+          patientInfo: true,
+          alertsBanner: true,
+          generalHistory: true,
+          allergies: true,
+          medications: true,
+          diagnoses: true,
+          specialtyModule: false,
+          sessions: false,
+          signatureBlock: true,
+        };
+        this.sessionFilter = 'all';
+        break;
+
+      case 'ultima':
+        this.sections = {
+          patientInfo: true,
+          alertsBanner: true,
+          generalHistory: false,
+          allergies: true,
+          medications: true,
+          diagnoses: true,
+          specialtyModule: false,
+          sessions: true,
+          signatureBlock: true,
+        };
+        this.sessionFilter = 'last1';
+        break;
+
+      case 'personalizada':
+        // Mantiene la selección actual
+        break;
+    }
+  }
+
+  toggleConfigPanel(): void {
+    this.showConfigPanel = !this.showConfigPanel;
+  }
+
+  get filteredSessions(): ClinicalSession[] {
+    let list = [...this.sessions];
+
+    if (this.excludeConfidential) {
+      list = list.filter(s => !s.isConfidential);
+    }
+
+    list.sort((a, b) => b.sessionDate.localeCompare(a.sessionDate));
+
+    if (this.sessionFilter === 'custom') {
+      if (this.sessionDateFrom) {
+        list = list.filter(s => s.sessionDate >= this.sessionDateFrom);
+      }
+      if (this.sessionDateTo) {
+        list = list.filter(s => s.sessionDate <= this.sessionDateTo);
+      }
+      return list;
+    }
+
+    switch (this.sessionFilter) {
+      case 'last1':
+        return list.slice(0, 1);
+      case 'last3':
+        return list.slice(0, 3);
+      case 'last5':
+        return list.slice(0, 5);
+      case 'all':
+      default:
+        return list;
+    }
+  }
+
+  get activeAllergiesList(): any[] {
+    return (this.history?.allergies || []).filter(a => a.active);
+  }
+
+  get hasSevereAllergy(): boolean {
+    return this.activeAllergiesList.some(a => (a.severity || '').toLowerCase() === 'grave' || (a.severity || '').toLowerCase() === 'severa');
+  }
+
+  get activeMedicationsList(): any[] {
+    return (this.history?.medications || []).filter(m => m.active);
+  }
+
+  get activeDiagnosesList(): any[] {
+    return (this.history?.diagnoses || []).filter(d => (d.status || '').toUpperCase() === 'ACTIVO');
   }
 
   hasGeneralHistory(): boolean {
@@ -134,9 +333,16 @@ export class ClinicalHistoryPrintComponent implements OnInit {
     );
   }
 
+
   ngOnInit(): void {
     this.clinicSettingsService.settings$.subscribe((settings) => (this.clinicSettings = settings));
     this.clinicSettingsService.loadSettings();
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading = true;
+    this.loadError = false;
 
     const dermatologicalEvaluations$: Observable<PageResponse<DermatologicalEvaluation> | null> =
       this.isDermatology
@@ -157,11 +363,19 @@ export class ClinicalHistoryPrintComponent implements OnInit {
         this.professional = result.professional;
         this.dermatologicalEvaluations = result.dermatologicalEvaluations?.content ?? [];
         this.loading = false;
+        this.loadError = false;
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error al cargar datos de historia clínica para impresión', err);
         this.loading = false;
+        this.loadError = true;
+        this.toastService.show('Error al cargar datos para impresión. Intente nuevamente.', 'error');
       },
     });
+  }
+
+  retryLoad(): void {
+    this.loadData();
   }
 
   getLogoUrl(path: string | undefined): string {
@@ -172,8 +386,14 @@ export class ClinicalHistoryPrintComponent implements OnInit {
   }
 
   print(): void {
+    const originalTitle = document.title;
+    document.title = `Historia_Clinica_${this.documentIdFormatted}_${this.fullName.replace(/\s+/g, '_')}`;
     window.print();
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000);
   }
+
 
   onClose(): void {
     this.close.emit();

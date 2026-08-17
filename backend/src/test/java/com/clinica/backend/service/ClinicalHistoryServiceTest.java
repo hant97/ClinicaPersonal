@@ -6,11 +6,14 @@ import com.clinica.backend.dto.GeneralHistoryDto;
 import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.PatientRepository;
+import com.clinica.backend.service.provider.ClinicalHistorySectionProvider;
+import com.clinica.backend.service.provider.DermatologyClinicalHistoryProvider;
+import com.clinica.backend.service.provider.PsychologyClinicalHistoryProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
@@ -25,47 +28,53 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ClinicalHistoryServiceTest {
 
-    @Mock
-    private PatientRepository patientRepository;
-    @Mock
-    private GeneralHistoryService generalHistoryService;
-    @Mock
-    private AllergyService allergyService;
-    @Mock
-    private MedicationService medicationService;
-    @Mock
-    private DiagnosisService diagnosisService;
-    @Mock
-    private PsychologyEvaluationService psychologyEvaluationService;
-    @Mock
-    private TherapeuticPlanService therapeuticPlanService;
-    @Mock
-    private DermatologicalHistoryService dermatologicalHistoryService;
-    @Mock
-    private LesionService lesionService;
-    @Mock
-    private AuxiliaryExamService auxiliaryExamService;
-    @Mock
-    private TreatmentService treatmentService;
-    @Mock
-    private ProcedureService procedureService;
-    @Mock
-    private EvolutionService evolutionService;
-    @Mock
-    private ClinicalAuthorizationService clinicalAuthorizationService;
+    @Mock private PatientRepository patientRepository;
+    @Mock private GeneralHistoryService generalHistoryService;
+    @Mock private AllergyService allergyService;
+    @Mock private MedicationService medicationService;
+    @Mock private DiagnosisService diagnosisService;
+    @Mock private ClinicalAuthorizationService clinicalAuthorizationService;
 
-    @InjectMocks
+    @Mock private PsychologyEvaluationService psychologyEvaluationService;
+    @Mock private TherapeuticPlanService therapeuticPlanService;
+
+    @Mock private DermatologicalHistoryService dermatologicalHistoryService;
+    @Mock private LesionService lesionService;
+    @Mock private AuxiliaryExamService auxiliaryExamService;
+    @Mock private TreatmentService treatmentService;
+    @Mock private ProcedureService procedureService;
+    @Mock private EvolutionService evolutionService;
+
     private ClinicalHistoryService service;
 
     private User user;
 
     @BeforeEach
     void setUp() {
+        ClinicalHistorySectionProvider psychologyProvider = new PsychologyClinicalHistoryProvider(
+                psychologyEvaluationService, therapeuticPlanService
+        );
+        ClinicalHistorySectionProvider dermatologyProvider = new DermatologyClinicalHistoryProvider(
+                dermatologicalHistoryService, lesionService, auxiliaryExamService,
+                treatmentService, procedureService, evolutionService
+        );
+
+        service = new ClinicalHistoryService(
+                patientRepository,
+                generalHistoryService,
+                allergyService,
+                medicationService,
+                diagnosisService,
+                clinicalAuthorizationService,
+                List.of(psychologyProvider, dermatologyProvider)
+        );
+
         Patient patient = new Patient();
         patient.setId(7L);
         when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(any(), any())).thenReturn(Optional.of(patient));
@@ -81,6 +90,7 @@ class ClinicalHistoryServiceTest {
     }
 
     @Test
+    @DisplayName("returns psychology branch for psychology user using provider delegation")
     void returnsPsychologyBranchForPsychologyUser() {
         user = user(10L, "PSICOLOGIA", "ROLE_ADMIN");
         when(clinicalAuthorizationService.currentUser()).thenReturn(user);
@@ -98,6 +108,7 @@ class ClinicalHistoryServiceTest {
     }
 
     @Test
+    @DisplayName("returns dermatology branch for dermatology user using provider delegation")
     void returnsDermatologyBranchForDermatologyUser() {
         user = user(10L, "DERMATOLOGIA", "ROLE_ADMIN");
         when(clinicalAuthorizationService.currentUser()).thenReturn(user);
@@ -116,6 +127,23 @@ class ClinicalHistoryServiceTest {
         assertNotNull(result.getLesions());
         assertNull(result.getPsychologyEvaluations());
         assertNull(result.getTherapeuticPlans());
+    }
+
+    @Test
+    @DisplayName("returns base clinical history when no specific provider is registered for specialty")
+    void returnsBaseClinicalHistoryWhenNoProviderRegistered() {
+        user = user(10L, "CARDIOLOGIA", "ROLE_ADMIN");
+        when(clinicalAuthorizationService.currentUser()).thenReturn(user);
+
+        ClinicalHistoryDto result = service.getClinicalHistory(7L);
+
+        assertEquals("CARDIOLOGIA", result.getSpecialty());
+        assertNotNull(result.getGeneralHistory());
+        assertNotNull(result.getAllergies());
+        assertNotNull(result.getMedications());
+        assertNotNull(result.getDiagnoses());
+        assertNull(result.getPsychologyEvaluations());
+        assertNull(result.getDermatologicalHistory());
     }
 
     private <T> Page<T> emptyPage() {

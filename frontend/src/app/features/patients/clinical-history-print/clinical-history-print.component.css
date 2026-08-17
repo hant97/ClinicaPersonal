@@ -1,5 +1,6 @@
 .hc-section {
-  margin-top: 1.5rem;
+  margin-top: 1.25rem;
+  break-inside: avoid;
   page-break-inside: avoid;
 }
 
@@ -9,9 +10,11 @@
   font-weight: 700;
   letter-spacing: -0.01em;
   color: #233f3b;
-  padding-bottom: 0.4rem;
-  margin-bottom: 0.75rem;
+  padding-bottom: 0.35rem;
+  margin-bottom: 0.65rem;
   border-bottom: 2px solid #315c54;
+  break-after: avoid;
+  page-break-after: avoid;
 }
 
 .hc-label {
@@ -23,7 +26,7 @@
 }
 
 .hc-value {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: #233f3b;
   white-space: pre-wrap;
 }
@@ -31,7 +34,8 @@
 .hc-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.8125rem;
+  font-size: 0.78125rem;
+  break-inside: auto;
 }
 
 .hc-table th {
@@ -41,12 +45,13 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #66766f;
-  padding: 0.4rem 0.6rem;
+  padding: 0.35rem 0.5rem;
   border-bottom: 1px solid #ded8ce;
+  background-color: #f8fafc;
 }
 
 .hc-table td {
-  padding: 0.45rem 0.6rem;
+  padding: 0.4rem 0.5rem;
   border-bottom: 1px solid #f0ece4;
   vertical-align: top;
   color: #233f3b;
@@ -56,29 +61,187 @@
   border-bottom: none;
 }
 
+.hc-card-block {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.hc-header {
+  display: block;
+  visibility: visible;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
 :host {
   display: block;
 }
 
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+.print-document-layout {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.page-header-space {
+  height: 0;
+  padding: 0;
+  border: none;
+}
+
+.page-footer-space {
+  height: 0;
+  padding: 0;
+  border: none;
+}
+
+.print-document-content {
+  padding: 0;
+  border: none;
+  vertical-align: top;
+}
+
 @media print {
-  :host,
-  :host .print-modal,
-  :host .print-modal-card,
-  :host .print-modal-body,
-  .print-modal,
-  .print-modal-card,
-  .print-modal-body {
+  :host {
+    display: block;
+    position: static;
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 0;
+  }
+
+  :host .print-modal {
+    position: static;
+    inset: auto;
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: none;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    overflow: visible;
+    box-shadow: none;
+    border: none;
+    z-index: auto;
+  }
+
+  :host .print-modal-card {
     position: static;
     display: block;
-    overflow: visible;
-    width: auto;
+    width: 100%;
     max-width: none;
     height: auto;
     max-height: none;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    overflow: visible;
+    box-shadow: none;
+    border: none;
+    border-radius: 0;
+  }
+
+  :host .print-modal-body {
+    position: static;
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: none;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+  }
+
+  :host .print-area {
+    position: static;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
     margin: 0;
     padding: 0;
-    background: transparent;
-    border: none;
+    box-sizing: border-box;
+    background: #ffffff;
+    color: #111827;
     box-shadow: none;
+    border: none;
+    overflow: visible;
+  }
+
+  :host .print-document-layout {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  :host .print-document-layout thead {
+    display: table-header-group;
+  }
+
+  :host .print-document-layout tfoot {
+    display: table-footer-group;
+  }
+
+  :host .page-header-space {
+    height: 14mm;
+    display: table-cell;
+    border: none;
+    padding: 0;
+  }
+
+  :host .page-footer-space {
+    height: 14mm;
+    display: table-cell;
+    border: none;
+    padding: 0;
+  }
+
+  :host .print-document-content {
+    padding-left: 15mm;
+    padding-right: 15mm;
+    display: table-cell;
+    border: none;
+    vertical-align: top;
+  }
+
+  :host .hc-header {
+    display: block;
+    visibility: visible;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  :host .hc-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  :host .hc-section-title {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  :host .hc-card-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  :host .hc-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  :host footer {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 }
+
+
+
+

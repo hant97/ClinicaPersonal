@@ -1,43 +1,147 @@
 @if (patient) {
-  <div class="space-y-4">
-    <!-- Top Action Bar & Navigation -->
-    <div class="flex items-center justify-between border-b border-line pb-3">
-      <div class="flex items-center gap-3">
-        <button
-          type="button"
-          class="btn-secondary !text-xs !py-1.5"
-          (click)="goBack()"
-        >
-          <lucide-icon [img]="ArrowLeft" [size]="14"></lucide-icon>
-          <span>Volver al directorio</span>
-        </button>
-        <span class="text-slate-300">|</span>
-        <div class="flex items-center gap-2">
-          <span class="avatar-initials !h-6 !w-6 !text-[11px] font-bold bg-primary-100 text-primary-700">
-            {{ getInitials(patient.firstName, patient.lastName) }}
-          </span>
-          <span class="text-xs font-bold text-ink">{{ patient.firstName }} {{ patient.lastName }}</span>
-          @if (patient.identificationDocument) {
-            <span class="font-mono text-[11px] text-muted">DOC: {{ patient.identificationDocument }}</span>
-          }
+  <div class="space-y-4 print:hidden">
+    <!-- Top Patient Header & Quick Action Cockpit -->
+    <div class="card !p-4 bg-surface border border-line shadow-sm space-y-3">
+
+      <!-- Breadcrumb + Primary Actions -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-line/70">
+        <div class="flex items-center gap-3">
+          <button
+            type="button"
+            class="btn-secondary !text-xs !py-1.5"
+            (click)="goBack()"
+          >
+            <lucide-icon [img]="ArrowLeft" [size]="14"></lucide-icon>
+            <span>Volver al directorio</span>
+          </button>
+          <span class="text-slate-300">|</span>
+          <span class="text-xs font-semibold text-muted">Ficha Clínica de Paciente</span>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            class="btn-secondary !text-xs !py-1.5"
+            (click)="openPrint()"
+            title="Imprimir expediente clínico"
+          >
+            <lucide-icon [img]="Printer" [size]="14"></lucide-icon>
+            <span class="hidden sm:inline">Imprimir Historia</span>
+          </button>
+
+          <button
+            type="button"
+            class="btn-secondary !text-xs !py-1.5"
+            (click)="scheduleAppointment()"
+            title="Agendar nueva cita médica"
+          >
+            <lucide-icon [img]="Calendar" [size]="14"></lucide-icon>
+            <span>Agendar Cita</span>
+          </button>
+
+          <button
+            type="button"
+            class="btn-primary !text-xs !py-1.5 !bg-primary-600 hover:!bg-primary-700 shadow-sm"
+            (click)="openForm()"
+          >
+            <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
+            <span>+ Nueva Sesión Clínica</span>
+          </button>
         </div>
       </div>
 
-      <!-- Quick Document Print -->
-      <button
-        type="button"
-        class="btn-secondary !text-xs !py-1.5"
-        (click)="openPrint()"
-      >
-        <lucide-icon [img]="Printer" [size]="14"></lucide-icon>
-        <span>Imprimir Historia</span>
-      </button>
+      <!-- Patient Identity Details Row -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <!-- Photo & Basic Identity -->
+        <div class="flex items-center gap-3.5 min-w-0">
+          <label class="relative block shrink-0 cursor-pointer group" title="Cambiar foto del paciente">
+            @if (patient.photoUrl) {
+              <img [src]="patient.photoUrl" class="h-12 w-12 rounded-full object-cover border-2 border-primary-100 shadow-sm transition group-hover:opacity-80" [alt]="patient.firstName">
+            } @else {
+              <span class="avatar-initials !h-12 !w-12 !text-sm font-bold bg-primary-100 text-primary-700 flex shadow-sm border-2 border-primary-50">
+                {{ getInitials(patient.firstName, patient.lastName) }}
+              </span>
+            }
+            <span class="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary-600 text-white border-2 border-surface shadow-xs group-hover:scale-110 transition">
+              <lucide-icon [img]="ImagePlus" [size]="10"></lucide-icon>
+            </span>
+            <input type="file" accept="image/*" class="hidden" (change)="onPhotoSelected($event)">
+          </label>
+
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-base font-bold text-ink truncate leading-tight">
+                {{ patient.firstName }} {{ patient.lastName }}
+              </h1>
+              @if (esMenorEdad) {
+                <span class="rounded bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-800 border border-amber-200" title="Paciente menor de edad">
+                  Menor de edad
+                </span>
+              }
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 text-xs text-muted mt-1">
+              @if (patient.identificationDocument) {
+                <span class="font-mono font-bold text-slate-700 bg-slate-100 px-1.5 py-0.2 rounded border border-line text-[11px]">
+                  DOC: {{ patient.identificationDocument }}
+                </span>
+              }
+              @if (age !== null) {
+                <span>• {{ age }} años</span>
+              }
+              @if (patient.gender) {
+                <span>• {{ patient.gender }}</span>
+              }
+              @if (patient.maritalStatus) {
+                <span class="hidden sm:inline">• {{ patient.maritalStatus }}</span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Contacts Strip -->
+        <div class="flex flex-wrap items-center gap-3 text-xs border-t md:border-t-0 md:border-l border-line pt-2 md:pt-0 md:pl-4">
+          @if (patient.contactNumber) {
+            <a
+              [href]="'tel:' + patient.contactNumber"
+              class="inline-flex items-center gap-1.5 rounded-md bg-slate-50 hover:bg-primary-50 px-2.5 py-1.5 font-medium text-slate-700 hover:text-primary-700 border border-line transition"
+              title="Llamar o contactar por teléfono"
+            >
+              <lucide-icon [img]="Phone" [size]="13" class="text-primary-600"></lucide-icon>
+              <span>{{ patient.contactNumber }}</span>
+            </a>
+          }
+          @if (patient.email) {
+            <a
+              [href]="'mailto:' + patient.email"
+              class="inline-flex items-center gap-1.5 rounded-md bg-slate-50 hover:bg-primary-50 px-2.5 py-1.5 font-medium text-slate-700 hover:text-primary-700 border border-line transition truncate max-w-[200px]"
+              title="Enviar correo"
+            >
+              <lucide-icon [img]="Mail" [size]="13" class="text-primary-600"></lucide-icon>
+              <span class="truncate">{{ patient.email }}</span>
+            </a>
+          }
+          @if (patient.emergencyContact) {
+            <span class="text-[11px] text-muted hidden lg:inline" title="Contacto de emergencia">
+              Emergencia: <strong class="text-slate-700 font-semibold">{{ patient.emergencyContact }}</strong>
+            </span>
+          }
+        </div>
+      </div>
     </div>
 
-    <!-- Persistent Risk Alert Banner (allergies) -->
+    <!-- Persistent Unified Safety Cockpit Banner -->
     <app-risk-alert-banner
       [allergies]="allergies"
+      [activeAlerts]="activeAlerts"
+      [medications]="medications"
+      [diagnoses]="diagnoses"
+      [upcomingAppointment]="nextUpcomingAppointment"
       (openAllergies)="openAllergiesSection()"
+      (openAlerts)="openAlertsModal()"
+      (openMedications)="openMedicationsSection()"
+      (openDiagnoses)="openDiagnosesSection()"
+      (scheduleAppointment)="scheduleAppointment()"
     ></app-risk-alert-banner>
 
     <!-- 2-Column Clinical Split Screen Workspace -->
@@ -46,64 +150,80 @@
       <!-- LEFT COLUMN: Primary Clinical Workspace (~70%) -->
       <div class="min-w-0 space-y-4">
         <!-- 1. Workspace Navigation Tabs -->
-        <div class="border-b border-line bg-surface rounded-t-lg px-3 pt-2">
-          <nav class="flex items-center gap-1 overflow-x-auto" aria-label="Pestañas de expediente clínico">
+        <div class="border-b border-line bg-surface rounded-t-xl px-3 pt-2.5 shadow-xs">
+          <nav class="flex items-center gap-1.5 overflow-x-auto pb-1" aria-label="Pestañas de expediente clínico">
             <!-- Tab 1: Timeline -->
             <button
               type="button"
-              class="inline-flex items-center gap-2 border-b-2 px-3.5 py-2.5 text-xs font-semibold transition whitespace-nowrap"
-              [ngClass]="activeTab === 'timeline' ? 'border-primary-600 text-primary-700 bg-primary-50/50' : 'border-transparent text-muted hover:text-ink hover:border-slate-300'"
+              class="inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-semibold transition whitespace-nowrap rounded-t-lg"
+              [ngClass]="activeTab === 'timeline' ? 'border-primary-600 text-primary-700 bg-primary-50/70' : 'border-transparent text-muted hover:text-ink hover:border-slate-300 hover:bg-slate-50'"
               (click)="setTab('timeline')"
             >
-              <lucide-icon [img]="Clock" [size]="15"></lucide-icon>
-              <span>Timeline & Sesiones</span>
-              <span class="rounded-full bg-slate-100 px-1.5 py-0.2 text-[10px] font-bold text-slate-700">
-                {{ sessions.length }}
-              </span>
+              <lucide-icon [img]="Clock" [size]="15" [ngClass]="activeTab === 'timeline' ? 'text-primary-600' : 'text-muted'"></lucide-icon>
+              <span>1. Historial & Timeline</span>
+              @if (sessions.length > 0) {
+                <span class="rounded-full bg-slate-100 px-1.5 py-0.2 text-[10px] font-bold text-slate-700 border border-slate-200">
+                  {{ sessions.length }}
+                </span>
+              }
             </button>
 
-            <!-- Tab 2: Expediente General -->
+            <!-- Tab 2: Expediente Médico Base -->
             <button
               type="button"
-              class="inline-flex items-center gap-2 border-b-2 px-3.5 py-2.5 text-xs font-semibold transition whitespace-nowrap"
-              [ngClass]="activeTab === 'expediente' ? 'border-primary-600 text-primary-700 bg-primary-50/50' : 'border-transparent text-muted hover:text-ink hover:border-slate-300'"
+              class="inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-semibold transition whitespace-nowrap rounded-t-lg"
+              [ngClass]="activeTab === 'expediente' ? 'border-primary-600 text-primary-700 bg-primary-50/70' : 'border-transparent text-muted hover:text-ink hover:border-slate-300 hover:bg-slate-50'"
               (click)="setTab('expediente')"
             >
-              <lucide-icon [img]="FileText" [size]="15"></lucide-icon>
-              <span>Expediente General</span>
+              <lucide-icon [img]="FileText" [size]="15" [ngClass]="activeTab === 'expediente' ? 'text-primary-600' : 'text-muted'"></lucide-icon>
+              <span>2. Expediente Médico Base</span>
+              @if (expedienteElementsCount > 0) {
+                <span class="rounded-full bg-blue-50 px-1.5 py-0.2 text-[10px] font-bold text-blue-700 border border-blue-200">
+                  {{ expedienteElementsCount }}
+                </span>
+              }
             </button>
 
-            <!-- Tab 3: Especialidad -->
+            <!-- Tab 3: Módulo de Especialidad -->
             <button
               type="button"
-              class="inline-flex items-center gap-2 border-b-2 px-3.5 py-2.5 text-xs font-semibold transition whitespace-nowrap"
-              [ngClass]="activeTab === 'especialidad' ? 'border-primary-600 text-primary-700 bg-primary-50/50' : 'border-transparent text-muted hover:text-ink hover:border-slate-300'"
+              class="inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-semibold transition whitespace-nowrap rounded-t-lg"
+              [ngClass]="activeTab === 'especialidad' ? 'border-primary-600 text-primary-700 bg-primary-50/70' : 'border-transparent text-muted hover:text-ink hover:border-slate-300 hover:bg-slate-50'"
               (click)="setTab('especialidad')"
             >
               @if (isPsychology) {
                 <lucide-icon [img]="Brain" [size]="15" class="text-purple-600"></lucide-icon>
-                <span>Módulo Psicología</span>
+                <span>3. Módulo Psicología</span>
               } @else if (isDermatology) {
                 <lucide-icon [img]="Sparkles" [size]="15" class="text-cyan-600"></lucide-icon>
-                <span>Módulo Dermatología</span>
-              }               @else {
+                <span>3. Módulo Dermatología</span>
+              } @else {
                 <lucide-icon [img]="Stethoscope" [size]="15"></lucide-icon>
-                <span>Atención Especializada</span>
+                <span>3. Atención Especializada</span>
+              }
+              @if (specialtyElementsCount > 0) {
+                <span class="rounded-full px-1.5 py-0.2 text-[10px] font-bold border"
+                  [ngClass]="isPsychology ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-cyan-50 text-cyan-700 border-cyan-200'"
+                >
+                  {{ specialtyElementsCount }}
+                </span>
               }
             </button>
 
-            <!-- Tab 4: Cobros -->
+            <!-- Tab 4: Cobros & Facturación -->
             <button
               type="button"
-              class="inline-flex items-center gap-2 border-b-2 px-3.5 py-2.5 text-xs font-semibold transition whitespace-nowrap"
-              [ngClass]="activeTab === 'cobros' ? 'border-primary-600 text-primary-700 bg-primary-50/50' : 'border-transparent text-muted hover:text-ink hover:border-slate-300'"
+              class="inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-semibold transition whitespace-nowrap rounded-t-lg"
+              [ngClass]="activeTab === 'cobros' ? 'border-primary-600 text-primary-700 bg-primary-50/70' : 'border-transparent text-muted hover:text-ink hover:border-slate-300 hover:bg-slate-50'"
               (click)="setTab('cobros')"
             >
-              <lucide-icon [img]="Receipt" [size]="15"></lucide-icon>
-              <span>Cobros</span>
-              <span class="rounded-full bg-slate-100 px-1.5 py-0.2 text-[10px] font-bold text-slate-700">
-                {{ payments.length }}
-              </span>
+              <lucide-icon [img]="Receipt" [size]="15" [ngClass]="activeTab === 'cobros' ? 'text-primary-600' : 'text-muted'"></lucide-icon>
+              <span>4. Cobros</span>
+              @if (paymentsCount > 0) {
+                <span class="rounded-full bg-slate-100 px-1.5 py-0.2 text-[10px] font-bold text-slate-700 border border-slate-200">
+                  {{ paymentsCount }}
+                </span>
+              }
             </button>
           </nav>
         </div>
@@ -244,111 +364,351 @@
             <div class="flex flex-col gap-4 md:flex-row md:items-start">
               <!-- Vertical Sub-nav -->
               <nav
-                class="flex shrink-0 gap-1 overflow-x-auto rounded-lg border border-line bg-surface p-1.5 md:w-[170px] md:flex-col md:overflow-visible"
+                class="flex shrink-0 gap-1 overflow-x-auto rounded-xl border border-line bg-surface p-2 md:w-[195px] md:flex-col md:overflow-visible shadow-xs"
                 aria-label="Secciones del expediente general"
               >
+                <div class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-muted hidden md:block">
+                  Expediente Base
+                </div>
+
+                <!-- Option: Vista Integral / Ficha Completa -->
                 <button
                   type="button"
-                  class="flex items-center justify-between gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition whitespace-nowrap"
-                  [ngClass]="activeExpedienteSubTab === 'datos-personales' ? 'bg-primary-50 text-primary-700' : 'text-slate-700 hover:bg-slate-100'"
+                  class="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition whitespace-nowrap"
+                  [ngClass]="activeExpedienteSubTab === 'todo' ? 'bg-primary-600 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100'"
+                  (click)="setExpedienteSubTab('todo')"
+                >
+                  <span class="flex items-center gap-1.5">
+                    <lucide-icon [img]="Layers" [size]="14"></lucide-icon>
+                    <span>Ficha Completa</span>
+                  </span>
+                  @if (expedienteElementsCount > 0) {
+                    <span class="rounded-full px-1.5 py-0.2 text-[10px] font-bold"
+                      [ngClass]="activeExpedienteSubTab === 'todo' ? 'bg-primary-800 text-white' : 'bg-blue-100 text-blue-700'"
+                    >
+                      {{ expedienteElementsCount }}
+                    </span>
+                  }
+                </button>
+
+                <hr class="border-line my-1 hidden md:block">
+
+                <button
+                  type="button"
+                  class="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition whitespace-nowrap"
+                  [ngClass]="activeExpedienteSubTab === 'datos-personales' ? 'bg-primary-50 text-primary-700 font-bold border border-primary-100 shadow-xs' : 'text-slate-700 hover:bg-slate-100'"
                   (click)="setExpedienteSubTab('datos-personales')"
                 >
-                  Datos Personales
+                  <span>Datos Personales</span>
                 </button>
+
                 <button
                   type="button"
-                  class="flex items-center justify-between gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition whitespace-nowrap"
-                  [ngClass]="activeExpedienteSubTab === 'antecedentes' ? 'bg-primary-50 text-primary-700' : 'text-slate-700 hover:bg-slate-100'"
+                  class="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition whitespace-nowrap"
+                  [ngClass]="activeExpedienteSubTab === 'antecedentes' ? 'bg-primary-50 text-primary-700 font-bold border border-primary-100 shadow-xs' : 'text-slate-700 hover:bg-slate-100'"
                   (click)="setExpedienteSubTab('antecedentes')"
                 >
-                  Antecedentes Generales
+                  <span>Antecedentes</span>
+                  @if (counts['antecedentes-generales'] > 0) {
+                    <span class="rounded-full bg-slate-200/80 px-1.5 py-0.2 text-[10px] font-bold text-slate-700">✓</span>
+                  }
                 </button>
+
                 <button
                   type="button"
-                  class="flex items-center justify-between gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition whitespace-nowrap"
-                  [ngClass]="activeExpedienteSubTab === 'alergias' ? 'bg-primary-50 text-primary-700' : 'text-slate-700 hover:bg-slate-100'"
+                  class="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition whitespace-nowrap"
+                  [ngClass]="activeExpedienteSubTab === 'alergias' ? 'bg-primary-50 text-primary-700 font-bold border border-primary-100 shadow-xs' : 'text-slate-700 hover:bg-slate-100'"
                   (click)="setExpedienteSubTab('alergias')"
                 >
                   <span>Alergias</span>
                   @if (counts['alergias'] > 0) {
-                    <span class="rounded-full bg-red-100 px-1.5 py-0.2 text-[10px] font-bold text-danger">{{ counts['alergias'] }}</span>
+                    <span class="rounded-full bg-red-100 px-1.5 py-0.2 text-[10px] font-bold text-danger border border-red-200">{{ counts['alergias'] }}</span>
                   }
                 </button>
+
                 <button
                   type="button"
-                  class="flex items-center justify-between gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition whitespace-nowrap"
-                  [ngClass]="activeExpedienteSubTab === 'medicamentos' ? 'bg-primary-50 text-primary-700' : 'text-slate-700 hover:bg-slate-100'"
+                  class="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition whitespace-nowrap"
+                  [ngClass]="activeExpedienteSubTab === 'medicamentos' ? 'bg-primary-50 text-primary-700 font-bold border border-primary-100 shadow-xs' : 'text-slate-700 hover:bg-slate-100'"
                   (click)="setExpedienteSubTab('medicamentos')"
                 >
                   <span>Medicamentos</span>
                   @if (counts['medicamentos'] > 0) {
-                    <span class="rounded-full bg-primary-100 px-1.5 py-0.2 text-[10px] font-bold text-primary-700">{{ counts['medicamentos'] }}</span>
+                    <span class="rounded-full bg-blue-100 px-1.5 py-0.2 text-[10px] font-bold text-blue-700 border border-blue-200">{{ counts['medicamentos'] }}</span>
                   }
                 </button>
+
                 <button
                   type="button"
-                  class="flex items-center justify-between gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition whitespace-nowrap"
-                  [ngClass]="activeExpedienteSubTab === 'recetas' ? 'bg-primary-50 text-primary-700' : 'text-slate-700 hover:bg-slate-100'"
+                  class="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition whitespace-nowrap"
+                  [ngClass]="activeExpedienteSubTab === 'recetas' ? 'bg-primary-50 text-primary-700 font-bold border border-primary-100 shadow-xs' : 'text-slate-700 hover:bg-slate-100'"
                   (click)="setExpedienteSubTab('recetas')"
                 >
-                  Recetas
+                  <span>Recetas</span>
                 </button>
+
                 <button
                   type="button"
-                  class="flex items-center justify-between gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition whitespace-nowrap"
-                  [ngClass]="activeExpedienteSubTab === 'documentos' ? 'bg-primary-50 text-primary-700' : 'text-slate-700 hover:bg-slate-100'"
+                  class="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition whitespace-nowrap"
+                  [ngClass]="activeExpedienteSubTab === 'documentos' ? 'bg-primary-50 text-primary-700 font-bold border border-primary-100 shadow-xs' : 'text-slate-700 hover:bg-slate-100'"
                   (click)="setExpedienteSubTab('documentos')"
                 >
-                  Documentos
+                  <span>Documentos</span>
                 </button>
               </nav>
 
               <!-- Sub-tab Content -->
-              <div class="min-w-0 flex-1">
-              @switch (activeExpedienteSubTab) {
-                @case ('datos-personales') {
-                  <div class="grid gap-4 md:grid-cols-2">
-                    <div class="card !p-4 space-y-3">
-                      <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 border-b border-line pb-2">Información Básica</h3>
-                      <div class="grid grid-cols-2 gap-3 text-xs">
-                        <div><span class="text-muted block text-[10px] uppercase">Documento</span><span class="font-semibold text-ink">{{ patient.identificationDocument || 'S/D' }}</span></div>
-                        <div><span class="text-muted block text-[10px] uppercase">Fecha Nac.</span><span class="font-semibold text-ink">{{ patient.dateOfBirth || 'S/D' }}</span></div>
-                        <div><span class="text-muted block text-[10px] uppercase">Género</span><span class="font-semibold text-ink">{{ patient.gender || 'S/D' }}</span></div>
-                        <div><span class="text-muted block text-[10px] uppercase">Estado Civil</span><span class="font-semibold text-ink">{{ patient.maritalStatus || 'S/D' }}</span></div>
-                        <div class="col-span-2"><span class="text-muted block text-[10px] uppercase">Ocupación</span><span class="font-semibold text-ink">{{ patient.occupation || 'S/D' }}</span></div>
-                      </div>
+              <div class="min-w-0 flex-1 space-y-4">
+                @if (activeExpedienteSubTab === 'todo') {
+                  <!-- Vista Integral Header Toolbar -->
+                  <div class="flex flex-wrap items-center justify-between gap-3 bg-surface p-3.5 rounded-xl border border-line shadow-xs">
+                    <div>
+                      <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <lucide-icon [img]="Layers" [size]="16" class="text-primary-600"></lucide-icon>
+                        Ficha Clínica Integral del Paciente
+                      </h3>
+                      <p class="text-xs text-muted">Todos los bloques del expediente base consolidados para consulta rápida.</p>
                     </div>
 
-                    <div class="card !p-4 space-y-3">
-                      <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 border-b border-line pb-2">Contacto y Residencia</h3>
-                      <div class="grid gap-2.5 text-xs">
-                        <div><span class="text-muted block text-[10px] uppercase">Teléfono</span><span class="font-semibold text-ink">{{ patient.contactNumber || 'S/D' }}</span></div>
-                        <div><span class="text-muted block text-[10px] uppercase">Correo Electrónico</span><span class="font-semibold text-ink">{{ patient.email || 'S/D' }}</span></div>
-                        <div><span class="text-muted block text-[10px] uppercase">Dirección</span><span class="font-semibold text-ink">{{ patient.address || 'S/D' }}</span></div>
-                        <div><span class="text-muted block text-[10px] uppercase">Contacto Emergencia</span><span class="font-semibold text-ink">{{ patient.emergencyContact || 'S/D' }}</span></div>
-                      </div>
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        class="btn-secondary !text-xs !py-1 !px-2.5"
+                        (click)="expandAllSections()"
+                        title="Expandir todas las secciones"
+                      >
+                        <lucide-icon [img]="ChevronDown" [size]="13"></lucide-icon>
+                        <span>Expandir Todo</span>
+                      </button>
+                      <button
+                        type="button"
+                        class="btn-secondary !text-xs !py-1 !px-2.5"
+                        (click)="collapseAllSections()"
+                        title="Colapsar todas las secciones"
+                      >
+                        <lucide-icon [img]="ChevronUp" [size]="13"></lucide-icon>
+                        <span>Colapsar Todo</span>
+                      </button>
                     </div>
                   </div>
+
+                  <!-- 1. Acordeón: Datos Personales y Contacto -->
+                  <div class="card !p-0 overflow-hidden shadow-xs border border-line">
+                    <button
+                      type="button"
+                      class="flex w-full items-center justify-between bg-slate-50/80 px-4 py-3 text-left transition hover:bg-slate-100 border-b border-line"
+                      (click)="toggleSectionCollapse('datos-personales')"
+                    >
+                      <span class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-800">
+                        <lucide-icon [img]="User" [size]="14" class="text-primary-600"></lucide-icon>
+                        1. Información Personal y Residencia
+                      </span>
+                      <lucide-icon [img]="isSectionCollapsed('datos-personales') ? ChevronDown : ChevronUp" [size]="16" class="text-muted"></lucide-icon>
+                    </button>
+
+                    @if (!isSectionCollapsed('datos-personales')) {
+                      <div class="p-4">
+                        <div class="grid gap-4 md:grid-cols-2">
+                          <div class="rounded-lg bg-slate-50/60 p-3.5 border border-line space-y-2.5">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 border-b border-line pb-1.5">Identidad y Demografía</h4>
+                            <div class="grid grid-cols-2 gap-3 text-xs">
+                              <div><span class="text-muted block text-[10px] uppercase">Documento</span><span class="font-semibold text-ink font-mono">{{ patient.identificationDocument || 'S/D' }}</span></div>
+                              <div><span class="text-muted block text-[10px] uppercase">Fecha Nac.</span><span class="font-semibold text-ink">{{ patient.dateOfBirth || 'S/D' }}</span></div>
+                              <div><span class="text-muted block text-[10px] uppercase">Género</span><span class="font-semibold text-ink">{{ patient.gender || 'S/D' }}</span></div>
+                              <div><span class="text-muted block text-[10px] uppercase">Estado Civil</span><span class="font-semibold text-ink">{{ patient.maritalStatus || 'S/D' }}</span></div>
+                              <div class="col-span-2"><span class="text-muted block text-[10px] uppercase">Ocupación</span><span class="font-semibold text-ink">{{ patient.occupation || 'S/D' }}</span></div>
+                            </div>
+                          </div>
+
+                          <div class="rounded-lg bg-slate-50/60 p-3.5 border border-line space-y-2.5">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 border-b border-line pb-1.5">Ubicación y Contacto</h4>
+                            <div class="grid gap-2 text-xs">
+                              <div><span class="text-muted block text-[10px] uppercase">Teléfono</span><span class="font-semibold text-ink">{{ patient.contactNumber || 'S/D' }}</span></div>
+                              <div><span class="text-muted block text-[10px] uppercase">Correo Electrónico</span><span class="font-semibold text-ink">{{ patient.email || 'S/D' }}</span></div>
+                              <div><span class="text-muted block text-[10px] uppercase">Dirección</span><span class="font-semibold text-ink">{{ patient.address || 'S/D' }}</span></div>
+                              <div><span class="text-muted block text-[10px] uppercase">Contacto Emergencia</span><span class="font-semibold text-ink">{{ patient.emergencyContact || 'S/D' }}</span></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- 2. Acordeón: Antecedentes Generales -->
+                  <div class="card !p-0 overflow-hidden shadow-xs border border-line">
+                    <button
+                      type="button"
+                      class="flex w-full items-center justify-between bg-slate-50/80 px-4 py-3 text-left transition hover:bg-slate-100 border-b border-line"
+                      (click)="toggleSectionCollapse('antecedentes')"
+                    >
+                      <div class="flex items-center gap-2">
+                        <span class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-800">
+                          <lucide-icon [img]="FileText" [size]="14" class="text-primary-600"></lucide-icon>
+                          2. Antecedentes Generales
+                        </span>
+                        @if (counts['antecedentes-generales'] > 0) {
+                          <span class="rounded-full bg-slate-200 px-1.5 py-0.2 text-[10px] font-bold text-slate-700">✓ Registrado</span>
+                        }
+                      </div>
+                      <lucide-icon [img]="isSectionCollapsed('antecedentes') ? ChevronDown : ChevronUp" [size]="16" class="text-muted"></lucide-icon>
+                    </button>
+
+                    @if (!isSectionCollapsed('antecedentes')) {
+                      <div class="p-2 sm:p-4">
+                        <app-general-history-section [patientId]="patient.id!"></app-general-history-section>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- 3. Acordeón: Alergias -->
+                  <div class="card !p-0 overflow-hidden shadow-xs border border-line">
+                    <button
+                      type="button"
+                      class="flex w-full items-center justify-between bg-slate-50/80 px-4 py-3 text-left transition hover:bg-slate-100 border-b border-line"
+                      (click)="toggleSectionCollapse('alergias')"
+                    >
+                      <div class="flex items-center gap-2">
+                        <span class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-800">
+                          <lucide-icon [img]="AlertTriangle" [size]="14" class="text-amber-500"></lucide-icon>
+                          3. Alergias y Reacciones Adversas
+                        </span>
+                        @if (counts['alergias'] > 0) {
+                          <span class="rounded-full bg-red-100 px-2 py-0.2 text-[10px] font-bold text-danger border border-red-200">
+                            {{ counts['alergias'] }} {{ counts['alergias'] === 1 ? 'alergia' : 'alergias' }}
+                          </span>
+                        } @else {
+                          <span class="rounded-full bg-emerald-50 px-2 py-0.2 text-[10px] font-bold text-emerald-700 border border-emerald-200">
+                            Sin alergias
+                          </span>
+                        }
+                      </div>
+                      <lucide-icon [img]="isSectionCollapsed('alergias') ? ChevronDown : ChevronUp" [size]="16" class="text-muted"></lucide-icon>
+                    </button>
+
+                    @if (!isSectionCollapsed('alergias')) {
+                      <div class="p-2 sm:p-4">
+                        <app-allergies-section [patientId]="patient.id!"></app-allergies-section>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- 4. Acordeón: Medicamentos -->
+                  <div class="card !p-0 overflow-hidden shadow-xs border border-line">
+                    <button
+                      type="button"
+                      class="flex w-full items-center justify-between bg-slate-50/80 px-4 py-3 text-left transition hover:bg-slate-100 border-b border-line"
+                      (click)="toggleSectionCollapse('medicamentos')"
+                    >
+                      <div class="flex items-center gap-2">
+                        <span class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-800">
+                          <lucide-icon [img]="Pill" [size]="14" class="text-primary-600"></lucide-icon>
+                          4. Medicamentos & Tratamientos Farmacológicos
+                        </span>
+                        @if (counts['medicamentos'] > 0) {
+                          <span class="rounded-full bg-blue-100 px-2 py-0.2 text-[10px] font-bold text-blue-700 border border-blue-200">
+                            {{ counts['medicamentos'] }} {{ counts['medicamentos'] === 1 ? 'medicamento' : 'medicamentos' }}
+                          </span>
+                        }
+                      </div>
+                      <lucide-icon [img]="isSectionCollapsed('medicamentos') ? ChevronDown : ChevronUp" [size]="16" class="text-muted"></lucide-icon>
+                    </button>
+
+                    @if (!isSectionCollapsed('medicamentos')) {
+                      <div class="p-2 sm:p-4">
+                        <app-medications-section [patientId]="patient.id!"></app-medications-section>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- 5. Acordeón: Recetas -->
+                  <div class="card !p-0 overflow-hidden shadow-xs border border-line">
+                    <button
+                      type="button"
+                      class="flex w-full items-center justify-between bg-slate-50/80 px-4 py-3 text-left transition hover:bg-slate-100 border-b border-line"
+                      (click)="toggleSectionCollapse('recetas')"
+                    >
+                      <span class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-800">
+                        <lucide-icon [img]="ClipboardList" [size]="14" class="text-primary-600"></lucide-icon>
+                        5. Recetas Médicas Emitidas
+                      </span>
+                      <lucide-icon [img]="isSectionCollapsed('recetas') ? ChevronDown : ChevronUp" [size]="16" class="text-muted"></lucide-icon>
+                    </button>
+
+                    @if (!isSectionCollapsed('recetas')) {
+                      <div class="p-2 sm:p-4">
+                        <app-prescriptions-section [patientId]="patient.id!"></app-prescriptions-section>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- 6. Acordeón: Documentos -->
+                  <div class="card !p-0 overflow-hidden shadow-xs border border-line">
+                    <button
+                      type="button"
+                      class="flex w-full items-center justify-between bg-slate-50/80 px-4 py-3 text-left transition hover:bg-slate-100 border-b border-line"
+                      (click)="toggleSectionCollapse('documentos')"
+                    >
+                      <span class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-800">
+                        <lucide-icon [img]="FolderOpen" [size]="14" class="text-primary-600"></lucide-icon>
+                        6. Documentos y Archivos Clínicos
+                      </span>
+                      <lucide-icon [img]="isSectionCollapsed('documentos') ? ChevronDown : ChevronUp" [size]="16" class="text-muted"></lucide-icon>
+                    </button>
+
+                    @if (!isSectionCollapsed('documentos')) {
+                      <div class="p-2 sm:p-4">
+                        <app-documents-section [patientId]="patient.id!" [patientName]="patient.firstName + ' ' + patient.lastName"></app-documents-section>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <!-- Vista Individual de la Sub-Pestaña Seleccionada -->
+                  @switch (activeExpedienteSubTab) {
+                    @case ('datos-personales') {
+                      <div class="grid gap-4 md:grid-cols-2">
+                        <div class="card !p-4 space-y-3">
+                          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 border-b border-line pb-2">Información Básica</h3>
+                          <div class="grid grid-cols-2 gap-3 text-xs">
+                            <div><span class="text-muted block text-[10px] uppercase">Documento</span><span class="font-semibold text-ink font-mono">{{ patient.identificationDocument || 'S/D' }}</span></div>
+                            <div><span class="text-muted block text-[10px] uppercase">Fecha Nac.</span><span class="font-semibold text-ink">{{ patient.dateOfBirth || 'S/D' }}</span></div>
+                            <div><span class="text-muted block text-[10px] uppercase">Género</span><span class="font-semibold text-ink">{{ patient.gender || 'S/D' }}</span></div>
+                            <div><span class="text-muted block text-[10px] uppercase">Estado Civil</span><span class="font-semibold text-ink">{{ patient.maritalStatus || 'S/D' }}</span></div>
+                            <div class="col-span-2"><span class="text-muted block text-[10px] uppercase">Ocupación</span><span class="font-semibold text-ink">{{ patient.occupation || 'S/D' }}</span></div>
+                          </div>
+                        </div>
+
+                        <div class="card !p-4 space-y-3">
+                          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 border-b border-line pb-2">Contacto y Residencia</h3>
+                          <div class="grid gap-2.5 text-xs">
+                            <div><span class="text-muted block text-[10px] uppercase">Teléfono</span><span class="font-semibold text-ink">{{ patient.contactNumber || 'S/D' }}</span></div>
+                            <div><span class="text-muted block text-[10px] uppercase">Correo Electrónico</span><span class="font-semibold text-ink">{{ patient.email || 'S/D' }}</span></div>
+                            <div><span class="text-muted block text-[10px] uppercase">Dirección</span><span class="font-semibold text-ink">{{ patient.address || 'S/D' }}</span></div>
+                            <div><span class="text-muted block text-[10px] uppercase">Contacto Emergencia</span><span class="font-semibold text-ink">{{ patient.emergencyContact || 'S/D' }}</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                    @case ('antecedentes') {
+                      <app-general-history-section [patientId]="patient.id!"></app-general-history-section>
+                    }
+                    @case ('alergias') {
+                      <app-allergies-section [patientId]="patient.id!"></app-allergies-section>
+                    }
+                    @case ('medicamentos') {
+                      <app-medications-section [patientId]="patient.id!"></app-medications-section>
+                    }
+                    @case ('recetas') {
+                      <app-prescriptions-section [patientId]="patient.id!"></app-prescriptions-section>
+                    }
+                    @case ('documentos') {
+                      <app-documents-section [patientId]="patient.id!" [patientName]="patient.firstName + ' ' + patient.lastName"></app-documents-section>
+                    }
+                  }
                 }
-                @case ('antecedentes') {
-                  <app-general-history-section [patientId]="patient.id!"></app-general-history-section>
-                }
-                @case ('alergias') {
-                  <app-allergies-section [patientId]="patient.id!"></app-allergies-section>
-                }
-                @case ('medicamentos') {
-                  <app-medications-section [patientId]="patient.id!"></app-medications-section>
-                }
-                @case ('recetas') {
-                  <app-prescriptions-section [patientId]="patient.id!"></app-prescriptions-section>
-                }
-                @case ('documentos') {
-                  <app-documents-section [patientId]="patient.id!" [patientName]="patient.firstName + ' ' + patient.lastName"></app-documents-section>
-                }
-              }
               </div>
             </div>
           }
+
 
           <!-- TAB 3: Módulo de Especialidad -->
           @if (activeTab === 'especialidad') {
@@ -358,35 +718,44 @@
                 <div class="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-line">
                   <button
                     type="button"
-                    class="rounded-md px-3 py-1.5 text-xs font-semibold transition"
-                    [ngClass]="activeSpecialtySubTab === 'evaluacion-psicologica' ? 'bg-purple-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
+                    [ngClass]="activeSpecialtySubTab === 'evaluacion-psicologica' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
                     (click)="setSpecialtySubTab('evaluacion-psicologica')"
                   >
-                    Evaluación Inicial
+                    <span>Evaluación Inicial</span>
+                    @if (counts['evaluacion-psicologica'] > 0) {
+                      <span class="rounded-full px-1.5 py-0.2 text-[10px] font-bold" [ngClass]="activeSpecialtySubTab === 'evaluacion-psicologica' ? 'bg-purple-800 text-white' : 'bg-slate-200 text-slate-800'">{{ counts['evaluacion-psicologica'] }}</span>
+                    }
                   </button>
                   <button
                     type="button"
-                    class="rounded-md px-3 py-1.5 text-xs font-semibold transition"
-                    [ngClass]="activeSpecialtySubTab === 'pruebas-psicologicas' ? 'bg-purple-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
+                    [ngClass]="activeSpecialtySubTab === 'pruebas-psicologicas' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
                     (click)="setSpecialtySubTab('pruebas-psicologicas')"
                   >
-                    Pruebas Psicométricas
+                    <span>Pruebas Psicométricas</span>
                   </button>
                   <button
                     type="button"
-                    class="rounded-md px-3 py-1.5 text-xs font-semibold transition"
-                    [ngClass]="activeSpecialtySubTab === 'diagnosticos' ? 'bg-purple-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
+                    [ngClass]="activeSpecialtySubTab === 'diagnosticos' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
                     (click)="setSpecialtySubTab('diagnosticos')"
                   >
-                    Diagnósticos
+                    <span>Diagnósticos</span>
+                    @if (counts['diagnosticos'] > 0) {
+                      <span class="rounded-full px-1.5 py-0.2 text-[10px] font-bold" [ngClass]="activeSpecialtySubTab === 'diagnosticos' ? 'bg-purple-800 text-white' : 'bg-slate-200 text-slate-800'">{{ counts['diagnosticos'] }}</span>
+                    }
                   </button>
                   <button
                     type="button"
-                    class="rounded-md px-3 py-1.5 text-xs font-semibold transition"
-                    [ngClass]="activeSpecialtySubTab === 'plan-terapeutico' ? 'bg-purple-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
+                    [ngClass]="activeSpecialtySubTab === 'plan-terapeutico' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
                     (click)="setSpecialtySubTab('plan-terapeutico')"
                   >
-                    Plan Terapéutico
+                    <span>Plan Terapéutico</span>
+                    @if (counts['plan-terapeutico'] > 0) {
+                      <span class="rounded-full px-1.5 py-0.2 text-[10px] font-bold" [ngClass]="activeSpecialtySubTab === 'plan-terapeutico' ? 'bg-purple-800 text-white' : 'bg-slate-200 text-slate-800'">{{ counts['plan-terapeutico'] }}</span>
+                    }
                   </button>
                 </div>
 
@@ -411,67 +780,88 @@
                 <div class="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-line">
                   <button
                     type="button"
-                    class="rounded-md px-3 py-1.5 text-xs font-semibold transition"
-                    [ngClass]="activeSpecialtySubTab === 'evaluacion-inicial' ? 'bg-cyan-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
+                    [ngClass]="activeSpecialtySubTab === 'evaluacion-inicial' ? 'bg-cyan-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
                     (click)="setSpecialtySubTab('evaluacion-inicial')"
                   >
-                    Evaluación Inicial
+                    <span>Evaluación Inicial</span>
                   </button>
                   <button
                     type="button"
-                    class="rounded-md px-3 py-1.5 text-xs font-semibold transition"
-                    [ngClass]="activeSpecialtySubTab === 'antecedentes-dermatologicos' ? 'bg-cyan-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
+                    [ngClass]="activeSpecialtySubTab === 'antecedentes-dermatologicos' ? 'bg-cyan-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
                     (click)="setSpecialtySubTab('antecedentes-dermatologicos')"
                   >
-                    Antecedentes Dermato
+                    <span>Antecedentes Dermato</span>
+                    @if (counts['antecedentes-dermatologicos'] > 0) {
+                      <span class="rounded-full px-1.5 py-0.2 text-[10px] font-bold" [ngClass]="activeSpecialtySubTab === 'antecedentes-dermatologicos' ? 'bg-cyan-800 text-white' : 'bg-slate-200 text-slate-800'">✓</span>
+                    }
                   </button>
                   <button
                     type="button"
-                    class="rounded-md px-3 py-1.5 text-xs font-semibold transition"
-                    [ngClass]="activeSpecialtySubTab === 'lesiones' ? 'bg-cyan-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
+                    [ngClass]="activeSpecialtySubTab === 'lesiones' ? 'bg-cyan-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
                     (click)="setSpecialtySubTab('lesiones')"
                   >
-                    Lesiones y Fotos
+                    <span>Lesiones y Fotos</span>
+                    @if (counts['lesiones'] > 0) {
+                      <span class="rounded-full px-1.5 py-0.2 text-[10px] font-bold" [ngClass]="activeSpecialtySubTab === 'lesiones' ? 'bg-cyan-800 text-white' : 'bg-cyan-100 text-cyan-800'">{{ counts['lesiones'] }}</span>
+                    }
                   </button>
                   <button
                     type="button"
-                    class="rounded-md px-3 py-1.5 text-xs font-semibold transition"
-                    [ngClass]="activeSpecialtySubTab === 'diagnosticos' ? 'bg-cyan-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
+                    [ngClass]="activeSpecialtySubTab === 'diagnosticos' ? 'bg-cyan-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
                     (click)="setSpecialtySubTab('diagnosticos')"
                   >
-                    Diagnósticos
+                    <span>Diagnósticos</span>
+                    @if (counts['diagnosticos'] > 0) {
+                      <span class="rounded-full px-1.5 py-0.2 text-[10px] font-bold" [ngClass]="activeSpecialtySubTab === 'diagnosticos' ? 'bg-cyan-800 text-white' : 'bg-slate-200 text-slate-800'">{{ counts['diagnosticos'] }}</span>
+                    }
                   </button>
                   <button
                     type="button"
-                    class="rounded-md px-3 py-1.5 text-xs font-semibold transition"
-                    [ngClass]="activeSpecialtySubTab === 'examenes-auxiliares' ? 'bg-cyan-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
+                    [ngClass]="activeSpecialtySubTab === 'examenes-auxiliares' ? 'bg-cyan-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
                     (click)="setSpecialtySubTab('examenes-auxiliares')"
                   >
-                    Exámenes Auxiliares
+                    <span>Exámenes Auxiliares</span>
+                    @if (counts['examenes-auxiliares'] > 0) {
+                      <span class="rounded-full px-1.5 py-0.2 text-[10px] font-bold" [ngClass]="activeSpecialtySubTab === 'examenes-auxiliares' ? 'bg-cyan-800 text-white' : 'bg-slate-200 text-slate-800'">{{ counts['examenes-auxiliares'] }}</span>
+                    }
                   </button>
                   <button
                     type="button"
-                    class="rounded-md px-3 py-1.5 text-xs font-semibold transition"
-                    [ngClass]="activeSpecialtySubTab === 'tratamientos' ? 'bg-cyan-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
+                    [ngClass]="activeSpecialtySubTab === 'tratamientos' ? 'bg-cyan-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
                     (click)="setSpecialtySubTab('tratamientos')"
                   >
-                    Tratamientos
+                    <span>Tratamientos</span>
+                    @if (counts['tratamientos'] > 0) {
+                      <span class="rounded-full px-1.5 py-0.2 text-[10px] font-bold" [ngClass]="activeSpecialtySubTab === 'tratamientos' ? 'bg-cyan-800 text-white' : 'bg-slate-200 text-slate-800'">{{ counts['tratamientos'] }}</span>
+                    }
                   </button>
                   <button
                     type="button"
-                    class="rounded-md px-3 py-1.5 text-xs font-semibold transition"
-                    [ngClass]="activeSpecialtySubTab === 'procedimientos' ? 'bg-cyan-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
+                    [ngClass]="activeSpecialtySubTab === 'procedimientos' ? 'bg-cyan-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
                     (click)="setSpecialtySubTab('procedimientos')"
                   >
-                    Procedimientos
+                    <span>Procedimientos</span>
+                    @if (counts['procedimientos'] > 0) {
+                      <span class="rounded-full px-1.5 py-0.2 text-[10px] font-bold" [ngClass]="activeSpecialtySubTab === 'procedimientos' ? 'bg-cyan-800 text-white' : 'bg-slate-200 text-slate-800'">{{ counts['procedimientos'] }}</span>
+                    }
                   </button>
                   <button
                     type="button"
-                    class="rounded-md px-3 py-1.5 text-xs font-semibold transition"
-                    [ngClass]="activeSpecialtySubTab === 'controles' ? 'bg-cyan-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
+                    [ngClass]="activeSpecialtySubTab === 'controles' ? 'bg-cyan-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
                     (click)="setSpecialtySubTab('controles')"
                   >
-                    Controles
+                    <span>Controles</span>
+                    @if (counts['controles'] > 0) {
+                      <span class="rounded-full px-1.5 py-0.2 text-[10px] font-bold" [ngClass]="activeSpecialtySubTab === 'controles' ? 'bg-cyan-800 text-white' : 'bg-slate-200 text-slate-800'">{{ counts['controles'] }}</span>
+                    }
                   </button>
                 </div>
 
@@ -507,75 +897,10 @@
 
           <!-- TAB 4: Cobros y Pagos -->
           @if (activeTab === 'cobros') {
-            <div class="space-y-4">
-              <div class="flex items-center justify-between">
-                <div>
-                  <h2 class="text-sm font-bold uppercase tracking-wider text-slate-800">Historial de Cobros</h2>
-                  <p class="text-xs text-muted">Pagos y facturación asociados a este paciente.</p>
-                </div>
-                <button
-                  type="button"
-                  class="btn-primary !text-xs !py-1.5 !bg-emerald-600 hover:!bg-emerald-700"
-                  (click)="registerPayment()"
-                >
-                  <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
-                  <span>Registrar Cobro</span>
-                </button>
-              </div>
-
-              <div class="grid grid-cols-2 gap-3">
-                <div class="rounded-xl border border-line p-3.5 bg-surface">
-                  <span class="text-[11px] font-semibold uppercase tracking-wider text-muted">Total Facturado</span>
-                  <p class="mt-1.5 text-xl font-bold text-emerald-700">{{ paymentsTotal | currency:'PEN':'S/ ':'1.2-2' }}</p>
-                </div>
-                <div class="rounded-xl border border-line p-3.5 bg-surface">
-                  <span class="text-[11px] font-semibold uppercase tracking-wider text-muted">Cobros Registrados</span>
-                  <p class="mt-1.5 text-xl font-bold text-ink">{{ payments.length }}</p>
-                </div>
-              </div>
-
-              @if (payments.length === 0) {
-                <div class="list-state">
-                  <lucide-icon [img]="Receipt" [size]="32" class="text-muted mb-1"></lucide-icon>
-                  <p class="text-sm font-medium text-ink">Sin cobros registrados</p>
-                  <p class="text-xs text-muted">Este paciente aún no tiene pagos asociados.</p>
-                </div>
-              } @else {
-                <div class="table-responsive">
-                  <table class="minimal-table">
-                    <thead>
-                      <tr>
-                        <th>Fecha</th>
-                        <th>Concepto</th>
-                        <th>Método</th>
-                        <th class="text-right">Monto</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      @for (payment of payments; track payment.id) {
-                        <tr class="transition hover:bg-slate-50">
-                          <td class="font-mono text-xs text-slate-700">{{ payment.paymentDate | date:'dd/MM/yyyy HH:mm' }}</td>
-                          <td class="text-xs text-muted max-w-xs truncate">
-                            <span>{{ payment.description || 'Servicio / Consulta' }}</span>
-                            @if (payment.appointmentId) {
-                              <span class="ml-1.5 rounded bg-sky-50 px-1.5 py-0.5 text-[10px] font-semibold text-sky-700 border border-sky-200">Cita</span>
-                            }
-                          </td>
-                          <td>
-                            <span class="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 border border-line">
-                              {{ getPaymentMethodText(payment.paymentMethod) }}
-                            </span>
-                          </td>
-                          <td class="text-right">
-                            <span class="font-mono font-bold text-xs text-emerald-700">{{ payment.amount | currency:'PEN':'S/ ':'1.2-2' }}</span>
-                          </td>
-                        </tr>
-                      }
-                    </tbody>
-                  </table>
-                </div>
-              }
-            </div>
+            <app-patient-payments-section
+              [patientId]="patient.id!"
+              (paymentsCount)="paymentsCount = $event"
+            ></app-patient-payments-section>
           }
 
         </div>
@@ -861,24 +1186,24 @@
         </div>
       </div>
     }
-
-    <!-- Risk Alert Modal Form -->
-    @if (showAlertForm) {
-      <app-risk-alert-form
-        [patientId]="patient.id!"
-        (saved)="onAlertSaved()"
-        (cancelled)="closeAlertForm()"
-      ></app-risk-alert-form>
-    }
-
-    <!-- Clinical History Print Preview -->
-    @if (showPrint) {
-      <app-clinical-history-print
-        [patientId]="patient.id!"
-        (close)="closePrint()"
-      ></app-clinical-history-print>
-    }
   </div>
+
+  <!-- Risk Alert Modal Form -->
+  @if (showAlertForm) {
+    <app-risk-alert-form
+      [patientId]="patient.id!"
+      (saved)="onAlertSaved()"
+      (cancelled)="closeAlertForm()"
+    ></app-risk-alert-form>
+  }
+
+  <!-- Clinical History Print Preview -->
+  @if (showPrint) {
+    <app-clinical-history-print
+      [patientId]="patient.id!"
+      (close)="closePrint()"
+    ></app-clinical-history-print>
+  }
 } @else {
   <div class="list-state card">
     <span class="spinner" role="status" aria-label="Cargando ficha"></span>

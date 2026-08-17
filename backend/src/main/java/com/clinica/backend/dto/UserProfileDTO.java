@@ -20,4 +20,5 @@ public class UserProfileDTO {
     private String phone;
     private Set<String> roles;
     private String specialty;
+    private boolean enabled;
 }
