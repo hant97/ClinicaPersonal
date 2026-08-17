@@ -3,7 +3,15 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { PageResponse } from '../models/page.model';
-import { ClinicalService } from '../models/clinical-service.model';
+import { ClinicalService, ClinicalServiceStats } from '../models/clinical-service.model';
+
+export interface ClinicalServiceFilters {
+  name?: string;
+  category?: string;
+  active?: boolean | null;
+  minPrice?: number | null;
+  maxPrice?: number | null;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -14,12 +22,28 @@ export class ClinicalServiceService {
 
   constructor(private http: HttpClient) { }
 
-  getAllServices(searchTerm: string = '', page: number = 0, size: number = 10): Observable<PageResponse<ClinicalService>> {
+  getAllServices(page: number = 0, size: number = 10, filters?: ClinicalServiceFilters): Observable<PageResponse<ClinicalService>> {
     let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
-    if (searchTerm) {
-      params = params.set('name', searchTerm);
+    if (filters?.name) {
+      params = params.set('name', filters.name);
+    }
+    if (filters?.category) {
+      params = params.set('category', filters.category);
+    }
+    if (filters?.active !== undefined && filters?.active !== null) {
+      params = params.set('active', filters.active.toString());
+    }
+    if (filters?.minPrice !== undefined && filters?.minPrice !== null) {
+      params = params.set('minPrice', filters.minPrice.toString());
+    }
+    if (filters?.maxPrice !== undefined && filters?.maxPrice !== null) {
+      params = params.set('maxPrice', filters.maxPrice.toString());
     }
     return this.http.get<PageResponse<ClinicalService>>(this.apiUrl, { params });
+  }
+
+  getStats(): Observable<ClinicalServiceStats> {
+    return this.http.get<ClinicalServiceStats>(`${this.apiUrl}/stats`);
   }
 
   getAllActiveServices(): Observable<ClinicalService[]> {

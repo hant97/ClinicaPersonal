@@ -50,7 +50,8 @@ export class PatientFormComponent implements OnInit {
       address: ['', [Validators.maxLength(255)]],
       hasLegalGuardian: [false],
       guardianName: ['', [Validators.maxLength(100), Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)]],
-      guardianContact: ['', [Validators.pattern(/^[0-9+\-\s()]+$/), Validators.minLength(7), Validators.maxLength(15)]]
+      guardianContact: ['', [Validators.pattern(/^[0-9+\-\s()]+$/), Validators.minLength(7), Validators.maxLength(15)]],
+      active: [true]
     });
   }
 
@@ -65,7 +66,7 @@ export class PatientFormComponent implements OnInit {
     if (this.patientId) {
       this.patientService.getById(this.patientId).subscribe({
         next: (patient) => {
-          this.patientForm.patchValue(patient);
+          this.patientForm.patchValue({ ...patient, active: patient.active !== false });
           this.checkAge(patient.dateOfBirth);
         },
         error: () => {

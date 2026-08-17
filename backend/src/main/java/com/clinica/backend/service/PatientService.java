@@ -1,6 +1,7 @@
 package com.clinica.backend.service;
 
 import com.clinica.backend.dto.PatientDto;
+import com.clinica.backend.dto.PatientStatsDto;
 import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.PatientRepository;
@@ -10,9 +11,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
 
 @Service
 @RequiredArgsConstructor
@@ -20,18 +24,40 @@ public class PatientService {
 
     private final PatientRepository patientRepository;
     private final RiskAlertRepository riskAlertRepository;
+    private final WebsiteFileStorage fileStorage;
 
-    public Page<PatientDto> getAllPatients(Pageable pageable) {
-        return patientRepository.findBySpecialtyAndDeletedFalse(currentSpecialty(), pageable)
+    public Page<PatientDto> getAllPatients(Boolean active, String gender, Pageable pageable) {
+        return patientRepository.findAllBySpecialty(currentSpecialty(), active, gender, pageable)
                 .map(this::mapToDto);
     }
 
-    public Page<PatientDto> searchPatients(String query, Pageable pageable) {
+    public Page<PatientDto> searchPatients(String query, Boolean active, String gender, Pageable pageable) {
         if (query == null || query.trim().isEmpty()) {
-            return Page.empty();
+            return getAllPatients(active, gender, pageable);
         }
-        return patientRepository.searchPatients(query, currentSpecialty(), pageable)
+        return patientRepository.searchPatients(query, currentSpecialty(), active, gender, pageable)
                 .map(this::mapToDto);
+    }
+
+    @Transactional(readOnly = true)
+    public PatientStatsDto getStats() {
+        String specialty = currentSpecialty();
+        LocalDate today = LocalDate.now();
+        YearMonth currentMonth = YearMonth.from(today);
+        LocalDateTime startOfMonth = currentMonth.atDay(1).atStartOfDay();
+        LocalDateTime startOfNextMonth = currentMonth.plusMonths(1).atDay(1).atStartOfDay();
+
+        long totalPatients = patientRepository.countBySpecialtyAndDeletedFalse(specialty);
+        long newThisMonth = patientRepository.countNewPatientsBetween(specialty, startOfMonth, startOfNextMonth);
+        long withActiveAlerts = riskAlertRepository.countDistinctPatientsWithActiveAlerts(specialty);
+        long minors = patientRepository.countMinorsBySpecialty(specialty, today.minusYears(18));
+
+        return PatientStatsDto.builder()
+                .totalPatients(totalPatients)
+                .newThisMonth(newThisMonth)
+                .withActiveAlerts(withActiveAlerts)
+                .minors(minors)
+                .build();
     }
 
     public PatientDto getPatientById(Long id) {
@@ -48,7 +74,7 @@ public class PatientService {
 
     public PatientDto updatePatient(Long id, PatientDto patientDto) {
         Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(id, currentSpecialty()).orElseThrow();
-        
+
         patient.setFirstName(patientDto.getFirstName());
         patient.setLastName(patientDto.getLastName());
         patient.setIdentificationDocument(patientDto.getIdentificationDocument());
@@ -64,6 +90,8 @@ public class PatientService {
         patient.setGuardianName(patientDto.getGuardianName());
         patient.setGuardianContact(patientDto.getGuardianContact());
         patient.setHasLegalGuardian(patientDto.isHasLegalGuardian());
+        patient.setPhotoUrl(trimToNull(patientDto.getPhotoUrl()));
+        patient.setActive(patientDto.getActive() == null || patientDto.getActive());
 
         Patient updatedPatient = patientRepository.save(patient);
         return mapToDto(updatedPatient);
@@ -73,6 +101,16 @@ public class PatientService {
         Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(id, currentSpecialty()).orElseThrow();
         patient.setDeleted(true);
         patientRepository.save(patient);
+    }
+
+    @Transactional
+    public PatientDto uploadPhoto(Long id, MultipartFile file) {
+        Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(id, currentSpecialty()).orElseThrow();
+        String previousKey = toAssetKey(patient.getPhotoUrl());
+        String key = fileStorage.store(file, "patients", previousKey);
+        patient.setPhotoUrl(fileStorage.publicUrl(key));
+        patientRepository.save(patient);
+        return mapToDto(patient);
     }
 
     private String currentSpecialty() {
@@ -98,6 +136,8 @@ public class PatientService {
         dto.setGuardianName(patient.getGuardianName());
         dto.setGuardianContact(patient.getGuardianContact());
         dto.setHasLegalGuardian(patient.isHasLegalGuardian());
+        dto.setPhotoUrl(patient.getPhotoUrl());
+        dto.setActive(patient.isActive());
         dto.setSpecialty(patient.getSpecialty());
         dto.setDeleted(patient.isDeleted());
         dto.setHasActiveAlerts(riskAlertRepository.existsByPatientIdAndSpecialtyAndActiveTrue(patient.getId(), patient.getSpecialty()));
@@ -121,7 +161,21 @@ public class PatientService {
         patient.setGuardianName(dto.getGuardianName());
         patient.setGuardianContact(dto.getGuardianContact());
         patient.setHasLegalGuardian(dto.isHasLegalGuardian());
+        patient.setPhotoUrl(trimToNull(dto.getPhotoUrl()));
+        patient.setActive(dto.getActive() == null || dto.getActive());
         patient.setDeleted(dto.isDeleted());
         return patient;
+    }
+
+    private String toAssetKey(String photoUrl) {
+        String prefix = "/api/v1/public/website-assets/";
+        if (photoUrl == null || !photoUrl.startsWith(prefix)) {
+            return null;
+        }
+        return photoUrl.substring(prefix.length());
+    }
+
+    private String trimToNull(String value) {
+        return value == null || value.trim().isEmpty() ? null : value.trim();
     }
 }

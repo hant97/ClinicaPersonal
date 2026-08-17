@@ -3,9 +3,11 @@ package com.clinica.backend.service;
 import com.clinica.backend.dto.AppointmentDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.Appointment;
+import com.clinica.backend.model.ClinicalService;
 import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.AppointmentRepository;
+import com.clinica.backend.repository.ClinicalServiceRepository;
 import com.clinica.backend.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,6 +26,7 @@ import java.util.List;
 public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final PatientRepository patientRepository;
+    private final ClinicalServiceRepository clinicalServiceRepository;
 
     private String getCurrentUserSpecialty() {
         return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getSpecialty();
@@ -74,6 +77,7 @@ public class AppointmentService {
         appointment.setProfessionalId(dto.getProfessionalId());
         appointment.setFirstTime(dto.isFirstTime());
         appointment.setClinicalSessionId(dto.getClinicalSessionId());
+        appointment.setClinicalService(resolveClinicalService(dto.getClinicalServiceId()));
         appointment.setNotes(dto.getNotes());
         appointment.setSpecialty(getCurrentUserSpecialty());
 
@@ -95,6 +99,7 @@ public class AppointmentService {
         appointment.setVideoCallLink(dto.getVideoCallLink());
         appointment.setProfessionalId(dto.getProfessionalId());
         appointment.setFirstTime(dto.isFirstTime());
+        appointment.setClinicalService(resolveClinicalService(dto.getClinicalServiceId()));
         appointment.setNotes(dto.getNotes());
 
         return mapToDto(appointmentRepository.save(appointment));
@@ -150,6 +155,14 @@ public class AppointmentService {
         }
     }
 
+    private ClinicalService resolveClinicalService(Long clinicalServiceId) {
+        if (clinicalServiceId == null) {
+            return null;
+        }
+        return clinicalServiceRepository.findByIdAndSpecialtyAndDeletedFalse(clinicalServiceId, getCurrentUserSpecialty())
+                .orElseThrow(() -> new ResourceNotFoundException("Servicio clínico no encontrado"));
+    }
+
     private AppointmentDto mapToDto(Appointment appointment) {
         AppointmentDto dto = new AppointmentDto();
         dto.setId(appointment.getId());
@@ -163,6 +176,10 @@ public class AppointmentService {
         dto.setProfessionalId(appointment.getProfessionalId());
         dto.setFirstTime(appointment.isFirstTime());
         dto.setClinicalSessionId(appointment.getClinicalSessionId());
+        if (appointment.getClinicalService() != null) {
+            dto.setClinicalServiceId(appointment.getClinicalService().getId());
+            dto.setClinicalServiceName(appointment.getClinicalService().getName());
+        }
         dto.setNotes(appointment.getNotes());
         dto.setSpecialty(appointment.getSpecialty());
         return dto;

@@ -35,7 +35,11 @@ public class Payment {
     private LocalDateTime paymentDate;
 
     @Column(name = "payment_method")
-    private String paymentMethod; // CASH, TRANSFER, CARD
+    private String paymentMethod; // Código de catálogo PAYMENT_METHOD (EFECTIVO, TRANSFERENCIA, ...)
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "appointment_id")
+    private Appointment appointment;
 
     @Column(name = "description")
     private String description;

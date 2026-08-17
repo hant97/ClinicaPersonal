@@ -8,6 +8,7 @@ import com.clinica.backend.model.User;
 import com.clinica.backend.repository.InventoryTransactionRepository;
 import com.clinica.backend.repository.SupplyRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -86,6 +87,14 @@ public class InventoryTransactionService {
             throw new AccessDeniedException("Insumo fuera de la especialidad del usuario");
         }
         return transactionRepository.findBySupplyIdOrderByTransactionDateDesc(supplyId)
+                .stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<InventoryTransactionDto> getRecentTransactions(int limit) {
+        String specialty = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getSpecialty();
+        return transactionRepository.findRecentBySpecialty(specialty, PageRequest.of(0, Math.max(1, limit)))
                 .stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());

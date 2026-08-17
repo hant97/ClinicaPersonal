@@ -59,6 +59,10 @@
         <p class="mb-5 rounded-lg bg-clinic-50 p-3"><strong>Concepto:</strong> {{ payment.description }}</p>
       }
 
+      @if (payment.appointmentId) {
+        <p class="mb-5 text-xs text-muted"><strong>Cita vinculada:</strong> #{{ payment.appointmentId.toString().padStart(6, '0') }}</p>
+      }
+
       <div class="overflow-x-auto">
         <table class="w-full text-left text-sm">
           <thead class="border-b-2 border-clinic-900 text-xs uppercase text-muted">

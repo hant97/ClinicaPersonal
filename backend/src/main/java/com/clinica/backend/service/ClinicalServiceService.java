@@ -1,40 +1,85 @@
 package com.clinica.backend.service;
 
 import com.clinica.backend.dto.ClinicalServiceDto;
+import com.clinica.backend.dto.ClinicalServiceStatsDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.ClinicalService;
+import com.clinica.backend.model.User;
 import com.clinica.backend.repository.ClinicalServiceRepository;
+import com.clinica.backend.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.security.core.context.SecurityContextHolder;
-import com.clinica.backend.model.User;
 
 @Service
 @RequiredArgsConstructor
 public class ClinicalServiceService {
 
     private final ClinicalServiceRepository clinicalServiceRepository;
+    private final PaymentRepository paymentRepository;
 
     private String getCurrentUserSpecialty() {
         return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getSpecialty();
     }
 
-    public Page<ClinicalServiceDto> getAllServices(String name, Pageable pageable) {
+    public Page<ClinicalServiceDto> getAllServices(String name, String category, Boolean active,
+            BigDecimal minPrice, BigDecimal maxPrice, Pageable pageable) {
         String specialty = getCurrentUserSpecialty();
-        if (name != null && !name.trim().isEmpty()) {
-            return clinicalServiceRepository.findBySpecialtyAndNameContainingIgnoreCaseAndDeletedFalse(specialty, name, pageable).map(this::mapToDto);
-        }
-        return clinicalServiceRepository.findBySpecialtyAndDeletedFalse(specialty, pageable).map(this::mapToDto);
+        return clinicalServiceRepository
+                .findAllWithFilters(name, category, active, minPrice, maxPrice, specialty, pageable)
+                .map(this::mapToDto);
     }
 
     public List<ClinicalServiceDto> getAllActiveServices() {
         String specialty = getCurrentUserSpecialty();
-        return clinicalServiceRepository.findBySpecialtyAndDeletedFalse(specialty).stream().map(this::mapToDto).collect(Collectors.toList());
+        return clinicalServiceRepository.findBySpecialtyAndActiveTrueAndDeletedFalse(specialty)
+                .stream().map(this::mapToDto).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public ClinicalServiceStatsDto getStats() {
+        String specialty = getCurrentUserSpecialty();
+        long totalServices = clinicalServiceRepository.countBySpecialtyAndDeletedFalse(specialty);
+        long activeCount = clinicalServiceRepository.countActiveBySpecialty(specialty);
+        BigDecimal averagePrice = clinicalServiceRepository.averagePriceBySpecialty(specialty);
+
+        LocalDate today = LocalDate.now();
+        YearMonth currentMonth = YearMonth.from(today);
+        LocalDateTime startOfMonth = currentMonth.atDay(1).atStartOfDay();
+        LocalDateTime startOfNextMonth = currentMonth.plusMonths(1).atDay(1).atStartOfDay();
+
+        List<Object[]> rows = paymentRepository.findTopServicesWithIdBySpecialty(startOfMonth, startOfNextMonth, specialty);
+        List<ClinicalServiceStatsDto.ServicePerformance> topByRevenue = rows.stream()
+                .map(row -> ClinicalServiceStatsDto.ServicePerformance.builder()
+                        .serviceId(((Number) row[0]).longValue())
+                        .name(row[1].toString())
+                        .quantity(((Number) row[2]).longValue())
+                        .total((BigDecimal) row[3])
+                        .build())
+                .collect(Collectors.toList());
+
+        List<ClinicalServiceStatsDto.ServicePerformance> topByQuantity = new ArrayList<>(topByRevenue);
+        topByQuantity.sort(Comparator.comparingLong(ClinicalServiceStatsDto.ServicePerformance::getQuantity).reversed());
+
+        return ClinicalServiceStatsDto.builder()
+                .totalServices(totalServices)
+                .activeCount(activeCount)
+                .averagePrice(averagePrice != null ? averagePrice : BigDecimal.ZERO)
+                .topByRevenue(topByRevenue)
+                .topByQuantity(topByQuantity)
+                .build();
     }
 
     public ClinicalServiceDto getServiceById(Long id) {
@@ -46,9 +91,7 @@ public class ClinicalServiceService {
 
     public ClinicalServiceDto createService(ClinicalServiceDto dto) {
         ClinicalService service = new ClinicalService();
-        service.setName(dto.getName());
-        service.setDescription(dto.getDescription());
-        service.setPrice(dto.getPrice());
+        applyDtoToEntity(service, dto);
         service.setSpecialty(getCurrentUserSpecialty());
         ClinicalService saved = clinicalServiceRepository.save(service);
         return mapToDto(saved);
@@ -58,9 +101,7 @@ public class ClinicalServiceService {
         String specialty = getCurrentUserSpecialty();
         ClinicalService service = clinicalServiceRepository.findByIdAndSpecialtyAndDeletedFalse(id, specialty)
                 .orElseThrow(() -> new ResourceNotFoundException("Servicio clínico no encontrado"));
-        service.setName(dto.getName());
-        service.setDescription(dto.getDescription());
-        service.setPrice(dto.getPrice());
+        applyDtoToEntity(service, dto);
         ClinicalService updated = clinicalServiceRepository.save(service);
         return mapToDto(updated);
     }
@@ -73,12 +114,26 @@ public class ClinicalServiceService {
         clinicalServiceRepository.save(service);
     }
 
+    private void applyDtoToEntity(ClinicalService service, ClinicalServiceDto dto) {
+        service.setName(dto.getName());
+        service.setDescription(dto.getDescription());
+        service.setPrice(dto.getPrice());
+        service.setCategory(dto.getCategory());
+        service.setDurationMinutes(dto.getDurationMinutes());
+        service.setImageUrl(dto.getImageUrl());
+        service.setActive(dto.getActive() == null || dto.getActive());
+    }
+
     private ClinicalServiceDto mapToDto(ClinicalService service) {
         ClinicalServiceDto dto = new ClinicalServiceDto();
         dto.setId(service.getId());
         dto.setName(service.getName());
         dto.setDescription(service.getDescription());
         dto.setPrice(service.getPrice());
+        dto.setCategory(service.getCategory());
+        dto.setDurationMinutes(service.getDurationMinutes());
+        dto.setImageUrl(service.getImageUrl());
+        dto.setActive(service.isActive());
         dto.setSpecialty(service.getSpecialty());
         return dto;
     }

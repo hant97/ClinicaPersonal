@@ -5,6 +5,7 @@ import com.clinica.backend.model.Appointment;
 import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.AppointmentRepository;
+import com.clinica.backend.repository.ClinicalServiceRepository;
 import com.clinica.backend.repository.PatientRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,13 +27,15 @@ class AppointmentServiceTest {
 
     private AppointmentRepository appointmentRepository;
     private PatientRepository patientRepository;
+    private ClinicalServiceRepository clinicalServiceRepository;
     private AppointmentService appointmentService;
 
     @BeforeEach
     void setUp() {
         appointmentRepository = mock(AppointmentRepository.class);
         patientRepository = mock(PatientRepository.class);
-        appointmentService = new AppointmentService(appointmentRepository, patientRepository);
+        clinicalServiceRepository = mock(ClinicalServiceRepository.class);
+        appointmentService = new AppointmentService(appointmentRepository, patientRepository, clinicalServiceRepository);
 
         User user = new User();
         user.setId(1L);

@@ -14,7 +14,7 @@
       <nav id="main-navigation" class="main-nav" [class.is-open]="isMenuOpen" aria-label="Navegación principal">
         <a href="#inicio" (click)="closeMenu()">Inicio</a><a href="#servicios" (click)="closeMenu()">Servicios</a>
         @for (specialty of site.specialties; track specialty.code) {<a [href]="'#' + specialty.code.toLowerCase()" (click)="closeMenu()">{{ specialty.title }}</a>}
-        <a href="#nosotros" (click)="closeMenu()">Nosotros</a><a href="#contacto" (click)="closeMenu()">Contacto</a><a class="nav-login" routerLink="/login" (click)="closeMenu()">Ingresar al sistema</a><a class="nav-cta" href="#contacto" (click)="closeMenu()">Agendar una cita <lucide-icon [img]="ArrowRight" [size]="16" /></a>
+        <a href="#nosotros" (click)="closeMenu()">Nosotros</a><a href="#contacto" (click)="closeMenu()">Contacto</a><a class="nav-login" routerLink="/login" (click)="closeMenu()">Ingresar al sistema</a>
       </nav>
     </div>
   </header>

@@ -10,6 +10,8 @@ export interface Appointment {
   professionalId?: number;
   isFirstTime: boolean;
   clinicalSessionId?: number;
+  clinicalServiceId?: number;
+  clinicalServiceName?: string;
   notes?: string;
   
   // Para mostrar en UI sin hacer llamadas extra si es necesario:

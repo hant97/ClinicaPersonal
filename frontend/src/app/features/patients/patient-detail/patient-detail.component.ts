@@ -3,8 +3,12 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PatientService } from '../../../core/services/patient/patient.service';
 import { ClinicalSessionService } from '../../../core/services/clinical-session.service';
+import { PaymentService } from '../../../core/services/payment.service';
+import { AppointmentService } from '../../../core/services/appointment.service';
 import { Patient } from '../../../core/models/patient.model';
 import { ClinicalSession } from '../../../core/models/clinical-session.model';
+import { Payment } from '../../../core/models/payment.model';
+import { Appointment } from '../../../core/models/appointment.model';
 import { ClinicalSessionFormComponent } from '../clinical-session-form/clinical-session-form.component';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
@@ -58,10 +62,14 @@ import {
   FolderOpen,
   Sparkles,
   ChevronRight,
-  ChevronDown
+  ChevronDown,
+  Receipt,
+  Wallet,
+  CalendarCheck,
+  ImagePlus
 } from 'lucide-angular';
 
-export type MainTabType = 'timeline' | 'expediente' | 'especialidad';
+export type MainTabType = 'timeline' | 'expediente' | 'especialidad' | 'cobros';
 
 @Component({
   selector: 'app-patient-detail',
@@ -118,10 +126,19 @@ export class PatientDetailComponent implements OnInit {
   readonly Sparkles = Sparkles;
   readonly ChevronRight = ChevronRight;
   readonly ChevronDown = ChevronDown;
+  readonly Receipt = Receipt;
+  readonly Wallet = Wallet;
+  readonly CalendarCheck = CalendarCheck;
+  readonly ImagePlus = ImagePlus;
 
   patient: Patient | null = null;
   sessions: ClinicalSession[] = [];
   activeAlerts: RiskAlert[] = [];
+  payments: Payment[] = [];
+  paymentsTotal = 0;
+  upcomingAppointments: Appointment[] = [];
+  recentAppointments: Appointment[] = [];
+  paymentMethodMap = new Map<string, string>();
   showForm = false;
   showAlertForm = false;
   showPrint = false;
@@ -147,6 +164,8 @@ export class PatientDetailComponent implements OnInit {
     private router: Router,
     private patientService: PatientService,
     private sessionService: ClinicalSessionService,
+    private paymentService: PaymentService,
+    private appointmentService: AppointmentService,
     private riskAlertService: RiskAlertService,
     private catalogService: CatalogService,
     private notificationService: NotificationService,
@@ -170,7 +189,13 @@ export class PatientDetailComponent implements OnInit {
       this.loadSessions(Number(id));
       this.loadAlerts(Number(id));
       this.loadCounts(Number(id));
+      this.loadPayments(Number(id));
+      this.loadAppointments(Number(id));
     }
+
+    this.catalogService.getActiveItemsByCatalogCode('PAYMENT_METHOD').subscribe({
+      next: (items) => items.forEach(item => this.paymentMethodMap.set(item.itemCode, item.itemName))
+    });
 
     if (this.isPsychology) {
       this.activeSpecialtySubTab = 'evaluacion-psicologica';
@@ -376,6 +401,51 @@ export class PatientDetailComponent implements OnInit {
     });
   }
 
+  loadPayments(patientId: number): void {
+    this.paymentService.getByPatientId(patientId, 0, 100).subscribe({
+      next: (page) => {
+        this.payments = page.content;
+        this.paymentsTotal = page.content.reduce((sum, p) => sum + (p.amount || 0), 0);
+      },
+      error: (err) => console.error('Error fetching payments', err)
+    });
+  }
+
+  loadAppointments(patientId: number): void {
+    this.appointmentService.getByPatientId(patientId, 0, 200).subscribe({
+      next: (page) => {
+        const today = new Date().toISOString().split('T')[0];
+        const all = page.content;
+        this.upcomingAppointments = all
+          .filter(a => a.appointmentDate >= today && a.status !== 'CANCELADA' && a.status !== 'NO_ASISTIO' && a.status !== 'COMPLETADA')
+          .sort((a, b) => a.appointmentDate.localeCompare(b.appointmentDate));
+        this.recentAppointments = all
+          .filter(a => a.appointmentDate < today || a.status === 'COMPLETADA')
+          .sort((a, b) => b.appointmentDate.localeCompare(a.appointmentDate))
+          .slice(0, 3);
+      },
+      error: (err) => console.error('Error fetching appointments', err)
+    });
+  }
+
+  getPaymentMethodText(method: string): string {
+    return this.paymentMethodMap.get(method) || method;
+  }
+
+  onPhotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0 && this.patient?.id) {
+      this.patientService.uploadPhoto(this.patient.id, input.files[0]).subscribe({
+        next: (updated) => {
+          this.patient = updated;
+          this.toastService.show('Foto actualizada', 'success');
+        },
+        error: () => this.toastService.show('Error al subir la foto', 'error')
+      });
+    }
+    input.value = '';
+  }
+
   openForm(session?: ClinicalSession): void {
     this.selectedSession = session;
     this.showForm = true;
@@ -437,6 +507,14 @@ export class PatientDetailComponent implements OnInit {
     if (this.patient?.id) {
       this.router.navigate(['/agenda'], {
         queryParams: { newAppointment: 'true', patientId: this.patient.id }
+      });
+    }
+  }
+
+  registerPayment(): void {
+    if (this.patient?.id) {
+      this.router.navigate(['/billing'], {
+        queryParams: { newPayment: 'true', patientId: this.patient.id }
       });
     }
   }

@@ -1,10 +1,65 @@
 <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" appFocusTrap (trapClose)="close()" (click)="close()">
   <section class="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-xl border border-line bg-surface p-5 shadow-raised sm:p-6" (click)="$event.stopPropagation()">
-    <div class="mb-6 flex items-center justify-between border-b border-line pb-4"><h2 class="text-xl font-semibold">{{ isEditMode ? 'Editar' : 'Nuevo' }} servicio clínico</h2><button class="btn-text text-muted hover:text-danger" (click)="close()" title="Cerrar"><lucide-icon [img]="X" [size]="20"></lucide-icon></button></div>
-    <form [formGroup]="form" (ngSubmit)="onSubmit()"><div class="grid gap-5 sm:grid-cols-2">
-      <div class="sm:col-span-2"><label for="name" class="form-label">Nombre del servicio <span class="text-danger">*</span></label><input type="text" id="name" formControlName="name" class="input-field" placeholder="Ej. Terapia Psicológica Individual" [class.border-danger]="form.get('name')?.invalid && form.get('name')?.touched">@if (form.get('name')?.invalid && form.get('name')?.touched) { <small class="mt-1 block text-sm text-danger">El nombre es requerido.</small> }</div>
-      <div class="sm:col-span-2"><label for="description" class="form-label">Descripción</label><textarea id="description" formControlName="description" class="input-field" rows="3" placeholder="Detalles adicionales sobre el servicio..."></textarea></div>
-      <div><label for="price" class="form-label">Precio base (S/) <span class="text-danger">*</span></label><input type="number" id="price" formControlName="price" class="input-field" step="0.01" min="0" [class.border-danger]="form.get('price')?.invalid && form.get('price')?.touched">@if (form.get('price')?.invalid && form.get('price')?.touched) { <small class="mt-1 block text-sm text-danger">Precio inválido.</small> }</div>
-    </div><div class="mt-7 flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end"><button type="button" class="btn-secondary" (click)="close()">Cancelar</button><button type="submit" class="btn-primary" [disabled]="isSubmitting">{{ isSubmitting ? 'Guardando...' : 'Guardar' }}</button></div></form>
+    <div class="mb-6 flex items-center justify-between border-b border-line pb-4">
+      <h2 class="text-xl font-semibold">{{ isEditMode ? 'Editar' : 'Nuevo' }} servicio clínico</h2>
+      <button class="btn-text text-muted hover:text-danger" (click)="close()" title="Cerrar">
+        <lucide-icon [img]="X" [size]="20"></lucide-icon>
+      </button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="grid gap-5 sm:grid-cols-2">
+        <div class="sm:col-span-2">
+          <label for="name" class="form-label">Nombre del servicio <span class="text-danger">*</span></label>
+          <input type="text" id="name" formControlName="name" class="input-field" placeholder="Ej. Terapia Psicológica Individual" [class.border-danger]="form.get('name')?.invalid && form.get('name')?.touched">
+          @if (form.get('name')?.invalid && form.get('name')?.touched) { <small class="mt-1 block text-sm text-danger">El nombre es requerido.</small> }
+        </div>
+
+        <div class="sm:col-span-2">
+          <label for="description" class="form-label">Descripción</label>
+          <textarea id="description" formControlName="description" class="input-field" rows="3" placeholder="Detalles adicionales sobre el servicio..."></textarea>
+        </div>
+
+        <div>
+          <label for="price" class="form-label">Precio base (S/) <span class="text-danger">*</span></label>
+          <input type="number" id="price" formControlName="price" class="input-field" step="0.01" min="0" [class.border-danger]="form.get('price')?.invalid && form.get('price')?.touched">
+          @if (form.get('price')?.invalid && form.get('price')?.touched) { <small class="mt-1 block text-sm text-danger">Precio inválido.</small> }
+        </div>
+
+        <div>
+          <label for="category" class="form-label">Categoría</label>
+          <select id="category" formControlName="category" class="input-field">
+            <option value="">Sin categoría</option>
+            <option value="Evaluación">Evaluación</option>
+            <option value="Terapia">Terapia</option>
+            <option value="Procedimiento">Procedimiento</option>
+            <option value="Control">Control</option>
+            <option value="Diagnóstico">Diagnóstico</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="durationMinutes" class="form-label">Duración (minutos)</label>
+          <input type="number" id="durationMinutes" formControlName="durationMinutes" class="input-field" min="5" step="5" placeholder="Ej. 50">
+          @if (form.get('durationMinutes')?.invalid && form.get('durationMinutes')?.touched) { <small class="mt-1 block text-sm text-danger">La duración debe ser de al menos 5 minutos.</small> }
+        </div>
+
+        <div class="sm:col-span-2">
+          <label for="imageUrl" class="form-label">URL de imagen</label>
+          <input type="url" id="imageUrl" formControlName="imageUrl" class="input-field" placeholder="https://...">
+        </div>
+
+        <label class="flex cursor-pointer items-center gap-3 rounded-lg bg-canvas p-3 text-sm font-medium text-ink sm:col-span-2">
+          <input type="checkbox" formControlName="active" class="h-4 w-4 rounded border-line text-primary-600 focus:ring-primary-500">
+          Servicio activo (visible para facturación y agenda)
+        </label>
+      </div>
+
+      <div class="mt-7 flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end">
+        <button type="button" class="btn-secondary" (click)="close()">Cancelar</button>
+        <button type="submit" class="btn-primary" [disabled]="isSubmitting">{{ isSubmitting ? 'Guardando...' : 'Guardar' }}</button>
+      </div>
+    </form>
   </section>
 </div>

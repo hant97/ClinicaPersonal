@@ -510,7 +510,7 @@ public class MockDataSeeder {
                 Payment payment = new Payment();
                 payment.setPatient(patient);
                 payment.setPaymentDate(LocalDateTime.now().minusDays(i));
-                payment.setPaymentMethod(i % 2 == 0 ? "CASH" : "TRANSFER");
+                payment.setPaymentMethod(i % 2 == 0 ? "EFECTIVO" : "TRANSFERENCIA");
                 payment.setDescription("Facturación de servicios y/o insumos");
                 String paymentSpecialty = i % 2 == 0 ? "PSICOLOGIA" : "DERMATOLOGIA";
                 payment.setSpecialty(paymentSpecialty);

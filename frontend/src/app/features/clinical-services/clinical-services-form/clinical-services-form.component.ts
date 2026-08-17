@@ -40,14 +40,26 @@ export class ClinicalServicesFormComponent implements OnInit {
     this.form = this.fb.group({
       name: ['', [Validators.required]],
       description: [''],
-      price: [0, [Validators.required, Validators.min(0)]]
+      price: [0, [Validators.required, Validators.min(0)]],
+      category: [''],
+      durationMinutes: [null, [Validators.min(5)]],
+      imageUrl: [''],
+      active: [true]
     });
   }
 
   loadService(): void {
     this.serviceService.getServiceById(this.serviceId!).subscribe({
       next: (service) => {
-        this.form.patchValue(service);
+        this.form.patchValue({
+          name: service.name,
+          description: service.description,
+          price: service.price,
+          category: service.category,
+          durationMinutes: service.durationMinutes,
+          imageUrl: service.imageUrl,
+          active: service.active !== false
+        });
       },
       error: () => {
         this.toastService.show('Error al cargar datos del servicio', 'error');

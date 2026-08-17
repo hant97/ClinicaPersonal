@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -20,11 +21,22 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
     @Query("SELECT COUNT(p) FROM Patient p WHERE p.deleted = false AND p.specialty = :specialty AND p.createdAt >= :startDate AND p.createdAt < :endDate")
     long countNewPatientsBetween(@Param("specialty") String specialty, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
+    @Query("SELECT COUNT(p) FROM Patient p WHERE p.deleted = false AND p.specialty = :specialty AND p.dateOfBirth > :cutoff")
+    long countMinorsBySpecialty(@Param("specialty") String specialty, @Param("cutoff") LocalDate cutoff);
+
     boolean existsByIdAndSpecialtyAndDeletedFalse(Long id, String specialty);
 
     @Query("SELECT p FROM Patient p WHERE p.deleted = false AND p.specialty = :specialty AND " +
+           "(:active IS NULL OR p.active = :active) AND " +
+           "(:gender IS NULL OR p.gender = :gender) " +
+           "ORDER BY p.lastName ASC, p.firstName ASC")
+    Page<Patient> findAllBySpecialty(@Param("specialty") String specialty, @Param("active") Boolean active, @Param("gender") String gender, Pageable pageable);
+
+    @Query("SELECT p FROM Patient p WHERE p.deleted = false AND p.specialty = :specialty AND " +
+           "(:active IS NULL OR p.active = :active) AND " +
+           "(:gender IS NULL OR p.gender = :gender) AND " +
            "(LOWER(p.firstName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "LOWER(p.lastName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "p.identificationDocument LIKE CONCAT('%', :query, '%'))")
-    Page<Patient> searchPatients(@Param("query") String query, @Param("specialty") String specialty, Pageable pageable);
+    Page<Patient> searchPatients(@Param("query") String query, @Param("specialty") String specialty, @Param("active") Boolean active, @Param("gender") String gender, Pageable pageable);
 }

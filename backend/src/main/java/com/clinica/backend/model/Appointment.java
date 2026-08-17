@@ -50,6 +50,10 @@ public class Appointment {
     @Column(name = "clinical_session_id")
     private Long clinicalSessionId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "clinical_service_id")
+    private ClinicalService clinicalService;
+
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 

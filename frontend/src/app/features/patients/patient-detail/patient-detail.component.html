@@ -86,10 +86,24 @@
               } @else if (isDermatology) {
                 <lucide-icon [img]="Sparkles" [size]="15" class="text-cyan-600"></lucide-icon>
                 <span>Módulo Dermatología</span>
-              } @else {
+              }               @else {
                 <lucide-icon [img]="Stethoscope" [size]="15"></lucide-icon>
                 <span>Atención Especializada</span>
               }
+            </button>
+
+            <!-- Tab 4: Cobros -->
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 border-b-2 px-3.5 py-2.5 text-xs font-semibold transition whitespace-nowrap"
+              [ngClass]="activeTab === 'cobros' ? 'border-primary-600 text-primary-700 bg-primary-50/50' : 'border-transparent text-muted hover:text-ink hover:border-slate-300'"
+              (click)="setTab('cobros')"
+            >
+              <lucide-icon [img]="Receipt" [size]="15"></lucide-icon>
+              <span>Cobros</span>
+              <span class="rounded-full bg-slate-100 px-1.5 py-0.2 text-[10px] font-bold text-slate-700">
+                {{ payments.length }}
+              </span>
             </button>
           </nav>
         </div>
@@ -491,6 +505,79 @@
             </div>
           }
 
+          <!-- TAB 4: Cobros y Pagos -->
+          @if (activeTab === 'cobros') {
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h2 class="text-sm font-bold uppercase tracking-wider text-slate-800">Historial de Cobros</h2>
+                  <p class="text-xs text-muted">Pagos y facturación asociados a este paciente.</p>
+                </div>
+                <button
+                  type="button"
+                  class="btn-primary !text-xs !py-1.5 !bg-emerald-600 hover:!bg-emerald-700"
+                  (click)="registerPayment()"
+                >
+                  <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
+                  <span>Registrar Cobro</span>
+                </button>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div class="rounded-xl border border-line p-3.5 bg-surface">
+                  <span class="text-[11px] font-semibold uppercase tracking-wider text-muted">Total Facturado</span>
+                  <p class="mt-1.5 text-xl font-bold text-emerald-700">{{ paymentsTotal | currency:'PEN':'S/ ':'1.2-2' }}</p>
+                </div>
+                <div class="rounded-xl border border-line p-3.5 bg-surface">
+                  <span class="text-[11px] font-semibold uppercase tracking-wider text-muted">Cobros Registrados</span>
+                  <p class="mt-1.5 text-xl font-bold text-ink">{{ payments.length }}</p>
+                </div>
+              </div>
+
+              @if (payments.length === 0) {
+                <div class="list-state">
+                  <lucide-icon [img]="Receipt" [size]="32" class="text-muted mb-1"></lucide-icon>
+                  <p class="text-sm font-medium text-ink">Sin cobros registrados</p>
+                  <p class="text-xs text-muted">Este paciente aún no tiene pagos asociados.</p>
+                </div>
+              } @else {
+                <div class="table-responsive">
+                  <table class="minimal-table">
+                    <thead>
+                      <tr>
+                        <th>Fecha</th>
+                        <th>Concepto</th>
+                        <th>Método</th>
+                        <th class="text-right">Monto</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (payment of payments; track payment.id) {
+                        <tr class="transition hover:bg-slate-50">
+                          <td class="font-mono text-xs text-slate-700">{{ payment.paymentDate | date:'dd/MM/yyyy HH:mm' }}</td>
+                          <td class="text-xs text-muted max-w-xs truncate">
+                            <span>{{ payment.description || 'Servicio / Consulta' }}</span>
+                            @if (payment.appointmentId) {
+                              <span class="ml-1.5 rounded bg-sky-50 px-1.5 py-0.5 text-[10px] font-semibold text-sky-700 border border-sky-200">Cita</span>
+                            }
+                          </td>
+                          <td>
+                            <span class="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 border border-line">
+                              {{ getPaymentMethodText(payment.paymentMethod) }}
+                            </span>
+                          </td>
+                          <td class="text-right">
+                            <span class="font-mono font-bold text-xs text-emerald-700">{{ payment.amount | currency:'PEN':'S/ ':'1.2-2' }}</span>
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </div>
+          }
+
         </div>
       </div>
 
@@ -499,9 +586,19 @@
         <!-- 1. Patient Identity Card -->
         <div class="card !p-4 border-t-4 border-t-primary-600 shadow-card space-y-3.5">
           <div class="flex items-center gap-3">
-            <span class="avatar-initials !h-11 !w-11 !text-sm font-bold shrink-0 bg-primary-100 text-primary-700">
-              {{ getInitials(patient.firstName, patient.lastName) }}
-            </span>
+            <label class="relative block shrink-0 cursor-pointer" title="Cambiar foto">
+              @if (patient.photoUrl) {
+                <img [src]="patient.photoUrl" class="h-11 w-11 rounded-full object-cover border border-line" [alt]="patient.firstName">
+              } @else {
+                <span class="avatar-initials !h-11 !w-11 !text-sm font-bold bg-primary-100 text-primary-700 flex">
+                  {{ getInitials(patient.firstName, patient.lastName) }}
+                </span>
+              }
+              <span class="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary-600 text-white border-2 border-surface">
+                <lucide-icon [img]="ImagePlus" [size]="10"></lucide-icon>
+              </span>
+              <input type="file" accept="image/*" class="hidden" (change)="onPhotoSelected($event)">
+            </label>
             <div class="min-w-0 flex-1">
               <h2 class="text-sm font-bold text-ink truncate leading-tight">
                 {{ patient.firstName }} {{ patient.lastName }}
@@ -579,6 +676,41 @@
               </div>
             }
           </div>
+        </div>
+
+        <!-- Próxima cita -->
+        <div class="card !p-3.5 space-y-2">
+          <div class="flex items-center justify-between border-b border-line pb-1.5">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1">
+              <lucide-icon [img]="CalendarCheck" [size]="13" class="text-emerald-600"></lucide-icon>
+              Próxima Cita
+            </span>
+          </div>
+          @if (upcomingAppointments.length > 0) {
+            @for (app of upcomingAppointments.slice(0, 2); track app.id) {
+              <div class="rounded bg-emerald-50 p-2 border border-emerald-200">
+                <p class="text-xs font-bold text-ink">{{ app.appointmentDate | date:'dd/MM/yyyy' }} · {{ app.startTime.substring(0, 5) }}</p>
+                @if (app.clinicalServiceName) {
+                  <p class="text-[11px] text-emerald-800">{{ app.clinicalServiceName }}</p>
+                }
+              </div>
+            }
+          } @else {
+            <p class="text-[11px] text-muted italic">Sin citas próximas programadas.</p>
+          }
+          @if (recentAppointments.length > 0) {
+            <div class="pt-1">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-muted">Últimas visitas</span>
+              <div class="mt-1 space-y-1">
+                @for (app of recentAppointments; track app.id) {
+                  <div class="flex items-center justify-between text-[11px]">
+                    <span class="text-slate-700">{{ app.appointmentDate | date:'dd/MM/yyyy' }}</span>
+                    <span class="text-muted">{{ app.status }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
         </div>
 
         <!-- 2. Active Risk Alerts Box (If any) -->

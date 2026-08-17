@@ -4,7 +4,9 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractContro
 import { AppointmentService } from '../../../core/services/appointment.service';
 import { PatientService } from '../../../core/services/patient/patient.service';
 import { CatalogService } from '../../../core/services/catalog.service';
+import { ClinicalServiceService } from '../../../core/services/clinical-service.service';
 import { Appointment } from '../../../core/models/appointment.model';
+import { ClinicalService } from '../../../core/models/clinical-service.model';
 import { CatalogItem } from '../../../core/models/catalog.model';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
@@ -52,6 +54,7 @@ export class AppointmentFormComponent implements OnInit {
   isSubmitting = false;
   
   appointmentModalities: CatalogItem[] = [];
+  clinicalServices: ClinicalService[] = [];
   patientMap = new Map<number, string>();
   dayAppointments: Appointment[] = [];
   conflicts: Appointment[] = [];
@@ -70,6 +73,7 @@ export class AppointmentFormComponent implements OnInit {
     private appointmentService: AppointmentService,
     private patientService: PatientService,
     private catalogService: CatalogService,
+    private clinicalServiceService: ClinicalServiceService,
     private notificationService: NotificationService,
     private toastService: ToastService
   ) {}
@@ -102,6 +106,7 @@ export class AppointmentFormComponent implements OnInit {
       status: [this.appointment?.status || 'PROGRAMADA', Validators.required],
       modality: [this.appointment?.modality || 'PRESENCIAL', Validators.required],
       videoCallLink: [this.appointment?.videoCallLink || ''],
+      clinicalServiceId: [this.appointment?.clinicalServiceId || ''],
       isFirstTime: [this.appointment ? this.appointment.isFirstTime : false],
       notes: [this.appointment?.notes || '', [Validators.maxLength(255)]]
     }, { validators: [timeOrderValidator()] });
@@ -229,6 +234,23 @@ export class AppointmentFormComponent implements OnInit {
         this.toastService.show('Error al cargar modalidades', 'error');
       }
     });
+
+    this.clinicalServiceService.getAllActiveServices().subscribe({
+      next: (services) => {
+        this.clinicalServices = services;
+      },
+      error: () => {
+        console.error('Error loading clinical services', new Error());
+      }
+    });
+  }
+
+  onServiceSelect(event: Event): void {
+    const serviceId = (event.target as HTMLSelectElement).value;
+    const service = this.clinicalServices.find(s => s.id === Number(serviceId));
+    if (service?.durationMinutes) {
+      this.selectDuration(service.durationMinutes);
+    }
   }
 
   onSubmit(): void {
@@ -253,7 +275,8 @@ export class AppointmentFormComponent implements OnInit {
     const formValue = this.appointmentForm.getRawValue();
     const newAppointment: Appointment = {
       ...formValue,
-      patientId: Number(formValue.patientId)
+      patientId: Number(formValue.patientId),
+      clinicalServiceId: formValue.clinicalServiceId ? Number(formValue.clinicalServiceId) : null
     };
     
     const request$ = this.appointment ? 

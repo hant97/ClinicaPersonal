@@ -77,8 +77,11 @@
   .input-leading-icon {
     @apply pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted;
   }
+  .input-leading-icon svg {
+    display: block;
+  }
   .input-with-leading-icon {
-    @apply pl-9;
+    @apply pl-10;
   }
   .form-group {
     @apply mb-4;

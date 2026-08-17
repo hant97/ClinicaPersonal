@@ -34,7 +34,8 @@ import {
   FileText,
   Stethoscope,
   Grid,
-  Columns
+  Columns,
+  Receipt
 } from 'lucide-angular';
 
 @Component({
@@ -73,6 +74,7 @@ export class AgendaComponent implements OnInit, OnDestroy {
   readonly Stethoscope = Stethoscope;
   readonly Grid = Grid;
   readonly Columns = Columns;
+  readonly Receipt = Receipt;
 
   appointments: Appointment[] = [];
   showForm = false;
@@ -471,6 +473,19 @@ export class AgendaComponent implements OnInit, OnDestroy {
     this.openMenuId = null;
     this.closePreview();
     this.router.navigate(['/patients', patientId]);
+  }
+
+  goToBilling(appointment: Appointment): void {
+    this.openMenuId = null;
+    this.closePreview();
+    this.router.navigate(['/billing'], {
+      queryParams: {
+        newPayment: 'true',
+        patientId: appointment.patientId,
+        appointmentId: appointment.id,
+        description: `Cobro de cita del ${appointment.appointmentDate} ${appointment.startTime}`
+      }
+    });
   }
 
   private updateStatus(appointment: Appointment, status: string): void {

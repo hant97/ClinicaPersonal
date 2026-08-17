@@ -21,6 +21,11 @@ public class InventoryTransactionController {
         return ResponseEntity.ok(transactionService.recordTransaction(dto));
     }
 
+    @GetMapping("/recent")
+    public ResponseEntity<List<InventoryTransactionDto>> getRecentTransactions(@RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(transactionService.getRecentTransactions(size));
+    }
+
     @GetMapping("/supply/{supplyId}")
     public ResponseEntity<List<InventoryTransactionDto>> getTransactionsBySupply(@PathVariable Long supplyId) {
         return ResponseEntity.ok(transactionService.getTransactionsBySupply(supplyId));

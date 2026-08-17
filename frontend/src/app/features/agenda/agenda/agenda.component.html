@@ -293,8 +293,11 @@
                     {{ app.modality || 'Presencial' }}
                   </span>
                 </td>
-                <td class="text-xs text-muted max-w-xs truncate">
-                  {{ app.notes || 'Sin detalles' }}
+                <td class="text-xs text-muted max-w-xs">
+                  @if (app.clinicalServiceName) {
+                    <span class="mb-0.5 inline-block rounded bg-sky-50 px-1.5 py-0.5 text-[10px] font-semibold text-sky-700 border border-sky-200">{{ app.clinicalServiceName }}</span>
+                  }
+                  <span class="block truncate">{{ app.notes || 'Sin detalles' }}</span>
                 </td>
                 <td>
                   <app-status-pill
@@ -384,6 +387,14 @@
           </p>
         </div>
 
+        <!-- Clinical Service -->
+        @if (selectedAppointmentPreview.clinicalServiceName) {
+          <div class="rounded-lg border border-sky-200 bg-sky-50 p-3">
+            <label class="form-label !text-sky-700">Servicio clínico</label>
+            <p class="text-sm font-semibold text-sky-900">{{ selectedAppointmentPreview.clinicalServiceName }}</p>
+          </div>
+        }
+
         <!-- Quick Status Transitions -->
         <div class="space-y-2 pt-2 border-t border-line">
           <p class="text-xs font-bold uppercase tracking-wider text-slate-700">Acciones de Cita</p>
@@ -418,6 +429,17 @@
               <lucide-icon [img]="Calendar" [size]="14"></lucide-icon>
               <span>Reprogramar</span>
             </button>
+
+            @if (selectedAppointmentPreview.status !== 'CANCELADA' && selectedAppointmentPreview.status !== 'Cancelada' && selectedAppointmentPreview.status !== 'NO_ASISTIO') {
+              <button
+                type="button"
+                class="btn-secondary !text-xs !py-2 !text-emerald-700 hover:!bg-emerald-50"
+                (click)="goToBilling(selectedAppointmentPreview)"
+              >
+                <lucide-icon [img]="Receipt" [size]="14"></lucide-icon>
+                <span>Registrar Cobro</span>
+              </button>
+            }
 
             @if (selectedAppointmentPreview.status !== 'CANCELADA' && selectedAppointmentPreview.status !== 'Cancelada') {
               <button

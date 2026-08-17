@@ -107,6 +107,17 @@
         </div>
       </div>
 
+      <div>
+        <label for="clinicalServiceId" class="form-label">Servicio clínico</label>
+        <select id="clinicalServiceId" formControlName="clinicalServiceId" class="input-field" (change)="onServiceSelect($event)">
+          <option value="">Sin servicio asociado</option>
+          @for (service of clinicalServices; track service.id) {
+            <option [value]="service.id">{{ service.name }} — S/ {{ service.price | number:'1.2-2' }}</option>
+          }
+        </select>
+        <p class="mt-1 text-[11px] text-muted">Al elegir un servicio se ajustará la duración de la cita automáticamente.</p>
+      </div>
+
       @if (appointmentForm.get('modality')?.value === 'VIRTUAL') {
         <div>
           <label for="videoCallLink" class="form-label">Enlace de videollamada</label>

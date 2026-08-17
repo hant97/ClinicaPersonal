@@ -1,6 +1,7 @@
 package com.clinica.backend.service;
 
 import com.clinica.backend.dto.SupplyDto;
+import com.clinica.backend.dto.SupplyStatsDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.Supply;
 import com.clinica.backend.repository.SupplyRepository;
@@ -10,6 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -50,6 +53,25 @@ public class SupplyService {
         return supplyRepository.findLowStockSuppliesBySpecialty(specialty).stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public SupplyStatsDto getStats() {
+        String specialty = getCurrentUserSpecialty();
+        LocalDate today = LocalDate.now();
+        long totalSupplies = supplyRepository.countBySpecialtyAndDeletedFalse(specialty);
+        long lowStockCount = supplyRepository.countLowStockBySpecialty(specialty);
+        long outOfStockCount = supplyRepository.countOutOfStockBySpecialty(specialty);
+        long expiringSoonCount = supplyRepository.countExpiringBetweenBySpecialty(today, today.plusDays(30), specialty);
+        BigDecimal inventoryValue = supplyRepository.sumInventoryValueBySpecialty(specialty);
+
+        return SupplyStatsDto.builder()
+                .totalSupplies(totalSupplies)
+                .lowStockCount(lowStockCount)
+                .outOfStockCount(outOfStockCount)
+                .expiringSoonCount(expiringSoonCount)
+                .inventoryValue(inventoryValue != null ? inventoryValue : BigDecimal.ZERO)
+                .build();
     }
 
     @Transactional

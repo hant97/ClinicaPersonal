@@ -66,6 +66,12 @@ public class Patient {
     @Column(name = "has_legal_guardian", nullable = false)
     private boolean hasLegalGuardian = false;
 
+    @Column(name = "photo_url")
+    private String photoUrl;
+
+    @Column(name = "active", nullable = false)
+    private boolean active = true;
+
     @Column(name = "specialty", nullable = false)
     private String specialty = "PSICOLOGIA";
 

@@ -16,7 +16,36 @@ export interface Payment {
   paymentDate: string;
   paymentMethod: string;
   description?: string;
+  appointmentId?: number;
   // Para UI
   patientName?: string;
   items?: PaymentItem[];
+}
+
+export interface PaymentMethodSummary {
+  method: string;
+  total: number;
+  count: number;
+}
+
+export interface DailyIncome {
+  date: string;
+  total: number;
+}
+
+export interface ServiceSummary {
+  name: string;
+  quantity: number;
+  total: number;
+}
+
+export interface PaymentSummary {
+  incomeToday: number;
+  incomeMonth: number;
+  monthlyGrowth: number;
+  paymentsCountMonth: number;
+  averageTicket: number;
+  methodBreakdown: PaymentMethodSummary[];
+  dailyIncome: DailyIncome[];
+  topServices: ServiceSummary[];
 }

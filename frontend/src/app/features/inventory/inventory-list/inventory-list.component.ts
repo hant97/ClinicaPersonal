@@ -1,17 +1,22 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { InventoryService, Supply } from '../../../core/services/inventory.service';
+import { FormsModule } from '@angular/forms';
+import { InventoryService, Supply, SupplyStats } from '../../../core/services/inventory.service';
+import { InventoryTransaction } from '../../../core/models/inventory-transaction.model';
 import { InventoryFormComponent } from '../inventory-form/inventory-form.component';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule, Search, Edit, Trash2, Plus, AlertTriangle, Package, Eye, X } from 'lucide-angular';
+import {
+  LucideAngularModule, Search, Edit, Trash2, Plus, AlertTriangle, Package, Eye, X,
+  History, LayoutGrid, List, CalendarClock, Wallet, TrendingUp, SlidersHorizontal
+} from 'lucide-angular';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 
 @Component({
   selector: 'app-inventory-list',
   standalone: true,
-  imports: [CommonModule, InventoryFormComponent, LucideAngularModule, PaginationComponent],
+  imports: [CommonModule, FormsModule, InventoryFormComponent, LucideAngularModule, PaginationComponent],
   templateUrl: './inventory-list.component.html'
 })
 export class InventoryListComponent implements OnInit, OnDestroy {
@@ -23,21 +28,45 @@ export class InventoryListComponent implements OnInit, OnDestroy {
   readonly Package = Package;
   readonly Eye = Eye;
   readonly X = X;
+  readonly History = History;
+  readonly LayoutGrid = LayoutGrid;
+  readonly List = List;
+  readonly CalendarClock = CalendarClock;
+  readonly Wallet = Wallet;
+  readonly TrendingUp = TrendingUp;
+  readonly SlidersHorizontal = SlidersHorizontal;
 
   filteredSupplies: Supply[] = [];
+  stats: SupplyStats | null = null;
+  recentTransactions: InventoryTransaction[] = [];
+
   searchTerm: string = '';
   showModal = false;
   selectedSupplyId: number | null = null;
   viewImageUrl: string | null = null;
   viewImageName: string | null = null;
-  
+  viewMode: 'table' | 'cards' = 'cards';
+
+  // Adjustment modal
+  adjustingSupply: Supply | null = null;
+  adjustmentType: 'IN' | 'OUT' = 'IN';
+  adjustmentQuantity: number = 1;
+  adjustmentReason: string = 'RESTOCK';
+  adjustmentNotes: string = '';
+  isAdjusting = false;
+
+  // Movements modal
+  movementsSupply: Supply | null = null;
+  movements: InventoryTransaction[] = [];
+  isLoadingMovements = false;
+
   currentPage: number = 0;
   pageSize: number = 10;
   totalPages: number = 0;
   totalElements: number = 0;
   isLoading = false;
   loadError = false;
-  
+
   private searchSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
 
@@ -54,11 +83,13 @@ export class InventoryListComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe(term => {
       this.searchTerm = term;
-      this.currentPage = 0; // Reset to first page on search
+      this.currentPage = 0;
       this.loadSupplies();
     });
 
     this.loadSupplies();
+    this.loadStats();
+    this.loadRecentTransactions();
   }
 
   ngOnDestroy(): void {
@@ -84,6 +115,20 @@ export class InventoryListComponent implements OnInit, OnDestroy {
     });
   }
 
+  loadStats(): void {
+    this.inventoryService.getStats().subscribe({
+      next: (stats) => this.stats = stats,
+      error: (err) => console.error('Error fetching inventory stats', err)
+    });
+  }
+
+  loadRecentTransactions(): void {
+    this.inventoryService.getRecentTransactions(8).subscribe({
+      next: (transactions) => this.recentTransactions = transactions,
+      error: (err) => console.error('Error fetching recent transactions', err)
+    });
+  }
+
   onSearch(event: Event): void {
     const target = event.target as HTMLInputElement;
     this.searchSubject.next(target.value.toLowerCase());
@@ -104,6 +149,7 @@ export class InventoryListComponent implements OnInit, OnDestroy {
     this.selectedSupplyId = null;
     if (refresh) {
       this.loadSupplies();
+      this.loadStats();
     }
   }
 
@@ -115,6 +161,81 @@ export class InventoryListComponent implements OnInit, OnDestroy {
   closeImageView(): void {
     this.viewImageUrl = null;
     this.viewImageName = null;
+  }
+
+  // --- Adjustment ---
+  openAdjustment(supply: Supply): void {
+    this.adjustingSupply = supply;
+    this.adjustmentType = 'IN';
+    this.adjustmentQuantity = 1;
+    this.adjustmentReason = 'RESTOCK';
+    this.adjustmentNotes = '';
+  }
+
+  closeAdjustment(): void {
+    this.adjustingSupply = null;
+    this.isAdjusting = false;
+  }
+
+  onAdjustmentTypeChange(): void {
+    this.adjustmentReason = this.adjustmentType === 'IN' ? 'RESTOCK' : 'CLINICAL_USAGE';
+  }
+
+  submitAdjustment(): void {
+    const supply = this.adjustingSupply;
+    if (!supply || !supply.id) return;
+    if (!this.adjustmentQuantity || this.adjustmentQuantity <= 0) {
+      this.toastService.show('Ingrese una cantidad válida', 'error');
+      return;
+    }
+
+    const transaction: InventoryTransaction = {
+      supplyId: supply.id,
+      quantity: this.adjustmentQuantity,
+      type: this.adjustmentType,
+      reason: this.adjustmentReason as InventoryTransaction['reason'],
+      notes: this.adjustmentNotes?.trim() || undefined
+    };
+
+    this.isAdjusting = true;
+    this.inventoryService.recordTransaction(transaction).subscribe({
+      next: () => {
+        this.isAdjusting = false;
+        this.toastService.show('Stock ajustado correctamente', 'success');
+        this.closeAdjustment();
+        this.loadSupplies();
+        this.loadStats();
+        this.loadRecentTransactions();
+      },
+      error: (err) => {
+        this.isAdjusting = false;
+        this.toastService.show(err.error?.message || 'Error al ajustar el stock', 'error');
+      }
+    });
+  }
+
+  // --- Movements ---
+  openMovements(supply: Supply): void {
+    this.movementsSupply = supply;
+    this.movements = [];
+    this.isLoadingMovements = true;
+    if (supply.id) {
+      this.inventoryService.getTransactionsBySupply(supply.id).subscribe({
+        next: (transactions) => {
+          this.movements = transactions;
+          this.isLoadingMovements = false;
+        },
+        error: () => {
+          this.isLoadingMovements = false;
+          this.toastService.show('Error al cargar los movimientos', 'error');
+        }
+      });
+    }
+  }
+
+  closeMovements(): void {
+    this.movementsSupply = null;
+    this.movements = [];
   }
 
   async deleteSupply(id: number): Promise<void> {
@@ -129,11 +250,57 @@ export class InventoryListComponent implements OnInit, OnDestroy {
         next: () => {
           this.toastService.show('Suministro eliminado exitosamente', 'success');
           this.loadSupplies();
+          this.loadStats();
         },
         error: () => {
           this.toastService.show('Error al eliminar el suministro', 'error');
         }
       });
     }
+  }
+
+  // --- Helpers ---
+  getStockLevel(supply: Supply): 'critical' | 'low' | 'optimal' {
+    if (supply.currentStock <= 0) return 'critical';
+    if (supply.currentStock <= supply.minStockLevel) return 'low';
+    return 'optimal';
+  }
+
+  getStockLevelLabel(supply: Supply): string {
+    const level = this.getStockLevel(supply);
+    if (level === 'critical') return 'Crítico';
+    if (level === 'low') return 'Stock bajo';
+    return 'Óptimo';
+  }
+
+  isExpiringSoon(supply: Supply): boolean {
+    if (!supply.expirationDate) return false;
+    const exp = new Date(supply.expirationDate + 'T00:00:00');
+    const now = new Date();
+    const diffDays = (exp.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+    return diffDays >= 0 && diffDays <= 30;
+  }
+
+  getSpecialtyLabel(specialty?: string): string {
+    if (specialty === 'PSICOLOGIA') return 'Psicología';
+    if (specialty === 'DERMATOLOGIA') return 'Dermatología';
+    return specialty || 'General';
+  }
+
+  typeLabel(type: string): string {
+    if (type === 'IN') return 'Entrada';
+    if (type === 'OUT') return 'Salida';
+    return 'Ajuste';
+  }
+
+  reasonLabel(reason: string): string {
+    const map: Record<string, string> = {
+      BILLING: 'Facturación',
+      CLINICAL_USAGE: 'Uso clínico',
+      EXPIRED: 'Caducado',
+      DAMAGED: 'Dañado',
+      RESTOCK: 'Reposición'
+    };
+    return map[reason] || reason;
   }
 }

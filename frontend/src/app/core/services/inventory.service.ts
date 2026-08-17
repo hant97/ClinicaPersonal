@@ -15,6 +15,15 @@ export interface Supply {
   price?: number;
   expirationDate: string;
   imageUrl?: string;
+  specialty?: string;
+}
+
+export interface SupplyStats {
+  totalSupplies: number;
+  lowStockCount: number;
+  outOfStockCount: number;
+  expiringSoonCount: number;
+  inventoryValue: number;
 }
 
 @Injectable({
@@ -37,6 +46,10 @@ export class InventoryService {
 
   getLowStockSupplies(): Observable<Supply[]> {
     return this.http.get<Supply[]>(`${this.apiUrl}/low-stock`);
+  }
+
+  getStats(): Observable<SupplyStats> {
+    return this.http.get<SupplyStats>(`${this.apiUrl}/stats`);
   }
 
   getSupplyById(id: number): Observable<Supply> {
@@ -64,6 +77,11 @@ export class InventoryService {
   // Transaction History
   getTransactionsBySupply(supplyId: number): Observable<InventoryTransaction[]> {
     return this.http.get<InventoryTransaction[]>(`${this.transactionApiUrl}/supply/${supplyId}`);
+  }
+
+  getRecentTransactions(size: number = 10): Observable<InventoryTransaction[]> {
+    const params = new HttpParams().set('size', size.toString());
+    return this.http.get<InventoryTransaction[]>(`${this.transactionApiUrl}/recent`, { params });
   }
 
   recordTransaction(transaction: InventoryTransaction): Observable<InventoryTransaction> {

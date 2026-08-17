@@ -33,6 +33,9 @@ public class PatientDto {
     private String guardianName;
     private String guardianContact;
     private boolean hasLegalGuardian;
+    @Size(max = 500, message = "La URL de la foto es demasiado larga")
+    private String photoUrl;
+    private Boolean active;
     private String specialty;
     private boolean hasActiveAlerts;
     private boolean deleted;

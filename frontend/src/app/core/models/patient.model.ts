@@ -15,7 +15,16 @@ export interface Patient {
   guardianName?: string;
   guardianContact?: string;
   hasLegalGuardian?: boolean;
+  photoUrl?: string;
+  active?: boolean;
   specialty?: string;
   hasActiveAlerts?: boolean;
   createdAt?: string;
+}
+
+export interface PatientStats {
+  totalPatients: number;
+  newThisMonth: number;
+  withActiveAlerts: number;
+  minors: number;
 }

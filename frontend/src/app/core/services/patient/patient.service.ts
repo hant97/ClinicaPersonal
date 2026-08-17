@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Patient } from '../../models/patient.model';
+import { Patient, PatientStats } from '../../models/patient.model';
 import { PageResponse } from '../../models/page.model';
 import { environment } from '../../../../environments/environment';
 
@@ -13,17 +13,33 @@ export class PatientService {
 
   constructor(private http: HttpClient) { }
 
-  getAll(page: number = 0, size: number = 10): Observable<PageResponse<Patient>> {
+  getAll(page: number = 0, size: number = 10, active?: boolean | null, gender?: string): Observable<PageResponse<Patient>> {
     let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+    if (active !== undefined && active !== null) {
+      params = params.set('active', active.toString());
+    }
+    if (gender) {
+      params = params.set('gender', gender);
+    }
     return this.http.get<PageResponse<Patient>>(this.apiUrl, { params });
   }
 
-  search(query: string, page: number = 0, size: number = 10): Observable<PageResponse<Patient>> {
+  search(query: string, page: number = 0, size: number = 10, active?: boolean | null, gender?: string): Observable<PageResponse<Patient>> {
     let params = new HttpParams()
       .set('query', query)
       .set('page', page.toString())
       .set('size', size.toString());
+    if (active !== undefined && active !== null) {
+      params = params.set('active', active.toString());
+    }
+    if (gender) {
+      params = params.set('gender', gender);
+    }
     return this.http.get<PageResponse<Patient>>(`${this.apiUrl}/search`, { params });
+  }
+
+  getStats(): Observable<PatientStats> {
+    return this.http.get<PatientStats>(`${this.apiUrl}/stats`);
   }
 
   getById(id: number): Observable<Patient> {
@@ -40,5 +56,11 @@ export class PatientService {
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  uploadPhoto(id: number, file: File): Observable<Patient> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<Patient>(`${this.apiUrl}/${id}/photo`, formData);
   }
 }

@@ -42,6 +42,7 @@ interface PaymentFormValue {
 })
 export class PaymentFormComponent implements OnInit {
   @Input() payment: Payment | null = null;
+  @Input() initialData: { patientId?: number; appointmentId?: number; description?: string } | null = null;
   @Output() saved = new EventEmitter<void>();
   @Output() cancelled = new EventEmitter<void>();
 
@@ -69,11 +70,11 @@ export class PaymentFormComponent implements OnInit {
     const localISO = new Date(now.getTime() - tzOffset).toISOString().substring(0, 16);
 
     this.paymentForm = this.fb.group({
-      patientId: [{ value: this.payment?.patientId || '', disabled: !!this.payment }, Validators.required],
+      patientId: [{ value: this.payment?.patientId || this.initialData?.patientId || '', disabled: !!this.payment }, Validators.required],
       amount: [this.payment?.amount || 0, [Validators.required, Validators.min(0.01)]],
       paymentDate: [this.payment ? this.payment.paymentDate.substring(0, 16) : localISO, Validators.required],
       paymentMethod: [this.payment?.paymentMethod || '', Validators.required],
-      description: [this.payment?.description || '', [Validators.maxLength(255)]],
+      description: [this.payment?.description || this.initialData?.description || '', [Validators.maxLength(255)]],
       services: this.fb.array([]),
       supplies: this.fb.array([])
     });
@@ -263,6 +264,7 @@ export class PaymentFormComponent implements OnInit {
       paymentDate: formValue.paymentDate,
       paymentMethod: formValue.paymentMethod,
       description: formValue.description,
+      appointmentId: this.initialData?.appointmentId,
       items: mappedItems
     };
     

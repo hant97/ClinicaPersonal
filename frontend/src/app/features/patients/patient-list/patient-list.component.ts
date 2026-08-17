@@ -1,14 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { PatientService } from '../../../core/services/patient/patient.service';
-import { Patient } from '../../../core/models/patient.model';
+import { Patient, PatientStats } from '../../../core/models/patient.model';
 import { PatientFormComponent } from '../patient-form/patient-form.component';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ExportService } from '../../../shared/services/export/export.service';
-import { StatusPillComponent } from '../../../shared/components/status-pill/status-pill.component';
+import { CatalogService } from '../../../core/services/catalog.service';
+import { CatalogItem } from '../../../core/models/catalog.model';
 import {
   LucideAngularModule,
   Search,
@@ -21,27 +23,33 @@ import {
   Calendar,
   User,
   Users,
+  UserPlus,
   Phone,
   Mail,
-  FileText
+  LayoutGrid,
+  List,
+  UserRound,
+  CheckCircle2,
+  XCircle,
+  X
 } from 'lucide-angular';
 import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-patient-list',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     PatientFormComponent,
     PaginationComponent,
     RouterLink,
-    LucideAngularModule,
-    StatusPillComponent
+    LucideAngularModule
   ],
   templateUrl: './patient-list.component.html',
 })
-export class PatientListComponent implements OnInit {
+export class PatientListComponent implements OnInit, OnDestroy {
   readonly Search = Search;
   readonly Eye = Eye;
   readonly Edit = Edit;
@@ -52,15 +60,29 @@ export class PatientListComponent implements OnInit {
   readonly Calendar = Calendar;
   readonly User = User;
   readonly Users = Users;
+  readonly UserPlus = UserPlus;
   readonly Phone = Phone;
   readonly Mail = Mail;
-  readonly FileText = FileText;
+  readonly LayoutGrid = LayoutGrid;
+  readonly List = List;
+  readonly UserRound = UserRound;
+  readonly CheckCircle2 = CheckCircle2;
+  readonly XCircle = XCircle;
+  readonly X = X;
 
   patients: Patient[] = [];
+  stats: PatientStats | null = null;
+  genderMap = new Map<string, string>();
+  genderOptions: { code: string; label: string }[] = [];
+
   searchTerm: string = '';
+  filterGender: string = '';
+  filterStatus: string = 'ALL';
+  viewMode: 'table' | 'cards' = 'cards';
+
   showModal = false;
   selectedPatientId: number | null = null;
-  
+
   currentPage: number = 0;
   pageSize: number = 10;
   totalPages: number = 0;
@@ -69,17 +91,20 @@ export class PatientListComponent implements OnInit {
   loadError = false;
 
   private searchSubject = new Subject<string>();
+  private destroy$ = new Subject<void>();
 
   constructor(
     private patientService: PatientService,
     private toastService: ToastService,
     private notificationService: NotificationService,
     private exportService: ExportService,
+    private catalogService: CatalogService,
     private router: Router
   ) {
     this.searchSubject.pipe(
       debounceTime(300),
-      distinctUntilChanged()
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
     ).subscribe(term => {
       this.searchTerm = term;
       this.currentPage = 0;
@@ -88,15 +113,40 @@ export class PatientListComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadGenders();
     this.loadPatients();
+    this.loadStats();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  loadGenders(): void {
+    this.catalogService.getActiveItemsByCatalogCode('GENDER').subscribe({
+      next: (items) => {
+        this.genderOptions = items.map(item => ({ code: item.itemCode, label: item.itemName }));
+        items.forEach(item => this.genderMap.set(item.itemCode, item.itemName));
+      },
+      error: () => console.error('Error loading genders')
+    });
+  }
+
+  private get activeFilter(): boolean | null {
+    return this.filterStatus === 'ALL' ? null : this.filterStatus === 'ACTIVE';
+  }
+
+  get hasActiveFilters(): boolean {
+    return !!(this.filterGender || this.filterStatus !== 'ALL');
   }
 
   loadPatients(): void {
     this.isLoading = true;
     this.loadError = false;
     const request = this.searchTerm
-      ? this.patientService.search(this.searchTerm, this.currentPage, this.pageSize)
-      : this.patientService.getAll(this.currentPage, this.pageSize);
+      ? this.patientService.search(this.searchTerm, this.currentPage, this.pageSize, this.activeFilter, this.filterGender || undefined)
+      : this.patientService.getAll(this.currentPage, this.pageSize, this.activeFilter, this.filterGender || undefined);
     request.subscribe({
       next: (page) => {
         this.patients = page.content;
@@ -112,9 +162,28 @@ export class PatientListComponent implements OnInit {
     });
   }
 
+  loadStats(): void {
+    this.patientService.getStats().subscribe({
+      next: (stats) => this.stats = stats,
+      error: (err) => console.error('Error fetching patient stats', err)
+    });
+  }
+
   onSearch(event: Event): void {
     const target = event.target as HTMLInputElement;
     this.searchSubject.next(target.value.trim().toLowerCase());
+  }
+
+  applyFilters(): void {
+    this.currentPage = 0;
+    this.loadPatients();
+  }
+
+  clearFilters(): void {
+    this.filterGender = '';
+    this.filterStatus = 'ALL';
+    this.currentPage = 0;
+    this.loadPatients();
   }
 
   onPageChange(page: number): void {
@@ -128,6 +197,27 @@ export class PatientListComponent implements OnInit {
     return `${f}${l}` || 'P';
   }
 
+  getAge(patient: Patient): number | null {
+    if (!patient.dateOfBirth) return null;
+    const birth = new Date(patient.dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  }
+
+  isMinor(patient: Patient): boolean {
+    const age = this.getAge(patient);
+    return age !== null && age < 18;
+  }
+
+  getGenderLabel(gender?: string): string {
+    return (gender && this.genderMap.get(gender)) || gender || '—';
+  }
+
   openModal(id?: number): void {
     this.selectedPatientId = id || null;
     this.showModal = true;
@@ -138,6 +228,7 @@ export class PatientListComponent implements OnInit {
     this.selectedPatientId = null;
     if (refresh) {
       this.loadPatients();
+      this.loadStats();
     }
   }
 
@@ -167,6 +258,7 @@ export class PatientListComponent implements OnInit {
         next: () => {
           this.toastService.show('Paciente eliminado exitosamente', 'success');
           this.loadPatients();
+          this.loadStats();
         },
         error: () => {
           this.toastService.show('Error al eliminar el paciente', 'error');
@@ -175,17 +267,55 @@ export class PatientListComponent implements OnInit {
     }
   }
 
-  exportPatients(): void {
-    const dataToExport = this.patients.map(patient => ({
-      'Nombre Completo': `${patient.firstName} ${patient.lastName}`,
-      'Documento': patient.identificationDocument || '',
-      'Contacto': patient.contactNumber || '',
-      'Email': patient.email || '',
-      'Fecha Nac.': (patient.dateOfBirth || '').replace('T', ' '),
-      'Género': patient.gender || '',
-      'Dirección': patient.address || ''
-    }));
+  async toggleActive(patient: Patient, event?: Event): Promise<void> {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (!patient.id) return;
+    const newActive = patient.active === false;
+    const action = newActive ? 'reactivar' : 'dar de baja';
+    const confirmed = await this.notificationService.confirm(
+      newActive ? 'Reactivar Paciente' : 'Dar de Baja',
+      `¿Está seguro de que desea ${action} a este paciente?`,
+      'Sí, confirmar',
+      'Cancelar'
+    );
+    if (confirmed) {
+      this.patientService.update(patient.id, { ...patient, active: newActive }).subscribe({
+        next: () => {
+          this.toastService.show(newActive ? 'Paciente reactivado' : 'Paciente dado de baja', 'success');
+          this.loadPatients();
+          this.loadStats();
+        },
+        error: () => {
+          this.toastService.show('Error al cambiar el estado del paciente', 'error');
+        }
+      });
+    }
+  }
 
-    this.exportService.exportToExcel(dataToExport, 'Directorio_Pacientes');
+  exportPatients(): void {
+    const size = this.totalElements > 0 ? this.totalElements : this.pageSize;
+    const request = this.searchTerm
+      ? this.patientService.search(this.searchTerm, 0, size, this.activeFilter, this.filterGender || undefined)
+      : this.patientService.getAll(0, size, this.activeFilter, this.filterGender || undefined);
+    request.subscribe({
+      next: (page) => {
+        const dataToExport = page.content.map(patient => ({
+          'Nombre Completo': `${patient.firstName} ${patient.lastName}`,
+          'Documento': patient.identificationDocument || '',
+          'Contacto': patient.contactNumber || '',
+          'Email': patient.email || '',
+          'Fecha Nac.': (patient.dateOfBirth || '').replace('T', ' '),
+          'Género': this.getGenderLabel(patient.gender),
+          'Dirección': patient.address || '',
+          'Estado': patient.active === false ? 'Inactivo' : 'Activo'
+        }));
+
+        this.exportService.exportToExcel(dataToExport, 'Directorio_Pacientes');
+        this.toastService.show(`${page.content.length} pacientes exportados`, 'success');
+      },
+      error: () => this.toastService.show('Error al exportar los pacientes', 'error')
+    });
   }
 }

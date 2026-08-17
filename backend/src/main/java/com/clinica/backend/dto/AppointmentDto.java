@@ -24,6 +24,8 @@ public class AppointmentDto {
     private Long professionalId;
     private boolean isFirstTime;
     private Long clinicalSessionId;
+    private Long clinicalServiceId;
+    private String clinicalServiceName;
     private String notes;
     private String specialty;
 }

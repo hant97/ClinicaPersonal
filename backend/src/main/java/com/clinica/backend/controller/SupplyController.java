@@ -1,6 +1,7 @@
 package com.clinica.backend.controller;
 
 import com.clinica.backend.dto.SupplyDto;
+import com.clinica.backend.dto.SupplyStatsDto;
 import com.clinica.backend.service.SupplyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,11 @@ public class SupplyController {
     @GetMapping("/low-stock")
     public ResponseEntity<List<SupplyDto>> getLowStockSupplies() {
         return ResponseEntity.ok(supplyService.getLowStockSupplies());
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<SupplyStatsDto> getStats() {
+        return ResponseEntity.ok(supplyService.getStats());
     }
 
     @GetMapping("/{id}")
