@@ -10,9 +10,15 @@ import org.springframework.data.repository.query.Param;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.Collection;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
     Page<Payment> findByPatientIdAndSpecialtyAndDeletedFalseOrderByPaymentDateDesc(Long patientId, String specialty, Pageable pageable);
+
+    Optional<Payment> findFirstByAppointmentIdAndDeletedFalse(Long appointmentId);
+
+    List<Payment> findByAppointmentIdInAndDeletedFalse(Collection<Long> appointmentIds);
 
     @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.deleted = false AND p.specialty = :specialty AND p.paymentDate >= :startDate AND p.paymentDate < :endDate")
     BigDecimal sumIncomeBetweenBySpecialty(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate, @Param("specialty") String specialty);

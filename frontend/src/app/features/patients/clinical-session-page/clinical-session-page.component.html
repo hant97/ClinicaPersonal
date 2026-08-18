@@ -1,0 +1,526 @@
+<section class="space-y-5 animate-fade-in">
+  <!-- Top Navigation & Patient Header -->
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-line pb-4">
+    <div class="flex items-center gap-3">
+      <button
+        type="button"
+        (click)="cancel()"
+        class="btn-secondary !text-xs !py-1.5 !px-2.5 flex items-center gap-1.5 shrink-0"
+        title="Volver a la ficha del paciente"
+      >
+        <lucide-icon [img]="ArrowLeft" [size]="15"></lucide-icon>
+        <span class="hidden sm:inline">Volver a la Ficha</span>
+      </button>
+
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="h-2 w-2 rounded-full" [ngClass]="isPsychology ? 'bg-purple-600' : 'bg-clinic-600'"></span>
+          <p class="text-xs font-semibold uppercase tracking-wider text-muted">
+            {{ isPsychology ? 'Atención Psicológica · Historia Clínica' : 'Atención Médica · Consulta Clínica' }}
+          </p>
+        </div>
+        <h1 class="text-xl sm:text-2xl font-bold text-ink flex items-center gap-2">
+          <span>{{ isEditing ? 'Editar Consulta Clínica' : 'Nueva Sesión de Atención Clínica' }}</span>
+          @if (patient) {
+            <span class="text-base sm:text-lg font-normal text-muted truncate">
+              — {{ patient.firstName }} {{ patient.lastName }}
+            </span>
+          }
+        </h1>
+      </div>
+    </div>
+
+    <!-- Right Top Status / Draft Indicator -->
+    <div class="flex items-center gap-2 self-start sm:self-auto">
+      @if (draftSaved && !isEditing) {
+        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
+          <lucide-icon [img]="Check" [size]="13"></lucide-icon>
+          <span>Borrador autoguardado</span>
+        </span>
+      }
+
+      <button
+        type="button"
+        (click)="cancel()"
+        class="btn-secondary !text-xs !py-1.5"
+      >
+        Cancelar
+      </button>
+
+      <button
+        type="button"
+        (click)="onSubmit()"
+        [disabled]="savingSession || loadingPatient"
+        class="btn-primary !text-xs !py-1.5 flex items-center gap-1.5 shadow-sm min-h-[36px]"
+      >
+        @if (savingSession) {
+          <span class="spinner spinner-sm"></span>
+          <span>Guardando...</span>
+        } @else {
+          <lucide-icon [img]="Check" [size]="14"></lucide-icon>
+          <span>{{ isEditing ? 'Actualizar Consulta' : 'Guardar y Registrar Atención' }}</span>
+        }
+      </button>
+    </div>
+  </div>
+
+  <!-- Banner de Cita Vinculada (si proviene de Agenda) -->
+  @if (appointmentId) {
+    <div class="flex items-center justify-between gap-3 rounded-xl border border-primary-200 bg-gradient-to-r from-primary-50 to-blue-50/50 p-3.5 shadow-xs">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-600 text-white shadow-xs">
+          <lucide-icon [img]="CalendarDays" [size]="18"></lucide-icon>
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <p class="text-xs font-bold text-primary-950">Atención vinculada a cita de Agenda</p>
+            <span class="rounded bg-primary-100 text-primary-800 text-[10px] font-mono font-bold px-1.5 py-0.2 border border-primary-200">
+              CITA #{{ appointmentId }}
+            </span>
+          </div>
+          <p class="text-xs text-primary-800 mt-0.5 truncate">
+            Horario programado: <strong>{{ sessionForm.get('sessionDate')?.value | date:'fullDate' }}</strong> de <strong>{{ sessionForm.get('startTime')?.value }}</strong> a <strong>{{ sessionForm.get('endTime')?.value }}</strong>
+            @if (appointmentService) {
+              · {{ appointmentService }}
+            }
+          </p>
+        </div>
+      </div>
+
+      <span class="hidden md:inline-flex items-center gap-1 text-[11px] font-semibold text-primary-700 bg-white/80 border border-primary-200 rounded-lg px-2.5 py-1 shrink-0">
+        <lucide-icon [img]="ShieldCheck" [size]="14" class="text-emerald-600"></lucide-icon>
+        <span>Horario sincronizado</span>
+      </span>
+    </div>
+  }
+
+  <!-- Loading Patient State -->
+  @if (loadingPatient) {
+    <div class="card !p-12 flex flex-col items-center justify-center gap-3">
+      <span class="spinner"></span>
+      <p class="text-sm font-medium text-muted">Cargando expediente clínico del paciente...</p>
+    </div>
+  } @else {
+    <!-- Main 2-Column Split View Layout -->
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_21rem] xl:grid-cols-[1fr_24rem] items-start">
+      
+      <!-- COLUMNA PRINCIPAL: Workspace Clínico / Formulario S.O.A.P. -->
+      <main class="space-y-5 min-w-0">
+        <form [formGroup]="sessionForm" (ngSubmit)="onSubmit()" class="card !p-5 sm:!p-6 space-y-6">
+          
+          <!-- Encabezado del Formulario -->
+          <div class="flex items-center justify-between border-b border-line pb-3">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider" [ngClass]="isPsychology ? 'text-purple-700' : 'text-clinic-700'">
+                {{ isPsychology ? 'Evolución Psicológica Estructurada (S.O.A.P.)' : 'Registro de Consulta y Evolución' }}
+              </span>
+              <p class="text-xs text-muted">Registra las observaciones y acuerdos de la sesión clínica.</p>
+            </div>
+            
+            <span class="text-[11px] text-muted hidden sm:inline">Campos con (*) son obligatorios</span>
+          </div>
+
+          <!-- Fila 1: Metadatos de Fecha y Horario -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <div>
+              <label class="form-label text-xs font-semibold" for="sessionDate">Fecha de Atención *</label>
+              <input
+                id="sessionDate"
+                type="date"
+                formControlName="sessionDate"
+                class="input-field !py-2 text-xs"
+              />
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between">
+                <label class="form-label text-xs font-semibold" for="startTime">Hora Inicio *</label>
+              </div>
+              <input
+                id="startTime"
+                type="time"
+                formControlName="startTime"
+                class="input-field !py-2 text-xs font-mono"
+              />
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between">
+                <label class="form-label text-xs font-semibold" for="endTime">Hora Fin *</label>
+                <div class="flex items-center gap-1">
+                  <button type="button" class="btn-ghost !p-0.5 !text-[10px] text-primary-700" (click)="setDuration(30)">+30m</button>
+                  <button type="button" class="btn-ghost !p-0.5 !text-[10px] text-primary-700" (click)="setDuration(45)">+45m</button>
+                  <button type="button" class="btn-ghost !p-0.5 !text-[10px] text-primary-700" (click)="setDuration(60)">+60m</button>
+                </div>
+              </div>
+              <input
+                id="endTime"
+                type="time"
+                formControlName="endTime"
+                class="input-field !py-2 text-xs font-mono"
+              />
+            </div>
+          </div>
+
+          <!-- Fila 2: Tipo de Consulta, Modalidad y Estado -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <div>
+              <label class="form-label text-xs font-semibold" for="sessionType">Tipo de Consulta *</label>
+              <select id="sessionType" formControlName="sessionType" class="input-field !py-2 text-xs">
+                @if (isPsychology) {
+                  <option value="INDIVIDUAL">Terapia Individual</option>
+                  <option value="PAREJA">Terapia de Pareja</option>
+                  <option value="FAMILIAR">Terapia Familiar</option>
+                  <option value="GRUPAL">Terapia Grupal</option>
+                } @else {
+                  <option value="CONSULTA_PRIMERA_VEZ">Consulta Primera Vez</option>
+                  <option value="CONTROL_DE_RUTINA">Control de Rutina</option>
+                  <option value="CONTROL_POST_PROCEDIMIENTO">Control Post-Procedimiento</option>
+                  <option value="PROCEDIMIENTO_AMBULATORIO">Procedimiento Ambulatorio</option>
+                  <option value="EMERGENCIA">Emergencia</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="form-label text-xs font-semibold" for="modality">Modalidad *</label>
+              <select id="modality" formControlName="modality" class="input-field !py-2 text-xs">
+                @for (modality of appointmentModalities; track modality.id) {
+                  <option [value]="modality.itemCode">{{ modality.itemName }}</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="form-label text-xs font-semibold" for="status">Estado de la Atención</label>
+              <select id="status" formControlName="status" class="input-field !py-2 text-xs">
+                <option value="COMPLETADA">Completada</option>
+                <option value="CANCELADA">Cancelada</option>
+                <option value="NO_ASISTIO">No Asistió</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- SECCIÓN: Evolución Clínica S.O.A.P. -->
+          <div class="space-y-4 rounded-xl border border-line bg-slate-50/60 p-4 sm:p-5">
+            <div class="flex items-center justify-between border-b border-line pb-2.5">
+              <div class="flex items-center gap-2">
+                <lucide-icon [img]="Sparkles" [size]="16" class="text-primary-600"></lucide-icon>
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-800">
+                  {{ isPsychology ? 'Notas Estructuradas S.O.A.P.' : 'Notas de Evolución Clínica' }}
+                </span>
+              </div>
+              <span class="text-[11px] text-muted">Complete al menos un bloque</span>
+            </div>
+
+            <!-- Subjetivo (S) -->
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between flex-wrap gap-1">
+                <label class="text-xs font-bold uppercase tracking-wider text-primary-800" for="subjective">
+                  Subjetivo (S) — Reporte del Paciente
+                </label>
+                <div class="flex items-center gap-1.5 text-[11px] text-muted">
+                  <span class="hidden sm:inline">Insertar:</span>
+                  <button type="button" class="btn-ghost !py-0.5 !px-1.5 !text-[10px] text-primary-700 bg-white border border-line rounded" (click)="insertSnippet('subjective', 'Motivo de consulta')">+ Motivo</button>
+                  <button type="button" class="btn-ghost !py-0.5 !px-1.5 !text-[10px] text-primary-700 bg-white border border-line rounded" (click)="insertSnippet('subjective', 'Estado de ánimo')">+ Estado de ánimo</button>
+                  <button type="button" class="btn-ghost !py-0.5 !px-1.5 !text-[10px] text-primary-700 bg-white border border-line rounded" (click)="insertSnippet('subjective', 'Detonantes')">+ Detonantes</button>
+                </div>
+              </div>
+              <textarea
+                id="subjective"
+                formControlName="subjective"
+                rows="3"
+                class="input-field text-xs bg-white resize-y"
+                placeholder="¿Qué expresa el paciente sobre su motivo de consulta, síntomas o evolución en la semana?"
+              ></textarea>
+            </div>
+
+            <!-- Objetivo (O) -->
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between flex-wrap gap-1">
+                <label class="text-xs font-bold uppercase tracking-wider text-primary-800" for="objective">
+                  Objetivo (O) — Observaciones Clínicas
+                </label>
+                <div class="flex items-center gap-1.5 text-[11px] text-muted">
+                  <span class="hidden sm:inline">Insertar:</span>
+                  <button type="button" class="btn-ghost !py-0.5 !px-1.5 !text-[10px] text-primary-700 bg-white border border-line rounded" (click)="insertSnippet('objective', 'Porte y actitud')">+ Porte y actitud</button>
+                  <button type="button" class="btn-ghost !py-0.5 !px-1.5 !text-[10px] text-primary-700 bg-white border border-line rounded" (click)="insertSnippet('objective', 'Afecto')">+ Afecto</button>
+                  <button type="button" class="btn-ghost !py-0.5 !px-1.5 !text-[10px] text-primary-700 bg-white border border-line rounded" (click)="insertSnippet('objective', 'Pensamiento')">+ Pensamiento</button>
+                </div>
+              </div>
+              <textarea
+                id="objective"
+                formControlName="objective"
+                rows="3"
+                class="input-field text-xs bg-white resize-y"
+                placeholder="Conducta observable, signos no verbales, tono afectivo y examen mental."
+              ></textarea>
+            </div>
+
+            <!-- Análisis (A) -->
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between flex-wrap gap-1">
+                <label class="text-xs font-bold uppercase tracking-wider text-primary-800" for="analysis">
+                  Análisis (A) — Evaluación e Hipótesis
+                </label>
+                <div class="flex items-center gap-1.5 text-[11px] text-muted">
+                  <span class="hidden sm:inline">Insertar:</span>
+                  <button type="button" class="btn-ghost !py-0.5 !px-1.5 !text-[10px] text-primary-700 bg-white border border-line rounded" (click)="insertSnippet('analysis', 'Avance terapéutico')">+ Avance</button>
+                  <button type="button" class="btn-ghost !py-0.5 !px-1.5 !text-[10px] text-primary-700 bg-white border border-line rounded" (click)="insertSnippet('analysis', 'Hipótesis clínica')">+ Hipótesis</button>
+                </div>
+              </div>
+              <textarea
+                id="analysis"
+                formControlName="analysis"
+                rows="3"
+                class="input-field text-xs bg-white resize-y"
+                placeholder="Interpretación clínica, hipótesis diagnóstica y conceptualización del caso."
+              ></textarea>
+            </div>
+
+            <!-- Plan (P) -->
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between flex-wrap gap-1">
+                <label class="text-xs font-bold uppercase tracking-wider text-primary-800" for="plan">
+                  Plan (P) — Tareas y Próximos Pasos
+                </label>
+                <div class="flex items-center gap-1.5 text-[11px] text-muted">
+                  <span class="hidden sm:inline">Insertar:</span>
+                  <button type="button" class="btn-ghost !py-0.5 !px-1.5 !text-[10px] text-primary-700 bg-white border border-line rounded" (click)="insertSnippet('plan', 'Tareas asignadas')">+ Tareas</button>
+                  <button type="button" class="btn-ghost !py-0.5 !px-1.5 !text-[10px] text-primary-700 bg-white border border-line rounded" (click)="insertSnippet('plan', 'Objetivo próxima sesión')">+ Próxima sesión</button>
+                </div>
+              </div>
+              <textarea
+                id="plan"
+                formControlName="plan"
+                rows="3"
+                class="input-field text-xs bg-white resize-y"
+                placeholder="Intervenciones acordadas, tareas intersesión y fecha sugerida para el próximo control."
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Confidencialidad -->
+          <div class="rounded-xl border border-amber-200/80 bg-amber-50/50 p-4">
+            <label class="flex items-center gap-3 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                formControlName="isConfidential"
+                class="h-4 w-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+              />
+              <div>
+                <span class="text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                  <lucide-icon [img]="Lock" [size]="14" class="text-amber-700"></lucide-icon>
+                  <span>Marcar como Sesión Confidencial</span>
+                </span>
+                <p class="text-[11px] text-amber-800 mt-0.5">
+                  Esta sesión contendrá notas sensibles y solo será visible para el profesional a cargo y administradores.
+                </p>
+              </div>
+            </label>
+          </div>
+
+          <!-- Pie de Acciones del Formulario -->
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-line">
+            <button
+              type="button"
+              (click)="cancel()"
+              class="btn-secondary !text-xs !py-2 w-full sm:w-auto"
+            >
+              Cancelar
+            </button>
+
+            <div class="flex items-center gap-2.5 w-full sm:w-auto">
+              <button
+                type="submit"
+                [disabled]="savingSession"
+                class="btn-primary !text-xs !py-2 w-full sm:w-auto flex items-center justify-center gap-1.5 shadow-sm min-h-[38px]"
+              >
+                @if (savingSession) {
+                  <span class="spinner spinner-sm"></span>
+                  <span>Guardando registro...</span>
+                } @else {
+                  <lucide-icon [img]="Check" [size]="15"></lucide-icon>
+                  <span>{{ isEditing ? 'Guardar Cambios' : 'Guardar y Completar Atención' }}</span>
+                }
+              </button>
+            </div>
+          </div>
+        </form>
+      </main>
+
+      <!-- COLUMNA DERECHA: Panel Contextual del Paciente (Sticky) -->
+      <aside class="space-y-4 lg:sticky lg:top-4">
+        
+        <!-- Tarjeta Resumen del Paciente -->
+        @if (patient) {
+          <div class="card !p-4 space-y-3">
+            <div class="flex items-center gap-3">
+              @if (patient.photoUrl) {
+                <img [src]="patient.photoUrl" [alt]="patient.firstName" class="h-11 w-11 rounded-full object-cover border border-line shrink-0" />
+              } @else {
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700 font-bold text-sm">
+                  {{ patient.firstName.charAt(0) }}{{ patient.lastName.charAt(0) }}
+                </div>
+              }
+              <div class="min-w-0 flex-1">
+                <h3 class="text-sm font-bold text-ink truncate leading-tight">{{ patient.firstName }} {{ patient.lastName }}</h3>
+                <div class="flex items-center gap-1.5 mt-0.5 text-[11px] text-muted">
+                  <span class="font-mono bg-slate-100 px-1.5 py-0.2 rounded border border-line">{{ patient.identificationDocument || 'S/D' }}</span>
+                  @if (patientAge !== null) {
+                    <span>· {{ patientAge }} años</span>
+                  }
+                  @if (patient.gender) {
+                    <span>· {{ patient.gender }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Contacto Rápido -->
+            @if (patient.contactNumber || patient.email) {
+              <div class="border-t border-line pt-2.5 space-y-1 text-xs text-muted">
+                @if (patient.contactNumber) {
+                  <p class="flex items-center gap-1.5 truncate">
+                    <lucide-icon [img]="Phone" [size]="12" class="text-slate-500 shrink-0"></lucide-icon>
+                    <span>{{ patient.contactNumber }}</span>
+                  </p>
+                }
+                @if (patient.email) {
+                  <p class="flex items-center gap-1.5 truncate">
+                    <lucide-icon [img]="Mail" [size]="12" class="text-slate-500 shrink-0"></lucide-icon>
+                    <span>{{ patient.email }}</span>
+                  </p>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Alertas Médicas y Alergias -->
+        <div class="card !p-4 space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+            <lucide-icon [img]="AlertTriangle" [size]="14" class="text-amber-600"></lucide-icon>
+            <span>Alertas Clínicas y Alergias</span>
+          </h4>
+
+          <!-- Alergias -->
+          @if (clinicalHistory?.allergies?.length) {
+            <div class="space-y-1">
+              <p class="text-[11px] font-semibold text-muted uppercase">Alergias Registradas</p>
+              <div class="flex flex-wrap gap-1.5">
+                @for (allergy of clinicalHistory?.allergies; track allergy.id) {
+                  <span class="inline-flex items-center gap-1 rounded-full bg-red-50 border border-red-200 px-2 py-0.5 text-[11px] font-semibold text-red-700">
+                    <span>{{ allergy.allergen }}</span>
+                    @if (allergy.severity) {
+                      <span class="text-[10px] text-red-500 font-normal">({{ allergy.severity }})</span>
+                    }
+                  </span>
+                }
+              </div>
+            </div>
+          } @else {
+            <p class="text-xs text-muted italic">Sin alergias registradas.</p>
+          }
+
+          <!-- Alertas de Riesgo -->
+          @if (activeAlerts.length > 0) {
+            <div class="space-y-1 border-t border-line pt-2">
+              <p class="text-[11px] font-semibold text-muted uppercase">Alertas de Riesgo</p>
+              <div class="space-y-1.5">
+                @for (alert of activeAlerts; track alert.id) {
+                  <div class="rounded-lg bg-amber-50 border border-amber-200 p-2 text-xs text-amber-900">
+                    <div class="flex items-center justify-between gap-1">
+                      <span class="font-bold">{{ alert.type }}</span>
+                      <span class="text-[10px] uppercase font-bold px-1.5 py-0.2 rounded bg-amber-200 text-amber-900">{{ alert.level }}</span>
+                    </div>
+                    @if (alert.description) {
+                      <p class="text-[11px] text-amber-800 line-clamp-2 mt-0.5">{{ alert.description }}</p>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Diagnósticos y Medicación -->
+        <div class="card !p-4 space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+            <lucide-icon [img]="Pill" [size]="14" class="text-primary-600"></lucide-icon>
+            <span>Diagnósticos y Medicación</span>
+          </h4>
+
+          <!-- Diagnósticos CIE -->
+          @if (clinicalHistory?.diagnoses?.length) {
+            <div class="space-y-1">
+              <p class="text-[11px] font-semibold text-muted uppercase">Diagnósticos Activos</p>
+              <ul class="space-y-1 text-xs">
+                @for (diag of clinicalHistory?.diagnoses; track diag.id) {
+                  <li class="rounded bg-slate-50 p-1.5 border border-line flex items-start gap-1.5">
+                    <span class="font-mono text-[10px] font-bold text-primary-700 bg-primary-50 px-1 py-0.2 rounded border border-primary-100 shrink-0">
+                      {{ diag.category || 'CIE' }}
+                    </span>
+                    <span class="text-ink font-medium leading-tight">{{ diag.description }}</span>
+                  </li>
+                }
+              </ul>
+            </div>
+          } @else {
+            <p class="text-xs text-muted italic">Sin diagnósticos activos.</p>
+          }
+
+          <!-- Medicación -->
+          @if (clinicalHistory?.medications?.length) {
+            <div class="space-y-1 border-t border-line pt-2">
+              <p class="text-[11px] font-semibold text-muted uppercase">Medicación Actual</p>
+              <ul class="space-y-1 text-xs">
+                @for (med of clinicalHistory?.medications; track med.id) {
+                  <li class="text-ink">
+                    <strong>{{ med.name }}</strong>
+                    @if (med.dose) {
+                      <span class="text-muted"> — {{ med.dose }}</span>
+                    }
+                    @if (med.frequency) {
+                      <span class="text-muted"> ({{ med.frequency }})</span>
+                    }
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+
+        <!-- Resumen de la Última Sesión -->
+        @if (lastSession) {
+          <div class="card !p-4 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                <lucide-icon [img]="History" [size]="14" class="text-slate-600"></lucide-icon>
+                <span>Última Sesión</span>
+              </h4>
+              <span class="text-[11px] font-mono text-muted">
+                {{ lastSession.sessionDate | date:'dd/MM/yyyy' }}
+              </span>
+            </div>
+
+            <div class="space-y-1.5 text-xs text-ink">
+              @if (lastSession.analysis) {
+                <div class="rounded bg-slate-50 p-2 border border-line">
+                  <span class="text-[10px] font-bold uppercase text-primary-800 block">Análisis Previo:</span>
+                  <p class="line-clamp-3 text-muted text-[11px] mt-0.5">{{ lastSession.analysis }}</p>
+                </div>
+              }
+              @if (lastSession.plan) {
+                <div class="rounded bg-slate-50 p-2 border border-line">
+                  <span class="text-[10px] font-bold uppercase text-primary-800 block">Plan Previo Acordado:</span>
+                  <p class="line-clamp-3 text-muted text-[11px] mt-0.5">{{ lastSession.plan }}</p>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </aside>
+    </div>
+  }
+</section>

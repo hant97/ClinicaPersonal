@@ -219,14 +219,14 @@
     </div>
 
     <!-- Actions Footer -->
-    <div class="flex items-center justify-end gap-3 border-t border-line pt-4">
-      <button type="button" class="btn-secondary !text-xs !py-2" (click)="onCancel()">
+    <div class="flex items-center justify-end gap-2.5 sm:gap-3 border-t border-line pt-4 w-full">
+      <button type="button" class="btn-secondary !text-xs !py-2 px-4 whitespace-nowrap min-h-[38px] flex-1 sm:flex-initial flex items-center justify-center" (click)="onCancel()">
         Cancelar
       </button>
 
-      <button type="submit" class="btn-primary !text-xs !py-2" [disabled]="sessionForm.invalid">
-        <lucide-icon [img]="Check" [size]="14"></lucide-icon>
-        <span>Guardar Sesión Clínica</span>
+      <button type="submit" class="btn-primary !text-xs !py-2 px-5 shadow-sm whitespace-nowrap min-h-[38px] flex-1 sm:flex-initial flex items-center justify-center" [disabled]="sessionForm.invalid">
+        <lucide-icon [img]="Check" [size]="14" class="mr-1.5 shrink-0"></lucide-icon>
+        <span>Guardar Sesión</span>
       </button>
     </div>
   </form>

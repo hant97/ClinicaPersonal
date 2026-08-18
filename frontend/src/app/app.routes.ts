@@ -3,6 +3,7 @@ import { LoginComponent } from './features/auth/login/login.component';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 import { DashboardComponent } from './features/dashboard/dashboard/dashboard.component';
 import { PatientListComponent } from './features/patients/patient-list/patient-list.component';
+import { PatientFormComponent } from './features/patients/patient-form/patient-form.component';
 import { PatientDetailComponent } from './features/patients/patient-detail/patient-detail.component';
 import { AgendaComponent } from './features/agenda/agenda/agenda.component';
 import { BillingComponent } from './features/billing/billing/billing.component';
@@ -22,6 +23,8 @@ import { LandingComponent } from './features/public/landing/landing.component';
 import { PrescriptionVerifyComponent } from './features/public/prescription-verify/prescription-verify.component';
 import { NotFoundComponent } from './features/public/not-found/not-found.component';
 
+import { ClinicalSessionPageComponent } from './features/patients/clinical-session-page/clinical-session-page.component';
+
 export const routes: Routes = [
   { path: '', component: LandingComponent, pathMatch: 'full', title: 'Dermatología y Psicología' },
   { path: 'login', component: LoginComponent, title: 'Iniciar sesión' },
@@ -39,7 +42,11 @@ export const routes: Routes = [
     children: [
       { path: 'dashboard', component: DashboardComponent, title: 'Dashboard' },
       { path: 'patients', component: PatientListComponent, title: 'Pacientes' },
+      { path: 'patients/new', component: PatientFormComponent, title: 'Nuevo Paciente' },
+      { path: 'patients/:identifier/edit', component: PatientFormComponent, title: 'Editar Paciente' },
       { path: 'patients/:id', component: PatientDetailComponent, title: 'Ficha del paciente' },
+      { path: 'patients/:id/sessions/new', component: ClinicalSessionPageComponent, title: 'Nueva Consulta Clínica' },
+      { path: 'patients/:id/sessions/:sessionId/edit', component: ClinicalSessionPageComponent, title: 'Editar Consulta Clínica' },
       { path: 'agenda', component: AgendaComponent, title: 'Agenda' },
       { path: 'billing', component: BillingComponent, title: 'Cobros' },
 

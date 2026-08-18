@@ -1,8 +1,35 @@
-<div class="fixed bottom-5 right-5 z-[9999] flex w-full max-w-sm flex-col gap-2" aria-live="polite" aria-atomic="false">
+<div class="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-5 sm:bottom-5 z-[9999] flex sm:w-auto sm:max-w-md flex-col gap-2.5 pointer-events-none safe-bottom" aria-live="polite" aria-atomic="false">
   @for (msg of messages; track msg.id) {
-    <div class="flex items-start justify-between gap-3 rounded-lg px-4 py-3 text-sm font-medium text-white shadow-raised" [ngClass]="{'bg-success': msg.type === 'success', 'bg-danger': msg.type === 'error', 'bg-muted': msg.type === 'info'}" [attr.role]="msg.type === 'error' ? 'alert' : 'status'">
-      <span class="flex-1">{{ msg.text }}</span>
-      <button type="button" class="ml-2 inline-flex shrink-0 items-center justify-center rounded p-1 text-white/80 transition hover:bg-white/15 hover:text-white" aria-label="Cerrar aviso" (click)="dismiss(msg.id)">×</button>
+    <div
+      class="pointer-events-auto flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white shadow-raised animate-fade-in transition-all duration-200"
+      [ngClass]="{
+        'bg-emerald-600 border border-emerald-500/40': msg.type === 'success',
+        'bg-red-600 border border-red-500/40': msg.type === 'error',
+        'bg-amber-600 border border-amber-500/40': msg.type === 'warning',
+        'bg-slate-800 border border-slate-700/50': msg.type === 'info'
+      }"
+      [attr.role]="msg.type === 'error' ? 'alert' : 'status'"
+    >
+      <div class="flex items-center gap-2.5 min-w-0">
+        @if (msg.type === 'success') {
+          <lucide-icon [img]="CheckCircle2" [size]="18" class="shrink-0 text-white"></lucide-icon>
+        } @else if (msg.type === 'error') {
+          <lucide-icon [img]="AlertCircle" [size]="18" class="shrink-0 text-white"></lucide-icon>
+        } @else if (msg.type === 'warning') {
+          <lucide-icon [img]="AlertTriangle" [size]="18" class="shrink-0 text-white"></lucide-icon>
+        } @else {
+          <lucide-icon [img]="Info" [size]="18" class="shrink-0 text-white"></lucide-icon>
+        }
+        <span class="flex-1 break-words leading-snug">{{ msg.text }}</span>
+      </div>
+      <button
+        type="button"
+        class="ml-1 inline-flex shrink-0 items-center justify-center rounded-lg p-1 text-white/80 transition hover:bg-white/20 hover:text-white"
+        aria-label="Cerrar aviso"
+        (click)="dismiss(msg.id)"
+      >
+        <lucide-icon [img]="X" [size]="15"></lucide-icon>
+      </button>
     </div>
   }
 </div>

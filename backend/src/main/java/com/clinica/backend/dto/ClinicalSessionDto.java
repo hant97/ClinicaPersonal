@@ -1,5 +1,6 @@
 package com.clinica.backend.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -27,6 +28,7 @@ public class ClinicalSessionDto {
     private String objective;
     private String analysis;
     private String plan;
+    @JsonProperty("isConfidential")
     private boolean isConfidential;
     private String specialty;
     private LocalDateTime createdAt;

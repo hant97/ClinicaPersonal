@@ -43,9 +43,9 @@ public class PatientController {
         return ResponseEntity.ok(patientService.searchPatients(query, active, gender, PageRequest.of(page, size)));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<PatientDto> getPatientById(@PathVariable Long id) {
-        return ResponseEntity.ok(patientService.getPatientById(id));
+    @GetMapping("/{identifier}")
+    public ResponseEntity<PatientDto> getPatientById(@PathVariable String identifier) {
+        return ResponseEntity.ok(patientService.getPatientByIdOrUuid(identifier));
     }
 
     @PostMapping

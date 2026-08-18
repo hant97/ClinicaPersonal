@@ -14,7 +14,10 @@ const METHOD_CHART_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#64748
   selector: 'app-billing-summary',
   standalone: true,
   imports: [CommonModule, LucideAngularModule],
-  templateUrl: './billing-summary.component.html'
+  templateUrl: './billing-summary.component.html',
+  host: {
+    class: 'block'
+  }
 })
 export class BillingSummaryComponent implements OnChanges, OnDestroy {
   readonly Banknote = Banknote;
@@ -116,7 +119,13 @@ export class BillingSummaryComponent implements OnChanges, OnDestroy {
         scales: {
           x: {
             grid: { display: false },
-            ticks: { font: { family: 'Inter', size: 10 }, color: '#64748b', maxTicksLimit: 10 }
+            ticks: {
+              font: { family: 'Inter', size: 10 },
+              color: '#64748b',
+              maxTicksLimit: 6,
+              maxRotation: 45,
+              minRotation: 0
+            }
           },
           y: {
             beginAtZero: true,

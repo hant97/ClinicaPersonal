@@ -1,149 +1,276 @@
-<div class="fixed inset-0 z-50 flex items-center justify-center bg-clinic-900/45 p-4" role="dialog" aria-modal="true" aria-labelledby="appointment-form-title" appFocusTrap (trapClose)="onCancel()">
-  <div class="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-surface p-5 shadow-raised sm:p-7">
-    <button type="button" class="btn-text absolute right-3 top-3 text-muted hover:text-ink text-xl font-bold" aria-label="Cerrar" (click)="onCancel()">✕</button>
-    <div class="mb-6 pr-9">
-      <p class="text-sm font-medium text-clinic-600">Agenda</p>
-      <h2 id="appointment-form-title" class="mt-1 text-xl font-semibold">{{ appointment ? 'Reprogramar o editar cita' : 'Agendar nueva cita' }}</h2>
-    </div>
+<div
+  class="fixed inset-0 z-50 overflow-hidden"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="appointment-form-title"
+  appFocusTrap
+  (trapClose)="onCancel()"
+>
+  <!-- Backdrop overlay con blur suave -->
+  <div
+    class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
+    aria-hidden="true"
+    (click)="onCancel()"
+  ></div>
 
-    <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()" class="space-y-5">
-      <div>
-        <label for="patientId" class="form-label">Paciente <span aria-hidden="true" class="text-danger">*</span></label>
-        <app-patient-autocomplete id="patientId" formControlName="patientId"></app-patient-autocomplete>
-        @if (appointmentForm.get('patientId')?.invalid && (appointmentForm.get('patientId')?.dirty || appointmentForm.get('patientId')?.touched)) {
-          <p class="mt-2 text-sm text-danger">El paciente es requerido.</p>
-        }
-      </div>
-
-      <div class="grid gap-4 sm:grid-cols-3">
-        <div>
-          <label for="appointmentDate" class="form-label">Fecha <span aria-hidden="true" class="text-danger">*</span></label>
-          <input type="date" id="appointmentDate" formControlName="appointmentDate" class="input-field">
-          @if (appointmentForm.get('appointmentDate')?.hasError('pastDate') && appointmentForm.get('appointmentDate')?.touched) {
-            <p class="mt-2 text-sm text-danger">La fecha no puede ser anterior a hoy.</p>
-          }
-        </div>
-        <div>
-          <label for="startTime" class="form-label">Hora de inicio <span aria-hidden="true" class="text-danger">*</span></label>
-          <input type="time" id="startTime" formControlName="startTime" class="input-field">
-        </div>
-        <div>
-          <label for="endTime" class="form-label">Hora de fin <span aria-hidden="true" class="text-danger">*</span></label>
-          <input type="time" id="endTime" formControlName="endTime" class="input-field">
-        </div>
-      </div>
-
-      <!-- Selector de Duración Rápida -->
-      <div class="rounded-xl border border-line bg-canvas/70 p-3.5 space-y-2">
-        <div class="flex items-center justify-between">
-          <span class="flex items-center gap-1.5 text-xs font-semibold text-ink">
-            <lucide-icon [img]="Clock" [size]="14" class="text-clinic-600"></lucide-icon>
-            Duración de la cita
-          </span>
-          <span class="text-xs font-medium px-2 py-0.5 rounded-md" [ngClass]="selectedDuration ? 'bg-clinic-100 text-clinic-800' : 'bg-stone-200 text-stone-700'">
-            {{ selectedDuration ? (selectedDuration + ' min calculados') : 'Duración personalizada' }}
-          </span>
-        </div>
-        <div class="flex flex-wrap gap-2 pt-1">
-          @for (dur of durationOptions; track dur.value) {
-            <button type="button"
-              (click)="selectDuration(dur.value)"
-              [class]="selectedDuration === dur.value ? 'bg-clinic-600 text-white font-semibold shadow-sm ring-2 ring-clinic-600/30' : 'bg-surface hover:bg-clinic-50 text-ink border border-line hover:border-clinic-300'"
-              class="inline-flex items-center rounded-lg px-3 py-1.5 text-xs transition-all cursor-pointer">
-              {{ dur.label }}
-            </button>
-          }
-        </div>
-        @if (appointmentForm.hasError('invalidTimeOrder') && (appointmentForm.get('endTime')?.touched || appointmentForm.get('startTime')?.touched)) {
-          <p class="text-xs text-danger font-medium pt-1">
-            ⚠ La hora de fin debe ser posterior a la hora de inicio.
-          </p>
-        }
-      </div>
-
-      <!-- Banner Preventivo de Conflictos de Horario -->
-      @if (conflicts.length > 0) {
-        <div class="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900 shadow-sm animate-fadeIn">
-          <div class="flex items-start gap-3">
-            <lucide-icon [img]="AlertTriangle" [size]="20" class="text-amber-600 shrink-0 mt-0.5"></lucide-icon>
-            <div class="space-y-1">
-              <p class="text-sm font-semibold text-amber-950">Conflicto de horario detectado</p>
-              <p class="text-xs text-amber-800">El horario seleccionado coincide con las siguientes citas registradas:</p>
-              <ul class="mt-2 space-y-1 text-xs">
-                @for (c of conflicts; track c.id) {
-                  <li class="flex flex-wrap items-center gap-2 font-medium">
-                    <span class="inline-block h-1.5 w-1.5 rounded-full bg-amber-600"></span>
-                    <span>{{ c.patientName || ('Paciente #' + c.patientId) }}:</span>
-                    <span class="font-bold text-amber-950">{{ c.startTime.substring(0,5) }} - {{ c.endTime.substring(0,5) }}</span>
-                    <span class="rounded bg-amber-200/80 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900">{{ c.status }}</span>
-                  </li>
-                }
-              </ul>
-              <p class="mt-2 text-[11px] text-amber-700 font-medium">Ajusta la hora de inicio, fin o duración para resolver la colisión.</p>
-            </div>
+  <!-- Slide-Over Container (Desde la derecha) -->
+  <div class="fixed inset-y-0 right-0 flex max-w-full pl-0 sm:pl-6 md:pl-10">
+    <div
+      class="w-screen max-w-lg md:max-w-xl bg-surface shadow-2xl border-l border-line flex flex-col transform transition-transform duration-300 ease-in-out"
+    >
+      <!-- Fixed Header (Sticky Top) -->
+      <div class="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-line bg-canvas/90 backdrop-blur-sm shrink-0">
+        <div class="min-w-0 pr-3">
+          <div class="flex items-center gap-1.5 text-xs font-semibold text-primary-600 mb-0.5">
+            <lucide-icon [img]="Calendar" [size]="14"></lucide-icon>
+            <span>Agenda Médica</span>
           </div>
+          <h2 id="appointment-form-title" class="text-base font-bold text-ink truncate">
+            {{ appointment ? 'Reprogramar o Editar Cita' : 'Agendar Nueva Cita' }}
+          </h2>
         </div>
-      }
-
-      <div class="grid gap-5 sm:grid-cols-2">
-        <div>
-          <label for="modality" class="form-label">Modalidad <span aria-hidden="true" class="text-danger">*</span></label>
-          <select id="modality" formControlName="modality" class="input-field">
-            <option value="">Seleccione</option>
-            @for (modality of appointmentModalities; track modality.id) {
-              <option [value]="modality.itemCode">{{ modality.itemName }}</option>
-            }
-          </select>
-        </div>
-        <div>
-          <label for="status" class="form-label">Estado <span aria-hidden="true" class="text-danger">*</span></label>
-          <select id="status" formControlName="status" class="input-field">
-            <option value="PROGRAMADA">Programada</option>
-            <option value="CONFIRMADA">Confirmada</option>
-            <option value="COMPLETADA">Completada</option>
-            <option value="CANCELADA">Cancelada</option>
-            <option value="NO_ASISTIO">No asistió</option>
-          </select>
-        </div>
-      </div>
-
-      <div>
-        <label for="clinicalServiceId" class="form-label">Servicio clínico</label>
-        <select id="clinicalServiceId" formControlName="clinicalServiceId" class="input-field" (change)="onServiceSelect($event)">
-          <option value="">Sin servicio asociado</option>
-          @for (service of clinicalServices; track service.id) {
-            <option [value]="service.id">{{ service.name }} — S/ {{ service.price | number:'1.2-2' }}</option>
-          }
-        </select>
-        <p class="mt-1 text-[11px] text-muted">Al elegir un servicio se ajustará la duración de la cita automáticamente.</p>
-      </div>
-
-      @if (appointmentForm.get('modality')?.value === 'VIRTUAL') {
-        <div>
-          <label for="videoCallLink" class="form-label">Enlace de videollamada</label>
-          <input type="url" id="videoCallLink" formControlName="videoCallLink" class="input-field" placeholder="https://meet.google.com/xxx">
-        </div>
-      }
-
-      <label class="flex cursor-pointer items-center gap-3 rounded-lg bg-canvas p-3 text-sm font-medium text-ink">
-        <input type="checkbox" formControlName="isFirstTime" class="h-4 w-4 rounded border-line text-clinic-600 focus:ring-clinic-500">
-        Es evaluación de primera vez
-      </label>
-
-      <div>
-        <label for="notes" class="form-label">Notas o motivo</label>
-        <textarea id="notes" formControlName="notes" class="input-field min-h-24" rows="3"></textarea>
-        @if (appointmentForm.get('notes')?.invalid && (appointmentForm.get('notes')?.dirty || appointmentForm.get('notes')?.touched)) {
-          <p class="mt-2 text-sm text-danger">Máximo 255 caracteres.</p>
-        }
-      </div>
-
-      <div class="flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end">
-        <button type="button" class="btn-secondary" (click)="onCancel()">Cancelar</button>
-        <button type="submit" class="btn-primary" [disabled]="isSubmitting || conflicts.length > 0">
-          {{ isSubmitting ? 'Guardando…' : (appointment ? 'Guardar cambios' : 'Agendar cita') }}
+        <button
+          type="button"
+          class="btn-text !p-2 text-muted hover:text-ink hover:bg-slate-100 rounded-lg transition"
+          aria-label="Cerrar panel"
+          (click)="onCancel()"
+        >
+          <lucide-icon [img]="X" [size]="18"></lucide-icon>
         </button>
       </div>
-    </form>
+
+      <!-- Scrollable Form Body -->
+      <div class="flex-1 overflow-y-auto p-4 sm:p-5 md:p-6 space-y-5 scroll-touch">
+        <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()" id="appointment-form-element" class="space-y-5">
+          <!-- Paciente Autocomplete -->
+          <div>
+            <label for="patientId" class="form-label flex items-center justify-between mb-1.5">
+              <span>Paciente <span aria-hidden="true" class="text-danger font-bold">*</span></span>
+              <span class="text-[11px] text-muted font-normal">Obligatorio</span>
+            </label>
+            <app-patient-autocomplete id="patientId" formControlName="patientId"></app-patient-autocomplete>
+            @if (appointmentForm.get('patientId')?.invalid && (appointmentForm.get('patientId')?.dirty || appointmentForm.get('patientId')?.touched)) {
+              <p class="mt-1.5 text-xs text-danger font-medium">Debe seleccionar un paciente para agendar la cita.</p>
+            }
+          </div>
+
+          <!-- Fecha, Hora Inicio y Hora Fin -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label for="appointmentDate" class="form-label flex items-center justify-between mb-1.5">
+                <span>Fecha <span aria-hidden="true" class="text-danger font-bold">*</span></span>
+              </label>
+              <input
+                type="date"
+                id="appointmentDate"
+                formControlName="appointmentDate"
+                class="input-field !text-xs"
+                [class.border-danger]="appointmentForm.get('appointmentDate')?.invalid && appointmentForm.get('appointmentDate')?.touched"
+              />
+              @if (appointmentForm.get('appointmentDate')?.hasError('pastDate') && appointmentForm.get('appointmentDate')?.touched) {
+                <p class="mt-1 text-[11px] text-danger font-medium">No puede ser anterior a hoy.</p>
+              }
+            </div>
+            <div>
+              <label for="startTime" class="form-label flex items-center justify-between mb-1.5">
+                <span>Inicio <span aria-hidden="true" class="text-danger font-bold">*</span></span>
+              </label>
+              <input
+                type="time"
+                id="startTime"
+                formControlName="startTime"
+                class="input-field !text-xs"
+              />
+            </div>
+            <div>
+              <label for="endTime" class="form-label flex items-center justify-between mb-1.5">
+                <span>Fin <span aria-hidden="true" class="text-danger font-bold">*</span></span>
+              </label>
+              <input
+                type="time"
+                id="endTime"
+                formControlName="endTime"
+                class="input-field !text-xs"
+              />
+            </div>
+          </div>
+
+          <!-- Selector de Duración Rápida -->
+          <div class="rounded-xl border border-line bg-canvas/70 p-3.5 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="flex items-center gap-1.5 text-xs font-semibold text-ink">
+                <lucide-icon [img]="Clock" [size]="14" class="text-primary-600"></lucide-icon>
+                <span>Duración calculada</span>
+              </span>
+              <span
+                class="text-xs font-medium px-2 py-0.5 rounded-md"
+                [ngClass]="selectedDuration ? 'bg-primary-100 text-primary-800' : 'bg-slate-200 text-slate-700'"
+              >
+                {{ selectedDuration ? (selectedDuration + ' min calculados') : 'Personalizada' }}
+              </span>
+            </div>
+            <div class="flex flex-wrap gap-2 pt-0.5">
+              @for (dur of durationOptions; track dur.value) {
+                <button
+                  type="button"
+                  (click)="selectDuration(dur.value)"
+                  [class]="selectedDuration === dur.value ? 'bg-primary-600 text-white font-semibold shadow-xs ring-2 ring-primary-600/30' : 'bg-surface hover:bg-primary-50 text-ink border border-line hover:border-primary-300'"
+                  class="inline-flex items-center rounded-lg px-2.5 py-1 text-xs transition-all cursor-pointer"
+                >
+                  {{ dur.label }}
+                </button>
+              }
+            </div>
+            @if (appointmentForm.hasError('invalidTimeOrder') && (appointmentForm.get('endTime')?.touched || appointmentForm.get('startTime')?.touched)) {
+              <p class="text-xs text-danger font-medium pt-1">
+                ⚠ La hora de fin debe ser posterior a la hora de inicio.
+              </p>
+            }
+          </div>
+
+          <!-- Banner Preventivo de Conflictos de Horario -->
+          @if (conflicts.length > 0) {
+            <div class="rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-amber-900 shadow-xs animate-fadeIn">
+              <div class="flex items-start gap-2.5">
+                <lucide-icon [img]="AlertTriangle" [size]="18" class="text-amber-600 shrink-0 mt-0.5"></lucide-icon>
+                <div class="space-y-1 min-w-0">
+                  <p class="text-xs font-bold text-amber-950">Conflicto de horario detectado</p>
+                  <p class="text-[11px] text-amber-800">El horario seleccionado coincide con las siguientes citas registradas:</p>
+                  <ul class="mt-1.5 space-y-1 text-xs">
+                    @for (c of conflicts; track c.id) {
+                      <li class="flex flex-wrap items-center gap-1.5 font-medium text-[11px]">
+                        <span class="inline-block h-1.5 w-1.5 rounded-full bg-amber-600"></span>
+                        <span class="truncate max-w-[150px]">{{ c.patientName || ('Paciente #' + c.patientId) }}:</span>
+                        <span class="font-bold text-amber-950">{{ c.startTime.substring(0,5) }} - {{ c.endTime.substring(0,5) }}</span>
+                        <span class="rounded bg-amber-200/80 px-1 py-0.2 text-[10px] font-semibold text-amber-900">{{ c.status }}</span>
+                      </li>
+                    }
+                  </ul>
+                  <p class="mt-1 text-[11px] text-amber-700 font-medium">Ajusta la hora para resolver la colisión.</p>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Modalidad y Estado -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="modality" class="form-label flex items-center justify-between mb-1.5">
+                <span>Modalidad <span aria-hidden="true" class="text-danger font-bold">*</span></span>
+              </label>
+              <select id="modality" formControlName="modality" class="input-field !text-xs">
+                <option value="">Seleccione</option>
+                @for (modality of appointmentModalities; track modality.id) {
+                  <option [value]="modality.itemCode">{{ modality.itemName }}</option>
+                }
+              </select>
+            </div>
+            <div>
+              <label for="status" class="form-label flex items-center justify-between mb-1.5">
+                <span>Estado <span aria-hidden="true" class="text-danger font-bold">*</span></span>
+              </label>
+              <select id="status" formControlName="status" class="input-field !text-xs">
+                <option value="PROGRAMADA">Programada</option>
+                <option value="CONFIRMADA">Confirmada</option>
+                <option value="COMPLETADA">Completada</option>
+                <option value="CANCELADA">Cancelada</option>
+                <option value="NO_ASISTIO">No asistió</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Servicio Clínico -->
+          <div>
+            <label for="clinicalServiceId" class="form-label flex items-center justify-between mb-1.5">
+              <span>Servicio Clínico</span>
+              <span class="text-[11px] text-muted font-normal">Opcional</span>
+            </label>
+            <select
+              id="clinicalServiceId"
+              formControlName="clinicalServiceId"
+              class="input-field !text-xs"
+              (change)="onServiceSelect($event)"
+            >
+              <option value="">Sin servicio asociado</option>
+              @for (service of clinicalServices; track service.id) {
+                <option [value]="service.id">{{ service.name }} — S/ {{ service.price | number:'1.2-2' }}</option>
+              }
+            </select>
+            <p class="mt-1 text-[11px] text-muted">Al elegir un servicio se ajustará la duración automáticamente.</p>
+          </div>
+
+          <!-- Enlace de Videollamada (Si es Virtual) -->
+          @if (appointmentForm.get('modality')?.value === 'VIRTUAL') {
+            <div class="rounded-xl border border-blue-100 bg-blue-50/50 p-3 space-y-1.5">
+              <label for="videoCallLink" class="form-label flex items-center gap-1.5 text-xs text-blue-900 font-semibold mb-1">
+                <lucide-icon [img]="Video" [size]="14" class="text-blue-600"></lucide-icon>
+                <span>Enlace de Videollamada</span>
+              </label>
+              <input
+                type="url"
+                id="videoCallLink"
+                formControlName="videoCallLink"
+                class="input-field !text-xs bg-surface"
+                placeholder="https://meet.google.com/xxx-yyyy-zzz"
+              />
+            </div>
+          }
+
+          <!-- Checkbox Primera Vez -->
+          <label class="flex cursor-pointer items-center gap-2.5 rounded-xl border border-line bg-canvas p-3 text-xs font-medium text-ink">
+            <input
+              type="checkbox"
+              formControlName="isFirstTime"
+              class="h-4 w-4 rounded border-line text-primary-600 focus:ring-primary-500"
+            />
+            <span>¿Es evaluación o consulta de primera vez?</span>
+          </label>
+
+          <!-- Notas o Motivo -->
+          <div>
+            <label for="notes" class="form-label flex items-center justify-between mb-1.5">
+              <span>Notas o Motivo de la Cita</span>
+              <span class="text-[11px] text-muted font-normal">Opcional</span>
+            </label>
+            <textarea
+              id="notes"
+              formControlName="notes"
+              class="input-field !text-xs"
+              rows="3"
+              placeholder="Anotaciones previas o indicaciones para la cita..."
+            ></textarea>
+            @if (appointmentForm.get('notes')?.invalid && (appointmentForm.get('notes')?.dirty || appointmentForm.get('notes')?.touched)) {
+              <p class="mt-1 text-xs text-danger">Máximo 255 caracteres.</p>
+            }
+          </div>
+        </form>
+      </div>
+
+      <!-- Fixed Footer (Sticky Bottom) -->
+      <div class="border-t border-line px-4 sm:px-6 py-3 sm:py-3.5 bg-canvas/90 backdrop-blur-sm flex items-center justify-end gap-2.5 sm:gap-3 shrink-0 safe-bottom">
+        <button
+          type="button"
+          class="btn-secondary !text-xs !py-2 px-4"
+          (click)="onCancel()"
+          [disabled]="isSubmitting"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="btn-primary !text-xs !py-2 px-5 shadow-sm"
+          (click)="onSubmit()"
+          [disabled]="isSubmitting || conflicts.length > 0"
+        >
+          @if (isSubmitting) {
+            <span class="spinner !h-3.5 !w-3.5 !border-2 mr-1.5" role="status"></span>
+            <span>Guardando...</span>
+          } @else {
+            <lucide-icon [img]="Save" [size]="14" class="mr-1.5"></lucide-icon>
+            <span>{{ appointment ? 'Guardar Cambios' : 'Confirmar Cita' }}</span>
+          }
+        </button>
+      </div>
+    </div>
   </div>
 </div>

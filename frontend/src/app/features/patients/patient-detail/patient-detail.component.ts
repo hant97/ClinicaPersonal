@@ -168,6 +168,12 @@ export class PatientDetailComponent implements OnInit {
   expedienteElementsCount = 0;
   nextUpcomingAppointment?: Appointment;
 
+  patientId: number | null = null;
+  currentIdentifier: string = '';
+  isLoading = true;
+  loadError = false;
+  errorMessage = '';
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -186,21 +192,18 @@ export class PatientDetailComponent implements OnInit {
     this.isPsychology = this.specialtyService.isPsychology();
     this.isDermatology = this.specialtyService.isDermatology();
 
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      const patientId = Number(id);
-      this.loadPatient(patientId);
-      this.loadSessions(patientId);
-      this.loadAlerts(patientId);
-      this.loadCounts(patientId);
-      this.loadAppointments(patientId);
-    }
-
     if (this.isPsychology) {
       this.activeSpecialtySubTab = 'evaluacion-psicologica';
     } else if (this.isDermatology) {
       this.activeSpecialtySubTab = 'evaluacion-inicial';
     }
+
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('id');
+      if (id) {
+        this.loadAllPatientData(id);
+      }
+    });
 
     this.route.queryParams.subscribe(params => {
       if (params['newSession'] === 'true') {
@@ -208,6 +211,14 @@ export class PatientDetailComponent implements OnInit {
         this.openForm();
       }
     });
+  }
+
+  loadAllPatientData(identifier: string): void {
+    this.currentIdentifier = identifier;
+    this.isLoading = true;
+    this.loadError = false;
+    this.errorMessage = '';
+    this.loadPatient(identifier);
   }
 
   setTab(tab: MainTabType): void {
@@ -412,13 +423,32 @@ export class PatientDetailComponent implements OnInit {
     }
   }
 
-  loadPatient(id: number): void {
-    this.patientService.getById(id).subscribe({
+  loadPatient(identifier: string | number): void {
+    this.isLoading = true;
+    this.loadError = false;
+    this.errorMessage = '';
+    this.patientService.getById(identifier).subscribe({
       next: (data) => {
         this.patient = data;
+        this.patientId = data.id || null;
+        this.isLoading = false;
         this.calculateEsMenorEdad();
+        if (data.id) {
+          this.loadSessions(data.id);
+          this.loadAlerts(data.id);
+          this.loadCounts(data.id);
+          this.loadAppointments(data.id);
+        }
       },
-      error: (err) => console.error('Error fetching patient', err)
+      error: (err) => {
+        this.patient = null;
+        this.isLoading = false;
+        this.loadError = true;
+        this.errorMessage = err.status === 404
+          ? 'El paciente no fue encontrado o no pertenece a la especialidad activa.'
+          : 'No se pudo cargar la información del paciente. Por favor, intenta de nuevo.';
+        console.error('Error fetching patient', err);
+      }
     });
   }
 
@@ -479,8 +509,12 @@ export class PatientDetailComponent implements OnInit {
   }
 
   openForm(session?: ClinicalSession): void {
-    this.selectedSession = session;
-    this.showForm = true;
+    const key = this.patient?.uuid || this.patient?.id || this.currentIdentifier;
+    if (session?.id) {
+      this.router.navigate(['/patients', key, 'sessions', session.id, 'edit']);
+    } else {
+      this.router.navigate(['/patients', key, 'sessions', 'new']);
+    }
   }
 
   closeForm(): void {
@@ -529,10 +563,8 @@ export class PatientDetailComponent implements OnInit {
 
   editSession(id: number, event: Event): void {
     event.stopPropagation();
-    const session = this.sessions.find(s => s.id === id);
-    if (session) {
-      this.openForm(session);
-    }
+    const key = this.patient?.uuid || this.patient?.id || this.currentIdentifier;
+    this.router.navigate(['/patients', key, 'sessions', id, 'edit']);
   }
 
   scheduleAppointment(): void {

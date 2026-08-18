@@ -5,6 +5,7 @@ import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.ClinicalSession;
 import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.User;
+import com.clinica.backend.repository.AppointmentRepository;
 import com.clinica.backend.repository.ClinicalSessionRepository;
 import com.clinica.backend.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class ClinicalSessionService {
 
     private final ClinicalSessionRepository sessionRepository;
     private final PatientRepository patientRepository;
+    private final AppointmentRepository appointmentRepository;
     private final ClinicalAuthorizationService clinicalAuthorizationService;
 
     @Transactional(readOnly = true)
@@ -56,7 +58,18 @@ public class ClinicalSessionService {
         copyEditableFields(dto, session);
         session.setSpecialty(user.getSpecialty());
         session.setProfessionalId(user.getId());
-        return mapToDto(sessionRepository.save(session));
+        ClinicalSession saved = sessionRepository.save(session);
+
+        if (dto.getAppointmentId() != null) {
+            appointmentRepository.findByIdAndSpecialty(dto.getAppointmentId(), user.getSpecialty())
+                    .ifPresent(appointment -> {
+                        appointment.setStatus("COMPLETADA");
+                        appointment.setClinicalSessionId(saved.getId());
+                        appointmentRepository.save(appointment);
+                    });
+        }
+
+        return mapToDto(saved);
     }
 
     @Transactional

@@ -104,10 +104,10 @@
         <div></div>
       }
 
-      <div class="flex gap-3">
-        <button class="btn-secondary" (click)="cancel()">Cancelar</button>
+      <div class="flex items-center gap-2.5 sm:gap-3 w-full sm:w-auto justify-end">
+        <button class="btn-secondary !text-xs !py-2 px-4 whitespace-nowrap min-h-[38px] flex-1 sm:flex-initial flex items-center justify-center" (click)="cancel()">Cancelar</button>
         <button
-          class="btn-primary"
+          class="btn-primary !text-xs !py-2 px-5 shadow-sm whitespace-nowrap min-h-[38px] flex-1 sm:flex-initial flex items-center justify-center"
           [disabled]="!isValid() || isSaving"
           (click)="saveAssessment()"
         >

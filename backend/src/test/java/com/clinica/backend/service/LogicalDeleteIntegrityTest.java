@@ -3,6 +3,7 @@ package com.clinica.backend.service;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.AllergyRepository;
+import com.clinica.backend.repository.AppointmentRepository;
 import com.clinica.backend.repository.ClinicalSessionRepository;
 import com.clinica.backend.repository.PatientRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -32,10 +33,11 @@ class LogicalDeleteIntegrityTest {
         patientRepository = mock(PatientRepository.class);
         allergyRepository = mock(AllergyRepository.class);
         sessionRepository = mock(ClinicalSessionRepository.class);
+        AppointmentRepository appointmentRepository = mock(AppointmentRepository.class);
         authService = mock(ClinicalAuthorizationService.class);
 
         allergyService = new AllergyService(allergyRepository, patientRepository, authService);
-        sessionService = new ClinicalSessionService(sessionRepository, patientRepository, authService);
+        sessionService = new ClinicalSessionService(sessionRepository, patientRepository, appointmentRepository, authService);
 
         User user = new User();
         user.setId(1L);

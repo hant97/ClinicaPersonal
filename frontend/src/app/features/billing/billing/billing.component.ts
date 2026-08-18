@@ -48,7 +48,7 @@ export class BillingComponent implements OnInit, OnDestroy {
   showForm = false;
   selectedPayment: Payment | null = null;
   viewingPayment: Payment | null = null;
-  initialPaymentData: { patientId?: number; appointmentId?: number; description?: string } | null = null;
+  initialPaymentData: { patientId?: number; appointmentId?: number; clinicalServiceId?: number; description?: string } | null = null;
   paymentMethodMap = new Map<string, string>();
   paymentMethodOptions: { code: string; name: string }[] = [];
 
@@ -108,6 +108,7 @@ export class BillingComponent implements OnInit, OnDestroy {
         this.initialPaymentData = {
           patientId: Number(params['patientId']),
           appointmentId: params['appointmentId'] ? Number(params['appointmentId']) : undefined,
+          clinicalServiceId: params['clinicalServiceId'] ? Number(params['clinicalServiceId']) : undefined,
           description: params['description'] || undefined
         };
         this.openForm();

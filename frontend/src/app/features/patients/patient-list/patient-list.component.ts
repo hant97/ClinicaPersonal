@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PatientService } from '../../../core/services/patient/patient.service';
 import { Patient, PatientStats } from '../../../core/models/patient.model';
-import { PatientFormComponent } from '../patient-form/patient-form.component';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../../shared/services/toast/toast.service';
@@ -42,7 +41,6 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
   imports: [
     CommonModule,
     FormsModule,
-    PatientFormComponent,
     PaginationComponent,
     RouterLink,
     LucideAngularModule

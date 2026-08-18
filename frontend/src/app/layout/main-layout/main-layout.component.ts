@@ -17,6 +17,7 @@ import {
   HeartHandshake,
   Search,
   ChevronRight,
+  ChevronLeft,
   Sparkles,
   Brain,
   Shield,
@@ -53,6 +54,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   readonly HeartHandshake = HeartHandshake;
   readonly Search = Search;
   readonly ChevronRight = ChevronRight;
+  readonly ChevronLeft = ChevronLeft;
   readonly Sparkles = Sparkles;
   readonly Brain = Brain;
   readonly Shield = Shield;
@@ -103,6 +105,15 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     this.isAdmin = this.authService.hasRole('ROLE_ADMIN');
     this.isSiteAdmin = this.authService.hasRole('ROLE_SITE_ADMIN');
     
+    try {
+      const saved = localStorage.getItem('sidebar_expanded');
+      if (saved !== null) {
+        this.isSidebarExpanded = JSON.parse(saved);
+      }
+    } catch {
+      this.isSidebarExpanded = true;
+    }
+
     this.loadProfile();
     this.updateRouteTitle(this.router.url);
 
@@ -176,6 +187,15 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     if (this.isSidebarOpen) {
       this.isSidebarOpen = false;
       this.setScrollLock(false);
+    }
+  }
+
+  toggleSidebarCollapse(): void {
+    this.isSidebarExpanded = !this.isSidebarExpanded;
+    try {
+      localStorage.setItem('sidebar_expanded', JSON.stringify(this.isSidebarExpanded));
+    } catch {
+      // ignore
     }
   }
 

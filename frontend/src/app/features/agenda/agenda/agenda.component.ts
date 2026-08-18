@@ -31,7 +31,9 @@ import {
   Stethoscope,
   Receipt,
   AlertTriangle,
-  UserX
+  UserX,
+  RotateCcw,
+  CheckCircle2
 } from 'lucide-angular';
 
 @Component({
@@ -68,6 +70,8 @@ export class AgendaComponent implements OnInit, OnDestroy {
   readonly Receipt = Receipt;
   readonly AlertTriangle = AlertTriangle;
   readonly UserX = UserX;
+  readonly RotateCcw = RotateCcw;
+  readonly CheckCircle2 = CheckCircle2;
 
   appointments: Appointment[] = [];
   showForm = false;
@@ -340,17 +344,30 @@ export class AgendaComponent implements OnInit, OnDestroy {
   }
 
   registerConsultation(appointment: Appointment): void {
-    if (appointment.id) {
-      this.appointmentService.updateStatus(appointment.id, 'COMPLETADA').subscribe({
-        next: () => {
-          this.router.navigate(['/patients', appointment.patientId], { queryParams: { newSession: 'true' } });
-        },
-        error: (err) => {
-          console.error('Error marking as completed', err);
-          this.toastService.show(err.error?.message || 'No se pudo registrar la consulta.', 'error');
-        }
-      });
+    const patientKey = appointment.patientUuid || appointment.patientId;
+    this.router.navigate(['/patients', patientKey, 'sessions', 'new'], {
+      queryParams: {
+        appointmentId: appointment.id,
+        date: appointment.appointmentDate,
+        startTime: appointment.startTime,
+        endTime: appointment.endTime,
+        modality: appointment.modality,
+        service: appointment.clinicalServiceName
+      }
+    });
+  }
+
+  viewConsultation(appointment: Appointment): void {
+    const patientKey = appointment.patientUuid || appointment.patientId;
+    if (appointment.clinicalSessionId) {
+      this.router.navigate(['/patients', patientKey, 'sessions', appointment.clinicalSessionId, 'edit']);
+    } else {
+      this.registerConsultation(appointment);
     }
+  }
+
+  reopenAppointment(appointment: Appointment): void {
+    this.updateStatus(appointment, 'CONFIRMADA');
   }
 
   markNoShow(appointment: Appointment): void {
@@ -375,9 +392,20 @@ export class AgendaComponent implements OnInit, OnDestroy {
     this.showForm = true;
   }
 
-  viewPatientProfile(patientId: number): void {
+  viewPatientProfile(identifier: string | number): void {
     this.closePreview();
-    this.router.navigate(['/patients', patientId]);
+    this.router.navigate(['/patients', identifier]);
+  }
+
+  goToPaymentDetail(paymentId?: number): void {
+    this.closePreview();
+    if (paymentId) {
+      this.router.navigate(['/billing'], {
+        queryParams: { paymentId: paymentId }
+      });
+    } else {
+      this.router.navigate(['/billing']);
+    }
   }
 
   goToBilling(appointment: Appointment): void {
@@ -387,6 +415,7 @@ export class AgendaComponent implements OnInit, OnDestroy {
         newPayment: 'true',
         patientId: appointment.patientId,
         appointmentId: appointment.id,
+        clinicalServiceId: appointment.clinicalServiceId,
         description: `Cobro de cita del ${appointment.appointmentDate} ${appointment.startTime}`
       }
     });

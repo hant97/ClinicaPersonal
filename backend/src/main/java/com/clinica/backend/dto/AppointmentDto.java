@@ -1,5 +1,6 @@
 package com.clinica.backend.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -15,6 +16,7 @@ import jakarta.validation.constraints.Size;
 public class AppointmentDto {
     private Long id;
     @NotNull(message = "El paciente es obligatorio") private Long patientId;
+    private String patientUuid;
     private String patientName;
     @NotNull(message = "La fecha de cita es obligatoria") private LocalDate appointmentDate;
     @NotNull(message = "La hora de inicio es obligatoria") private LocalTime startTime;
@@ -23,10 +25,15 @@ public class AppointmentDto {
     @NotBlank(message = "La modalidad es obligatoria") @Size(max = 50, message = "La modalidad es demasiado larga") private String modality;
     private String videoCallLink;
     private Long professionalId;
+    @JsonProperty("isFirstTime")
     private boolean isFirstTime;
     private Long clinicalSessionId;
     private Long clinicalServiceId;
     private String clinicalServiceName;
     private String notes;
     private String specialty;
+    @JsonProperty("isPaid")
+    private boolean isPaid;
+    private Long paymentId;
+    private java.math.BigDecimal paymentAmount;
 }

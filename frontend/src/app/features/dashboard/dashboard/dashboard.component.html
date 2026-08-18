@@ -19,7 +19,7 @@
         <lucide-icon [img]="DollarSign" [size]="14"></lucide-icon>
         <span>+ Cobro</span>
       </a>
-      <a routerLink="/patients" class="btn-primary !text-xs !py-2 !font-semibold shadow-sm">
+      <a routerLink="/patients/new" class="btn-primary !text-xs !py-2 !font-semibold shadow-sm">
         <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
         <span>Nuevo Paciente</span>
       </a>
@@ -71,10 +71,10 @@
             </div>
           </div>
 
-          <div class="flex items-center gap-2 shrink-0">
+          <div class="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap w-full sm:w-auto">
             <button
               type="button"
-              class="btn-primary !text-xs !py-2 font-semibold shadow-sm flex items-center gap-1.5"
+              class="btn-primary !text-xs !py-2 font-semibold shadow-sm flex items-center justify-center gap-1.5 flex-1 sm:flex-initial"
               (click)="startSessionForNextPatient()"
             >
               <lucide-icon [img]="Play" [size]="14"></lucide-icon>
@@ -82,8 +82,8 @@
             </button>
             <button
               type="button"
-              class="btn-secondary !text-xs !py-2"
-              (click)="navigateToPatient(nextAppointment.patientId)"
+              class="btn-secondary !text-xs !py-2 flex-1 sm:flex-initial text-center justify-center"
+              (click)="navigateToPatient(nextAppointment.patientUuid || nextAppointment.patientId)"
             >
               <span>Ver Ficha</span>
             </button>
@@ -167,7 +167,7 @@
             <button
               type="button"
               class="w-full flex items-center gap-3 px-4 py-3 text-left transition hover:bg-slate-50"
-              (click)="navigateToPatient(app.patientId)"
+              (click)="navigateToPatient(app.patientUuid || app.patientId)"
             >
               <span class="w-12 shrink-0 font-mono text-sm font-semibold text-slate-700">
                 {{ app.startTime ? app.startTime.substring(0,5) : '—' }}
@@ -183,6 +183,11 @@
                 <span class="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600 border border-slate-200/60">
                   {{ app.modality || 'Presencial' }}
                 </span>
+                @if (app.isPaid || app.paid) {
+                  <span class="rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 border border-emerald-200/80">
+                    Pagado
+                  </span>
+                }
                 <app-status-pill
                   [label]="app.status"
                   [variant]="getAppointmentStatusVariant(app.status)"
@@ -220,10 +225,10 @@
         </span>
       </div>
 
-      <div class="flex gap-1 px-4 pt-2 border-b border-slate-200">
+      <div class="flex gap-1 px-4 pt-2 border-b border-slate-200 overflow-x-auto no-scrollbar scroll-touch">
         <button
           type="button"
-          class="px-3 py-2 text-xs font-semibold border-b-2 transition"
+          class="px-3 py-2 text-xs font-semibold border-b-2 transition whitespace-nowrap shrink-0"
           [ngClass]="activeAttentionTab === 'alertas' ? 'border-primary-600 text-primary-700' : 'border-transparent text-slate-500 hover:text-slate-700'"
           (click)="activeAttentionTab = 'alertas'"
         >
@@ -231,7 +236,7 @@
         </button>
         <button
           type="button"
-          class="px-3 py-2 text-xs font-semibold border-b-2 transition"
+          class="px-3 py-2 text-xs font-semibold border-b-2 transition whitespace-nowrap shrink-0"
           [ngClass]="activeAttentionTab === 'insumos' ? 'border-primary-600 text-primary-700' : 'border-transparent text-slate-500 hover:text-slate-700'"
           (click)="activeAttentionTab = 'insumos'"
         >
@@ -239,7 +244,7 @@
         </button>
         <button
           type="button"
-          class="px-3 py-2 text-xs font-semibold border-b-2 transition"
+          class="px-3 py-2 text-xs font-semibold border-b-2 transition whitespace-nowrap shrink-0"
           [ngClass]="activeAttentionTab === 'notas' ? 'border-primary-600 text-primary-700' : 'border-transparent text-slate-500 hover:text-slate-700'"
           (click)="activeAttentionTab = 'notas'"
         >

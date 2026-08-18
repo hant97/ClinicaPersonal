@@ -19,6 +19,15 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
+          <a
+            [routerLink]="['/patients', patient.uuid || patient.id, 'edit']"
+            class="btn-secondary !text-xs !py-1.5"
+            title="Editar datos del paciente"
+          >
+            <lucide-icon [img]="Edit" [size]="14"></lucide-icon>
+            <span>Editar Datos</span>
+          </a>
+
           <button
             type="button"
             class="btn-secondary !text-xs !py-1.5"
@@ -45,7 +54,7 @@
             (click)="openForm()"
           >
             <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
-            <span>+ Nueva Sesión Clínica</span>
+            <span>Nueva Sesión Clínica</span>
           </button>
         </div>
       </div>
@@ -151,7 +160,7 @@
       <div class="min-w-0 space-y-4">
         <!-- 1. Workspace Navigation Tabs -->
         <div class="border-b border-line bg-surface rounded-t-xl px-3 pt-2.5 shadow-xs">
-          <nav class="flex items-center gap-1.5 overflow-x-auto pb-1" aria-label="Pestañas de expediente clínico">
+          <nav class="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-touch pb-1" aria-label="Pestañas de expediente clínico">
             <!-- Tab 1: Timeline -->
             <button
               type="button"
@@ -238,14 +247,6 @@
                   <h2 class="text-sm font-bold uppercase tracking-wider text-slate-800">Historial Cronológico de Sesiones</h2>
                   <p class="text-xs text-muted">Evoluciones clínicas y notas estructuradas S.O.A.P.</p>
                 </div>
-                <button
-                  type="button"
-                  class="btn-primary !text-xs !py-1.5"
-                  (click)="openForm()"
-                >
-                  <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
-                  <span>Registrar Nueva Sesión</span>
-                </button>
               </div>
 
               <div class="relative space-y-3 pl-6">
@@ -282,7 +283,7 @@
                           </span>
                         </span>
 
-                        @if (session.isConfidential) {
+                        @if (session.isConfidential || session.confidential) {
                           <span class="rounded bg-amber-50 px-1.5 py-0.5 text-[11px] font-semibold text-amber-800 border border-amber-200" title="Sesión Confidencial">
                             🔒 Confidencial
                           </span>
@@ -939,27 +940,6 @@
             </div>
           </div>
 
-          <!-- Quick Action Buttons -->
-          <div class="grid grid-cols-2 gap-2 pt-1 border-t border-line">
-            <button
-              type="button"
-              class="btn-primary !text-xs !py-2 w-full justify-center"
-              (click)="openForm()"
-            >
-              <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
-              <span>Nueva Sesión</span>
-            </button>
-
-            <button
-              type="button"
-              class="btn-secondary !text-xs !py-2 w-full justify-center"
-              (click)="scheduleAppointment()"
-            >
-              <lucide-icon [img]="Calendar" [size]="14"></lucide-icon>
-              <span>Agendar Cita</span>
-            </button>
-          </div>
-
           <!-- Contact (collapsed by default) -->
           <div class="border-t border-line pt-2.5">
             <button
@@ -1172,20 +1152,6 @@
         </div>
       </div>
     }
-
-    <!-- Clinical Session Modal Form -->
-    @if (showForm) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="card relative max-h-[90vh] w-full max-w-4xl overflow-y-auto !p-6 shadow-floating">
-          <app-clinical-session-form
-            [patientId]="patient.id!"
-            [session]="selectedSession"
-            (saved)="onSessionSaved()"
-            (cancelled)="closeForm()"
-          ></app-clinical-session-form>
-        </div>
-      </div>
-    }
   </div>
 
   <!-- Risk Alert Modal Form -->
@@ -1204,9 +1170,28 @@
       (close)="closePrint()"
     ></app-clinical-history-print>
   }
-} @else {
+} @else if (isLoading) {
   <div class="list-state card">
     <span class="spinner" role="status" aria-label="Cargando ficha"></span>
     <p class="text-sm font-medium">Cargando expediente clínico del paciente...</p>
+  </div>
+} @else {
+  <div class="card flex flex-col items-center justify-center gap-3 p-8 text-center border-red-200 bg-red-50/50">
+    <lucide-icon [img]="AlertTriangle" [size]="28" class="text-danger"></lucide-icon>
+    <div>
+      <h2 class="text-base font-bold text-danger">No se pudo cargar el expediente clínico</h2>
+      <p class="text-xs text-slate-600 mt-0.5">{{ errorMessage || 'El paciente no existe o no pertenece a la especialidad activa.' }}</p>
+    </div>
+    <div class="flex items-center gap-2 mt-2">
+      <button type="button" class="btn-secondary !text-xs" (click)="goBack()">
+        <lucide-icon [img]="ArrowLeft" [size]="14"></lucide-icon>
+        <span>Volver al directorio</span>
+      </button>
+      @if (currentIdentifier) {
+        <button type="button" class="btn-primary !text-xs" (click)="loadAllPatientData(currentIdentifier)">
+          Reintentar
+        </button>
+      }
+    </div>
   </div>
 }

@@ -11,7 +11,8 @@ export interface ClinicalSession {
   objective?: string;
   analysis?: string;
   plan?: string;
-  isConfidential: boolean;
+  isConfidential?: boolean;
+  confidential?: boolean;
   specialty?: string;
   createdAt?: string;
   updatedAt?: string;

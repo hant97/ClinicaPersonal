@@ -86,7 +86,7 @@ export class LandingEditorComponent implements OnInit {
       );
       if (!ok) return;
     }
-    this.router.navigate(['/']);
+    this.router.navigate(['/dashboard']);
   }
 
   @HostListener('window:beforeunload', ['$event'])

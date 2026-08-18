@@ -1,4 +1,5 @@
 @echo off
+setlocal enabledelayedexpansion
 title VidaSaludable - Levantar Proyecto
 color 0A
 
@@ -28,6 +29,12 @@ if %ERRORLEVEL% NEQ 0 (
 echo [OK] Java y Node.js detectados.
 echo.
 
+REM Detectar IP local
+set "LOCAL_IP="
+for /f "tokens=*" %%a in ('powershell -NoProfile -Command "[System.Net.Dns]::GetHostAddresses([System.Net.Dns]::GetHostName()) | Where-Object { $_.AddressFamily -eq 'InterNetwork' -and $_.IPAddressToString -notlike '127.*' -and $_.IPAddressToString -notlike '169.254.*' } | Select-Object -First 1 -ExpandProperty IPAddressToString"') do (
+    set "LOCAL_IP=%%a"
+)
+
 REM ---- BACKEND ----
 echo [1/2] Iniciando Backend (Spring Boot)...
 cd /d "%~dp0backend"
@@ -52,8 +59,17 @@ echo.
 echo ============================================
 echo   Proyecto levantado correctamente!
 echo.
-echo   Backend:  http://localhost:8080
-echo   Frontend: http://localhost:4200
+echo   Acceso Frontend:
+echo   - Local:      http://localhost:4200
+if defined LOCAL_IP (
+echo   - Red local:  http://!LOCAL_IP!:4200
+)
+echo.
+echo   Acceso Backend (API):
+echo   - Local:      http://localhost:8080
+if defined LOCAL_IP (
+echo   - Red local:  http://!LOCAL_IP!:8080
+)
 echo.
 echo   (Se abrieron 2 ventanas de terminal)
 echo ============================================

@@ -12,12 +12,12 @@
       </p>
     </div>
 
-    <div class="flex items-center gap-2">
+    <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
       <button
         type="button"
         (click)="loadCatalogs()"
         [disabled]="loadingCatalogs"
-        class="btn-secondary !text-xs !py-2 flex items-center gap-1.5"
+        class="btn-secondary !text-xs !py-2 flex items-center justify-center gap-1.5 flex-1 sm:flex-initial"
         title="Recargar catálogos"
       >
         <lucide-icon [img]="RefreshCw" [size]="14" [class.animate-spin]="loadingCatalogs"></lucide-icon>
@@ -27,7 +27,7 @@
       <button
         type="button"
         (click)="openCreateCatalogModal()"
-        class="btn-primary !text-xs !py-2 flex items-center gap-1.5 shadow-sm"
+        class="btn-primary !text-xs !py-2 flex items-center justify-center gap-1.5 shadow-sm flex-1 sm:flex-initial"
       >
         <lucide-icon [img]="Plus" [size]="15"></lucide-icon>
         <span>Nuevo Catálogo</span>
@@ -36,53 +36,53 @@
   </div>
 
   <!-- Barra de Estadísticas Rápidas -->
-  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-    <div class="card !p-3.5 flex items-center gap-3">
-      <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600 border border-primary-100">
-        <lucide-icon [img]="FolderTree" [size]="20"></lucide-icon>
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+    <div class="card !p-3 sm:!p-3.5 flex items-center gap-2.5 sm:gap-3 min-w-0">
+      <div class="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600 border border-primary-100">
+        <lucide-icon [img]="FolderTree" [size]="18"></lucide-icon>
       </div>
-      <div class="min-w-0">
-        <p class="text-[11px] font-semibold text-muted uppercase">Catálogos</p>
-        <p class="text-lg font-bold text-ink">{{ catalogs.length }}</p>
-      </div>
-    </div>
-
-    <div class="card !p-3.5 flex items-center gap-3">
-      <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100">
-        <lucide-icon [img]="Layers" [size]="20"></lucide-icon>
-      </div>
-      <div class="min-w-0">
-        <p class="text-[11px] font-semibold text-muted uppercase">Opciones Totales</p>
-        <p class="text-lg font-bold text-ink">{{ totalItemsAcrossAllCatalogs }}</p>
+      <div class="min-w-0 flex-1">
+        <p class="text-[10px] sm:text-[11px] font-semibold text-muted uppercase truncate">Catálogos</p>
+        <p class="text-base sm:text-lg font-bold text-ink">{{ catalogs.length }}</p>
       </div>
     </div>
 
-    <div class="card !p-3.5 flex items-center gap-3">
-      <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-purple-50 text-purple-600 border border-purple-100">
-        <lucide-icon [img]="Sparkles" [size]="20"></lucide-icon>
+    <div class="card !p-3 sm:!p-3.5 flex items-center gap-2.5 sm:gap-3 min-w-0">
+      <div class="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100">
+        <lucide-icon [img]="Layers" [size]="18"></lucide-icon>
       </div>
-      <div class="min-w-0">
-        <p class="text-[11px] font-semibold text-muted uppercase">En Catálogo Actual</p>
-        <p class="text-lg font-bold text-ink">{{ items.length }} <span class="text-xs font-normal text-muted">({{ activeItemsCount }} activos)</span></p>
+      <div class="min-w-0 flex-1">
+        <p class="text-[10px] sm:text-[11px] font-semibold text-muted uppercase truncate">Opciones Totales</p>
+        <p class="text-base sm:text-lg font-bold text-ink">{{ totalItemsAcrossAllCatalogs }}</p>
       </div>
     </div>
 
-    <div class="card !p-3.5 flex items-center gap-3">
-      <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
-        <lucide-icon [img]="Globe" [size]="20"></lucide-icon>
+    <div class="card !p-3 sm:!p-3.5 flex items-center gap-2.5 sm:gap-3 min-w-0">
+      <div class="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg bg-purple-50 text-purple-600 border border-purple-100">
+        <lucide-icon [img]="Sparkles" [size]="18"></lucide-icon>
       </div>
-      <div class="min-w-0">
-        <p class="text-[11px] font-semibold text-muted uppercase">Ámbito Seleccionado</p>
+      <div class="min-w-0 flex-1">
+        <p class="text-[10px] sm:text-[11px] font-semibold text-muted uppercase truncate">En Catálogo</p>
+        <p class="text-base sm:text-lg font-bold text-ink truncate">{{ items.length }} <span class="text-[10px] sm:text-xs font-normal text-muted">({{ activeItemsCount }} act.)</span></p>
+      </div>
+    </div>
+
+    <div class="card !p-3 sm:!p-3.5 flex items-center gap-2.5 sm:gap-3 min-w-0">
+      <div class="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
+        <lucide-icon [img]="Globe" [size]="18"></lucide-icon>
+      </div>
+      <div class="min-w-0 flex-1">
+        <p class="text-[10px] sm:text-[11px] font-semibold text-muted uppercase truncate">Ámbito</p>
         <p class="text-xs font-bold text-ink truncate">{{ getSpecialtyLabel(selectedCatalog?.specialty) }}</p>
       </div>
     </div>
   </div>
 
   <!-- Layout Maestro-Detalle -->
-  <div class="grid items-start gap-6 lg:grid-cols-[22rem_minmax(0,1fr)]">
+  <div class="grid grid-cols-1 items-start gap-4 sm:gap-6 lg:grid-cols-[20rem_minmax(0,1fr)] xl:grid-cols-[22rem_minmax(0,1fr)] min-w-0 w-full">
     
     <!-- PANEL IZQUIERDO: Explorador de Catálogos -->
-    <aside class="card !p-4 space-y-3.5">
+    <aside class="card !p-3.5 sm:!p-4 space-y-3 min-w-0 w-full overflow-hidden">
       <div class="flex items-center justify-between border-b border-line pb-2.5">
         <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
           <lucide-icon [img]="BookOpen" [size]="14" class="text-primary-600"></lucide-icon>
@@ -94,11 +94,11 @@
       </div>
 
       <!-- Pestañas de Ámbito / Especialidad -->
-      <div class="flex rounded-lg bg-slate-100 p-1 text-xs font-medium text-muted">
+      <div class="flex rounded-lg bg-slate-100 p-1 text-xs font-medium text-muted overflow-x-auto no-scrollbar scroll-touch">
         <button
           type="button"
           (click)="setSpecialtyFilter('ALL')"
-          class="flex-1 rounded-md py-1 text-center transition px-1.5"
+          class="flex-1 rounded-md py-1 text-center transition px-2 whitespace-nowrap shrink-0 sm:shrink"
           [ngClass]="specialtyFilter === 'ALL' ? 'bg-white text-ink shadow-sm font-semibold' : 'hover:text-ink'"
         >
           Todos
@@ -106,7 +106,7 @@
         <button
           type="button"
           (click)="setSpecialtyFilter('GENERAL')"
-          class="flex-1 rounded-md py-1 text-center transition px-1.5"
+          class="flex-1 rounded-md py-1 text-center transition px-2 whitespace-nowrap shrink-0 sm:shrink"
           [ngClass]="specialtyFilter === 'GENERAL' ? 'bg-white text-ink shadow-sm font-semibold' : 'hover:text-ink'"
         >
           General
@@ -115,7 +115,7 @@
           <button
             type="button"
             (click)="setSpecialtyFilter(s.code)"
-            class="flex-1 rounded-md py-1 text-center transition truncate px-1.5"
+            class="flex-1 rounded-md py-1 text-center transition truncate px-2 whitespace-nowrap shrink-0 sm:shrink"
             [ngClass]="specialtyFilter === s.code ? 'bg-white text-ink shadow-sm font-semibold' : 'hover:text-ink'"
             [title]="s.name"
           >
@@ -126,12 +126,12 @@
 
       <!-- Buscador de Catálogos -->
       <div class="relative">
-        <lucide-icon [img]="Search" [size]="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-muted"></lucide-icon>
+        <lucide-icon [img]="Search" [size]="14" class="input-leading-icon text-muted"></lucide-icon>
         <input
           type="text"
           [(ngModel)]="catalogSearchQuery"
           placeholder="Buscar catálogo por nombre..."
-          class="input-field !pl-8 !py-1.5 text-xs w-full"
+          class="input-field input-with-leading-icon !py-1.5 text-xs w-full"
         />
         @if (catalogSearchQuery) {
           <button
@@ -145,7 +145,7 @@
       </div>
 
       <!-- Lista Scrollable de Catálogos -->
-      <div class="max-h-[34rem] space-y-2 overflow-y-auto pr-1">
+      <div class="max-h-60 sm:max-h-[34rem] space-y-2 overflow-y-auto scroll-touch pr-1">
         @for (catalog of filteredCatalogs; track catalog.id) {
           <button
             type="button"
@@ -191,14 +191,14 @@
     </aside>
 
     <!-- PANEL DERECHO: Espacio de Trabajo del Catálogo Seleccionado -->
-    <main class="space-y-4">
+    <main class="space-y-4 min-w-0 w-full overflow-hidden">
       @if (selectedCatalog) {
         <!-- Cabecera del Catálogo -->
-        <section class="card !p-5">
-          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between border-b border-line pb-4">
-            <div class="space-y-1">
-              <div class="flex items-center gap-2.5 flex-wrap">
-                <h2 class="text-xl font-bold text-ink">{{ selectedCatalog.name }}</h2>
+        <section class="card !p-3.5 sm:!p-5 min-w-0 w-full overflow-hidden">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between border-b border-line pb-4 min-w-0">
+            <div class="space-y-1 min-w-0 flex-1">
+              <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+                <h2 class="text-lg sm:text-xl font-bold text-ink break-words">{{ selectedCatalog.name }}</h2>
                 
                 <span
                   class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border"
@@ -219,13 +219,13 @@
                   </button>
                 </div>
               </div>
-              <p class="text-xs text-muted">{{ selectedCatalog.description || 'Sin descripción adicional para este catálogo.' }}</p>
+              <p class="text-xs text-muted leading-relaxed break-words">{{ selectedCatalog.description || 'Sin descripción adicional para este catálogo.' }}</p>
             </div>
 
             <button
               type="button"
               (click)="openEditCatalogModal(selectedCatalog)"
-              class="btn-secondary !text-xs !py-1.5 flex items-center gap-1.5 shrink-0 self-start"
+              class="btn-secondary !text-xs !py-1.5 px-3 flex items-center justify-center gap-1.5 shrink-0 self-start w-full sm:w-auto"
             >
               <lucide-icon [img]="Edit2" [size]="13"></lucide-icon>
               <span>Editar Catálogo</span>
@@ -233,7 +233,7 @@
           </div>
 
           <!-- SECCIÓN: Agregar Nueva Opción Rápida (Zero Friction) -->
-          <div class="mt-4 rounded-xl border border-primary-200/80 bg-gradient-to-r from-primary-50/60 to-blue-50/40 p-4 shadow-sm">
+          <div class="mt-4 rounded-xl border border-primary-200/80 bg-gradient-to-r from-primary-50/60 to-blue-50/40 p-3.5 sm:p-4 shadow-sm min-w-0 w-full overflow-hidden">
             <div class="flex items-center justify-between mb-2.5">
               <div class="flex items-center gap-2">
                 <span class="flex h-5 w-5 items-center justify-center rounded-full bg-primary-600 text-white text-[11px] font-bold">⚡</span>
@@ -245,11 +245,11 @@
                 class="text-[11px] font-medium text-primary-700 hover:text-primary-900 underline flex items-center gap-1"
               >
                 <lucide-icon [img]="SlidersHorizontal" [size]="11"></lucide-icon>
-                <span>{{ isCustomItemCodeExpanded ? 'Ocultar código técnico' : 'Personalizar código técnico' }}</span>
+                <span>{{ isCustomItemCodeExpanded ? 'Ocultar código' : 'Personalizar código' }}</span>
               </button>
             </div>
 
-            <div class="grid gap-3" [ngClass]="isCustomItemCodeExpanded ? 'sm:grid-cols-[1.5fr_1fr_auto]' : 'sm:grid-cols-[1fr_auto]'">
+            <div class="grid grid-cols-1 gap-2.5 sm:gap-3" [ngClass]="isCustomItemCodeExpanded ? 'sm:grid-cols-[1.5fr_1fr_auto]' : 'sm:grid-cols-[1fr_auto]'">
               <div>
                 <label class="form-label !text-[11px]" for="newItemName">Nombre Visible *</label>
                 <input
@@ -258,9 +258,8 @@
                   [(ngModel)]="newItemName"
                   (input)="onNewItemNameChange()"
                   (keydown.enter)="addItem()"
-                  placeholder="Ej: Tarjeta de Crédito, Piel Sensible, Consulta Virtual..."
+                  placeholder="Ej: Tarjeta de Crédito, Consulta Virtual..."
                   class="input-field !py-2 text-xs bg-white shadow-inner"
-                  autofocus
                 />
               </div>
 
@@ -283,7 +282,7 @@
                   type="button"
                   (click)="addItem()"
                   [disabled]="!newItemName.trim() || savingItem"
-                  class="btn-primary !text-xs !py-2 w-full sm:w-auto flex items-center justify-center gap-1.5 shadow-sm"
+                  class="btn-primary !text-xs !py-2 px-4 w-full sm:w-auto flex items-center justify-center gap-1.5 shadow-sm min-h-[38px] whitespace-nowrap"
                 >
                   <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
                   <span>{{ savingItem ? 'Guardando...' : 'Agregar Opción' }}</span>
@@ -303,14 +302,14 @@
           </div>
 
           <!-- SECCIÓN: Tabla y Filtros de Opciones Registradas -->
-          <div class="mt-6 space-y-3">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div class="mt-6 space-y-3 min-w-0">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
               <!-- Filtro de estado de items -->
-              <div class="flex items-center gap-1 rounded-lg bg-slate-100 p-1 text-xs font-medium text-muted w-fit">
+              <div class="flex items-center gap-1 rounded-lg bg-slate-100 p-1 text-xs font-medium text-muted w-full sm:w-fit overflow-x-auto no-scrollbar scroll-touch">
                 <button
                   type="button"
                   (click)="itemStatusFilter = 'ALL'"
-                  class="rounded-md px-3 py-1 text-center transition"
+                  class="flex-1 sm:flex-initial rounded-md px-3 py-1 text-center transition whitespace-nowrap"
                   [ngClass]="itemStatusFilter === 'ALL' ? 'bg-white text-ink shadow-sm font-semibold' : 'hover:text-ink'"
                 >
                   Todas ({{ items.length }})
@@ -318,7 +317,7 @@
                 <button
                   type="button"
                   (click)="itemStatusFilter = 'ACTIVE'"
-                  class="rounded-md px-3 py-1 text-center transition"
+                  class="flex-1 sm:flex-initial rounded-md px-3 py-1 text-center transition whitespace-nowrap"
                   [ngClass]="itemStatusFilter === 'ACTIVE' ? 'bg-white text-emerald-700 shadow-sm font-semibold' : 'hover:text-ink'"
                 >
                   Activas ({{ activeItemsCount }})
@@ -326,7 +325,7 @@
                 <button
                   type="button"
                   (click)="itemStatusFilter = 'INACTIVE'"
-                  class="rounded-md px-3 py-1 text-center transition"
+                  class="flex-1 sm:flex-initial rounded-md px-3 py-1 text-center transition whitespace-nowrap"
                   [ngClass]="itemStatusFilter === 'INACTIVE' ? 'bg-white text-red-700 shadow-sm font-semibold' : 'hover:text-ink'"
                 >
                   Inactivas ({{ items.length - activeItemsCount }})
@@ -335,12 +334,12 @@
 
               <!-- Buscador de items dentro del catálogo -->
               <div class="relative w-full sm:w-64">
-                <lucide-icon [img]="Search" [size]="13" class="absolute left-3 top-1/2 -translate-y-1/2 text-muted"></lucide-icon>
+                <lucide-icon [img]="Search" [size]="13" class="input-leading-icon text-muted"></lucide-icon>
                 <input
                   type="text"
                   [(ngModel)]="itemSearchQuery"
                   placeholder="Filtrar opciones..."
-                  class="input-field !pl-8 !py-1 text-xs w-full"
+                  class="input-field input-with-leading-icon !py-1 text-xs w-full"
                 />
                 @if (itemSearchQuery) {
                   <button
@@ -355,8 +354,8 @@
             </div>
 
             <!-- Tabla de Opciones -->
-            <div class="table-responsive rounded-xl border border-line overflow-hidden bg-surface">
-              <table class="minimal-table">
+            <div class="table-responsive rounded-xl border border-line bg-surface scroll-touch">
+              <table class="minimal-table min-w-[560px]">
                 <thead>
                   <tr class="bg-slate-50/80">
                     <th class="w-12 text-center">#</th>

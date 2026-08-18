@@ -18,6 +18,16 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.clinica.backend.dto.PatientDto;
+import com.clinica.backend.exception.ResourceNotFoundException;
+import com.clinica.backend.model.Patient;
+
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 class PatientServiceTest {
 
     private PatientRepository patientRepository;
@@ -61,5 +71,57 @@ class PatientServiceTest {
         assertEquals(8L, stats.getNewThisMonth());
         assertEquals(5L, stats.getWithActiveAlerts());
         assertEquals(12L, stats.getMinors());
+    }
+
+    @Test
+    void getPatientByIdOrUuidShouldResolveByUuid() {
+        UUID uuid = UUID.randomUUID();
+        Patient patient = new Patient();
+        patient.setId(10L);
+        patient.setUuid(uuid);
+        patient.setFirstName("Carlos");
+        patient.setLastName("López");
+        patient.setSpecialty("PSICOLOGIA");
+
+        when(patientRepository.findByUuidAndSpecialtyAndDeletedFalse(uuid, "PSICOLOGIA"))
+                .thenReturn(Optional.of(patient));
+        when(riskAlertRepository.existsByPatientIdAndSpecialtyAndActiveTrue(10L, "PSICOLOGIA"))
+                .thenReturn(false);
+
+        PatientDto result = patientService.getPatientByIdOrUuid(uuid.toString());
+
+        assertNotNull(result);
+        assertEquals(10L, result.getId());
+        assertEquals(uuid, result.getUuid());
+        assertEquals("Carlos", result.getFirstName());
+    }
+
+    @Test
+    void getPatientByIdOrUuidShouldResolveByNumericId() {
+        Patient patient = new Patient();
+        patient.setId(15L);
+        patient.setUuid(UUID.randomUUID());
+        patient.setFirstName("María");
+        patient.setLastName("González");
+        patient.setSpecialty("PSICOLOGIA");
+
+        when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(15L, "PSICOLOGIA"))
+                .thenReturn(Optional.of(patient));
+        when(riskAlertRepository.existsByPatientIdAndSpecialtyAndActiveTrue(15L, "PSICOLOGIA"))
+                .thenReturn(false);
+
+        PatientDto result = patientService.getPatientByIdOrUuid("15");
+
+        assertNotNull(result);
+        assertEquals(15L, result.getId());
+        assertEquals("María", result.getFirstName());
+    }
+
+    @Test
+    void getPatientByIdOrUuidShouldThrowWhenNotFound() {
+        when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(999L, "PSICOLOGIA"))
+                .thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> patientService.getPatientByIdOrUuid("999"));
     }
 }

@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import org.hibernate.annotations.BatchSize;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
@@ -22,6 +23,16 @@ public class Patient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "uuid", nullable = false, unique = true, updatable = false)
+    private UUID uuid;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.uuid == null) {
+            this.uuid = UUID.randomUUID();
+        }
+    }
 
     @Column(name = "first_name", nullable = false)
     private String firstName;

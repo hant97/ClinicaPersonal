@@ -17,22 +17,45 @@
     aria-label="Navegación principal"
     [attr.inert]="isMobile && !isSidebarOpen ? '' : null"
     [attr.aria-hidden]="isMobile && !isSidebarOpen ? 'true' : null"
-    class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-line bg-surface shadow-raised transition-transform duration-200 md:sticky md:top-0 md:h-screen md:w-64 md:translate-x-0 md:shadow-none"
+    class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-line bg-surface shadow-raised transition-all duration-200 md:sticky md:top-0 md:h-screen md:translate-x-0 md:shadow-none md:w-16 lg:w-64"
     [class.translate-x-0]="isSidebarOpen"
+    [class.lg:w-16]="!isSidebarExpanded"
+    [class.lg:w-64]="isSidebarExpanded"
   >
     <!-- Brand Header -->
-    <div class="flex h-14 items-center justify-between border-b border-line px-4">
-      <div class="flex items-center gap-2.5 min-w-0">
+    <div
+      class="flex h-14 items-center justify-between border-b border-line px-3.5 transition-all md:px-0 md:justify-center"
+      [class.lg:justify-center]="!isSidebarExpanded"
+      [class.lg:px-0]="!isSidebarExpanded"
+      [class.lg:justify-between]="isSidebarExpanded"
+      [class.lg:px-4]="isSidebarExpanded"
+    >
+      <div
+        class="flex items-center gap-2.5 min-w-0 md:justify-center"
+        [class.lg:justify-center]="!isSidebarExpanded"
+        [class.lg:justify-start]="isSidebarExpanded"
+      >
         @if (clinicSettings?.logoUrl) {
-          <div class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md border border-line bg-white">
+          <div
+            class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md border border-line bg-white shadow-xs"
+            [attr.title]="clinicSettings?.shortName || 'Clínica'"
+          >
             <img class="max-h-full max-w-full object-contain" [src]="getLogoUrl(clinicSettings?.logoUrl)" alt="Logo">
           </div>
         } @else {
-          <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary-600 text-white shadow-sm" aria-hidden="true">
+          <div
+            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary-600 text-white shadow-sm"
+            [attr.title]="clinicSettings?.shortName || 'Clínica'"
+            aria-hidden="true"
+          >
             <lucide-icon [img]="HeartHandshake" [size]="18"></lucide-icon>
           </div>
         }
-        <div class="min-w-0 flex-1">
+        <div
+          class="min-w-0 flex-1 truncate block md:hidden"
+          [class.lg:block]="isSidebarExpanded"
+          [class.lg:hidden]="!isSidebarExpanded"
+        >
           <h2 class="truncate text-sm font-semibold tracking-tight text-ink">
             {{ clinicSettings?.shortName || 'Clínica Personal' }}
           </h2>
@@ -51,164 +74,377 @@
     </div>
 
     <!-- Specialty Mode Banner -->
-    <div class="px-3 pt-3 pb-1">
-      <div class="flex items-center gap-2 rounded-md bg-slate-50 px-2.5 py-1.5 border border-line text-xs font-medium text-slate-700">
+    <div
+      class="px-3 pt-2.5 pb-1 md:px-2 md:pt-2"
+      [class.lg:px-2]="!isSidebarExpanded"
+      [class.lg:px-3]="isSidebarExpanded"
+    >
+      <div
+        class="flex items-center gap-2 rounded-md bg-slate-50 px-2.5 py-1.5 border border-line text-xs font-medium text-slate-700 transition-all md:justify-center md:px-0 md:py-2"
+        [class.lg:justify-center]="!isSidebarExpanded"
+        [class.lg:px-0]="!isSidebarExpanded"
+        [class.lg:justify-start]="isSidebarExpanded"
+        [class.lg:px-2.5]="isSidebarExpanded"
+        [attr.title]="isPsychology ? 'Módulo Psicología' : (isDermatology ? 'Módulo Dermatología' : 'Clínica Integral')"
+      >
         @if (isPsychology) {
-          <span class="h-2 w-2 rounded-full bg-purple-500 shrink-0"></span>
-          <span class="truncate">Módulo Psicología</span>
+          <span class="h-2.5 w-2.5 rounded-full bg-purple-500 shrink-0"></span>
+          <span
+            class="truncate block md:hidden"
+            [class.lg:inline]="isSidebarExpanded"
+            [class.lg:hidden]="!isSidebarExpanded"
+          >Módulo Psicología</span>
         } @else if (isDermatology) {
-          <span class="h-2 w-2 rounded-full bg-cyan-500 shrink-0"></span>
-          <span class="truncate">Módulo Dermatología</span>
+          <span class="h-2.5 w-2.5 rounded-full bg-cyan-500 shrink-0"></span>
+          <span
+            class="truncate block md:hidden"
+            [class.lg:inline]="isSidebarExpanded"
+            [class.lg:hidden]="!isSidebarExpanded"
+          >Módulo Dermatología</span>
         } @else {
-          <span class="h-2 w-2 rounded-full bg-primary-500 shrink-0"></span>
-          <span class="truncate">Clínica Integral</span>
+          <span class="h-2.5 w-2.5 rounded-full bg-primary-500 shrink-0"></span>
+          <span
+            class="truncate block md:hidden"
+            [class.lg:inline]="isSidebarExpanded"
+            [class.lg:hidden]="!isSidebarExpanded"
+          >Clínica Integral</span>
         }
       </div>
     </div>
 
     <!-- Navigation Items -->
-    <nav class="flex flex-1 flex-col gap-0.5 px-3 py-2 overflow-y-auto" aria-label="Navegación principal">
+    <nav
+      class="flex flex-1 flex-col gap-1 px-3 py-2 overflow-y-auto scroll-touch md:px-2"
+      [class.lg:px-2]="!isSidebarExpanded"
+      [class.lg:px-3]="isSidebarExpanded"
+      aria-label="Navegación principal"
+    >
       @if (!isSiteAdmin) {
-        <p class="px-2.5 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted">Principal</p>
+        <p
+          class="px-2.5 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted block md:hidden"
+          [class.lg:block]="isSidebarExpanded"
+          [class.lg:hidden]="!isSidebarExpanded"
+        >
+          Principal
+        </p>
+        <div
+          class="my-1 border-t border-line/60 hidden md:block"
+          [class.lg:block]="!isSidebarExpanded"
+          [class.lg:hidden]="isSidebarExpanded"
+          aria-hidden="true"
+        ></div>
         
         <a
           routerLink="/dashboard"
-          routerLinkActive="bg-primary-50 text-primary-700 font-semibold"
+          routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
           [routerLinkActiveOptions]="{ exact: true }"
-          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500"
+          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+          [class.lg:justify-center]="!isSidebarExpanded"
+          [class.lg:px-0]="!isSidebarExpanded"
+          [class.lg:justify-start]="isSidebarExpanded"
+          [class.lg:px-2.5]="isSidebarExpanded"
+          title="Dashboard"
+          aria-label="Dashboard"
           (click)="closeSidebar()"
         >
           <lucide-icon [img]="LayoutDashboard" [size]="18" class="shrink-0"></lucide-icon>
-          <span>Dashboard</span>
+          <span
+            class="truncate block md:hidden"
+            [class.lg:inline]="isSidebarExpanded"
+            [class.lg:hidden]="!isSidebarExpanded"
+          >Dashboard</span>
         </a>
 
         <a
           routerLink="/agenda"
-          routerLinkActive="bg-primary-50 text-primary-700 font-semibold"
+          routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
           [routerLinkActiveOptions]="{ exact: true }"
-          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500"
+          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+          [class.lg:justify-center]="!isSidebarExpanded"
+          [class.lg:px-0]="!isSidebarExpanded"
+          [class.lg:justify-start]="isSidebarExpanded"
+          [class.lg:px-2.5]="isSidebarExpanded"
+          title="Agenda"
+          aria-label="Agenda"
           (click)="closeSidebar()"
         >
           <lucide-icon [img]="CalendarDays" [size]="18" class="shrink-0"></lucide-icon>
-          <span>Agenda</span>
+          <span
+            class="truncate block md:hidden"
+            [class.lg:inline]="isSidebarExpanded"
+            [class.lg:hidden]="!isSidebarExpanded"
+          >Agenda</span>
         </a>
 
         <a
           routerLink="/patients"
-          routerLinkActive="bg-primary-50 text-primary-700 font-semibold"
+          routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
           [routerLinkActiveOptions]="{ paths: 'subset', queryParams: 'exact', matrixParams: 'ignored', fragment: 'ignored' }"
-          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500"
+          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+          [class.lg:justify-center]="!isSidebarExpanded"
+          [class.lg:px-0]="!isSidebarExpanded"
+          [class.lg:justify-start]="isSidebarExpanded"
+          [class.lg:px-2.5]="isSidebarExpanded"
+          title="Pacientes"
+          aria-label="Pacientes"
           (click)="closeSidebar()"
         >
           <lucide-icon [img]="Users" [size]="18" class="shrink-0"></lucide-icon>
-          <span>Pacientes</span>
+          <span
+            class="truncate block md:hidden"
+            [class.lg:inline]="isSidebarExpanded"
+            [class.lg:hidden]="!isSidebarExpanded"
+          >Pacientes</span>
         </a>
 
         <a
           routerLink="/billing"
-          routerLinkActive="bg-primary-50 text-primary-700 font-semibold"
+          routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
           [routerLinkActiveOptions]="{ exact: true }"
-          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500"
+          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+          [class.lg:justify-center]="!isSidebarExpanded"
+          [class.lg:px-0]="!isSidebarExpanded"
+          [class.lg:justify-start]="isSidebarExpanded"
+          [class.lg:px-2.5]="isSidebarExpanded"
+          title="Cobros"
+          aria-label="Cobros"
           (click)="closeSidebar()"
         >
           <lucide-icon [img]="Receipt" [size]="18" class="shrink-0"></lucide-icon>
-          <span>Cobros</span>
+          <span
+            class="truncate block md:hidden"
+            [class.lg:inline]="isSidebarExpanded"
+            [class.lg:hidden]="!isSidebarExpanded"
+          >Cobros</span>
         </a>
 
-        <p class="mt-4 px-2.5 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted">Operación & Recursos</p>
+        <!-- Category: Operación & Recursos -->
+        <p
+          class="mt-4 px-2.5 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted block md:hidden"
+          [class.lg:block]="isSidebarExpanded"
+          [class.lg:hidden]="!isSidebarExpanded"
+        >
+          Operación & Recursos
+        </p>
+        <div
+          class="my-1.5 border-t border-line/60 hidden md:block"
+          [class.lg:block]="!isSidebarExpanded"
+          [class.lg:hidden]="isSidebarExpanded"
+          aria-hidden="true"
+        ></div>
 
         <a
           routerLink="/services"
-          routerLinkActive="bg-primary-50 text-primary-700 font-semibold"
+          routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
           [routerLinkActiveOptions]="{ exact: true }"
-          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500"
+          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+          [class.lg:justify-center]="!isSidebarExpanded"
+          [class.lg:px-0]="!isSidebarExpanded"
+          [class.lg:justify-start]="isSidebarExpanded"
+          [class.lg:px-2.5]="isSidebarExpanded"
+          title="Servicios"
+          aria-label="Servicios"
           (click)="closeSidebar()"
         >
           <lucide-icon [img]="Activity" [size]="18" class="shrink-0"></lucide-icon>
-          <span>Servicios</span>
+          <span
+            class="truncate block md:hidden"
+            [class.lg:inline]="isSidebarExpanded"
+            [class.lg:hidden]="!isSidebarExpanded"
+          >Servicios</span>
         </a>
 
         @if (isPsychology) {
           <a
             routerLink="/tests-catalog"
-            routerLinkActive="bg-primary-50 text-primary-700 font-semibold"
+            routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
             [routerLinkActiveOptions]="{ exact: true }"
-            class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500"
+            class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+            [class.lg:justify-center]="!isSidebarExpanded"
+            [class.lg:px-0]="!isSidebarExpanded"
+            [class.lg:justify-start]="isSidebarExpanded"
+            [class.lg:px-2.5]="isSidebarExpanded"
+            title="Pruebas"
+            aria-label="Pruebas"
             (click)="closeSidebar()"
           >
             <lucide-icon [img]="ClipboardList" [size]="18" class="shrink-0"></lucide-icon>
-            <span>Pruebas</span>
+            <span
+              class="truncate block md:hidden"
+              [class.lg:inline]="isSidebarExpanded"
+              [class.lg:hidden]="!isSidebarExpanded"
+            >Pruebas</span>
           </a>
         }
 
         <a
           routerLink="/inventory"
-          routerLinkActive="bg-primary-50 text-primary-700 font-semibold"
+          routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
           [routerLinkActiveOptions]="{ exact: true }"
-          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500"
+          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+          [class.lg:justify-center]="!isSidebarExpanded"
+          [class.lg:px-0]="!isSidebarExpanded"
+          [class.lg:justify-start]="isSidebarExpanded"
+          [class.lg:px-2.5]="isSidebarExpanded"
+          title="Inventario"
+          aria-label="Inventario"
           (click)="closeSidebar()"
         >
           <lucide-icon [img]="Package" [size]="18" class="shrink-0"></lucide-icon>
-          <span>Inventario</span>
+          <span
+            class="truncate block md:hidden"
+            [class.lg:inline]="isSidebarExpanded"
+            [class.lg:hidden]="!isSidebarExpanded"
+          >Inventario</span>
         </a>
 
         <a
           routerLink="/settings/catalogs"
-          routerLinkActive="bg-primary-50 text-primary-700 font-semibold"
-          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500"
+          routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
+          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+          [class.lg:justify-center]="!isSidebarExpanded"
+          [class.lg:px-0]="!isSidebarExpanded"
+          [class.lg:justify-start]="isSidebarExpanded"
+          [class.lg:px-2.5]="isSidebarExpanded"
+          title="Catálogos"
+          aria-label="Catálogos"
           (click)="closeSidebar()"
         >
           <lucide-icon [img]="Settings" [size]="18" class="shrink-0"></lucide-icon>
-          <span>Catálogos</span>
+          <span
+            class="truncate block md:hidden"
+            [class.lg:inline]="isSidebarExpanded"
+            [class.lg:hidden]="!isSidebarExpanded"
+          >Catálogos</span>
         </a>
 
         @if (isAdmin || isSiteAdmin) {
           <a
             routerLink="/settings/users"
-            routerLinkActive="bg-primary-50 text-primary-700 font-semibold"
-            class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500"
+            routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
+            class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+            [class.lg:justify-center]="!isSidebarExpanded"
+            [class.lg:px-0]="!isSidebarExpanded"
+            [class.lg:justify-start]="isSidebarExpanded"
+            [class.lg:px-2.5]="isSidebarExpanded"
+            title="Personal & Cuentas"
+            aria-label="Personal & Cuentas"
             (click)="closeSidebar()"
           >
             <lucide-icon [img]="UserCog" [size]="18" class="shrink-0"></lucide-icon>
-            <span>Personal & Cuentas</span>
+            <span
+              class="truncate block md:hidden"
+              [class.lg:inline]="isSidebarExpanded"
+              [class.lg:hidden]="!isSidebarExpanded"
+            >Personal & Cuentas</span>
           </a>
         }
       }
 
       @if (isSiteAdmin || isAdmin) {
-        <p class="mt-3 px-2.5 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted">Sitio Web</p>
+        <!-- Category: Sitio Web -->
+        <p
+          class="mt-3 px-2.5 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted block md:hidden"
+          [class.lg:block]="isSidebarExpanded"
+          [class.lg:hidden]="!isSidebarExpanded"
+        >
+          Sitio Web
+        </p>
+        <div
+          class="my-1.5 border-t border-line/60 hidden md:block"
+          [class.lg:block]="!isSidebarExpanded"
+          [class.lg:hidden]="isSidebarExpanded"
+          aria-hidden="true"
+        ></div>
+
         <a
           routerLink="/editar-sitio"
-          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500"
+          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+          [class.lg:justify-center]="!isSidebarExpanded"
+          [class.lg:px-0]="!isSidebarExpanded"
+          [class.lg:justify-start]="isSidebarExpanded"
+          [class.lg:px-2.5]="isSidebarExpanded"
+          title="Editar Sitio Web"
+          aria-label="Editar Sitio Web"
           (click)="closeSidebar()"
         >
           <lucide-icon [img]="Sparkles" [size]="18" class="shrink-0"></lucide-icon>
-          <span>Editar Sitio Web</span>
+          <span
+            class="truncate block md:hidden"
+            [class.lg:inline]="isSidebarExpanded"
+            [class.lg:hidden]="!isSidebarExpanded"
+          >Editar Sitio Web</span>
         </a>
       }
     </nav>
 
-    <!-- Footer Profile & Logout -->
-    <div class="border-t border-line p-3 space-y-1 bg-slate-50/50">
+    <!-- Footer Profile & Actions -->
+    <div
+      class="border-t border-line p-2 space-y-1 bg-slate-50/50 md:p-1.5"
+      [class.lg:p-1.5]="!isSidebarExpanded"
+      [class.lg:p-3]="isSidebarExpanded"
+    >
       <a
         routerLink="/profile"
-        class="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+        class="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 md:justify-center md:px-0"
+        [class.lg:justify-center]="!isSidebarExpanded"
+        [class.lg:px-0]="!isSidebarExpanded"
+        [class.lg:justify-start]="isSidebarExpanded"
+        [class.lg:px-2.5]="isSidebarExpanded"
+        [attr.title]="'Mi Perfil: ' + greetingName"
+        aria-label="Mi Perfil"
         (click)="closeSidebar()"
       >
-        <span class="avatar-initials !h-7 !w-7 !text-xs">{{ avatarLetter }}</span>
-        <div class="min-w-0 flex-1 truncate">
+        <span class="avatar-initials !h-7 !w-7 !text-xs shrink-0">{{ avatarLetter }}</span>
+        <div
+          class="min-w-0 flex-1 truncate block md:hidden"
+          [class.lg:block]="isSidebarExpanded"
+          [class.lg:hidden]="!isSidebarExpanded"
+        >
           <p class="text-xs font-semibold text-ink truncate">{{ greetingName }}</p>
           <p class="text-[10px] text-muted truncate">Mi Perfil</p>
         </div>
       </a>
 
+      <!-- Desktop/Tablet Sidebar Collapse Toggle -->
       <button
         type="button"
-        class="flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left text-xs font-medium text-danger transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-danger"
+        class="hidden md:flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+        [class.lg:justify-center]="!isSidebarExpanded"
+        [class.lg:px-0]="!isSidebarExpanded"
+        [class.lg:justify-start]="isSidebarExpanded"
+        [class.lg:px-2.5]="isSidebarExpanded"
+        (click)="toggleSidebarCollapse()"
+        [attr.title]="isSidebarExpanded ? 'Colapsar barra lateral' : 'Expandir barra lateral'"
+        [attr.aria-label]="isSidebarExpanded ? 'Colapsar barra lateral' : 'Expandir barra lateral'"
+      >
+        <lucide-icon [img]="isSidebarExpanded ? ChevronLeft : ChevronRight" [size]="16" class="shrink-0"></lucide-icon>
+        <span
+          class="block md:hidden"
+          [class.lg:inline]="isSidebarExpanded"
+          [class.lg:hidden]="!isSidebarExpanded"
+        >
+          {{ isSidebarExpanded ? 'Colapsar menú' : 'Expandir menú' }}
+        </span>
+      </button>
+
+      <button
+        type="button"
+        class="flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left text-xs font-medium text-danger transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-danger md:justify-center md:px-0"
+        [class.lg:justify-center]="!isSidebarExpanded"
+        [class.lg:px-0]="!isSidebarExpanded"
+        [class.lg:justify-start]="isSidebarExpanded"
+        [class.lg:px-2.5]="isSidebarExpanded"
         (click)="logout()"
+        title="Cerrar sesión"
+        aria-label="Cerrar sesión"
       >
         <lucide-icon [img]="LogOut" [size]="16" class="shrink-0"></lucide-icon>
-        <span>Cerrar sesión</span>
+        <span
+          class="block md:hidden"
+          [class.lg:inline]="isSidebarExpanded"
+          [class.lg:hidden]="!isSidebarExpanded"
+        >Cerrar sesión</span>
       </button>
     </div>
   </aside>

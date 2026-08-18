@@ -7,6 +7,7 @@ import com.clinica.backend.dto.DashboardStatsDto;
 import com.clinica.backend.dto.SupplyDto;
 import com.clinica.backend.model.Appointment;
 import com.clinica.backend.model.Patient;
+import com.clinica.backend.model.Payment;
 import com.clinica.backend.model.RiskAlert;
 import com.clinica.backend.repository.AppointmentRepository;
 import com.clinica.backend.repository.ClinicalSessionRepository;
@@ -105,14 +106,30 @@ public class DashboardService {
                 PageRequest.of(0, 5)
         );
 
+        // 6b. Citas del día (agenda completa, con estado real)
+        List<Appointment> todaysList = appointmentRepository
+                .findTodayAppointmentsBySpecialty(today, specialty);
+
+        List<Long> dashboardAppIds = new ArrayList<>();
+        upcomingList.forEach(a -> { if (a.getId() != null) dashboardAppIds.add(a.getId()); });
+        todaysList.forEach(a -> { if (a.getId() != null) dashboardAppIds.add(a.getId()); });
+
+        Map<Long, Payment> dashboardPayments = new HashMap<>();
+        if (!dashboardAppIds.isEmpty()) {
+            paymentRepository.findByAppointmentIdInAndDeletedFalse(dashboardAppIds)
+                    .forEach(p -> {
+                        if (p.getAppointment() != null && p.getAppointment().getId() != null) {
+                            dashboardPayments.putIfAbsent(p.getAppointment().getId(), p);
+                        }
+                    });
+        }
+
         List<DashboardAppointmentDto> upcomingAppointments = upcomingList.stream()
-                .map(this::toDashboardAppointmentDto)
+                .map(a -> toDashboardAppointmentDto(a, dashboardPayments.get(a.getId())))
                 .collect(Collectors.toList());
 
-        // 6b. Citas del día (agenda completa, con estado real)
-        List<DashboardAppointmentDto> todaysAppointments = appointmentRepository
-                .findTodayAppointmentsBySpecialty(today, specialty).stream()
-                .map(this::toDashboardAppointmentDto)
+        List<DashboardAppointmentDto> todaysAppointments = todaysList.stream()
+                .map(a -> toDashboardAppointmentDto(a, dashboardPayments.get(a.getId())))
                 .collect(Collectors.toList());
 
         // 7. Alertas de riesgo activas (filtradas por especialidad si es necesario)
@@ -224,13 +241,14 @@ public class DashboardService {
                 .build();
     }
 
-    private DashboardAppointmentDto toDashboardAppointmentDto(Appointment app) {
+    private DashboardAppointmentDto toDashboardAppointmentDto(Appointment app, Payment payment) {
         String patientName = app.getPatient() != null
                 ? (app.getPatient().getFirstName() + " " + app.getPatient().getLastName()).trim()
                 : "Paciente #" + app.getId();
         return DashboardAppointmentDto.builder()
                 .id(app.getId())
                 .patientId(app.getPatient() != null ? app.getPatient().getId() : null)
+                .patientUuid(app.getPatient() != null && app.getPatient().getUuid() != null ? app.getPatient().getUuid().toString() : null)
                 .patientName(patientName)
                 .appointmentDate(app.getAppointmentDate())
                 .startTime(app.getStartTime())
@@ -240,6 +258,9 @@ public class DashboardService {
                 .videoCallLink(app.getVideoCallLink())
                 .isFirstTime(app.isFirstTime())
                 .notes(app.getNotes())
+                .isPaid(payment != null)
+                .paymentId(payment != null ? payment.getId() : null)
+                .paymentAmount(payment != null ? payment.getAmount() : null)
                 .build();
     }
 }

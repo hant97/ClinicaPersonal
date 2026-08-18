@@ -1,380 +1,528 @@
-<div
-  class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-  role="dialog"
-  aria-modal="true"
-  appFocusTrap
-  (trapClose)="cancel()"
->
-  <div class="card max-h-[90vh] w-full max-w-3xl overflow-y-auto p-5 md:p-7">
-    <div
-      class="mb-6 flex items-center justify-between border-b border-line pb-4"
-    >
-      <h2>{{ patientId ? "Editar Paciente" : "Nuevo Paciente" }}</h2>
-      <button
-        class="btn-text text-muted hover:text-danger"
-        aria-label="Cerrar"
-        (click)="cancel()"
-      >
-        ×
-      </button>
+<div class="max-w-5xl mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-5 sm:space-y-6">
+  <!-- Top Navigation & Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-line pb-4">
+    <div>
+      <div class="flex items-center gap-2 text-xs font-semibold text-muted mb-1">
+        <button
+          type="button"
+          (click)="cancel()"
+          class="hover:text-ink inline-flex items-center gap-1 transition"
+        >
+          <lucide-icon [img]="ArrowLeft" [size]="14"></lucide-icon>
+          <span>Pacientes</span>
+        </button>
+        <span>/</span>
+        <span class="text-primary-600">{{ isEditMode ? 'Editar Paciente' : 'Nuevo Paciente' }}</span>
+      </div>
+      <h1 class="text-2xl font-bold text-ink">
+        {{ isEditMode ? 'Editar Ficha de Paciente' : 'Registrar Nuevo Paciente' }}
+      </h1>
+      <p class="text-xs text-muted mt-0.5">
+        {{ isEditMode ? 'Actualiza los datos personales, de contacto y clínicos del paciente.' : 'Ingresa la información básica para abrir el expediente clínico del paciente.' }}
+      </p>
     </div>
 
-    <form [formGroup]="patientForm" (ngSubmit)="onSubmit()">
-      <div class="grid grid-cols-1 gap-x-5 md:grid-cols-2">
-        <div class="form-group">
-          <label class="form-label">Nombres</label>
-          <input type="text" formControlName="firstName" class="input-field" />
-          @if (
-            patientForm.get("firstName")?.invalid &&
-            (patientForm.get("firstName")?.dirty ||
-              patientForm.get("firstName")?.touched)
-          ) {
-            <div class="error-messages">
-              @if (patientForm.get("firstName")?.hasError("required")) {
-                <small class="text-error">Este campo es requerido.</small>
-              }
-              @if (patientForm.get("firstName")?.hasError("minlength")) {
-                <small class="text-error">Mínimo 2 caracteres.</small>
-              }
-              @if (patientForm.get("firstName")?.hasError("maxlength")) {
-                <small class="text-error">Máximo 50 caracteres.</small>
-              }
-              @if (patientForm.get("firstName")?.hasError("pattern")) {
-                <small class="text-error"
-                  >Solo se permiten letras y espacios.</small
-                >
-              }
-            </div>
-          }
+    <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+      <button
+        type="button"
+        class="btn-secondary !text-xs !py-2 px-3 sm:px-4 flex-1 sm:flex-initial text-center justify-center whitespace-nowrap min-h-[38px]"
+        (click)="cancel()"
+        [disabled]="isSaving"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        class="btn-primary !text-xs !py-2 px-3 sm:px-4 shadow-sm flex-1 sm:flex-initial flex items-center justify-center whitespace-nowrap min-h-[38px]"
+        (click)="onSubmit()"
+        [disabled]="isSaving"
+      >
+        @if (isSaving) {
+          <span class="spinner !h-3.5 !w-3.5 !border-2 mr-1.5 shrink-0" role="status"></span>
+          <span>Guardando...</span>
+        } @else {
+          <lucide-icon [img]="Save" [size]="14" class="mr-1.5 shrink-0"></lucide-icon>
+          <span>{{ isEditMode ? 'Guardar Cambios' : 'Guardar Paciente' }}</span>
+        }
+      </button>
+    </div>
+  </div>
+
+  @if (isLoading) {
+    <div class="card flex flex-col items-center justify-center p-12 text-center">
+      <span class="spinner !h-8 !w-8 !border-3 mb-3 text-primary-600" role="status"></span>
+      <p class="text-sm font-semibold text-ink">Cargando datos del paciente...</p>
+    </div>
+  } @else {
+    <!-- Informative Banner for Required Fields -->
+    <div class="flex items-center gap-3 rounded-xl border border-primary-100 bg-primary-50/60 p-3.5 text-xs text-primary-900 shadow-xs">
+      <lucide-icon [img]="Info" [size]="18" class="shrink-0 text-primary-600"></lucide-icon>
+      <div>
+        <span class="font-bold">Información de llenado:</span>
+        Los campos marcados con asterisco rojo (<span class="text-danger font-bold text-sm leading-none">*</span>) son <strong>obligatorios</strong> para registrar al paciente en la clínica.
+      </div>
+    </div>
+
+    <form [formGroup]="patientForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      <!-- Section 1: Identificación y Datos Personales -->
+      <div class="card p-5 md:p-6 space-y-5 bg-surface border border-line shadow-xs">
+        <div class="flex items-center gap-2.5 border-b border-line pb-3">
+          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-50 text-primary-700">
+            <lucide-icon [img]="User" [size]="18"></lucide-icon>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-ink">1. Identificación y Datos Personales</h2>
+            <p class="text-xs text-muted">Información básica y legal del paciente</p>
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Apellidos</label>
-          <input type="text" formControlName="lastName" class="input-field" />
-          @if (
-            patientForm.get("lastName")?.invalid &&
-            (patientForm.get("lastName")?.dirty ||
-              patientForm.get("lastName")?.touched)
-          ) {
-            <div class="error-messages">
-              @if (patientForm.get("lastName")?.hasError("required")) {
-                <small class="text-error">Este campo es requerido.</small>
-              }
-              @if (patientForm.get("lastName")?.hasError("minlength")) {
-                <small class="text-error">Mínimo 2 caracteres.</small>
-              }
-              @if (patientForm.get("lastName")?.hasError("maxlength")) {
-                <small class="text-error">Máximo 50 caracteres.</small>
-              }
-              @if (patientForm.get("lastName")?.hasError("pattern")) {
-                <small class="text-error"
-                  >Solo se permiten letras y espacios.</small
-                >
-              }
-            </div>
-          }
-        </div>
-        <div class="form-group">
-          <label class="form-label">Tipo de Documento</label>
-          <select formControlName="documentType" class="input-field">
-            <option value="">Seleccione</option>
-            @for (doc of documentTypes; track doc.id) {
-              <option [value]="doc.itemCode">{{ doc.itemName }}</option>
-            }
-          </select>
-          @if (
-            patientForm.get("documentType")?.invalid &&
-            (patientForm.get("documentType")?.dirty ||
-              patientForm.get("documentType")?.touched)
-          ) {
-            <div class="error-messages">
-              <small class="text-error">Este campo es requerido.</small>
-            </div>
-          }
-        </div>
-        <div class="form-group">
-          <label class="form-label">Número de Documento</label>
-          <input
-            type="text"
-            formControlName="identificationDocument"
-            class="input-field"
-            maxlength="8"
-          />
-          @if (
-            patientForm.get("identificationDocument")?.invalid &&
-            (patientForm.get("identificationDocument")?.dirty ||
-              patientForm.get("identificationDocument")?.touched)
-          ) {
-            <div class="error-messages">
-              @if (
-                patientForm.get("identificationDocument")?.hasError("required")
-              ) {
-                <small class="text-error">Este campo es requerido.</small>
-              }
-              @if (
-                patientForm
-                  .get("identificationDocument")
-                  ?.hasError("minlength") ||
-                patientForm.get("identificationDocument")?.hasError("maxlength")
-              ) {
-                <small class="text-error">Longitud inválida.</small>
-              }
-              @if (
-                patientForm.get("identificationDocument")?.hasError("pattern")
-              ) {
-                <small class="text-error">Formato inválido.</small>
-              }
-            </div>
-          }
-        </div>
-        <div class="form-group">
-          <label class="form-label">Teléfono</label>
-          <input
-            type="text"
-            formControlName="contactNumber"
-            class="input-field"
-          />
-          @if (
-            patientForm.get("contactNumber")?.invalid &&
-            (patientForm.get("contactNumber")?.dirty ||
-              patientForm.get("contactNumber")?.touched)
-          ) {
-            <div class="error-messages">
-              @if (patientForm.get("contactNumber")?.hasError("minlength")) {
-                <small class="text-error">Mínimo 7 caracteres.</small>
-              }
-              @if (patientForm.get("contactNumber")?.hasError("maxlength")) {
-                <small class="text-error">Máximo 15 caracteres.</small>
-              }
-              @if (patientForm.get("contactNumber")?.hasError("pattern")) {
-                <small class="text-error">Formato de teléfono inválido.</small>
-              }
-            </div>
-          }
-        </div>
-        <div class="form-group">
-          <label class="form-label">Email</label>
-          <input type="email" formControlName="email" class="input-field" />
-          @if (
-            patientForm.get("email")?.invalid &&
-            (patientForm.get("email")?.dirty ||
-              patientForm.get("email")?.touched)
-          ) {
-            <div class="error-messages">
-              @if (patientForm.get("email")?.hasError("email")) {
-                <small class="text-error"
-                  >Debe ser un correo electrónico válido.</small
-                >
-              }
-            </div>
-          }
-        </div>
-        <div class="form-group">
-          <label class="form-label">Fecha de Nacimiento</label>
-          <input
-            type="date"
-            formControlName="dateOfBirth"
-            class="input-field"
-          />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Género</label>
-          <select formControlName="gender" class="input-field">
-            <option value="">Seleccione</option>
-            @for (gender of genders; track gender.id) {
-              <option [value]="gender.itemCode">{{ gender.itemName }}</option>
-            }
-          </select>
-          @if (
-            patientForm.get("gender")?.invalid &&
-            (patientForm.get("gender")?.dirty ||
-              patientForm.get("gender")?.touched)
-          ) {
-            <div class="error-messages">
-              @if (patientForm.get("gender")?.hasError("required")) {
-                <small class="text-error">Este campo es requerido.</small>
-              }
-            </div>
-          }
-        </div>
-        @if (!isDermatology) {
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Nombres -->
           <div class="form-group">
-            <label class="form-label">Estado Civil</label>
-            <select formControlName="maritalStatus" class="input-field">
-              <option value="">Seleccione</option>
-              @for (status of maritalStatuses; track status.id) {
-                <option [value]="status.itemCode">{{ status.itemName }}</option>
+            <label class="form-label flex items-center justify-between">
+              <span>Nombres <span class="text-danger font-bold">*</span></span>
+              <span class="text-[11px] text-muted font-normal">Obligatorio</span>
+            </label>
+            <input
+              type="text"
+              formControlName="firstName"
+              class="input-field"
+              placeholder="Ej. Juan Carlos"
+              [class.border-danger]="patientForm.get('firstName')?.invalid && (patientForm.get('firstName')?.dirty || patientForm.get('firstName')?.touched)"
+            />
+            @if (patientForm.get('firstName')?.invalid && (patientForm.get('firstName')?.dirty || patientForm.get('firstName')?.touched)) {
+              <div class="error-messages mt-1 text-xs text-danger">
+                @if (patientForm.get('firstName')?.hasError('required')) {
+                  <span>El nombre es obligatorio.</span>
+                }
+                @if (patientForm.get('firstName')?.hasError('minlength')) {
+                  <span>Mínimo 2 caracteres.</span>
+                }
+                @if (patientForm.get('firstName')?.hasError('maxlength')) {
+                  <span>Máximo 50 caracteres.</span>
+                }
+                @if (patientForm.get('firstName')?.hasError('pattern')) {
+                  <span>Solo se permiten letras y espacios.</span>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Apellidos -->
+          <div class="form-group">
+            <label class="form-label flex items-center justify-between">
+              <span>Apellidos <span class="text-danger font-bold">*</span></span>
+              <span class="text-[11px] text-muted font-normal">Obligatorio</span>
+            </label>
+            <input
+              type="text"
+              formControlName="lastName"
+              class="input-field"
+              placeholder="Ej. Pérez Gómez"
+              [class.border-danger]="patientForm.get('lastName')?.invalid && (patientForm.get('lastName')?.dirty || patientForm.get('lastName')?.touched)"
+            />
+            @if (patientForm.get('lastName')?.invalid && (patientForm.get('lastName')?.dirty || patientForm.get('lastName')?.touched)) {
+              <div class="error-messages mt-1 text-xs text-danger">
+                @if (patientForm.get('lastName')?.hasError('required')) {
+                  <span>Los apellidos son obligatorios.</span>
+                }
+                @if (patientForm.get('lastName')?.hasError('minlength')) {
+                  <span>Mínimo 2 caracteres.</span>
+                }
+                @if (patientForm.get('lastName')?.hasError('maxlength')) {
+                  <span>Máximo 50 caracteres.</span>
+                }
+                @if (patientForm.get('lastName')?.hasError('pattern')) {
+                  <span>Solo se permiten letras y espacios.</span>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Tipo de Documento -->
+          <div class="form-group">
+            <label class="form-label flex items-center justify-between">
+              <span>Tipo de Documento <span class="text-danger font-bold">*</span></span>
+              <span class="text-[11px] text-muted font-normal">Obligatorio</span>
+            </label>
+            <select
+              formControlName="documentType"
+              class="input-field"
+              [class.border-danger]="patientForm.get('documentType')?.invalid && (patientForm.get('documentType')?.dirty || patientForm.get('documentType')?.touched)"
+            >
+              <option value="">Seleccione un tipo</option>
+              @for (doc of documentTypes; track doc.id) {
+                <option [value]="doc.itemCode">{{ doc.itemName }}</option>
               }
             </select>
-          </div>
-        }
-        <div class="form-group">
-          <label class="form-label">Ocupación / Profesión</label>
-          <input type="text" formControlName="occupation" class="input-field" />
-          @if (
-            patientForm.get("occupation")?.invalid &&
-            (patientForm.get("occupation")?.dirty ||
-              patientForm.get("occupation")?.touched)
-          ) {
-            <div class="error-messages">
-              @if (patientForm.get("occupation")?.hasError("maxlength")) {
-                <small class="text-error">Máximo 100 caracteres.</small>
-              }
-            </div>
-          }
-        </div>
-        @if (!isDermatology) {
-          <div class="form-group">
-            <label class="form-label">Dirección</label>
-            <input type="text" formControlName="address" class="input-field" />
-            @if (
-              patientForm.get("address")?.invalid &&
-              (patientForm.get("address")?.dirty ||
-                patientForm.get("address")?.touched)
-            ) {
-              <div class="error-messages">
-                @if (patientForm.get("address")?.hasError("maxlength")) {
-                  <small class="text-error">Máximo 255 caracteres.</small>
-                }
+            @if (patientForm.get('documentType')?.invalid && (patientForm.get('documentType')?.dirty || patientForm.get('documentType')?.touched)) {
+              <div class="error-messages mt-1 text-xs text-danger">
+                <span>Debe seleccionar un tipo de documento.</span>
               </div>
             }
           </div>
-        }
-        <div class="form-group md:col-span-2">
-          <label class="form-label">Motivo de Consulta</label>
-          <textarea
-            formControlName="reasonForConsultation"
-            class="input-field"
-            rows="3"
-          ></textarea>
-          @if (
-            patientForm.get("reasonForConsultation")?.invalid &&
-            (patientForm.get("reasonForConsultation")?.dirty ||
-              patientForm.get("reasonForConsultation")?.touched)
-          ) {
-            <div class="error-messages">
-              @if (
-                patientForm.get("reasonForConsultation")?.hasError("maxlength")
-              ) {
-                <small class="text-error">Máximo 500 caracteres.</small>
-              }
-            </div>
-          }
-        </div>
-        @if (!isDermatology) {
-          <div class="form-group">
-            <label class="form-label">Contacto de Emergencia</label>
-            <input
-              type="text"
-              formControlName="emergencyContact"
-              class="input-field"
-            />
-            @if (
-              patientForm.get("emergencyContact")?.invalid &&
-              (patientForm.get("emergencyContact")?.dirty ||
-                patientForm.get("emergencyContact")?.touched)
-            ) {
-              <div class="error-messages">
-                @if (
-                  patientForm.get("emergencyContact")?.hasError("maxlength")
-                ) {
-                  <small class="text-error">Máximo 100 caracteres.</small>
-                }
-              </div>
-            }
-          </div>
-        }
-        @if (!esMenorEdad && !isDermatology) {
-          <div class="form-group md:col-span-2">
-            <label
-              class="flex cursor-pointer items-center gap-2 text-sm font-normal text-ink"
-            >
-              <input type="checkbox" formControlName="hasLegalGuardian" />
-              ¿Tiene tutor legal? (Aplica para adultos con curatela,
-              discapacidad, etc.)
-            </label>
-          </div>
-        }
 
-        @if (
-          esMenorEdad ||
-          (patientForm.get("hasLegalGuardian")?.value && !isDermatology)
-        ) {
+          <!-- Número de Documento -->
           <div class="form-group">
-            <label class="form-label">Nombre del Apoderado / Tutor</label>
+            <label class="form-label flex items-center justify-between">
+              <span>Número de Documento <span class="text-danger font-bold">*</span></span>
+              <span class="text-[11px] text-muted font-normal">Obligatorio</span>
+            </label>
             <input
               type="text"
-              formControlName="guardianName"
+              formControlName="identificationDocument"
               class="input-field"
+              placeholder="Ej. 12345678"
+              [class.border-danger]="patientForm.get('identificationDocument')?.invalid && (patientForm.get('identificationDocument')?.dirty || patientForm.get('identificationDocument')?.touched)"
             />
-            @if (
-              patientForm.get("guardianName")?.invalid &&
-              (patientForm.get("guardianName")?.dirty ||
-                patientForm.get("guardianName")?.touched)
-            ) {
-              <div class="error-messages">
-                @if (patientForm.get("guardianName")?.hasError("maxlength")) {
-                  <small class="text-error">Máximo 100 caracteres.</small>
+            @if (patientForm.get('identificationDocument')?.invalid && (patientForm.get('identificationDocument')?.dirty || patientForm.get('identificationDocument')?.touched)) {
+              <div class="error-messages mt-1 text-xs text-danger">
+                @if (patientForm.get('identificationDocument')?.hasError('required')) {
+                  <span>El número de documento es requerido.</span>
                 }
-                @if (patientForm.get("guardianName")?.hasError("pattern")) {
-                  <small class="text-error"
-                    >Solo se permiten letras y espacios.</small
-                  >
+                @if (patientForm.get('identificationDocument')?.hasError('minlength') || patientForm.get('identificationDocument')?.hasError('maxlength')) {
+                  <span>Longitud de documento inválida (DNI requiere 8 dígitos).</span>
+                }
+                @if (patientForm.get('identificationDocument')?.hasError('pattern')) {
+                  <span>Formato de documento inválido (solo números para DNI).</span>
                 }
               </div>
             }
           </div>
+
+          <!-- Género -->
           <div class="form-group">
-            <label class="form-label">Contacto del Apoderado / Tutor</label>
+            <label class="form-label flex items-center justify-between">
+              <span>Género <span class="text-danger font-bold">*</span></span>
+              <span class="text-[11px] text-muted font-normal">Obligatorio</span>
+            </label>
+            <select
+              formControlName="gender"
+              class="input-field"
+              [class.border-danger]="patientForm.get('gender')?.invalid && (patientForm.get('gender')?.dirty || patientForm.get('gender')?.touched)"
+            >
+              <option value="">Seleccione género</option>
+              @for (gender of genders; track gender.id) {
+                <option [value]="gender.itemCode">{{ gender.itemName }}</option>
+              }
+            </select>
+            @if (patientForm.get('gender')?.invalid && (patientForm.get('gender')?.dirty || patientForm.get('gender')?.touched)) {
+              <div class="error-messages mt-1 text-xs text-danger">
+                <span>El género es obligatorio.</span>
+              </div>
+            }
+          </div>
+
+          <!-- Fecha de Nacimiento -->
+          <div class="form-group">
+            <label class="form-label flex items-center justify-between">
+              <span>Fecha de Nacimiento</span>
+              <span class="text-[11px] text-muted font-normal">Opcional</span>
+            </label>
             <input
-              type="text"
-              formControlName="guardianContact"
+              type="date"
+              formControlName="dateOfBirth"
               class="input-field"
             />
-            @if (
-              patientForm.get("guardianContact")?.invalid &&
-              (patientForm.get("guardianContact")?.dirty ||
-                patientForm.get("guardianContact")?.touched)
-            ) {
-              <div class="error-messages">
-                @if (
-                  patientForm.get("guardianContact")?.hasError("minlength")
-                ) {
-                  <small class="text-error">Mínimo 7 caracteres.</small>
+          </div>
+
+          <!-- Estado Civil (Oculto en Derma) -->
+          @if (!isDermatology) {
+            <div class="form-group">
+              <label class="form-label flex items-center justify-between">
+                <span>Estado Civil</span>
+                <span class="text-[11px] text-muted font-normal">Opcional</span>
+              </label>
+              <select formControlName="maritalStatus" class="input-field">
+                <option value="">Seleccione estado civil</option>
+                @for (status of maritalStatuses; track status.id) {
+                  <option [value]="status.itemCode">{{ status.itemName }}</option>
                 }
-                @if (
-                  patientForm.get("guardianContact")?.hasError("maxlength")
-                ) {
-                  <small class="text-error">Máximo 15 caracteres.</small>
-                }
-                @if (patientForm.get("guardianContact")?.hasError("pattern")) {
-                  <small class="text-error"
-                    >Formato de teléfono inválido.</small
-                  >
+              </select>
+            </div>
+          }
+
+          <!-- Ocupación / Profesión -->
+          <div class="form-group">
+            <label class="form-label flex items-center justify-between">
+              <span>Ocupación / Profesión</span>
+              <span class="text-[11px] text-muted font-normal">Opcional</span>
+            </label>
+            <input
+              type="text"
+              formControlName="occupation"
+              class="input-field"
+              placeholder="Ej. Ingeniero, Estudiante, etc."
+            />
+            @if (patientForm.get('occupation')?.invalid && (patientForm.get('occupation')?.dirty || patientForm.get('occupation')?.touched)) {
+              <div class="error-messages mt-1 text-xs text-danger">
+                @if (patientForm.get('occupation')?.hasError('maxlength')) {
+                  <span>Máximo 100 caracteres.</span>
                 }
               </div>
             }
           </div>
-        }
+        </div>
       </div>
 
-      <div
-        class="mt-7 flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end"
-      >
-        <label class="mr-auto flex cursor-pointer items-center gap-2 rounded-lg bg-canvas px-3 py-2 text-sm font-medium text-ink">
-          <input type="checkbox" formControlName="active" class="h-4 w-4 rounded border-line text-primary-600 focus:ring-primary-500" />
-          Paciente activo
+      <!-- Section 2: Contacto y Ubicación -->
+      <div class="card p-5 md:p-6 space-y-5 bg-surface border border-line shadow-xs">
+        <div class="flex items-center gap-2.5 border-b border-line pb-3">
+          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
+            <lucide-icon [img]="Phone" [size]="18"></lucide-icon>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-ink">2. Contacto y Ubicación</h2>
+            <p class="text-xs text-muted">Canales de comunicación y domicilio para seguimiento y notificaciones</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Teléfono -->
+          <div class="form-group">
+            <label class="form-label flex items-center justify-between">
+              <span>Teléfono / Celular</span>
+              <span class="text-[11px] text-muted font-normal">Opcional</span>
+            </label>
+            <div class="relative">
+              <input
+                type="text"
+                formControlName="contactNumber"
+                class="input-field"
+                placeholder="Ej. +51 987654321"
+                [class.border-danger]="patientForm.get('contactNumber')?.invalid && (patientForm.get('contactNumber')?.dirty || patientForm.get('contactNumber')?.touched)"
+              />
+            </div>
+            @if (patientForm.get('contactNumber')?.invalid && (patientForm.get('contactNumber')?.dirty || patientForm.get('contactNumber')?.touched)) {
+              <div class="error-messages mt-1 text-xs text-danger">
+                @if (patientForm.get('contactNumber')?.hasError('minlength')) {
+                  <span>Mínimo 7 caracteres.</span>
+                }
+                @if (patientForm.get('contactNumber')?.hasError('maxlength')) {
+                  <span>Máximo 15 caracteres.</span>
+                }
+                @if (patientForm.get('contactNumber')?.hasError('pattern')) {
+                  <span>Formato de teléfono inválido (solo números y signos permitidos).</span>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label class="form-label flex items-center justify-between">
+              <span>Correo Electrónico</span>
+              <span class="text-[11px] text-muted font-normal">Opcional</span>
+            </label>
+            <input
+              type="email"
+              formControlName="email"
+              class="input-field"
+              placeholder="Ej. paciente@correo.com"
+              [class.border-danger]="patientForm.get('email')?.invalid && (patientForm.get('email')?.dirty || patientForm.get('email')?.touched)"
+            />
+            @if (patientForm.get('email')?.invalid && (patientForm.get('email')?.dirty || patientForm.get('email')?.touched)) {
+              <div class="error-messages mt-1 text-xs text-danger">
+                @if (patientForm.get('email')?.hasError('email')) {
+                  <span>Debe ingresar un correo electrónico válido.</span>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Dirección (Oculto en Derma) -->
+          @if (!isDermatology) {
+            <div class="form-group md:col-span-2">
+              <label class="form-label flex items-center justify-between">
+                <span>Dirección Domiciliaria</span>
+                <span class="text-[11px] text-muted font-normal">Opcional</span>
+              </label>
+              <input
+                type="text"
+                formControlName="address"
+                class="input-field"
+                placeholder="Ej. Av. Los Álamos 123, Dpto 401"
+              />
+              @if (patientForm.get('address')?.invalid && (patientForm.get('address')?.dirty || patientForm.get('address')?.touched)) {
+                <div class="error-messages mt-1 text-xs text-danger">
+                  @if (patientForm.get('address')?.hasError('maxlength')) {
+                    <span>Máximo 255 caracteres.</span>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Contacto de Emergencia -->
+            <div class="form-group md:col-span-2">
+              <label class="form-label flex items-center justify-between">
+                <span>Contacto de Emergencia</span>
+                <span class="text-[11px] text-muted font-normal">Opcional</span>
+              </label>
+              <input
+                type="text"
+                formControlName="emergencyContact"
+                class="input-field"
+                placeholder="Ej. María Pérez (Madre) - 987654321"
+              />
+              @if (patientForm.get('emergencyContact')?.invalid && (patientForm.get('emergencyContact')?.dirty || patientForm.get('emergencyContact')?.touched)) {
+                <div class="error-messages mt-1 text-xs text-danger">
+                  @if (patientForm.get('emergencyContact')?.hasError('maxlength')) {
+                    <span>Máximo 100 caracteres.</span>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Section 3: Motivo de Consulta y Tutor Legal -->
+      <div class="card p-5 md:p-6 space-y-5 bg-surface border border-line shadow-xs">
+        <div class="flex items-center gap-2.5 border-b border-line pb-3">
+          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-700">
+            <lucide-icon [img]="FileText" [size]="18"></lucide-icon>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-ink">3. Motivo de Consulta e Información de Tutor</h2>
+            <p class="text-xs text-muted">Anotación inicial del motivo de visita y datos de apoderado legal</p>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <!-- Motivo de Consulta -->
+          <div class="form-group">
+            <label class="form-label flex items-center justify-between">
+              <span>Motivo Principal de Consulta</span>
+              <span class="text-[11px] text-muted font-normal">Opcional</span>
+            </label>
+            <textarea
+              formControlName="reasonForConsultation"
+              class="input-field"
+              rows="3"
+              placeholder="Describa brevemente el síntoma o motivo por el que acude el paciente..."
+            ></textarea>
+            @if (patientForm.get('reasonForConsultation')?.invalid && (patientForm.get('reasonForConsultation')?.dirty || patientForm.get('reasonForConsultation')?.touched)) {
+              <div class="error-messages mt-1 text-xs text-danger">
+                @if (patientForm.get('reasonForConsultation')?.hasError('maxlength')) {
+                  <span>Máximo 500 caracteres.</span>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Tutor / Apoderado Legal Section -->
+          @if (!esMenorEdad && !isDermatology) {
+            <div class="rounded-xl border border-line bg-canvas p-4">
+              <label class="flex cursor-pointer items-center gap-2.5 text-sm font-medium text-ink">
+                <input
+                  type="checkbox"
+                  formControlName="hasLegalGuardian"
+                  class="h-4 w-4 rounded border-line text-primary-600 focus:ring-primary-500"
+                />
+                <span>¿El paciente cuenta con tutor o apoderado legal?</span>
+                <span class="text-xs text-muted font-normal">(Curatela, adultos mayores o discapacidad)</span>
+              </label>
+            </div>
+          }
+
+          @if (esMenorEdad) {
+            <div class="flex items-center gap-2.5 rounded-xl border border-amber-200 bg-amber-50/80 p-3.5 text-xs text-amber-900">
+              <lucide-icon [img]="AlertCircle" [size]="16" class="shrink-0 text-amber-600"></lucide-icon>
+              <span><strong>Paciente menor de edad detectado:</strong> Complete los datos del padre, madre o apoderado legal.</span>
+            </div>
+          }
+
+          @if (esMenorEdad || (patientForm.get('hasLegalGuardian')?.value && !isDermatology)) {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              <div class="form-group">
+                <label class="form-label flex items-center justify-between">
+                  <span>Nombre del Apoderado / Tutor</span>
+                  <span class="text-[11px] text-muted font-normal">Opcional</span>
+                </label>
+                <input
+                  type="text"
+                  formControlName="guardianName"
+                  class="input-field"
+                  placeholder="Ej. Roberto Pérez (Padre)"
+                />
+                @if (patientForm.get('guardianName')?.invalid && (patientForm.get('guardianName')?.dirty || patientForm.get('guardianName')?.touched)) {
+                  <div class="error-messages mt-1 text-xs text-danger">
+                    @if (patientForm.get('guardianName')?.hasError('maxlength')) {
+                      <span>Máximo 100 caracteres.</span>
+                    }
+                    @if (patientForm.get('guardianName')?.hasError('pattern')) {
+                      <span>Solo se permiten letras y espacios.</span>
+                    }
+                  </div>
+                }
+              </div>
+
+              <div class="form-group">
+                <label class="form-label flex items-center justify-between">
+                  <span>Teléfono del Apoderado / Tutor</span>
+                  <span class="text-[11px] text-muted font-normal">Opcional</span>
+                </label>
+                <input
+                  type="text"
+                  formControlName="guardianContact"
+                  class="input-field"
+                  placeholder="Ej. 987654321"
+                />
+                @if (patientForm.get('guardianContact')?.invalid && (patientForm.get('guardianContact')?.dirty || patientForm.get('guardianContact')?.touched)) {
+                  <div class="error-messages mt-1 text-xs text-danger">
+                    @if (patientForm.get('guardianContact')?.hasError('minlength')) {
+                      <span>Mínimo 7 caracteres.</span>
+                    }
+                    @if (patientForm.get('guardianContact')?.hasError('maxlength')) {
+                      <span>Máximo 15 caracteres.</span>
+                    }
+                    @if (patientForm.get('guardianContact')?.hasError('pattern')) {
+                      <span>Formato de teléfono inválido.</span>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Section 4: Estado y Acciones -->
+      <div class="card p-5 bg-surface border border-line shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+        <label class="flex cursor-pointer items-center gap-2.5 text-sm font-semibold text-ink">
+          <input
+            type="checkbox"
+            formControlName="active"
+            class="h-4 w-4 rounded border-line text-primary-600 focus:ring-primary-500"
+          />
+          <span>Paciente Activo</span>
+          <span class="text-xs text-muted font-normal">(Habilitado para consultas y citas)</span>
         </label>
-        <button type="button" class="btn-secondary" (click)="cancel()">
-          Cancelar
-        </button>
-        <button
-          type="submit"
-          class="btn-primary"
-          [disabled]="patientForm.invalid || isSaving"
-        >
-          {{ patientId ? "Guardar Cambios" : "Guardar Paciente" }}
-        </button>
+
+        <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <button
+            type="button"
+            class="btn-secondary !text-xs !py-2.5 px-5"
+            (click)="cancel()"
+            [disabled]="isSaving"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="btn-primary !text-xs !py-2.5 px-6 shadow-sm"
+            [disabled]="isSaving"
+          >
+            @if (isSaving) {
+              <span class="spinner !h-3.5 !w-3.5 !border-2 mr-1.5" role="status"></span>
+              <span>Guardando...</span>
+            } @else {
+              <lucide-icon [img]="Save" [size]="14" class="mr-1.5"></lucide-icon>
+              <span>{{ isEditMode ? 'Guardar Cambios' : 'Guardar Paciente' }}</span>
+            }
+          </button>
+        </div>
       </div>
     </form>
-  </div>
+  }
 </div>

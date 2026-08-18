@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 
 import { PatientFormComponent } from './patient-form.component';
 import { SpecialtyService } from '../../../core/services/specialty.service';
@@ -19,7 +20,10 @@ describe('PatientFormComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [PatientFormComponent, HttpClientTestingModule],
-      providers: [{ provide: SpecialtyService, useValue: specialtySpy }]
+      providers: [
+        provideRouter([]),
+        { provide: SpecialtyService, useValue: specialtySpy }
+      ]
     })
     .compileComponents();
 

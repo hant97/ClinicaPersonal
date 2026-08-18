@@ -1,14 +1,283 @@
-<div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" appFocusTrap (trapClose)="close()" (click)="close()">
-  <section class="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-line bg-surface p-5 shadow-raised sm:p-6" (click)="$event.stopPropagation()"><div class="mb-6 flex items-center justify-between border-b border-line pb-4"><h2 class="text-xl font-semibold">{{ isEditMode ? 'Editar' : 'Nuevo' }} insumo</h2><button class="btn-text text-muted hover:text-danger" (click)="close()" title="Cerrar"><lucide-icon [img]="X" [size]="20"></lucide-icon></button></div>
-    <form [formGroup]="form" (ngSubmit)="onSubmit()"><div class="grid gap-5 sm:grid-cols-2">
-      <div class="sm:col-span-2"><label for="name" class="form-label">Nombre del insumo <span class="text-danger">*</span></label><input type="text" id="name" formControlName="name" class="input-field" placeholder="Ej. Paracetamol 500mg" [class.border-danger]="form.get('name')?.invalid && form.get('name')?.touched">@if (form.get('name')?.invalid && form.get('name')?.touched) { <small class="mt-1 block text-sm text-danger">El nombre es requerido.</small> }</div>
-      <div class="sm:col-span-2"><label for="description" class="form-label">Descripción</label><textarea id="description" formControlName="description" class="input-field" rows="2" placeholder="Detalles adicionales..."></textarea></div>
-      <div class="sm:col-span-2"><label class="form-label">Imagen del insumo</label><div class="flex items-center gap-4">@if (imagePreview) { <img [src]="imagePreview" class="h-20 w-32 rounded-lg object-cover" alt="Previsualización del insumo"> }<label class="cursor-pointer rounded-lg border border-line px-3 py-2 text-sm font-semibold">Cargar imagen<input type="file" accept="image/png,image/jpeg,image/webp" class="hidden" (change)="onImageSelected($event)"></label></div><label for="imageUrl" class="form-label mt-3">URL de imagen (opcional)</label><input type="text" id="imageUrl" formControlName="imageUrl" class="input-field" placeholder="https://ejemplo.com/imagen.jpg"></div>
-      <div><label for="currentStock" class="form-label">Stock actual <span class="text-danger">*</span></label><input type="number" id="currentStock" formControlName="currentStock" class="input-field" min="0" [class.border-danger]="form.get('currentStock')?.invalid && form.get('currentStock')?.touched">@if (form.get('currentStock')?.invalid && form.get('currentStock')?.touched) { <small class="mt-1 block text-sm text-danger">Stock inválido.</small> }</div>
-      <div><label for="minStockLevel" class="form-label">Nivel mínimo <span class="text-danger">*</span></label><input type="number" id="minStockLevel" formControlName="minStockLevel" class="input-field" min="0" [class.border-danger]="form.get('minStockLevel')?.invalid && form.get('minStockLevel')?.touched">@if (form.get('minStockLevel')?.invalid && form.get('minStockLevel')?.touched) { <small class="mt-1 block text-sm text-danger">Nivel mínimo inválido.</small> }</div>
-      <div><label for="unit" class="form-label">Unidad de medida <span class="text-danger">*</span></label><select id="unit" formControlName="unit" class="input-field" [class.border-danger]="form.get('unit')?.invalid && form.get('unit')?.touched"><option value="">Seleccione</option>@for (unit of supplyUnits; track unit.id) { <option [value]="unit.itemCode">{{ unit.itemName }}</option> }</select>@if (form.get('unit')?.invalid && form.get('unit')?.touched) { <small class="mt-1 block text-sm text-danger">La unidad es requerida.</small> }</div>
-      <div><label for="price" class="form-label">Precio base (S/)</label><input type="number" id="price" formControlName="price" class="input-field" step="0.01" min="0" [class.border-danger]="form.get('price')?.invalid && form.get('price')?.touched">@if (form.get('price')?.invalid && form.get('price')?.touched) { <small class="mt-1 block text-sm text-danger">Precio inválido.</small> }</div>
-      <div><label for="expirationDate" class="form-label">Fecha de caducidad</label><input type="date" id="expirationDate" formControlName="expirationDate" class="input-field"></div>
-    </div><div class="mt-7 flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end"><button type="button" class="btn-secondary" (click)="close()">Cancelar</button><button type="submit" class="btn-primary" [disabled]="isSubmitting">{{ isSubmitting ? 'Guardando...' : 'Guardar' }}</button></div></form>
-  </section>
+<div
+  class="fixed inset-0 z-50 overflow-hidden"
+  role="dialog"
+  aria-modal="true"
+  appFocusTrap
+  (trapClose)="close()"
+>
+  <!-- Backdrop con blur -->
+  <div
+    class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
+    aria-hidden="true"
+    (click)="close()"
+  ></div>
+
+  <!-- Slide-Over Container (Desde la derecha) -->
+  <div class="fixed inset-y-0 right-0 flex max-w-full pl-0 sm:pl-6 md:pl-10">
+    <div
+      class="w-screen max-w-lg md:max-w-xl bg-surface shadow-2xl border-l border-line flex flex-col transform transition-transform duration-300 ease-in-out"
+    >
+      <!-- Fixed Header (Sticky Top) -->
+      <div class="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-line bg-canvas/90 backdrop-blur-sm shrink-0">
+        <div class="flex items-center gap-3 min-w-0 pr-3">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-700 border border-amber-100 shadow-xs shrink-0">
+            <lucide-icon [img]="Package" [size]="20"></lucide-icon>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-amber-700 mb-0.5">
+              <span>Inventario y Farmacia</span>
+            </div>
+            <h2 class="text-base font-bold text-ink truncate">
+              {{ isEditMode ? 'Editar Insumo / Medicamento' : 'Nuevo Insumo / Medicamento' }}
+            </h2>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="btn-text !p-2 text-muted hover:text-ink hover:bg-slate-100 rounded-lg transition"
+          aria-label="Cerrar panel"
+          (click)="close()"
+        >
+          <lucide-icon [img]="X" [size]="18"></lucide-icon>
+        </button>
+      </div>
+
+      <!-- Scrollable Form Body -->
+      <div class="flex-1 overflow-y-auto p-5 md:p-6 space-y-5">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" id="inventory-form-element" class="space-y-5">
+          <!-- Tarjeta 1: Información Principal -->
+          <div class="rounded-xl border border-line bg-surface p-4 space-y-3.5 shadow-xs">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-muted border-b border-line pb-2">
+              1. Datos del Insumo
+            </h3>
+
+            <!-- Nombre -->
+            <div>
+              <label for="name" class="form-label flex items-center justify-between mb-1.5">
+                <span>Nombre del Insumo <span class="text-danger font-bold">*</span></span>
+                <span class="text-[11px] text-muted font-normal">Obligatorio</span>
+              </label>
+              <input
+                type="text"
+                id="name"
+                formControlName="name"
+                class="input-field !text-xs"
+                placeholder="Ej. Paracetamol 500mg / Gasas estériles"
+                [class.border-danger]="form.get('name')?.invalid && form.get('name')?.touched"
+              />
+              @if (form.get('name')?.invalid && form.get('name')?.touched) {
+                <small class="mt-1 block text-xs text-danger font-medium">El nombre del insumo es obligatorio.</small>
+              }
+            </div>
+
+            <!-- Descripción -->
+            <div>
+              <label for="description" class="form-label flex items-center justify-between mb-1.5">
+                <span>Descripción o Especificaciones</span>
+                <span class="text-[11px] text-muted font-normal">Opcional</span>
+              </label>
+              <textarea
+                id="description"
+                formControlName="description"
+                class="input-field !text-xs"
+                rows="2"
+                placeholder="Detalles de presentación, lote o indicaciones..."
+              ></textarea>
+            </div>
+
+            <!-- Unidad de Medida y Fecha de Caducidad -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label for="unit" class="form-label flex items-center justify-between mb-1.5">
+                  <span>Unidad de Medida <span class="text-danger font-bold">*</span></span>
+                </label>
+                <select
+                  id="unit"
+                  formControlName="unit"
+                  class="input-field !text-xs"
+                  [class.border-danger]="form.get('unit')?.invalid && form.get('unit')?.touched"
+                >
+                  <option value="">Seleccione unidad</option>
+                  @for (unit of supplyUnits; track unit.id) {
+                    <option [value]="unit.itemCode">{{ unit.itemName }}</option>
+                  }
+                </select>
+                @if (form.get('unit')?.invalid && form.get('unit')?.touched) {
+                  <small class="mt-1 block text-xs text-danger font-medium">Debe seleccionar una unidad.</small>
+                }
+              </div>
+
+              <div>
+                <label for="expirationDate" class="form-label flex items-center justify-between mb-1.5">
+                  <span>Fecha de Caducidad</span>
+                  <span class="text-[11px] text-muted font-normal">Opcional</span>
+                </label>
+                <input
+                  type="date"
+                  id="expirationDate"
+                  formControlName="expirationDate"
+                  class="input-field !text-xs"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Tarjeta 2: Control de Stock y Precio -->
+          <div class="rounded-xl border border-line bg-surface p-4 space-y-3.5 shadow-xs">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-muted border-b border-line pb-2">
+              2. Existencias y Precios
+            </h3>
+
+            <div class="grid grid-cols-3 gap-3">
+              <div>
+                <label for="currentStock" class="form-label flex items-center justify-between mb-1.5">
+                  <span>Stock Actual <span class="text-danger font-bold">*</span></span>
+                </label>
+                <input
+                  type="number"
+                  id="currentStock"
+                  formControlName="currentStock"
+                  class="input-field !text-xs text-center font-bold"
+                  min="0"
+                  [class.border-danger]="form.get('currentStock')?.invalid && form.get('currentStock')?.touched"
+                />
+                @if (form.get('currentStock')?.invalid && form.get('currentStock')?.touched) {
+                  <small class="mt-1 block text-[11px] text-danger font-medium">Inválido</small>
+                }
+              </div>
+
+              <div>
+                <label for="minStockLevel" class="form-label flex items-center justify-between mb-1.5">
+                  <span>Mínimo <span class="text-danger font-bold">*</span></span>
+                </label>
+                <input
+                  type="number"
+                  id="minStockLevel"
+                  formControlName="minStockLevel"
+                  class="input-field !text-xs text-center font-bold"
+                  min="0"
+                  [class.border-danger]="form.get('minStockLevel')?.invalid && form.get('minStockLevel')?.touched"
+                />
+                @if (form.get('minStockLevel')?.invalid && form.get('minStockLevel')?.touched) {
+                  <small class="mt-1 block text-[11px] text-danger font-medium">Inválido</small>
+                }
+              </div>
+
+              <div>
+                <label for="price" class="form-label flex items-center justify-between mb-1.5">
+                  <span>Precio (S/)</span>
+                </label>
+                <input
+                  type="number"
+                  id="price"
+                  formControlName="price"
+                  class="input-field !text-xs font-bold text-right"
+                  step="0.01"
+                  min="0"
+                />
+              </div>
+            </div>
+
+            @if (isLowStock) {
+              <div class="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-900">
+                <lucide-icon [img]="AlertTriangle" [size]="15" class="text-amber-600 shrink-0"></lucide-icon>
+                <span><strong>Alerta:</strong> El stock actual se encuentra en o por debajo del nivel mínimo.</span>
+              </div>
+            }
+          </div>
+
+          <!-- Tarjeta 3: Imagen del Insumo -->
+          <div class="rounded-xl border border-line bg-surface p-4 space-y-3.5 shadow-xs">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-muted border-b border-line pb-2">
+              3. Fotografía o Imagen
+            </h3>
+
+            @if (imagePreview) {
+              <div class="flex items-center gap-4 rounded-xl border border-line bg-canvas p-3">
+                <img
+                  [src]="imagePreview"
+                  class="h-16 w-20 rounded-lg object-cover border border-line shadow-xs shrink-0"
+                  alt="Previsualización del insumo"
+                />
+                <div class="space-y-1 min-w-0 flex-1">
+                  <p class="text-xs font-semibold text-ink truncate">Imagen cargada</p>
+                  <div class="flex items-center gap-2">
+                    <label class="cursor-pointer text-[11px] font-semibold text-primary-600 hover:text-primary-800">
+                      Cambiar
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        class="hidden"
+                        (change)="onImageSelected($event)"
+                      />
+                    </label>
+                    <span class="text-slate-300">|</span>
+                    <button
+                      type="button"
+                      class="text-[11px] font-semibold text-danger hover:text-red-700"
+                      (click)="removeImage()"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            } @else {
+              <div class="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-line bg-canvas/60 p-4 text-center hover:bg-slate-50 transition">
+                <lucide-icon [img]="Image" [size]="24" class="text-muted mb-1.5"></lucide-icon>
+                <label class="cursor-pointer inline-flex items-center gap-1.5 text-xs font-semibold text-primary-600 hover:text-primary-800">
+                  <lucide-icon [img]="Upload" [size]="13"></lucide-icon>
+                  <span>Subir fotografía</span>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    class="hidden"
+                    (change)="onImageSelected($event)"
+                  />
+                </label>
+                <p class="text-[10px] text-muted mt-1">PNG, JPG o WEBP (máx. 2 MB)</p>
+              </div>
+            }
+
+            <div>
+              <label for="imageUrl" class="form-label text-[11px] mb-1">O pegar URL de imagen externa</label>
+              <input
+                type="text"
+                id="imageUrl"
+                formControlName="imageUrl"
+                class="input-field !text-xs"
+                placeholder="https://ejemplo.com/insumo.jpg"
+              />
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Fixed Footer (Sticky Bottom) -->
+      <div class="border-t border-line px-4 sm:px-6 py-3 sm:py-3.5 bg-canvas/90 backdrop-blur-sm flex items-center justify-end gap-2.5 sm:gap-3 shrink-0 safe-bottom">
+        <button
+          type="button"
+          class="btn-secondary !text-xs !py-2 px-4 whitespace-nowrap min-h-[38px] flex items-center justify-center"
+          (click)="close()"
+          [disabled]="isSubmitting"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="btn-primary !text-xs !py-2 px-6 shadow-sm font-bold whitespace-nowrap min-h-[38px] flex items-center justify-center"
+          (click)="onSubmit()"
+          [disabled]="isSubmitting || form.invalid"
+        >
+          @if (isSubmitting) {
+            <span class="spinner !h-3.5 !w-3.5 !border-2 mr-1.5 shrink-0" role="status"></span>
+            <span>Guardando...</span>
+          } @else {
+            <lucide-icon [img]="Save" [size]="14" class="mr-1.5 shrink-0"></lucide-icon>
+            <span>{{ isEditMode ? 'Guardar Cambios' : 'Guardar Insumo' }}</span>
+          }
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

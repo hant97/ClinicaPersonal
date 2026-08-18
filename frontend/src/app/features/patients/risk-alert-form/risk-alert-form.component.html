@@ -80,17 +80,17 @@
       </div>
 
       <div
-        class="mt-7 flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end"
+        class="mt-7 flex items-center justify-end gap-2.5 sm:gap-3 border-t border-line pt-5 w-full"
       >
-        <button type="button" class="btn-secondary" (click)="cancel()">
+        <button type="button" class="btn-secondary !text-xs !py-2 px-4 whitespace-nowrap min-h-[38px] flex-1 sm:flex-initial flex items-center justify-center" (click)="cancel()">
           Cancelar
         </button>
         <button
           type="submit"
-          class="btn-primary"
+          class="btn-primary !text-xs !py-2 px-5 shadow-sm whitespace-nowrap min-h-[38px] flex-1 sm:flex-initial flex items-center justify-center"
           [disabled]="alertForm.invalid || isSaving"
         >
-          Guardar Alerta
+          {{ isSaving ? 'Guardando...' : 'Guardar Alerta' }}
         </button>
       </div>
     </form>

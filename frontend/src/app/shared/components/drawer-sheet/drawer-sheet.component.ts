@@ -21,14 +21,14 @@ import { LucideAngularModule, X } from 'lucide-angular';
           (click)="close()"
         ></div>
 
-        <div class="fixed inset-y-0 right-0 flex max-w-full pl-10">
+        <div class="fixed inset-y-0 right-0 flex max-w-full pl-0 sm:pl-10">
           <div
             class="w-screen bg-surface shadow-floating border-l border-line flex flex-col transform transition-transform ease-in-out duration-300"
             [ngClass]="widthClass"
           >
             <!-- Header -->
-            <div class="flex items-center justify-between px-6 py-4 border-b border-line bg-slate-50/50">
-              <div class="min-w-0 flex-1 pr-4">
+            <div class="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-line bg-slate-50/50">
+              <div class="min-w-0 flex-1 pr-3 sm:pr-4">
                 <h3 class="text-base font-semibold text-ink truncate">{{ title }}</h3>
                 @if (subtitle) {
                   <p class="text-xs text-muted truncate mt-0.5">{{ subtitle }}</p>
@@ -38,7 +38,7 @@ import { LucideAngularModule, X } from 'lucide-angular';
                 <ng-content select="[drawer-header-actions]"></ng-content>
                 <button
                   type="button"
-                  class="btn-text"
+                  class="btn-text !p-1.5"
                   aria-label="Cerrar panel"
                   (click)="close()"
                 >
@@ -48,12 +48,12 @@ import { LucideAngularModule, X } from 'lucide-angular';
             </div>
 
             <!-- Body -->
-            <div class="flex-1 overflow-y-auto p-6">
+            <div class="flex-1 overflow-y-auto p-4 sm:p-6 scroll-touch">
               <ng-content></ng-content>
             </div>
 
             <!-- Footer -->
-            <div class="border-t border-line px-6 py-3 bg-slate-50/80 flex items-center justify-end gap-3">
+            <div class="border-t border-line px-4 sm:px-6 py-3 bg-slate-50/80 flex items-center justify-end gap-2.5 sm:gap-3 safe-bottom">
               <ng-content select="[drawer-footer]"></ng-content>
             </div>
           </div>

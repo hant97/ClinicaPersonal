@@ -27,14 +27,27 @@ class ClinicalAuditMigrationTest {
                 .locations("classpath:db/migration")
                 .load();
 
-        assertEquals(2, flyway.migrate().migrationsExecuted);
+        assertEquals(3, flyway.migrate().migrationsExecuted);
         assertAuditColumns("clinical_sessions");
         assertAuditColumns("dermatological_evaluations");
         assertAuditColumns("general_history");
         assertAuditColumns("psychology_evaluations");
         assertAuditColumns("prescriptions");
         assertSpecialtiesTable();
+        assertPatientUuidColumn();
         assertEquals(0, flyway.migrate().migrationsExecuted);
+    }
+
+    private void assertPatientUuidColumn() throws Exception {
+        try (Connection connection = DriverManager.getConnection(URL, "sa", "");
+             ResultSet columns = connection.getMetaData().getColumns(null, null, "patients", null)) {
+            boolean hasUuid = false;
+            while (columns.next()) {
+                String column = columns.getString("COLUMN_NAME");
+                hasUuid |= "uuid".equalsIgnoreCase(column);
+            }
+            assertTrue(hasUuid, "Column 'uuid' missing in patients table");
+        }
     }
 
     private void assertAuditColumns(String table) throws Exception {

@@ -327,13 +327,14 @@
         </div>
       </section>
       <div
-        class="mt-8 flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end"
+        class="mt-8 flex flex-col-reverse sm:flex-row items-center gap-2.5 sm:gap-3 border-t border-line pt-5 sm:justify-end"
       >
-        <button type="button" class="btn-secondary" (click)="goBack()">
-          Cancelar</button
-        ><button
+        <button type="button" class="btn-secondary !text-xs !py-2 px-4 whitespace-nowrap min-h-[38px] w-full sm:w-auto flex items-center justify-center" (click)="goBack()">
+          Cancelar
+        </button>
+        <button
           type="submit"
-          class="btn-primary"
+          class="btn-primary !text-xs !py-2 px-5 shadow-sm whitespace-nowrap min-h-[38px] w-full sm:w-auto flex items-center justify-center"
           [disabled]="testForm.invalid || isSaving"
         >
           {{ isSaving ? "Guardando..." : "Guardar prueba" }}

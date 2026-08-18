@@ -8,10 +8,12 @@ import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 public class PatientDto {
     private Long id;
+    private UUID uuid;
     @NotBlank(message = "El nombre es obligatorio") @Size(max = 100, message = "El nombre no debe superar 100 caracteres")
     private String firstName;
     @NotBlank(message = "El apellido es obligatorio") @Size(max = 100, message = "El apellido no debe superar 100 caracteres")

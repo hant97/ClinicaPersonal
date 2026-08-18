@@ -5,7 +5,20 @@ import { InventoryService } from '../../../core/services/inventory.service';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { CatalogItem } from '../../../core/models/catalog.model';
 import { ToastService } from '../../../shared/services/toast/toast.service';
-import { LucideAngularModule, X } from 'lucide-angular';
+import {
+  LucideAngularModule,
+  X,
+  Package,
+  Upload,
+  Image,
+  AlertTriangle,
+  CheckCircle2,
+  DollarSign,
+  Calendar,
+  Save,
+  Trash2,
+  Plus
+} from 'lucide-angular';
 import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
 
 @Component({
@@ -19,6 +32,16 @@ export class InventoryFormComponent implements OnInit {
   @Output() closeModal = new EventEmitter<boolean>();
 
   readonly X = X;
+  readonly Package = Package;
+  readonly Upload = Upload;
+  readonly Image = Image;
+  readonly AlertTriangle = AlertTriangle;
+  readonly CheckCircle2 = CheckCircle2;
+  readonly DollarSign = DollarSign;
+  readonly Calendar = Calendar;
+  readonly Save = Save;
+  readonly Trash2 = Trash2;
+  readonly Plus = Plus;
 
   form!: FormGroup;
   isSubmitting = false;
@@ -36,6 +59,13 @@ export class InventoryFormComponent implements OnInit {
 
   get imagePreview(): string | null {
     return this.imagePreviewUrl ?? (this.form?.get('imageUrl')?.value || null);
+  }
+
+  get isLowStock(): boolean {
+    if (!this.form) return false;
+    const current = Number(this.form.get('currentStock')?.value || 0);
+    const min = Number(this.form.get('minStockLevel')?.value || 0);
+    return min > 0 && current <= min;
   }
 
   ngOnInit(): void {
@@ -96,9 +126,16 @@ export class InventoryFormComponent implements OnInit {
     this.imagePreviewUrl = URL.createObjectURL(file);
   }
 
+  removeImage(): void {
+    this.selectedImageFile = null;
+    this.imagePreviewUrl = null;
+    this.form.get('imageUrl')?.setValue('');
+  }
+
   onSubmit(): void {
     if (this.form.invalid) {
       this.markFormGroupTouched(this.form);
+      this.toastService.show('Por favor, complete todos los campos obligatorios correctamente.', 'error');
       return;
     }
 

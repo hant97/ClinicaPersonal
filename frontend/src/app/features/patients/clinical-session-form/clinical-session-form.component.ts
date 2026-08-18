@@ -120,7 +120,7 @@ export class ClinicalSessionFormComponent implements OnInit {
       objective: [this.session?.objective || savedDraft?.objective || ''],
       analysis: [this.session?.analysis || savedDraft?.analysis || ''],
       plan: [this.session?.plan || savedDraft?.plan || ''],
-      isConfidential: [this.session?.isConfidential || savedDraft?.isConfidential || false]
+      isConfidential: [this.session?.isConfidential || this.session?.confidential || savedDraft?.isConfidential || false]
     }, { validators: this.soapValidator });
 
     // Auto-save draft on value changes

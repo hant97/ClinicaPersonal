@@ -42,7 +42,7 @@ export class PatientService {
     return this.http.get<PatientStats>(`${this.apiUrl}/stats`);
   }
 
-  getById(id: number): Observable<Patient> {
+  getById(id: string | number): Observable<Patient> {
     return this.http.get<Patient>(`${this.apiUrl}/${id}`);
   }
 

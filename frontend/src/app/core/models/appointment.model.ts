@@ -1,6 +1,7 @@
 export interface Appointment {
   id?: number;
   patientId: number;
+  patientUuid?: string;
   appointmentDate: string;
   startTime: string;
   endTime: string;
@@ -8,7 +9,8 @@ export interface Appointment {
   modality?: string; // PRESENCIAL, VIRTUAL
   videoCallLink?: string;
   professionalId?: number;
-  isFirstTime: boolean;
+  isFirstTime?: boolean;
+  firstTime?: boolean;
   clinicalSessionId?: number;
   clinicalServiceId?: number;
   clinicalServiceName?: string;
@@ -16,4 +18,8 @@ export interface Appointment {
   
   // Para mostrar en UI sin hacer llamadas extra si es necesario:
   patientName?: string;
+  isPaid?: boolean;
+  paid?: boolean;
+  paymentId?: number;
+  paymentAmount?: number;
 }

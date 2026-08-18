@@ -488,37 +488,56 @@ public class MockDataSeeder {
                 riskAlertRepository.save(dermAlert);
             }
 
-            // 6. Crear 10 Citas (divididas en distintos estados)
+            // 6. Crear 10 Citas (5 de Psicología y 5 de Dermatología, divididas en distintos estados)
             String[] statuses = {"PROGRAMADA", "CONFIRMADA", "COMPLETADA", "CANCELADA", "NO_ASISTIO", "PROGRAMADA", "COMPLETADA", "CONFIRMADA", "CANCELADA", "COMPLETADA"};
             String[] modalities = {"PRESENCIAL", "VIRTUAL", "PRESENCIAL", "PRESENCIAL", "VIRTUAL", "VIRTUAL", "PRESENCIAL", "PRESENCIAL", "VIRTUAL", "PRESENCIAL"};
             for (int i = 0; i < 10; i++) {
                 Appointment appointment = new Appointment();
-                Patient assignedPatient = patients.get(i % patients.size());
+                Patient assignedPatient;
+                String appointmentSpecialty;
+                int dayOffset;
+                int timeHour;
+
+                if (i < 5) {
+                    // Citas de Psicología (pacientes 0 a 4)
+                    assignedPatient = patients.get(i);
+                    appointmentSpecialty = "PSICOLOGIA";
+                    dayOffset = i - 2; // -2, -1, 0 (hoy), 1, 2
+                    timeHour = 9 + (i * 2);
+                } else {
+                    // Citas de Dermatología (pacientes 5 a 9)
+                    int dermIndex = i - 5;
+                    assignedPatient = patients.get(i);
+                    appointmentSpecialty = "DERMATOLOGIA";
+                    dayOffset = dermIndex - 2; // -2, -1, 0 (hoy), 1, 2
+                    timeHour = 9 + (dermIndex * 2);
+                }
+
                 appointment.setPatient(assignedPatient);
-                appointment.setAppointmentDate(LocalDate.now().plusDays(i - 3)); // Algunas en el pasado, otras en el futuro
-                appointment.setStartTime(LocalTime.of(9 + i, 0));
-                appointment.setEndTime(LocalTime.of(10 + i, 0));
+                appointment.setAppointmentDate(LocalDate.now().plusDays(dayOffset));
+                appointment.setStartTime(LocalTime.of(timeHour, 0));
+                appointment.setEndTime(LocalTime.of(timeHour + 1, 0));
                 appointment.setStatus(statuses[i]);
                 appointment.setModality(modalities[i]);
                 appointment.setFirstTime(i % 3 == 0);
                 appointment.setProfessionalId(1L);
                 appointment.setNotes("Nota para cita de " + assignedPatient.getFirstName());
-                appointment.setSpecialty(i % 2 == 0 ? "PSICOLOGIA" : "DERMATOLOGIA");
+                appointment.setSpecialty(appointmentSpecialty);
                 if ("VIRTUAL".equals(modalities[i])) {
                     appointment.setVideoCallLink("https://meet.google.com/abc-defg-hij");
                 }
                 appointmentRepository.save(appointment);
             }
 
-            // 7. Crear 5 Facturaciones
-            for (int i = 0; i < 5; i++) {
+            // 7. Crear Facturaciones con especialidad alineada al paciente
+            for (int i = 0; i < patients.size(); i++) {
                 Patient patient = patients.get(i);
                 Payment payment = new Payment();
                 payment.setPatient(patient);
-                payment.setPaymentDate(LocalDateTime.now().minusDays(i));
+                payment.setPaymentDate(LocalDateTime.now().minusDays(i % 5));
                 payment.setPaymentMethod(i % 2 == 0 ? "EFECTIVO" : "TRANSFERENCIA");
                 payment.setDescription("Facturación de servicios y/o insumos");
-                String paymentSpecialty = i % 2 == 0 ? "PSICOLOGIA" : "DERMATOLOGIA";
+                String paymentSpecialty = patient.getSpecialty();
                 payment.setSpecialty(paymentSpecialty);
 
                 BigDecimal totalAmount = BigDecimal.ZERO;

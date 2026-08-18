@@ -113,6 +113,6 @@ describe('LandingEditorComponent', () => {
     await component.exit();
 
     expect(notification.confirm).toHaveBeenCalled();
-    expect(router.navigate).toHaveBeenCalledWith(['/']);
+    expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
   });
 });

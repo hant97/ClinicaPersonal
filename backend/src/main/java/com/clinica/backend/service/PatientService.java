@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -66,6 +67,33 @@ public class PatientService {
                 .withActiveAlerts(withActiveAlerts)
                 .minors(minors)
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public PatientDto getPatientByIdOrUuid(String identifier) {
+        String specialty = currentSpecialty();
+        Patient patient = findPatientByIdOrUuid(identifier, specialty);
+        boolean hasAlerts = riskAlertRepository.existsByPatientIdAndSpecialtyAndActiveTrue(patient.getId(), specialty);
+        return mapToDto(patient, hasAlerts);
+    }
+
+    public Patient findPatientByIdOrUuid(String identifier, String specialty) {
+        if (identifier == null || identifier.isBlank()) {
+            throw new ResourceNotFoundException("Paciente no encontrado");
+        }
+        try {
+            UUID uuid = UUID.fromString(identifier.trim());
+            return patientRepository.findByUuidAndSpecialtyAndDeletedFalse(uuid, specialty)
+                    .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
+        } catch (IllegalArgumentException e) {
+            try {
+                Long id = Long.parseLong(identifier.trim());
+                return patientRepository.findByIdAndSpecialtyAndDeletedFalse(id, specialty)
+                        .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
+            } catch (NumberFormatException nfe) {
+                throw new ResourceNotFoundException("Paciente no encontrado");
+            }
+        }
     }
 
     @Transactional(readOnly = true)
@@ -156,6 +184,7 @@ public class PatientService {
     private PatientDto mapToDto(Patient patient, boolean hasActiveAlerts) {
         PatientDto dto = new PatientDto();
         dto.setId(patient.getId());
+        dto.setUuid(patient.getUuid());
         dto.setFirstName(patient.getFirstName());
         dto.setLastName(patient.getLastName());
         dto.setIdentificationDocument(patient.getIdentificationDocument());
@@ -176,11 +205,15 @@ public class PatientService {
         dto.setSpecialty(patient.getSpecialty());
         dto.setDeleted(patient.isDeleted());
         dto.setHasActiveAlerts(hasActiveAlerts);
+        dto.setCreatedAt(patient.getCreatedAt());
         return dto;
     }
 
     private Patient mapToEntity(PatientDto dto) {
         Patient patient = new Patient();
+        if (dto.getUuid() != null) {
+            patient.setUuid(dto.getUuid());
+        }
         patient.setFirstName(dto.getFirstName());
         patient.setLastName(dto.getLastName());
         patient.setIdentificationDocument(dto.getIdentificationDocument());

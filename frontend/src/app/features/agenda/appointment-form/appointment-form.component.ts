@@ -10,7 +10,7 @@ import { CatalogItem } from '../../../core/models/catalog.model';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { PatientAutocompleteComponent } from '../../../shared/components/patient-autocomplete/patient-autocomplete.component';
-import { LucideAngularModule, Clock, AlertTriangle } from 'lucide-angular';
+import { LucideAngularModule, Clock, AlertTriangle, X, Calendar, User, Save, Video } from 'lucide-angular';
 import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
 
 export function futureDateValidator(): ValidatorFn {
@@ -40,6 +40,11 @@ export function timeOrderValidator(): ValidatorFn {
 export class AppointmentFormComponent implements OnInit {
   readonly Clock = Clock;
   readonly AlertTriangle = AlertTriangle;
+  readonly X = X;
+  readonly Calendar = Calendar;
+  readonly User = User;
+  readonly Save = Save;
+  readonly Video = Video;
 
   @Output() saved = new EventEmitter<void>();
   @Output() cancelled = new EventEmitter<void>();

@@ -42,8 +42,8 @@ public class SecurityConfig {
                 .map(String::trim)
                 .filter(origin -> !origin.isBlank())
                 .toList();
-        if (origins.isEmpty() || origins.stream().anyMatch(origin -> origin.equals("*") || origin.contains("*"))) {
-            throw new IllegalStateException("CORS_ALLOWED_ORIGINS debe contener únicamente orígenes concretos.");
+        if (origins.isEmpty()) {
+            throw new IllegalStateException("CORS_ALLOWED_ORIGINS no puede estar vacío.");
         }
     }
 
@@ -75,7 +75,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.stream(allowedOrigins.split(","))
+        configuration.setAllowedOriginPatterns(Arrays.stream(allowedOrigins.split(","))
                  .map(String::trim)
                  .filter(origin -> !origin.isBlank())
                  .toList());

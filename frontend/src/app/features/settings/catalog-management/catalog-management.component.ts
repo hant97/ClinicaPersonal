@@ -30,6 +30,7 @@ import { SpecialtyService } from '../../../core/services/specialty.service';
 import { Catalog, CatalogItem } from '../../../core/models/catalog.model';
 import { SpecialtyItem } from '../../../core/models/specialty.model';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
+import { ToastService } from '../../../shared/services/toast/toast.service';
 
 @Component({
   selector: 'app-catalog-management',
@@ -107,7 +108,8 @@ export class CatalogManagementComponent implements OnInit {
   constructor(
     private catalogService: CatalogService,
     private specialtyService: SpecialtyService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -252,7 +254,7 @@ export class CatalogManagementComponent implements OnInit {
     // Validar duplicado local
     const exists = this.items.some(i => i.itemCode.toUpperCase() === code.toUpperCase());
     if (exists) {
-      this.notificationService.alert('Atención', `Ya existe una opción con el código "${code}" en este catálogo`, 'warning');
+      this.toastService.warning(`Ya existe una opción con el código "${code}" en este catálogo`);
       return;
     }
 
@@ -272,13 +274,13 @@ export class CatalogManagementComponent implements OnInit {
         }
         this.resetItemForm();
         this.savingItem = false;
-        this.notificationService.alert('Éxito', `Opción "${savedItem.itemName}" agregada correctamente`, 'success');
+        this.toastService.success(`Opción "${savedItem.itemName}" agregada correctamente`);
       },
       error: (err) => {
         console.error(err);
         this.savingItem = false;
         const msg = err.error?.message || 'Error al agregar la opción';
-        this.notificationService.alert('Error', msg, 'error');
+        this.toastService.error(msg);
       }
     });
   }
@@ -313,11 +315,11 @@ export class CatalogManagementComponent implements OnInit {
       next: (saved) => {
         item.itemName = saved.itemName;
         this.cancelEditItem();
-        this.notificationService.alert('Éxito', 'Opción actualizada correctamente', 'success');
+        this.toastService.success('Opción actualizada correctamente');
       },
       error: (err) => {
         console.error(err);
-        this.notificationService.alert('Error', 'No se pudo actualizar la opción', 'error');
+        this.toastService.error('No se pudo actualizar la opción');
       }
     });
   }
@@ -332,12 +334,12 @@ export class CatalogManagementComponent implements OnInit {
     this.catalogService.updateCatalogItem(item.id, updatedItem, this.selectedCatalog?.code).subscribe({
       next: (saved) => {
         item.isActive = saved.isActive;
-        this.notificationService.alert('Éxito', `Opción ${item.isActive ? 'activada' : 'desactivada'}`, 'success');
+        this.toastService.success(`Opción ${item.isActive ? 'activada' : 'desactivada'} correctamente`);
       },
       error: (err) => {
         console.error(err);
         item.isActive = !item.isActive;
-        this.notificationService.alert('Error', 'No se pudo actualizar el estado', 'error');
+        this.toastService.error('No se pudo actualizar el estado de la opción');
       }
     });
   }
@@ -373,10 +375,11 @@ export class CatalogManagementComponent implements OnInit {
         if (this.selectedCatalog) {
           this.selectedCatalog.items = savedItems;
         }
+        this.toastService.success('Orden actualizado correctamente');
       },
       error: (err) => {
         console.error(err);
-        this.notificationService.alert('Error', 'Error al guardar el nuevo orden', 'error');
+        this.toastService.error('Error al guardar el nuevo orden');
       }
     });
   }
@@ -404,12 +407,12 @@ export class CatalogManagementComponent implements OnInit {
         }
         this.isDeletingItem = false;
         this.closeDeleteModal();
-        this.notificationService.alert('Éxito', 'Opción eliminada del catálogo', 'success');
+        this.toastService.success('Opción eliminada del catálogo');
       },
       error: (err) => {
         console.error(err);
         this.isDeletingItem = false;
-        this.notificationService.alert('Error', 'No se pudo eliminar la opción', 'error');
+        this.toastService.error('No se pudo eliminar la opción');
       }
     });
   }
@@ -475,12 +478,12 @@ export class CatalogManagementComponent implements OnInit {
           this.savingCatalog = false;
           this.closeCatalogModal();
           this.loadCatalogs(updated.code);
-          this.notificationService.alert('Éxito', `Catálogo "${updated.name}" actualizado`, 'success');
+          this.toastService.success(`Catálogo "${updated.name}" actualizado correctamente`);
         },
         error: (err) => {
           console.error(err);
           this.savingCatalog = false;
-          this.notificationService.alert('Error', 'No se pudo actualizar el catálogo', 'error');
+          this.toastService.error('No se pudo actualizar el catálogo');
         }
       });
     } else {
@@ -496,13 +499,13 @@ export class CatalogManagementComponent implements OnInit {
           this.savingCatalog = false;
           this.closeCatalogModal();
           this.loadCatalogs(created.code);
-          this.notificationService.alert('Éxito', `Catálogo "${created.name}" creado con éxito`, 'success');
+          this.toastService.success(`Catálogo "${created.name}" creado con éxito`);
         },
         error: (err) => {
           console.error(err);
           this.savingCatalog = false;
           const msg = err.error?.message || 'Error al crear el catálogo';
-          this.notificationService.alert('Error', msg, 'error');
+          this.toastService.error(msg);
         }
       });
     }
@@ -513,6 +516,7 @@ export class CatalogManagementComponent implements OnInit {
   copyCatalogCode(code: string): void {
     navigator.clipboard.writeText(code);
     this.copiedCode = true;
+    this.toastService.info(`Código "${code}" copiado al portapapeles`);
     setTimeout(() => {
       this.copiedCode = false;
     }, 2000);

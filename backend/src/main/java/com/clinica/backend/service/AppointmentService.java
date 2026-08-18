@@ -5,10 +5,12 @@ import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.Appointment;
 import com.clinica.backend.model.ClinicalService;
 import com.clinica.backend.model.Patient;
+import com.clinica.backend.model.Payment;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.AppointmentRepository;
 import com.clinica.backend.repository.ClinicalServiceRepository;
 import com.clinica.backend.repository.PatientRepository;
+import com.clinica.backend.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,7 +21,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +32,7 @@ public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final PatientRepository patientRepository;
     private final ClinicalServiceRepository clinicalServiceRepository;
+    private final PaymentRepository paymentRepository;
 
     private String getCurrentUserSpecialty() {
         return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getSpecialty();
@@ -37,15 +43,13 @@ public class AppointmentService {
         String specialty = getCurrentUserSpecialty();
         patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, specialty)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
-        return appointmentRepository.findByPatientIdAndSpecialtyOrderByAppointmentDateDescStartTimeDesc(patientId, specialty, pageable)
-                .map(this::mapToDto);
+        return mapPageToDto(appointmentRepository.findByPatientIdAndSpecialtyOrderByAppointmentDateDescStartTimeDesc(patientId, specialty, pageable));
     }
 
     @Transactional(readOnly = true)
     public Page<AppointmentDto> getAll(Pageable pageable) {
         String specialty = getCurrentUserSpecialty();
-        return appointmentRepository.findAllBySpecialtyOrderByAppointmentDateAscStartTimeAsc(specialty, pageable)
-                .map(this::mapToDto);
+        return mapPageToDto(appointmentRepository.findAllBySpecialtyOrderByAppointmentDateAscStartTimeAsc(specialty, pageable));
     }
 
     @Transactional(readOnly = true)
@@ -57,8 +61,7 @@ public class AppointmentService {
             status = null;
         String specialty = getCurrentUserSpecialty();
 
-        return appointmentRepository.searchAppointmentsBySpecialty(searchTerm, status, startDate, endDate, specialty, pageable)
-                .map(this::mapToDto);
+        return mapPageToDto(appointmentRepository.searchAppointmentsBySpecialty(searchTerm, status, startDate, endDate, specialty, pageable));
     }
 
     @Transactional
@@ -167,9 +170,17 @@ public class AppointmentService {
     }
 
     private AppointmentDto mapToDto(Appointment appointment) {
+        Payment payment = appointment.getId() != null
+                ? paymentRepository.findFirstByAppointmentIdAndDeletedFalse(appointment.getId()).orElse(null)
+                : null;
+        return mapToDto(appointment, payment);
+    }
+
+    private AppointmentDto mapToDto(Appointment appointment, Payment payment) {
         AppointmentDto dto = new AppointmentDto();
         dto.setId(appointment.getId());
         dto.setPatientId(appointment.getPatient().getId());
+        dto.setPatientUuid(appointment.getPatient().getUuid() != null ? appointment.getPatient().getUuid().toString() : null);
         dto.setPatientName((appointment.getPatient().getFirstName() + " " + appointment.getPatient().getLastName()).trim());
         dto.setAppointmentDate(appointment.getAppointmentDate());
         dto.setStartTime(appointment.getStartTime());
@@ -186,6 +197,33 @@ public class AppointmentService {
         }
         dto.setNotes(appointment.getNotes());
         dto.setSpecialty(appointment.getSpecialty());
+
+        if (payment != null) {
+            dto.setPaid(true);
+            dto.setPaymentId(payment.getId());
+            dto.setPaymentAmount(payment.getAmount());
+        } else {
+            dto.setPaid(false);
+        }
         return dto;
+    }
+
+    private Page<AppointmentDto> mapPageToDto(Page<Appointment> page) {
+        List<Long> appointmentIds = page.getContent().stream()
+                .map(Appointment::getId)
+                .filter(id -> id != null)
+                .collect(Collectors.toList());
+
+        Map<Long, Payment> paymentsByAppointmentId = new HashMap<>();
+        if (!appointmentIds.isEmpty()) {
+            paymentRepository.findByAppointmentIdInAndDeletedFalse(appointmentIds)
+                    .forEach(p -> {
+                        if (p.getAppointment() != null && p.getAppointment().getId() != null) {
+                            paymentsByAppointmentId.putIfAbsent(p.getAppointment().getId(), p);
+                        }
+                    });
+        }
+
+        return page.map(app -> mapToDto(app, paymentsByAppointmentId.get(app.getId())));
     }
 }

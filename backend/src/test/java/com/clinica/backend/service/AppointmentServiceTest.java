@@ -7,6 +7,7 @@ import com.clinica.backend.model.User;
 import com.clinica.backend.repository.AppointmentRepository;
 import com.clinica.backend.repository.ClinicalServiceRepository;
 import com.clinica.backend.repository.PatientRepository;
+import com.clinica.backend.repository.PaymentRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,7 @@ class AppointmentServiceTest {
     private AppointmentRepository appointmentRepository;
     private PatientRepository patientRepository;
     private ClinicalServiceRepository clinicalServiceRepository;
+    private PaymentRepository paymentRepository;
     private AppointmentService appointmentService;
 
     @BeforeEach
@@ -35,7 +37,8 @@ class AppointmentServiceTest {
         appointmentRepository = mock(AppointmentRepository.class);
         patientRepository = mock(PatientRepository.class);
         clinicalServiceRepository = mock(ClinicalServiceRepository.class);
-        appointmentService = new AppointmentService(appointmentRepository, patientRepository, clinicalServiceRepository);
+        paymentRepository = mock(PaymentRepository.class);
+        appointmentService = new AppointmentService(appointmentRepository, patientRepository, clinicalServiceRepository, paymentRepository);
 
         User user = new User();
         user.setId(1L);
@@ -119,5 +122,43 @@ class AppointmentServiceTest {
 
         assertThrows(IllegalArgumentException.class, () -> appointmentService.create(dto));
         verify(appointmentRepository, never()).save(any());
+    }
+
+    @Test
+    void mapToDtoShouldIncludePaymentInfoWhenPaid() {
+        Appointment appointment = new Appointment();
+        appointment.setId(100L);
+        Patient patient = new Patient();
+        patient.setId(5L);
+        patient.setFirstName("Juan");
+        patient.setLastName("Perez");
+        appointment.setPatient(patient);
+        appointment.setAppointmentDate(LocalDate.now());
+        appointment.setStartTime(LocalTime.of(9, 0));
+        appointment.setEndTime(LocalTime.of(10, 0));
+        appointment.setStatus("COMPLETADA");
+
+        com.clinica.backend.model.Payment payment = new com.clinica.backend.model.Payment();
+        payment.setId(88L);
+        payment.setAmount(new java.math.BigDecimal("150.00"));
+        payment.setAppointment(appointment);
+
+        when(paymentRepository.findFirstByAppointmentIdAndDeletedFalse(100L)).thenReturn(Optional.of(payment));
+        when(appointmentRepository.findById(100L)).thenReturn(Optional.of(appointment));
+
+        // Testing mapping via update or search
+        when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(5L, "PSICOLOGIA")).thenReturn(Optional.of(patient));
+        when(appointmentRepository.findByPatientIdAndSpecialtyOrderByAppointmentDateDescStartTimeDesc(eq(5L), eq("PSICOLOGIA"), any()))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(appointment)));
+        when(paymentRepository.findByAppointmentIdInAndDeletedFalse(List.of(100L))).thenReturn(List.of(payment));
+
+        org.springframework.data.domain.Page<AppointmentDto> page = appointmentService.getByPatientId(5L, org.springframework.data.domain.PageRequest.of(0, 10));
+
+        assertNotNull(page);
+        assertEquals(1, page.getTotalElements());
+        AppointmentDto result = page.getContent().get(0);
+        assertTrue(result.isPaid());
+        assertEquals(88L, result.getPaymentId());
+        assertEquals(new java.math.BigDecimal("150.00"), result.getPaymentAmount());
     }
 }

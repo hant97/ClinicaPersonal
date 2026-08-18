@@ -41,7 +41,7 @@ export interface CommandItem {
   template: `
     @if (isOpen) {
       <div
-        class="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 p-4"
+        class="fixed inset-0 z-50 flex items-start justify-center pt-8 sm:pt-20 p-2 sm:p-4"
         role="dialog"
         aria-modal="true"
         aria-label="Paleta de comandos"
@@ -54,10 +54,10 @@ export interface CommandItem {
 
         <!-- Palette Card -->
         <div
-          class="relative w-full max-w-2xl overflow-hidden rounded-xl border border-line bg-surface shadow-floating transform transition-all"
+          class="relative w-full max-w-2xl overflow-hidden rounded-xl border border-line bg-surface shadow-floating transform transition-all max-h-[88vh] flex flex-col"
         >
           <!-- Search Header -->
-          <div class="relative flex items-center border-b border-line px-4 bg-slate-50/50">
+          <div class="relative flex items-center border-b border-line px-3.5 sm:px-4 bg-slate-50/50 shrink-0">
             <lucide-icon
               [img]="Search"
               [size]="18"
@@ -68,18 +68,18 @@ export interface CommandItem {
               type="text"
               [formControl]="searchControl"
               placeholder="Escribe un comando o busca un paciente..."
-              class="w-full bg-transparent px-3 py-3.5 text-sm text-ink outline-none placeholder:text-muted"
+              class="w-full bg-transparent px-2.5 sm:px-3 py-3 sm:py-3.5 text-sm text-ink outline-none placeholder:text-muted"
               (keydown)="onKeydown($event)"
             />
             <div class="flex items-center gap-1.5 shrink-0">
-              <kbd class="rounded border border-line bg-surface px-1.5 py-0.5 text-[10px] font-mono text-muted">ESC</kbd>
+              <kbd class="hidden sm:inline-flex rounded border border-line bg-surface px-1.5 py-0.5 text-[10px] font-mono text-muted">ESC</kbd>
               <button
                 type="button"
-                class="btn-text !p-1 text-muted"
+                class="btn-text !p-1.5 text-muted"
                 aria-label="Cerrar paleta"
                 (click)="close()"
               >
-                <lucide-icon [img]="X" [size]="16"></lucide-icon>
+                <lucide-icon [img]="X" [size]="18"></lucide-icon>
               </button>
             </div>
           </div>
@@ -184,7 +184,7 @@ export class CommandPaletteComponent implements OnInit, OnDestroy {
     { id: 'nav-inventory', title: 'Ir a Inventario de Insumos', category: 'Navegación', icon: Package, route: '/inventory', shortcut: 'G I' },
     { id: 'nav-services', title: 'Ir a Servicios Clínicos', category: 'Navegación', icon: FileText, route: '/services' },
     { id: 'nav-settings', title: 'Ir a Configuración', category: 'Navegación', icon: Settings, route: '/settings/catalogs' },
-    { id: 'act-new-patient', title: 'Registrar Nuevo Paciente', category: 'Acciones Rápidas', icon: PlusCircle, route: '/patients' },
+    { id: 'act-new-patient', title: 'Registrar Nuevo Paciente', category: 'Acciones Rápidas', icon: PlusCircle, route: '/patients/new' },
     { id: 'act-new-appointment', title: 'Agendar Nueva Cita', category: 'Acciones Rápidas', icon: Calendar, route: '/agenda' },
   ];
 
@@ -313,8 +313,9 @@ export class CommandPaletteComponent implements OnInit, OnDestroy {
 
   selectPatient(patient: Patient): void {
     this.close();
-    if (patient.id) {
-      this.router.navigate(['/patients', patient.id]);
+    const target = patient.uuid || patient.id;
+    if (target) {
+      this.router.navigate(['/patients', target]);
     }
   }
 

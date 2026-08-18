@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface PatientRepository extends JpaRepository<Patient, Long> {
     Page<Patient> findBySpecialtyAndDeletedFalse(String specialty, Pageable pageable);
@@ -17,6 +18,12 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
     long countBySpecialtyAndDeletedFalse(String specialty);
 
     Optional<Patient> findByIdAndSpecialtyAndDeletedFalse(Long id, String specialty);
+
+    Optional<Patient> findByUuidAndSpecialtyAndDeletedFalse(UUID uuid, String specialty);
+
+    Optional<Patient> findByUuidAndDeletedFalse(UUID uuid);
+
+    boolean existsByUuidAndSpecialtyAndDeletedFalse(UUID uuid, String specialty);
 
     @Query("SELECT COUNT(p) FROM Patient p WHERE p.deleted = false AND p.specialty = :specialty AND p.createdAt >= :startDate AND p.createdAt < :endDate")
     long countNewPatientsBetween(@Param("specialty") String specialty, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);

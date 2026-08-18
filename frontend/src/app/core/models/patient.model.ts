@@ -1,7 +1,9 @@
 export interface Patient {
   id?: number;
+  uuid?: string;
   firstName: string;
   lastName: string;
+  documentType?: string;
   identificationDocument: string;
   dateOfBirth?: string;
   contactNumber?: string;

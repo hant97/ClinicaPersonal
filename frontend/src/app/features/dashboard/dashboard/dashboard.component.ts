@@ -155,15 +155,16 @@ export class DashboardComponent implements OnInit {
     return 'priority';
   }
 
-  navigateToPatient(patientId?: number): void {
-    if (patientId) {
-      this.router.navigate(['/patients', patientId]);
+  navigateToPatient(identifier?: string | number): void {
+    if (identifier) {
+      this.router.navigate(['/patients', identifier]);
     }
   }
 
   startSessionForNextPatient(): void {
-    if (this.nextAppointment?.patientId) {
-      this.router.navigate(['/patients', this.nextAppointment.patientId], {
+    const target = this.nextAppointment?.patientUuid || this.nextAppointment?.patientId;
+    if (target) {
+      this.router.navigate(['/patients', target], {
         queryParams: { newSession: 'true' }
       });
     }

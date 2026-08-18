@@ -67,4 +67,13 @@ describe('MainLayoutComponent', () => {
     component.closeSidebar();
     expect(component.isSidebarOpen).toBeFalse();
   });
+
+  it('should toggle sidebar collapse state', () => {
+    const initialState = component.isSidebarExpanded;
+    component.toggleSidebarCollapse();
+    expect(component.isSidebarExpanded).toBe(!initialState);
+
+    component.toggleSidebarCollapse();
+    expect(component.isSidebarExpanded).toBe(initialState);
+  });
 });

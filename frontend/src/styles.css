@@ -52,22 +52,22 @@
 
   /* --- FlowGrid Buttons --- */
   .btn, .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-md bg-primary-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-primary-700 active:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-primary-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-primary-700 active:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 disabled:pointer-events-none disabled:opacity-50 whitespace-nowrap select-none;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-md border border-line bg-surface px-3.5 py-2 text-sm font-medium text-ink shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-line bg-surface px-3.5 py-2 text-sm font-medium text-ink shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 disabled:pointer-events-none disabled:opacity-50 whitespace-nowrap select-none;
   }
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium text-muted transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500;
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium text-muted transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 whitespace-nowrap select-none;
   }
   .btn-text {
-    @apply inline-flex items-center justify-center rounded-md p-1.5 text-muted transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500;
+    @apply inline-flex items-center justify-center rounded-md p-1.5 text-muted transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 whitespace-nowrap select-none;
   }
   .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 rounded-md border border-red-200 bg-red-50 px-3.5 py-2 text-sm font-medium text-danger transition hover:bg-red-100 active:bg-red-200 focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-1;
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-red-200 bg-red-50 px-3.5 py-2 text-sm font-medium text-danger transition hover:bg-red-100 active:bg-red-200 focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-1 whitespace-nowrap select-none;
   }
   .btn-danger-solid {
-    @apply inline-flex items-center justify-center gap-2 rounded-md bg-red-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-red-700 active:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1;
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-red-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-red-700 active:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 whitespace-nowrap select-none;
   }
 
   /* --- FlowGrid Inputs & Forms --- */
@@ -224,6 +224,33 @@ select.input-field { cursor: pointer; }
   backdrop-filter: blur(4px);
 }
 
+/* Utilidades de Scroll y Touch Responsivo */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scroll-touch {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0.75rem);
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0.5rem);
+}
+
+/* --- Canvas and Charts Responsive Safety --- */
+canvas {
+  max-width: 100% !important;
+}
+
 @media (max-width: 1023px) {
   .dashboard-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -232,7 +259,10 @@ select.input-field { cursor: pointer; }
   .dashboard-kpis { grid-template-columns: 1fr; }
   .dashboard-heading { gap: .5rem; }
   .dashboard-kpi { min-height: 100px; }
-  .table-responsive { border-right: 0; border-left: 0; border-radius: 0; }
+  .table-responsive {
+    border-radius: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 @page {

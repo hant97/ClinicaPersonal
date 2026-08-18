@@ -10,8 +10,10 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
+    Optional<Appointment> findByIdAndSpecialty(Long id, String specialty);
     Page<Appointment> findByPatientIdAndSpecialtyOrderByAppointmentDateDescStartTimeDesc(Long patientId, String specialty, Pageable pageable);
     Page<Appointment> findAllBySpecialtyOrderByAppointmentDateAscStartTimeAsc(String specialty, Pageable pageable);
     List<Appointment> findByAppointmentDateAndStatusNotAndSpecialty(LocalDate date, String status, String specialty);
