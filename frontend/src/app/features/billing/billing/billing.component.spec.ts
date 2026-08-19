@@ -87,4 +87,37 @@ describe('BillingComponent', () => {
     component.filterMethod = 'YAPE';
     expect(component.hasActiveFilters).toBeTrue();
   });
+
+  it('formatPaymentDate formats dates properly in Spanish style', () => {
+    const formatted = component.formatPaymentDate('2026-08-19T07:18:00');
+    expect(formatted).toContain('19');
+    expect(formatted).toContain('ago');
+    expect(formatted).toContain('7:18');
+    expect(formatted).toContain('a.m.');
+    expect(component.formatPaymentDate('')).toBe('—');
+  });
+
+  it('toggles and closes action menu correctly', () => {
+    expect(component.openMenuPaymentId).toBeNull();
+
+    const mockEvent = new MouseEvent('click');
+    spyOn(mockEvent, 'stopPropagation');
+
+    component.toggleMenu(10, mockEvent);
+    expect(component.openMenuPaymentId).toBe(10);
+    expect(mockEvent.stopPropagation).toHaveBeenCalled();
+
+    component.toggleMenu(10);
+    expect(component.openMenuPaymentId).toBeNull();
+
+    component.toggleMenu(20);
+    expect(component.openMenuPaymentId).toBe(20);
+
+    component.onDocumentClick();
+    expect(component.openMenuPaymentId).toBeNull();
+
+    component.toggleMenu(30);
+    component.closeMenu();
+    expect(component.openMenuPaymentId).toBeNull();
+  });
 });

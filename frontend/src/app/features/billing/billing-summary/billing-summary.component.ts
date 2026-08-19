@@ -29,6 +29,7 @@ export class BillingSummaryComponent implements OnChanges, OnDestroy {
 
   @Input() summary: PaymentSummary | null = null;
   @Input() paymentMethodMap: Map<string, string> = new Map();
+  @Input() showCharts: boolean = false;
 
   @ViewChild('incomeCanvas') incomeCanvas?: ElementRef<HTMLCanvasElement>;
   @ViewChild('methodCanvas') methodCanvas?: ElementRef<HTMLCanvasElement>;
@@ -37,8 +38,10 @@ export class BillingSummaryComponent implements OnChanges, OnDestroy {
   private methodChart: Chart | null = null;
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['summary'] || changes['paymentMethodMap']) {
-      setTimeout(() => this.renderCharts(), 50);
+    if (changes['summary'] || changes['paymentMethodMap'] || changes['showCharts']) {
+      if (this.showCharts) {
+        setTimeout(() => this.renderCharts(), 50);
+      }
     }
   }
 

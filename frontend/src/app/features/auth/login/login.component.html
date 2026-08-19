@@ -93,20 +93,43 @@
           <div class="flex items-center justify-between mb-1">
             <label class="login-label !mb-0" for="password">Contraseña</label>
           </div>
-          <input
-            type="password"
-            id="password"
-            formControlName="password"
-            class="input-field !py-3 text-sm"
-            placeholder="••••••••"
-            autocomplete="current-password"
-          />
+          <div class="relative flex items-center">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              id="password"
+              formControlName="password"
+              class="input-field !py-3 !pr-11 text-sm"
+              placeholder="••••••••"
+              autocomplete="current-password"
+            />
+            <button
+              type="button"
+              (click)="togglePasswordVisibility()"
+              class="password-toggle-btn absolute right-3 flex items-center justify-center text-slate-400 hover:text-slate-700 focus:outline-none focus:text-primary-600 transition"
+              [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              [title]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            >
+              <lucide-icon [img]="showPassword ? EyeOff : Eye" [size]="18"></lucide-icon>
+            </button>
+          </div>
           @if (loginForm.get('password')?.invalid && (loginForm.get('password')?.dirty || loginForm.get('password')?.touched)) {
             <div class="login-validation">
               @if (loginForm.get('password')?.hasError('required')) { <small>La contraseña es requerida.</small> }
               @if (loginForm.get('password')?.hasError('minlength')) { <small>Mínimo 6 caracteres.</small> }
             </div>
           }
+        </div>
+
+        <div class="login-remember-row flex items-center justify-between py-0.5">
+          <label for="rememberUsername" class="inline-flex items-center gap-2 text-sm text-slate-600 select-none cursor-pointer hover:text-slate-900 transition">
+            <input
+              type="checkbox"
+              id="rememberUsername"
+              formControlName="rememberUsername"
+              class="h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500 transition cursor-pointer"
+            />
+            <span>Recordar nombre de usuario</span>
+          </label>
         </div>
 
         <button

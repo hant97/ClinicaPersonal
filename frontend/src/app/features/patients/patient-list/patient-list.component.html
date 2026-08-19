@@ -22,7 +22,7 @@
           type="button"
           class="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-semibold transition"
           [class]="viewMode === 'cards' ? 'bg-surface text-ink shadow-sm' : 'text-muted hover:text-ink'"
-          (click)="viewMode = 'cards'"
+          (click)="setViewMode('cards')"
           title="Vista de tarjetas"
         >
           <lucide-icon [img]="LayoutGrid" [size]="14"></lucide-icon>
@@ -32,7 +32,7 @@
           type="button"
           class="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-semibold transition"
           [class]="viewMode === 'table' ? 'bg-surface text-ink shadow-sm' : 'text-muted hover:text-ink'"
-          (click)="viewMode = 'table'"
+          (click)="setViewMode('table')"
           title="Vista de tabla"
         >
           <lucide-icon [img]="List" [size]="14"></lucide-icon>
@@ -169,75 +169,109 @@
     <!-- Cards Grid -->
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 min-w-0 w-full">
       @for (patient of patients; track patient.id) {
-        <div class="group rounded-xl border border-line bg-surface p-4 transition hover:shadow-raised min-w-0 w-full overflow-hidden" [routerLink]="['/patients', patient.uuid || patient.id]">
-          <div class="flex items-start justify-between">
-            @if (patient.photoUrl) {
-              <img [src]="patient.photoUrl" class="h-11 w-11 rounded-full object-cover border border-line" [alt]="patient.firstName">
-            } @else {
-              <span class="avatar-initials !h-11 !w-11 !text-sm shrink-0 bg-primary-100 text-primary-700">
-                {{ getInitials(patient.firstName, patient.lastName) }}
-              </span>
-            }
-            <span
-              class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
-              [ngClass]="patient.active === false ? 'bg-slate-100 text-slate-500' : 'bg-emerald-50 text-emerald-700'"
-            >
-              <span class="h-1.5 w-1.5 rounded-full" [ngClass]="patient.active === false ? 'bg-slate-400' : 'bg-emerald-500'"></span>
-              {{ patient.active === false ? 'Inactivo' : 'Activo' }}
-            </span>
+        <div class="group rounded-xl border border-line bg-surface p-4 transition hover:shadow-raised min-w-0 w-full cursor-pointer flex flex-col justify-between" [routerLink]="['/patients', patient.uuid || patient.id]">
+          <div>
+            <!-- Header: Avatar, Name + Subtitle (Document · Gender), and Alert Dot -->
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-center gap-3 min-w-0">
+                @if (patient.photoUrl) {
+                  <img [src]="patient.photoUrl" class="h-11 w-11 rounded-full object-cover border border-line shrink-0" [alt]="patient.firstName">
+                } @else {
+                  <span class="avatar-initials !h-11 !w-11 !text-sm shrink-0 bg-primary-100 text-primary-700 font-bold">
+                    {{ getInitials(patient.firstName, patient.lastName) }}
+                  </span>
+                }
+                <div class="min-w-0">
+                  <h3 class="text-sm font-bold text-ink truncate leading-snug">{{ patient.firstName }} {{ patient.lastName }}</h3>
+                  <p class="text-xs text-muted truncate mt-0.5">
+                    {{ patient.identificationDocument || 'S/D' }} · {{ getGenderLabel(patient.gender) }}
+                  </p>
+                </div>
+              </div>
+
+              @if (patient.hasActiveAlerts) {
+                <span class="h-2.5 w-2.5 rounded-full bg-red-500 shrink-0 mt-1" title="Alerta médica activa"></span>
+              }
+            </div>
+
+            <!-- Details: Phone, Email, Age · Status -->
+            <div class="mt-3.5 space-y-1.5 text-xs text-muted">
+              @if (patient.contactNumber) {
+                <p class="flex items-center gap-2">
+                  <lucide-icon [img]="Phone" [size]="14" class="text-slate-400 shrink-0"></lucide-icon>
+                  <span class="truncate">{{ patient.contactNumber }}</span>
+                </p>
+              }
+              @if (patient.email) {
+                <p class="flex items-center gap-2 truncate">
+                  <lucide-icon [img]="Mail" [size]="14" class="text-slate-400 shrink-0"></lucide-icon>
+                  <span class="truncate">{{ patient.email }}</span>
+                </p>
+              }
+              <p class="flex items-center gap-2">
+                <lucide-icon [img]="Calendar" [size]="14" class="text-slate-400 shrink-0"></lucide-icon>
+                <span>{{ getAge(patient) !== null ? getAge(patient) + ' años' : 'Sin edad' }} · {{ patient.active === false ? 'Inactivo' : 'Activo' }}</span>
+              </p>
+            </div>
           </div>
 
-          <h3 class="mt-3 text-sm font-bold text-ink">{{ patient.firstName }} {{ patient.lastName }}</h3>
-          <p class="mt-0.5 font-mono text-xs text-muted">{{ patient.identificationDocument || 'S/D' }}</p>
-
-          <div class="mt-2 flex flex-wrap items-center gap-1.5">
-            @if (patient.hasActiveAlerts) {
-              <span class="inline-flex items-center gap-1 rounded bg-red-50 px-2 py-0.5 text-[10px] font-bold text-danger border border-red-200">
-                <span class="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse"></span>
-                Alerta
-              </span>
-            }
-            @if (isMinor(patient)) {
-              <span class="rounded bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-700 border border-violet-200">Menor</span>
-            }
-            <span class="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600 border border-line">{{ getGenderLabel(patient.gender) }}</span>
-          </div>
-
-          <div class="mt-3 space-y-1 border-t border-line pt-3 text-xs text-muted">
-            @if (patient.contactNumber) {
-              <p class="flex items-center gap-1.5"><lucide-icon [img]="Phone" [size]="12"></lucide-icon> {{ patient.contactNumber }}</p>
-            }
-            @if (patient.email) {
-              <p class="flex items-center gap-1.5 truncate"><lucide-icon [img]="Mail" [size]="12"></lucide-icon> {{ patient.email }}</p>
-            }
-            @if (getAge(patient) !== null) {
-              <p class="flex items-center gap-1.5"><lucide-icon [img]="Calendar" [size]="12"></lucide-icon> {{ getAge(patient) }} años</p>
-            }
-          </div>
-
-          <div class="mt-3 flex items-center justify-between gap-1 border-t border-line pt-3" (click)="$event.stopPropagation()">
-            <a class="btn-secondary !text-xs !py-1.5" [routerLink]="['/patients', patient.uuid || patient.id]">
+          <!-- Footer: [ 👁 Ficha ] & [ ··· ] -->
+          <div class="mt-3.5 flex items-center justify-between gap-2 border-t border-line pt-3" (click)="$event.stopPropagation()">
+            <a class="btn-secondary !text-xs !py-1.5 !px-3 shadow-sm inline-flex items-center gap-1.5" [routerLink]="['/patients', patient.uuid || patient.id]">
               <lucide-icon [img]="Eye" [size]="13"></lucide-icon>
               <span>Ficha</span>
             </a>
-            <div class="flex items-center gap-0.5">
-              <button type="button" class="btn-text !p-1.5 text-primary-600" (click)="scheduleAppointment(patient.id, $event)" title="Agendar Cita">
-                <lucide-icon [img]="Calendar" [size]="16"></lucide-icon>
-              </button>
+
+            <!-- Action Menu Popup -->
+            <div class="relative">
               <button
                 type="button"
-                class="btn-text !p-1.5"
-                [title]="patient.active === false ? 'Reactivar' : 'Dar de baja'"
-                (click)="toggleActive(patient, $event)"
+                class="inline-flex items-center justify-center rounded-lg border border-line bg-surface px-2.5 py-1.5 text-muted shadow-sm hover:border-slate-300 hover:bg-slate-50 hover:text-ink transition"
+                [class.bg-slate-100]="openMenuPatientId === patient.id"
+                (click)="toggleMenu(patient.id, $event)"
+                title="Más opciones"
+                aria-label="Más opciones"
               >
-                <lucide-icon [img]="patient.active === false ? CheckCircle2 : XCircle" [size]="16"></lucide-icon>
+                <lucide-icon [img]="MoreHorizontal" [size]="16"></lucide-icon>
               </button>
-              <a class="btn-text !p-1.5" [routerLink]="['/patients', patient.uuid || patient.id, 'edit']" (click)="$event.stopPropagation()" title="Editar Datos">
-                <lucide-icon [img]="Edit" [size]="16"></lucide-icon>
-              </a>
-              <button type="button" class="btn-text !p-1.5 text-danger hover:bg-red-50" (click)="deletePatient(patient.id!, $event)" title="Eliminar">
-                <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
-              </button>
+
+              @if (openMenuPatientId === patient.id) {
+                <div class="absolute right-0 bottom-full mb-1.5 w-44 rounded-xl border border-line bg-surface p-1 shadow-floating z-30 text-xs">
+                  <button
+                    type="button"
+                    class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-ink hover:bg-slate-50 transition text-left"
+                    (click)="scheduleAppointment(patient.id, $event); closeMenu()"
+                  >
+                    <lucide-icon [img]="Calendar" [size]="14" class="text-primary-600"></lucide-icon>
+                    <span>Agendar Cita</span>
+                  </button>
+                  <a
+                    [routerLink]="['/patients', patient.uuid || patient.id, 'edit']"
+                    class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-ink hover:bg-slate-50 transition text-left"
+                    (click)="$event.stopPropagation(); closeMenu()"
+                  >
+                    <lucide-icon [img]="Edit" [size]="14" class="text-slate-500"></lucide-icon>
+                    <span>Editar Datos</span>
+                  </a>
+                  <button
+                    type="button"
+                    class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-ink hover:bg-slate-50 transition text-left"
+                    (click)="toggleActive(patient, $event); closeMenu()"
+                  >
+                    <lucide-icon [img]="patient.active === false ? CheckCircle2 : XCircle" [size]="14" [class]="patient.active === false ? 'text-emerald-600' : 'text-amber-600'"></lucide-icon>
+                    <span>{{ patient.active === false ? 'Reactivar' : 'Dar de Baja' }}</span>
+                  </button>
+                  <div class="my-1 border-t border-line"></div>
+                  <button
+                    type="button"
+                    class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-danger hover:bg-red-50 transition text-left"
+                    (click)="deletePatient(patient.id!, $event); closeMenu()"
+                  >
+                    <lucide-icon [img]="Trash2" [size]="14"></lucide-icon>
+                    <span>Eliminar</span>
+                  </button>
+                </div>
+              }
             </div>
           </div>
         </div>

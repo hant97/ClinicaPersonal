@@ -22,4 +22,7 @@ export interface Appointment {
   paid?: boolean;
   paymentId?: number;
   paymentAmount?: number;
+  googleEventId?: string;
+  googleEventLink?: string;
 }
+

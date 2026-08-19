@@ -262,7 +262,9 @@ export class AppointmentFormComponent implements OnInit {
     const newAppointment: Appointment = {
       ...formValue,
       patientId: Number(formValue.patientId),
-      clinicalServiceId: formValue.clinicalServiceId ? Number(formValue.clinicalServiceId) : null
+      clinicalServiceId: formValue.clinicalServiceId ? Number(formValue.clinicalServiceId) : undefined,
+      videoCallLink: formValue.videoCallLink ? formValue.videoCallLink.trim() : undefined,
+      notes: formValue.notes ? formValue.notes.trim() : undefined
     };
     
     const request$ = this.appointment ? 

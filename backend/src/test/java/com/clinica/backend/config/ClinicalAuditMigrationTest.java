@@ -27,7 +27,7 @@ class ClinicalAuditMigrationTest {
                 .locations("classpath:db/migration")
                 .load();
 
-        assertEquals(3, flyway.migrate().migrationsExecuted);
+        assertEquals(4, flyway.migrate().migrationsExecuted);
         assertAuditColumns("clinical_sessions");
         assertAuditColumns("dermatological_evaluations");
         assertAuditColumns("general_history");
@@ -35,7 +35,23 @@ class ClinicalAuditMigrationTest {
         assertAuditColumns("prescriptions");
         assertSpecialtiesTable();
         assertPatientUuidColumn();
+        assertAppointmentGoogleColumns();
         assertEquals(0, flyway.migrate().migrationsExecuted);
+    }
+
+    private void assertAppointmentGoogleColumns() throws Exception {
+        try (Connection connection = DriverManager.getConnection(URL, "sa", "");
+             ResultSet columns = connection.getMetaData().getColumns(null, null, "appointments", null)) {
+            boolean hasGoogleEventId = false;
+            boolean hasGoogleEventLink = false;
+            while (columns.next()) {
+                String column = columns.getString("COLUMN_NAME");
+                hasGoogleEventId |= "google_event_id".equalsIgnoreCase(column);
+                hasGoogleEventLink |= "google_event_link".equalsIgnoreCase(column);
+            }
+            assertTrue(hasGoogleEventId, "Column 'google_event_id' missing in appointments table");
+            assertTrue(hasGoogleEventLink, "Column 'google_event_link' missing in appointments table");
+        }
     }
 
     private void assertPatientUuidColumn() throws Exception {

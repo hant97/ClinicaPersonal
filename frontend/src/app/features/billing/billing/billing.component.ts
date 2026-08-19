@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -11,11 +11,12 @@ import { CatalogService } from '../../../core/services/catalog.service';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import {
   LucideAngularModule, Plus, Edit, Trash2, Download, Eye, Search, FilterX, CalendarCheck,
-  LayoutGrid, List, Banknote, Wallet, CreditCard, Landmark, Smartphone
+  LayoutGrid, List, Banknote, Wallet, CreditCard, Landmark, Smartphone, MoreHorizontal, BarChart3
 } from 'lucide-angular';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ExportService } from '../../../shared/services/export/export.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
+import { ViewPreferenceService } from '../../../shared/services/view-preference/view-preference.service';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 
@@ -41,13 +42,17 @@ export class BillingComponent implements OnInit, OnDestroy {
   readonly CreditCard = CreditCard;
   readonly Landmark = Landmark;
   readonly Smartphone = Smartphone;
+  readonly MoreHorizontal = MoreHorizontal;
+  readonly BarChart3 = BarChart3;
 
   payments: Payment[] = [];
-  viewMode: 'table' | 'cards' = 'cards';
+  viewMode: 'table' | 'cards' = 'table';
   summary: PaymentSummary | null = null;
   showForm = false;
+  showCharts = false;
   selectedPayment: Payment | null = null;
   viewingPayment: Payment | null = null;
+  openMenuPaymentId: number | null = null;
   initialPaymentData: { patientId?: number; appointmentId?: number; clinicalServiceId?: number; description?: string } | null = null;
   paymentMethodMap = new Map<string, string>();
   paymentMethodOptions: { code: string; name: string }[] = [];
@@ -74,11 +79,14 @@ export class BillingComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private toastService: ToastService,
     private exportService: ExportService,
+    private viewPreferenceService: ViewPreferenceService,
     private route: ActivatedRoute,
     private router: Router
   ) {}
 
   ngOnInit(): void {
+    this.viewMode = this.viewPreferenceService.getViewMode<'table' | 'cards'>('billing_view_mode', 'table', 'cards');
+
     // Debounce search
     this.searchSubscription = this.searchSubject.pipe(
       debounceTime(300),
@@ -239,6 +247,47 @@ export class BillingComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  setViewMode(mode: 'table' | 'cards'): void {
+    this.viewMode = mode;
+    this.viewPreferenceService.setViewMode('billing_view_mode', mode);
+  }
+
+  toggleCharts(): void {
+    this.showCharts = !this.showCharts;
+  }
+
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.openMenuPaymentId = null;
+  }
+
+  toggleMenu(paymentId?: number, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (!paymentId) return;
+    this.openMenuPaymentId = this.openMenuPaymentId === paymentId ? null : paymentId;
+  }
+
+  closeMenu(): void {
+    this.openMenuPaymentId = null;
+  }
+
+  formatPaymentDate(dateStr?: string): string {
+    if (!dateStr) return '—';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'set', 'oct', 'nov', 'dic'];
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    let hours = date.getHours();
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'p.m.' : 'a.m.';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    return `${day} ${month}, ${hours}:${minutes} ${ampm}`;
   }
 
   getPaymentMethodText(method: string): string {

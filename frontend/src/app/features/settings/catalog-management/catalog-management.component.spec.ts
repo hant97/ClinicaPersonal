@@ -3,6 +3,7 @@ import { CatalogManagementComponent } from './catalog-management.component';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { SpecialtyService } from '../../../core/services/specialty.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
+import { ToastService } from '../../../shared/services/toast/toast.service';
 import { of } from 'rxjs';
 import { Catalog, CatalogItem } from '../../../core/models/catalog.model';
 import { SpecialtyItem } from '../../../core/models/specialty.model';
@@ -13,6 +14,7 @@ describe('CatalogManagementComponent', () => {
   let catalogServiceSpy: jasmine.SpyObj<CatalogService>;
   let specialtyServiceSpy: jasmine.SpyObj<SpecialtyService>;
   let notificationServiceSpy: jasmine.SpyObj<NotificationService>;
+  let toastServiceSpy: jasmine.SpyObj<ToastService>;
 
   const mockSpecialties: SpecialtyItem[] = [
     { id: 1, code: 'PSICOLOGIA', name: 'Psicología', active: true, displayOrder: 1 },
@@ -66,6 +68,7 @@ describe('CatalogManagementComponent', () => {
     ]);
     specialtyServiceSpy = jasmine.createSpyObj('SpecialtyService', ['getActiveSpecialties']);
     notificationServiceSpy = jasmine.createSpyObj('NotificationService', ['alert']);
+    toastServiceSpy = jasmine.createSpyObj('ToastService', ['success', 'error', 'info', 'warning', 'show']);
 
     specialtyServiceSpy.getActiveSpecialties.and.returnValue(of(mockSpecialties));
 
@@ -77,7 +80,8 @@ describe('CatalogManagementComponent', () => {
       providers: [
         { provide: CatalogService, useValue: catalogServiceSpy },
         { provide: SpecialtyService, useValue: specialtyServiceSpy },
-        { provide: NotificationService, useValue: notificationServiceSpy }
+        { provide: NotificationService, useValue: notificationServiceSpy },
+        { provide: ToastService, useValue: toastServiceSpy }
       ]
     }).compileComponents();
 
@@ -138,7 +142,7 @@ describe('CatalogManagementComponent', () => {
       isActive: true
     }));
     expect(component.items.length).toBe(4);
-    expect(notificationServiceSpy.alert).toHaveBeenCalledWith('Éxito', jasmine.any(String), 'success');
+    expect(toastServiceSpy.success).toHaveBeenCalledWith(jasmine.stringMatching(/Transferencia/));
   });
 
   it('debe permitir la edición inline del nombre de una opción', () => {
@@ -167,7 +171,7 @@ describe('CatalogManagementComponent', () => {
     component.toggleActive(item);
 
     expect(catalogServiceSpy.updateCatalogItem).toHaveBeenCalled();
-    expect(notificationServiceSpy.alert).toHaveBeenCalledWith('Éxito', jasmine.stringMatching(/desactivada/), 'success');
+    expect(toastServiceSpy.success).toHaveBeenCalledWith(jasmine.stringMatching(/desactivada/));
   });
 
   it('debe reordenar opciones hacia arriba y abajo', () => {

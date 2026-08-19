@@ -22,4 +22,33 @@ describe('PatientListComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should toggle and close action menu correctly', () => {
+    expect(component.openMenuPatientId).toBeNull();
+
+    const mockEvent = new MouseEvent('click');
+    spyOn(mockEvent, 'stopPropagation');
+
+    component.toggleMenu(10, mockEvent);
+    expect(component.openMenuPatientId).toBe(10);
+    expect(mockEvent.stopPropagation).toHaveBeenCalled();
+
+    // Toggle same id closes it
+    component.toggleMenu(10);
+    expect(component.openMenuPatientId).toBeNull();
+
+    // Toggle another id opens it
+    component.toggleMenu(20);
+    expect(component.openMenuPatientId).toBe(20);
+
+    // Document click closes it
+    component.onDocumentClick();
+    expect(component.openMenuPatientId).toBeNull();
+
+    // closeMenu closes it
+    component.toggleMenu(30);
+    expect(component.openMenuPatientId).toBe(30);
+    component.closeMenu();
+    expect(component.openMenuPatientId).toBeNull();
+  });
 });

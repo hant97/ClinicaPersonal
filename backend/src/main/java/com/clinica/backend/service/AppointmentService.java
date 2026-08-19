@@ -33,6 +33,7 @@ public class AppointmentService {
     private final PatientRepository patientRepository;
     private final ClinicalServiceRepository clinicalServiceRepository;
     private final PaymentRepository paymentRepository;
+    private final GoogleCalendarService googleCalendarService;
 
     private String getCurrentUserSpecialty() {
         return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getSpecialty();
@@ -85,7 +86,13 @@ public class AppointmentService {
         appointment.setNotes(dto.getNotes());
         appointment.setSpecialty(getCurrentUserSpecialty());
 
-        return mapToDto(appointmentRepository.save(appointment));
+        Appointment savedAppointment = appointmentRepository.save(appointment);
+        if ("CONFIRMADA".equals(savedAppointment.getStatus())) {
+            googleCalendarService.syncAppointment(savedAppointment);
+            savedAppointment = appointmentRepository.save(savedAppointment);
+        }
+
+        return mapToDto(savedAppointment);
     }
 
     @Transactional
@@ -106,6 +113,10 @@ public class AppointmentService {
         appointment.setFirstTime(dto.isFirstTime());
         appointment.setClinicalService(resolveClinicalService(dto.getClinicalServiceId()));
         appointment.setNotes(dto.getNotes());
+
+        if ("CONFIRMADA".equals(appointment.getStatus())) {
+            googleCalendarService.syncAppointment(appointment);
+        }
 
         return mapToDto(appointmentRepository.save(appointment));
     }
@@ -138,6 +149,13 @@ public class AppointmentService {
         }
 
         appointment.setStatus(newStatus);
+
+        if ("CONFIRMADA".equals(newStatus)) {
+            googleCalendarService.syncAppointment(appointment);
+        } else if ("CANCELADA".equals(newStatus)) {
+            googleCalendarService.cancelAppointmentEvent(appointment);
+        }
+
         return mapToDto(appointmentRepository.save(appointment));
     }
 
@@ -197,6 +215,8 @@ public class AppointmentService {
         }
         dto.setNotes(appointment.getNotes());
         dto.setSpecialty(appointment.getSpecialty());
+        dto.setGoogleEventId(appointment.getGoogleEventId());
+        dto.setGoogleEventLink(appointment.getGoogleEventLink());
 
         if (payment != null) {
             dto.setPaid(true);

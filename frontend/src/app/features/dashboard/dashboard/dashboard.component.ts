@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   ArrowRight,
   Plus,
+  UserPlus,
   Zap,
   Play
 } from 'lucide-angular';
@@ -55,6 +56,7 @@ export class DashboardComponent implements OnInit {
   readonly CheckCircle2 = CheckCircle2;
   readonly ArrowRight = ArrowRight;
   readonly Plus = Plus;
+  readonly UserPlus = UserPlus;
   readonly Zap = Zap;
   readonly Play = Play;
 

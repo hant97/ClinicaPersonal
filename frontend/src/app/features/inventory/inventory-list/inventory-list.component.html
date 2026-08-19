@@ -22,7 +22,7 @@
           type="button"
           class="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-semibold transition"
           [class]="viewMode === 'cards' ? 'bg-surface text-ink shadow-sm' : 'text-muted hover:text-ink'"
-          (click)="viewMode = 'cards'"
+          (click)="setViewMode('cards')"
           title="Vista de tarjetas"
         >
           <lucide-icon [img]="LayoutGrid" [size]="14"></lucide-icon>
@@ -32,7 +32,7 @@
           type="button"
           class="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-semibold transition"
           [class]="viewMode === 'table' ? 'bg-surface text-ink shadow-sm' : 'text-muted hover:text-ink'"
-          (click)="viewMode = 'table'"
+          (click)="setViewMode('table')"
           title="Vista de tabla"
         >
           <lucide-icon [img]="List" [size]="14"></lucide-icon>

@@ -2,6 +2,8 @@ HELP.md
 .env
 .env.*
 !.env.example
+google-credentials*.json
+*credentials*.json
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/

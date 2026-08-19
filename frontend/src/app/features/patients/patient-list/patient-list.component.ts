@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PatientService } from '../../../core/services/patient/patient.service';
@@ -9,7 +9,8 @@ import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ExportService } from '../../../shared/services/export/export.service';
 import { CatalogService } from '../../../core/services/catalog.service';
-import { CatalogItem } from '../../../core/models/catalog.model';
+import { ViewPreferenceService } from '../../../shared/services/view-preference/view-preference.service';
+import { PatientFormComponent } from '../patient-form/patient-form.component';
 import {
   LucideAngularModule,
   Search,
@@ -20,17 +21,21 @@ import {
   Download,
   AlertTriangle,
   Calendar,
-  User,
   Users,
-  UserPlus,
-  Phone,
-  Mail,
   LayoutGrid,
   List,
+  MoreHorizontal,
+  FileText,
+  UserCheck,
+  UserX,
+  CalendarPlus,
+  UserPlus,
   UserRound,
+  X,
+  Phone,
+  Mail,
   CheckCircle2,
-  XCircle,
-  X
+  XCircle
 } from 'lucide-angular';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
@@ -43,30 +48,35 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
     FormsModule,
     PaginationComponent,
     RouterLink,
-    LucideAngularModule
+    LucideAngularModule,
+    PatientFormComponent
   ],
   templateUrl: './patient-list.component.html',
 })
 export class PatientListComponent implements OnInit, OnDestroy {
+  readonly Plus = Plus;
   readonly Search = Search;
-  readonly Eye = Eye;
   readonly Edit = Edit;
   readonly Trash2 = Trash2;
-  readonly Plus = Plus;
-  readonly Download = Download;
-  readonly AlertTriangle = AlertTriangle;
-  readonly Calendar = Calendar;
-  readonly User = User;
+  readonly FileText = FileText;
   readonly Users = Users;
-  readonly UserPlus = UserPlus;
-  readonly Phone = Phone;
-  readonly Mail = Mail;
+  readonly UserCheck = UserCheck;
+  readonly UserX = UserX;
+  readonly CalendarPlus = CalendarPlus;
+  readonly AlertTriangle = AlertTriangle;
+  readonly Eye = Eye;
   readonly LayoutGrid = LayoutGrid;
   readonly List = List;
+  readonly MoreHorizontal = MoreHorizontal;
+  readonly Download = Download;
+  readonly UserPlus = UserPlus;
   readonly UserRound = UserRound;
+  readonly X = X;
+  readonly Phone = Phone;
+  readonly Mail = Mail;
+  readonly Calendar = Calendar;
   readonly CheckCircle2 = CheckCircle2;
   readonly XCircle = XCircle;
-  readonly X = X;
 
   patients: Patient[] = [];
   stats: PatientStats | null = null;
@@ -80,6 +90,7 @@ export class PatientListComponent implements OnInit, OnDestroy {
 
   showModal = false;
   selectedPatientId: number | null = null;
+  openMenuPatientId: number | null = null;
 
   currentPage: number = 0;
   pageSize: number = 10;
@@ -97,6 +108,7 @@ export class PatientListComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private exportService: ExportService,
     private catalogService: CatalogService,
+    private viewPreferenceService: ViewPreferenceService,
     private router: Router
   ) {
     this.searchSubject.pipe(
@@ -111,6 +123,7 @@ export class PatientListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.viewMode = this.viewPreferenceService.getViewMode<'table' | 'cards'>('patients_view_mode', 'cards', 'cards');
     this.loadGenders();
     this.loadPatients();
     this.loadStats();
@@ -216,6 +229,23 @@ export class PatientListComponent implements OnInit, OnDestroy {
     return (gender && this.genderMap.get(gender)) || gender || '—';
   }
 
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.openMenuPatientId = null;
+  }
+
+  toggleMenu(patientId?: number, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (!patientId) return;
+    this.openMenuPatientId = this.openMenuPatientId === patientId ? null : patientId;
+  }
+
+  closeMenu(): void {
+    this.openMenuPatientId = null;
+  }
+
   openModal(id?: number): void {
     this.selectedPatientId = id || null;
     this.showModal = true;
@@ -315,5 +345,10 @@ export class PatientListComponent implements OnInit, OnDestroy {
       },
       error: () => this.toastService.show('Error al exportar los pacientes', 'error')
     });
+  }
+
+  setViewMode(mode: 'table' | 'cards'): void {
+    this.viewMode = mode;
+    this.viewPreferenceService.setViewMode('patients_view_mode', mode);
   }
 }

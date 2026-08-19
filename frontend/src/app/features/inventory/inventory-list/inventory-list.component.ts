@@ -9,6 +9,7 @@ import { InventoryFormComponent } from '../inventory-form/inventory-form.compone
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
+import { ViewPreferenceService } from '../../../shared/services/view-preference/view-preference.service';
 import {
   LucideAngularModule, Search, Edit, Trash2, Plus, AlertTriangle, Package, Eye, X,
   History, LayoutGrid, List, CalendarClock, Wallet, TrendingUp, SlidersHorizontal
@@ -48,7 +49,7 @@ export class InventoryListComponent implements OnInit, OnDestroy {
   selectedSupplyId: number | null = null;
   viewImageUrl: string | null = null;
   viewImageName: string | null = null;
-  viewMode: 'table' | 'cards' = 'cards';
+  viewMode: 'table' | 'cards' = 'table';
 
   // Adjustment modal
   adjustingSupply: Supply | null = null;
@@ -77,10 +78,13 @@ export class InventoryListComponent implements OnInit, OnDestroy {
     private inventoryService: InventoryService,
     private specialtyService: SpecialtyService,
     private toastService: ToastService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private viewPreferenceService: ViewPreferenceService
   ) {}
 
   ngOnInit(): void {
+    this.viewMode = this.viewPreferenceService.getViewMode<'table' | 'cards'>('inventory_view_mode', 'table', 'cards');
+    
     this.specialtyService.getActiveSpecialties().subscribe({
       next: (list) => this.specialties = list || [],
       error: () => {}
@@ -240,6 +244,11 @@ export class InventoryListComponent implements OnInit, OnDestroy {
         }
       });
     }
+  }
+
+  setViewMode(mode: 'table' | 'cards'): void {
+    this.viewMode = mode;
+    this.viewPreferenceService.setViewMode('inventory_view_mode', mode);
   }
 
   closeMovements(): void {

@@ -59,4 +59,11 @@ public class Appointment {
 
     @Column(name = "specialty", nullable = false)
     private String specialty = "PSICOLOGIA";
+
+    @Column(name = "google_event_id")
+    private String googleEventId;
+
+    @Column(name = "google_event_link")
+    private String googleEventLink;
 }
+

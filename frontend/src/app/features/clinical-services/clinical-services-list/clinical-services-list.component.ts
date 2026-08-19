@@ -16,6 +16,7 @@ import { ClinicalServicesFormComponent } from '../clinical-services-form/clinica
 
 import { SpecialtyService } from '../../../core/services/specialty.service';
 import { SpecialtyItem } from '../../../core/models/specialty.model';
+import { ViewPreferenceService } from '../../../shared/services/view-preference/view-preference.service';
 
 const SERVICE_CATEGORIES = ['Evaluación', 'Terapia', 'Procedimiento', 'Control', 'Diagnóstico', 'Otro'];
 
@@ -74,10 +75,13 @@ export class ClinicalServicesListComponent implements OnInit, OnDestroy {
     private serviceService: ClinicalServiceService,
     private specialtyService: SpecialtyService,
     private toastService: ToastService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private viewPreferenceService: ViewPreferenceService
   ) {}
 
   ngOnInit(): void {
+    this.viewMode = this.viewPreferenceService.getViewMode<'cards' | 'table'>('clinical_services_view_mode', 'cards', 'cards');
+
     this.specialtyService.getActiveSpecialties().subscribe({
       next: (list) => this.specialties = list || [],
       error: () => {}
@@ -221,5 +225,10 @@ export class ClinicalServicesListComponent implements OnInit, OnDestroy {
     if (specialty === 'PSICOLOGIA') return 'Psicología';
     if (specialty === 'DERMATOLOGIA') return 'Dermatología';
     return specialty.charAt(0) + specialty.slice(1).toLowerCase();
+  }
+
+  setViewMode(mode: 'cards' | 'table'): void {
+    this.viewMode = mode;
+    this.viewPreferenceService.setViewMode('clinical_services_view_mode', mode);
   }
 }

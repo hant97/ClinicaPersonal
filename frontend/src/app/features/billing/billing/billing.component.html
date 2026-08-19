@@ -22,7 +22,7 @@
           type="button"
           class="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-semibold transition"
           [class]="viewMode === 'cards' ? 'bg-surface text-ink shadow-sm' : 'text-muted hover:text-ink'"
-          (click)="viewMode = 'cards'"
+          (click)="setViewMode('cards')"
           title="Vista de tarjetas"
         >
           <lucide-icon [img]="LayoutGrid" [size]="14"></lucide-icon>
@@ -32,13 +32,23 @@
           type="button"
           class="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-semibold transition"
           [class]="viewMode === 'table' ? 'bg-surface text-ink shadow-sm' : 'text-muted hover:text-ink'"
-          (click)="viewMode = 'table'"
+          (click)="setViewMode('table')"
           title="Vista de tabla"
         >
           <lucide-icon [img]="List" [size]="14"></lucide-icon>
           <span>Tabla</span>
         </button>
       </div>
+
+      <button
+        type="button"
+        class="btn-secondary !text-xs !py-1.5"
+        (click)="toggleCharts()"
+        [title]="showCharts ? 'Ocultar gráficos' : 'Ver gráficos'"
+      >
+        <lucide-icon [img]="BarChart3" [size]="14"></lucide-icon>
+        <span>{{ showCharts ? 'Ocultar Gráficos' : 'Ver Gráficos' }}</span>
+      </button>
 
       <button
         type="button"
@@ -61,7 +71,7 @@
     </div>
   </div>
 
-  <app-billing-summary [summary]="summary" [paymentMethodMap]="paymentMethodMap"></app-billing-summary>
+  <app-billing-summary [summary]="summary" [paymentMethodMap]="paymentMethodMap" [showCharts]="showCharts"></app-billing-summary>
 
   <!-- Filters -->
   <div class="flex flex-wrap items-end gap-2">
@@ -143,57 +153,69 @@
   } @else {
     @if (viewMode === 'cards') {
       <!-- Cards Grid -->
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 min-w-0 w-full">
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 min-w-0 w-full">
         @for (payment of payments; track payment.id) {
-          <div class="group flex flex-col rounded-xl border border-line bg-surface p-4 transition hover:shadow-raised min-w-0 w-full overflow-hidden">
-            <div class="flex items-start justify-between gap-2">
-              <div class="flex items-center gap-2.5 min-w-0">
-                <span class="avatar-initials !h-10 !w-10 !text-sm shrink-0 bg-emerald-100 text-emerald-800">
-                  {{ (payment.patientName || 'P').substring(0, 2) }}
-                </span>
-                <div class="min-w-0">
-                  <p class="truncate text-sm font-bold text-ink">{{ payment.patientName || 'Paciente Desconocido' }}</p>
-                  <p class="font-mono text-[11px] text-muted">{{ payment.paymentDate | date:'dd/MM/yyyy HH:mm' }}</p>
-                </div>
+          <div class="group flex items-center justify-between gap-3 rounded-xl border border-line bg-surface p-4 transition hover:shadow-raised min-w-0 w-full">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="avatar-initials !h-10 !w-10 !text-xs font-bold shrink-0 bg-primary-100 text-primary-700">
+                {{ (payment.patientName || 'P').substring(0, 2) }}
+              </span>
+              <div class="min-w-0">
+                <p class="truncate text-sm font-bold text-ink leading-tight">{{ payment.patientName || 'Paciente Desconocido' }}</p>
+                <p class="text-xs text-muted truncate mt-0.5">
+                  {{ formatPaymentDate(payment.paymentDate) }} · {{ getPaymentMethodText(payment.paymentMethod) }}
+                </p>
               </div>
-              @if (payment.appointmentId) {
-                <span
-                  class="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-semibold text-sky-700 border border-sky-200"
-                  title="Cobro vinculado a la cita #{{ payment.appointmentId }}"
-                >
-                  <lucide-icon [img]="CalendarCheck" [size]="10"></lucide-icon>
-                  Cita
-                </span>
-              }
             </div>
 
-            <div class="mt-4 flex items-end justify-between gap-2">
-              <p class="font-mono text-2xl font-bold text-emerald-700">
+            <div class="flex flex-col items-end gap-2 shrink-0">
+              <p class="font-bold text-ink text-sm sm:text-base leading-tight">
                 {{ payment.amount | currency:'PEN':'S/ ':'1.2-2' }}
               </p>
-              <span
-                class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold border"
-                [ngClass]="getPaymentMethodVisual(payment.paymentMethod).classes"
-              >
-                <lucide-icon [img]="getPaymentMethodVisual(payment.paymentMethod).icon" [size]="11"></lucide-icon>
-                {{ getPaymentMethodText(payment.paymentMethod) }}
-              </span>
-            </div>
 
-            <p class="mt-2 truncate text-xs text-muted" [title]="payment.description">
-              {{ payment.description || 'Consulta / Servicio' }}
-            </p>
+              <!-- Action Menu Popup -->
+              <div class="relative" (click)="$event.stopPropagation()">
+                <button
+                  type="button"
+                  class="inline-flex items-center justify-center rounded-lg border border-line bg-surface px-2.5 py-1 text-muted shadow-sm hover:border-slate-300 hover:bg-slate-50 hover:text-ink transition"
+                  [class.bg-slate-100]="openMenuPaymentId === payment.id"
+                  (click)="toggleMenu(payment.id, $event)"
+                  title="Más opciones"
+                  aria-label="Más opciones"
+                >
+                  <lucide-icon [img]="MoreHorizontal" [size]="16"></lucide-icon>
+                </button>
 
-            <div class="mt-auto flex items-center justify-end gap-0.5 border-t border-line pt-3 mt-3">
-              <button type="button" class="btn-text !p-1.5" (click)="viewPayment(payment)" title="Ver Detalle">
-                <lucide-icon [img]="Eye" [size]="16"></lucide-icon>
-              </button>
-              <button type="button" class="btn-text !p-1.5" (click)="openForm(payment)" title="Editar">
-                <lucide-icon [img]="Edit" [size]="16"></lucide-icon>
-              </button>
-              <button type="button" class="btn-text !p-1.5 text-danger hover:bg-red-50" (click)="deletePayment(payment.id!)" title="Eliminar">
-                <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
-              </button>
+                @if (openMenuPaymentId === payment.id) {
+                  <div class="absolute right-0 bottom-full mb-1.5 w-40 rounded-xl border border-line bg-surface p-1 shadow-floating z-30 text-xs text-left">
+                    <button
+                      type="button"
+                      class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-ink hover:bg-slate-50 transition text-left"
+                      (click)="viewPayment(payment); closeMenu()"
+                    >
+                      <lucide-icon [img]="Eye" [size]="14" class="text-muted"></lucide-icon>
+                      <span>Ver Detalle</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-ink hover:bg-slate-50 transition text-left"
+                      (click)="openForm(payment); closeMenu()"
+                    >
+                      <lucide-icon [img]="Edit" [size]="14" class="text-slate-500"></lucide-icon>
+                      <span>Editar</span>
+                    </button>
+                    <div class="my-1 border-t border-line"></div>
+                    <button
+                      type="button"
+                      class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-danger hover:bg-red-50 transition text-left"
+                      (click)="deletePayment(payment.id!); closeMenu()"
+                    >
+                      <lucide-icon [img]="Trash2" [size]="14"></lucide-icon>
+                      <span>Eliminar</span>
+                    </button>
+                  </div>
+                }
+              </div>
             </div>
           </div>
         }
@@ -213,22 +235,23 @@
             </tr>
           </thead>
           <tbody>
-            @for (payment of payments; track payment.id) {
+            @for (payment of payments; track payment.id; let i = $index) {
               <tr class="transition hover:bg-slate-50">
-                <td class="font-mono text-xs text-slate-700">
-                  {{ payment.paymentDate | date:'dd/MM/yyyy HH:mm' }}
+                <td class="font-mono text-xs">
+                  <span class="font-bold text-ink block">{{ payment.paymentDate | date:'dd/MM/yyyy' }}</span>
+                  <span class="block text-muted text-xs mt-0.5">{{ payment.paymentDate | date:'HH:mm' }}</span>
                 </td>
                 <td>
-                  <div class="flex items-center gap-2">
-                    <span class="avatar-initials !h-7 !w-7 !text-xs bg-emerald-100 text-emerald-800">
+                  <div class="flex items-center gap-2.5">
+                    <span class="avatar-initials !h-8 !w-8 !text-xs font-bold shrink-0 bg-primary-100 text-primary-700">
                       {{ (payment.patientName || 'P').substring(0,2) }}
                     </span>
-                    <span class="font-semibold text-xs text-ink">{{ payment.patientName }}</span>
+                    <span class="font-bold text-xs text-ink">{{ payment.patientName || 'Paciente Desconocido' }}</span>
                   </div>
                 </td>
                 <td class="text-xs text-muted max-w-xs truncate">
                   <div class="flex items-center gap-1.5">
-                    <span class="truncate">{{ payment.description || 'Consulta / Servicio' }}</span>
+                    <span class="truncate text-ink">{{ payment.description || 'Consulta / Servicio' }}</span>
                     @if (payment.appointmentId) {
                       <span
                         class="inline-flex shrink-0 items-center gap-0.5 rounded bg-sky-50 px-1.5 py-0.5 text-[10px] font-semibold text-sky-700 border border-sky-200"
@@ -241,45 +264,61 @@
                   </div>
                 </td>
                 <td>
-                  <span class="font-mono font-bold text-xs text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                  <span class="font-mono font-bold text-xs text-ink">
                     {{ payment.amount | currency:'PEN':'S/ ':'1.2-2' }}
                   </span>
                 </td>
                 <td>
-                  <span
-                    class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold border"
-                    [ngClass]="getPaymentMethodVisual(payment.paymentMethod).classes"
-                  >
-                    <lucide-icon [img]="getPaymentMethodVisual(payment.paymentMethod).icon" [size]="11"></lucide-icon>
-                    {{ getPaymentMethodText(payment.paymentMethod) }}
+                  <span class="inline-flex items-center gap-1.5 text-xs text-ink font-medium">
+                    <lucide-icon [img]="getPaymentMethodVisual(payment.paymentMethod).icon" [size]="14" class="text-slate-500 shrink-0"></lucide-icon>
+                    <span>{{ getPaymentMethodText(payment.paymentMethod) }}</span>
                   </span>
                 </td>
-                <td class="text-right">
-                  <div class="flex items-center justify-end gap-1">
+                <td class="text-right" (click)="$event.stopPropagation()">
+                  <div class="relative inline-block text-left">
                     <button
                       type="button"
-                      class="btn-text !p-1.5"
-                      (click)="viewPayment(payment)"
-                      title="Ver Detalle"
+                      class="inline-flex items-center justify-center rounded-lg border border-line bg-surface px-2.5 py-1.5 text-muted shadow-sm hover:border-slate-300 hover:bg-slate-50 hover:text-ink transition"
+                      [class.bg-slate-100]="openMenuPaymentId === payment.id"
+                      (click)="toggleMenu(payment.id, $event)"
+                      title="Más opciones"
+                      aria-label="Más opciones"
                     >
-                      <lucide-icon [img]="Eye" [size]="16"></lucide-icon>
+                      <lucide-icon [img]="MoreHorizontal" [size]="16"></lucide-icon>
                     </button>
-                    <button
-                      type="button"
-                      class="btn-text !p-1.5"
-                      (click)="openForm(payment)"
-                      title="Editar"
-                    >
-                      <lucide-icon [img]="Edit" [size]="16"></lucide-icon>
-                    </button>
-                    <button
-                      type="button"
-                      class="btn-text !p-1.5 text-danger hover:bg-red-50"
-                      (click)="deletePayment(payment.id!)"
-                      title="Eliminar"
-                    >
-                      <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
-                    </button>
+
+                    @if (openMenuPaymentId === payment.id) {
+                      <div
+                        class="absolute right-0 w-44 rounded-xl border border-line bg-surface p-1 shadow-floating z-30 text-xs text-left"
+                        [ngClass]="i >= payments.length - 2 && payments.length > 2 ? 'bottom-full mb-1.5' : 'top-full mt-1.5'"
+                      >
+                        <button
+                          type="button"
+                          class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-ink hover:bg-slate-50 transition text-left"
+                          (click)="viewPayment(payment); closeMenu()"
+                        >
+                          <lucide-icon [img]="Eye" [size]="14" class="text-muted"></lucide-icon>
+                          <span>Ver Detalle</span>
+                        </button>
+                        <button
+                          type="button"
+                          class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-ink hover:bg-slate-50 transition text-left"
+                          (click)="openForm(payment); closeMenu()"
+                        >
+                          <lucide-icon [img]="Edit" [size]="14" class="text-slate-500"></lucide-icon>
+                          <span>Editar</span>
+                        </button>
+                        <div class="my-1 border-t border-line"></div>
+                        <button
+                          type="button"
+                          class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-danger hover:bg-red-50 transition text-left"
+                          (click)="deletePayment(payment.id!); closeMenu()"
+                        >
+                          <lucide-icon [img]="Trash2" [size]="14"></lucide-icon>
+                          <span>Eliminar</span>
+                        </button>
+                      </div>
+                    }
                   </div>
                 </td>
               </tr>

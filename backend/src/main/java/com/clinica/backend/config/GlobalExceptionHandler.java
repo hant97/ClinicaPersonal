@@ -160,7 +160,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})
     public ResponseEntity<ApiErrorResponse> handleUnreadableRequest(Exception ex) {
-        return error(HttpStatus.BAD_REQUEST, "La solicitud contiene datos con un formato inválido");
+        log.warn("Solicitud no legible o tipo de argumento inválido: ", ex);
+        String detail = ex.getCause() != null && ex.getCause().getMessage() != null ? ex.getCause().getMessage() : ex.getMessage();
+        return error(HttpStatus.BAD_REQUEST, "La solicitud contiene datos con un formato inválido: " + (detail != null ? detail : ""));
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)

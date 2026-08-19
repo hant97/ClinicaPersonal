@@ -1,5 +1,6 @@
 package com.clinica.backend.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,6 +14,7 @@ import java.time.LocalTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DashboardAppointmentDto {
     private Long id;
     private Long patientId;
@@ -25,10 +27,12 @@ public class DashboardAppointmentDto {
     private String modality;
     private String videoCallLink;
     @JsonProperty("isFirstTime")
-    private boolean isFirstTime;
+    @Builder.Default
+    private Boolean isFirstTime = false;
     private String notes;
     @JsonProperty("isPaid")
-    private boolean isPaid;
+    @Builder.Default
+    private Boolean isPaid = false;
     private Long paymentId;
     private java.math.BigDecimal paymentAmount;
 }

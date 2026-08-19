@@ -211,25 +211,22 @@
             </tr>
           </thead>
           <tbody>
-            @for (app of appointments; track app.id) {
-              <tr class="cursor-pointer" (click)="openPreview(app, $event)">
+            @for (app of appointments; track app.id; let i = $index) {
+              <tr class="cursor-pointer transition hover:bg-slate-50" (click)="openPreview(app, $event)">
                 <td class="font-mono text-xs">
-                  <span class="font-semibold text-ink">{{ app.appointmentDate | date:'dd/MM/yyyy' }}</span>
-                  <span class="block text-muted text-[11px]">{{ app.startTime }} - {{ app.endTime }}</span>
+                  <span class="font-bold text-ink block">{{ app.appointmentDate | date:'dd/MM/yyyy' }}</span>
+                  <span class="block text-muted text-xs mt-0.5">{{ formatTimeRange(app.startTime, app.endTime) }}</span>
                 </td>
                 <td>
-                  <div class="flex items-center gap-2">
-                    <span class="avatar-initials !h-7 !w-7 !text-xs">{{ getPatientInitials(app.patientName) }}</span>
-                    <span class="font-semibold text-ink">{{ app.patientName }}</span>
+                  <div class="flex items-center gap-2.5">
+                    <span class="avatar-initials !h-8 !w-8 !text-xs font-bold bg-primary-100 text-primary-700 shrink-0">{{ getPatientInitials(app.patientName) }}</span>
+                    <span class="font-bold text-ink text-xs">{{ app.patientName }}</span>
                   </div>
                 </td>
                 <td>
-                  <span
-                    class="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium"
-                    [ngClass]="app.modality === 'VIRTUAL' ? 'bg-sky-50 text-sky-700 border border-sky-200' : 'bg-slate-100 text-slate-700 border border-slate-200'"
-                  >
-                    <lucide-icon [img]="app.modality === 'VIRTUAL' ? Video : User" [size]="12"></lucide-icon>
-                    {{ app.modality || 'Presencial' }}
+                  <span class="inline-flex items-center gap-1.5 text-xs text-ink font-medium">
+                    <lucide-icon [img]="app.modality === 'VIRTUAL' ? Video : User" [size]="14" class="text-slate-500 shrink-0"></lucide-icon>
+                    <span>{{ app.modality === 'VIRTUAL' ? 'Virtual' : 'Presencial' }}</span>
                   </span>
                 </td>
                 <td class="text-xs text-muted max-w-xs">
@@ -239,42 +236,104 @@
                   <span class="block truncate">{{ app.notes || 'Sin detalles' }}</span>
                 </td>
                 <td>
-                  <div class="flex flex-col gap-1 items-start">
-                    <app-status-pill
-                      [label]="getStatusLabel(app.status)"
-                      [variant]="getStatusPillVariant(app.status)"
-                      [showDot]="true"
-                    ></app-status-pill>
+                  <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center gap-1.5 text-xs font-medium text-ink">
+                      <span class="h-2 w-2 rounded-full shrink-0" [ngClass]="getStatusDotClass(app.status)"></span>
+                      <span>{{ getStatusLabel(app.status) }}</span>
+                    </span>
                     @if (app.isPaid || app.paid) {
-                      <span class="inline-flex items-center gap-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-1.5 py-0.5 text-[10px] font-semibold">
-                        <lucide-icon [img]="CheckCircle2" [size]="11"></lucide-icon>
-                        Pagado
-                      </span>
+                      <span class="text-emerald-600 font-bold text-xs" title="Pagado">$</span>
                     } @else if (app.status !== 'CANCELADA' && app.status !== 'NO_ASISTIO') {
-                      <span class="inline-flex items-center gap-1 rounded bg-slate-50 text-slate-500 border border-slate-200 px-1.5 py-0.5 text-[10px] font-medium">
-                        Pendiente Cobro
-                      </span>
+                      <span class="text-slate-400 font-bold text-xs" title="Pendiente Cobro">$</span>
                     }
                   </div>
                 </td>
                 <td class="text-right" (click)="$event.stopPropagation()">
-                  <div class="flex items-center justify-end gap-1">
+                  <div class="relative inline-block text-left">
                     <button
                       type="button"
-                      class="btn-text !p-1.5"
-                      title="Ver detalles"
-                      (click)="openPreview(app, $event)"
+                      class="inline-flex items-center justify-center rounded-lg border border-line bg-surface px-2.5 py-1.5 text-muted shadow-sm hover:border-slate-300 hover:bg-slate-50 hover:text-ink transition"
+                      [class.bg-slate-100]="openMenuAppointmentId === app.id"
+                      (click)="toggleMenu(app.id, $event)"
+                      title="Más opciones"
+                      aria-label="Más opciones"
                     >
-                      <lucide-icon [img]="Eye" [size]="16"></lucide-icon>
+                      <lucide-icon [img]="MoreHorizontal" [size]="16"></lucide-icon>
                     </button>
-                    <button
-                      type="button"
-                      class="btn-text !p-1.5"
-                      title="Reprogramar"
-                      (click)="openRescheduleForm(app)"
-                    >
-                      <lucide-icon [img]="Calendar" [size]="16"></lucide-icon>
-                    </button>
+
+                    @if (openMenuAppointmentId === app.id) {
+                      <div
+                        class="absolute right-0 w-48 rounded-xl border border-line bg-surface p-1 shadow-floating z-30 text-xs"
+                        [ngClass]="i >= appointments.length - 2 && appointments.length > 2 ? 'bottom-full mb-1.5' : 'top-full mt-1.5'"
+                      >
+                        <button
+                          type="button"
+                          class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-ink hover:bg-slate-50 transition text-left"
+                          (click)="openPreview(app, $event); closeMenu()"
+                        >
+                          <lucide-icon [img]="Eye" [size]="14" class="text-muted"></lucide-icon>
+                          <span>Ver Detalle</span>
+                        </button>
+                        <button
+                          type="button"
+                          class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-ink hover:bg-slate-50 transition text-left"
+                          (click)="openRescheduleForm(app); closeMenu()"
+                        >
+                          <lucide-icon [img]="Calendar" [size]="14" class="text-primary-600"></lucide-icon>
+                          <span>Reprogramar</span>
+                        </button>
+                        @if (app.status === 'PROGRAMADA') {
+                          <button
+                            type="button"
+                            class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-ink hover:bg-slate-50 transition text-left"
+                            (click)="confirmAppointment(app); closeMenu()"
+                          >
+                            <lucide-icon [img]="Check" [size]="14" class="text-blue-600"></lucide-icon>
+                            <span>Confirmar Cita</span>
+                          </button>
+                        }
+                        @if (app.status === 'CONFIRMADA' || app.status === 'PROGRAMADA') {
+                          <button
+                            type="button"
+                            class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-ink hover:bg-slate-50 transition text-left"
+                            (click)="registerConsultation(app); closeMenu()"
+                          >
+                            <lucide-icon [img]="Stethoscope" [size]="14" class="text-emerald-600"></lucide-icon>
+                            <span>Atender Paciente</span>
+                          </button>
+                        }
+                        @if (!app.isPaid && !app.paid && app.status !== 'CANCELADA' && app.status !== 'NO_ASISTIO') {
+                          <button
+                            type="button"
+                            class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-ink hover:bg-slate-50 transition text-left"
+                            (click)="goToBilling(app); closeMenu()"
+                          >
+                            <lucide-icon [img]="Receipt" [size]="14" class="text-amber-600"></lucide-icon>
+                            <span>Registrar Cobro</span>
+                          </button>
+                        } @else if (app.paymentId) {
+                          <button
+                            type="button"
+                            class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-ink hover:bg-slate-50 transition text-left"
+                            (click)="goToPaymentDetail(app.paymentId); closeMenu()"
+                          >
+                            <lucide-icon [img]="Receipt" [size]="14" class="text-emerald-600"></lucide-icon>
+                            <span>Ver Cobro</span>
+                          </button>
+                        }
+                        @if (app.status !== 'CANCELADA' && app.status !== 'COMPLETADA') {
+                          <div class="my-1 border-t border-line"></div>
+                          <button
+                            type="button"
+                            class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-danger hover:bg-red-50 transition text-left"
+                            (click)="cancelAppointment(app); closeMenu()"
+                          >
+                            <lucide-icon [img]="X" [size]="14"></lucide-icon>
+                            <span>Cancelar Cita</span>
+                          </button>
+                        }
+                      </div>
+                    }
                   </div>
                 </td>
               </tr>
@@ -380,6 +439,31 @@
           </div>
         }
 
+        <!-- Google Calendar Integration Link -->
+        @if (selectedAppointmentPreview.googleEventLink) {
+          <div class="rounded-lg border border-blue-200 bg-blue-50/80 p-3 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-blue-100 text-blue-700">
+                <lucide-icon [img]="CalendarDays" [size]="15"></lucide-icon>
+              </div>
+              <div class="min-w-0">
+                <p class="text-[11px] font-bold text-blue-900 leading-tight">Google Calendar</p>
+                <p class="text-[10px] text-blue-700 truncate">Sincronizado</p>
+              </div>
+            </div>
+            <a
+              [href]="selectedAppointmentPreview.googleEventLink"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1 text-[11px] font-semibold text-white shadow-xs transition hover:bg-blue-700 shrink-0"
+              title="Abrir evento en Google Calendar"
+            >
+              <span>Ver Evento</span>
+              <lucide-icon [img]="ExternalLink" [size]="12"></lucide-icon>
+            </a>
+          </div>
+        }
+
         <!-- Quick Status Transitions -->
         <div class="space-y-2 pt-2 border-t border-line">
           <p class="text-xs font-bold uppercase tracking-wider text-slate-700">Acciones de Cita</p>
@@ -388,15 +472,22 @@
               <button
                 type="button"
                 class="btn-primary !text-xs !py-2"
+                [disabled]="isUpdatingStatus"
                 (click)="confirmAppointment(selectedAppointmentPreview)"
               >
-                <lucide-icon [img]="Check" [size]="14"></lucide-icon>
-                <span>Confirmar Cita</span>
+                @if (isUpdatingStatus && activeStatusAction === 'CONFIRMADA') {
+                  <span class="spinner !h-3.5 !w-3.5 !border-2 mr-1" role="status"></span>
+                  <span>Sincronizando...</span>
+                } @else {
+                  <lucide-icon [img]="Check" [size]="14"></lucide-icon>
+                  <span>Confirmar Cita</span>
+                }
               </button>
 
               <button
                 type="button"
                 class="btn-secondary !text-xs !py-2 !text-emerald-700 hover:!bg-emerald-50"
+                [disabled]="isUpdatingStatus"
                 (click)="registerConsultation(selectedAppointmentPreview)"
               >
                 <lucide-icon [img]="Stethoscope" [size]="14"></lucide-icon>
@@ -408,6 +499,7 @@
               <button
                 type="button"
                 class="btn-primary !text-xs !py-2 !bg-emerald-600 hover:!bg-emerald-700"
+                [disabled]="isUpdatingStatus"
                 (click)="registerConsultation(selectedAppointmentPreview)"
               >
                 <lucide-icon [img]="Stethoscope" [size]="14"></lucide-icon>
@@ -417,10 +509,16 @@
               <button
                 type="button"
                 class="btn-secondary !text-xs !py-2 !text-amber-700 hover:!bg-amber-50"
+                [disabled]="isUpdatingStatus"
                 (click)="markNoShow(selectedAppointmentPreview)"
               >
-                <lucide-icon [img]="UserX" [size]="14"></lucide-icon>
-                <span>No Asistió</span>
+                @if (isUpdatingStatus && activeStatusAction === 'NO_ASISTIO') {
+                  <span class="spinner !h-3.5 !w-3.5 !border-2 mr-1" role="status"></span>
+                  <span>Guardando...</span>
+                } @else {
+                  <lucide-icon [img]="UserX" [size]="14"></lucide-icon>
+                  <span>No Asistió</span>
+                }
               </button>
             }
 
@@ -429,6 +527,7 @@
                 <button
                   type="button"
                   class="btn-primary !text-xs !py-2 !bg-primary-600 hover:!bg-primary-700"
+                  [disabled]="isUpdatingStatus"
                   [class.col-span-2]="selectedAppointmentPreview.isPaid || selectedAppointmentPreview.paid"
                   (click)="viewConsultation(selectedAppointmentPreview)"
                 >
@@ -439,6 +538,7 @@
                 <button
                   type="button"
                   class="btn-primary !text-xs !py-2 !bg-emerald-600 hover:!bg-emerald-700"
+                  [disabled]="isUpdatingStatus"
                   [class.col-span-2]="selectedAppointmentPreview.isPaid || selectedAppointmentPreview.paid"
                   (click)="registerConsultation(selectedAppointmentPreview)"
                 >
@@ -452,6 +552,7 @@
               <button
                 type="button"
                 class="btn-secondary !text-xs !py-2 !text-emerald-700 hover:!bg-emerald-50"
+                [disabled]="isUpdatingStatus"
                 (click)="goToBilling(selectedAppointmentPreview)"
               >
                 <lucide-icon [img]="Receipt" [size]="14"></lucide-icon>
@@ -463,6 +564,7 @@
               <button
                 type="button"
                 class="btn-secondary !text-xs !py-2"
+                [disabled]="isUpdatingStatus"
                 (click)="openRescheduleForm(selectedAppointmentPreview)"
               >
                 <lucide-icon [img]="Calendar" [size]="14"></lucide-icon>
@@ -474,10 +576,16 @@
               <button
                 type="button"
                 class="btn-secondary !text-xs !py-2"
+                [disabled]="isUpdatingStatus"
                 (click)="reopenAppointment(selectedAppointmentPreview)"
               >
-                <lucide-icon [img]="RotateCcw" [size]="14"></lucide-icon>
-                <span>Reabrir Cita</span>
+                @if (isUpdatingStatus && activeStatusAction === 'CONFIRMADA') {
+                  <span class="spinner !h-3.5 !w-3.5 !border-2 mr-1" role="status"></span>
+                  <span>Reabriendo...</span>
+                } @else {
+                  <lucide-icon [img]="RotateCcw" [size]="14"></lucide-icon>
+                  <span>Reabrir Cita</span>
+                }
               </button>
             }
 
@@ -485,10 +593,16 @@
               <button
                 type="button"
                 class="btn-danger !text-xs !py-2"
+                [disabled]="isUpdatingStatus"
                 (click)="cancelAppointment(selectedAppointmentPreview)"
               >
-                <lucide-icon [img]="X" [size]="14"></lucide-icon>
-                <span>Cancelar Cita</span>
+                @if (isUpdatingStatus && activeStatusAction === 'CANCELADA') {
+                  <span class="spinner !h-3.5 !w-3.5 !border-2 mr-1" role="status"></span>
+                  <span>Cancelando...</span>
+                } @else {
+                  <lucide-icon [img]="X" [size]="14"></lucide-icon>
+                  <span>Cancelar Cita</span>
+                }
               </button>
             }
           </div>

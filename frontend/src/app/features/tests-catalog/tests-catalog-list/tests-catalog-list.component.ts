@@ -6,6 +6,7 @@ import { PsychometricTest, Question } from '../../../core/models/assessment.mode
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
+import { ViewPreferenceService } from '../../../shared/services/view-preference/view-preference.service';
 
 import {
   LucideAngularModule, Plus, Edit, Trash2, Eye, Brain, ClipboardList, LayoutGrid, List, X, Activity, Clock
@@ -45,10 +46,12 @@ export class TestsCatalogListComponent implements OnInit {
     private assessmentService: AssessmentService,
     private router: Router,
     private toastService: ToastService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private viewPreferenceService: ViewPreferenceService
   ) {}
 
   ngOnInit() {
+    this.viewMode = this.viewPreferenceService.getViewMode<'table' | 'cards'>('tests_catalog_view_mode', 'cards', 'cards');
     this.loadTests();
   }
 
@@ -126,5 +129,10 @@ export class TestsCatalogListComponent implements OnInit {
 
   closePreview(): void {
     this.previewingTest = null;
+  }
+
+  setViewMode(mode: 'table' | 'cards'): void {
+    this.viewMode = mode;
+    this.viewPreferenceService.setViewMode('tests_catalog_view_mode', mode);
   }
 }

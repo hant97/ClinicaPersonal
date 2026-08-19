@@ -73,5 +73,45 @@ describe('AgendaComponent', () => {
 
     expect(component.weekDays.length).toBe(7);
   }));
+
+  it('should format time range properly', () => {
+    expect(component.formatTimeRange('09:00:00', '10:00:00')).toBe('09:00 – 10:00');
+    expect(component.formatTimeRange('09:30', '10:15')).toBe('09:30 – 10:15');
+    expect(component.formatTimeRange('09:00:00')).toBe('09:00');
+    expect(component.formatTimeRange('')).toBe('');
+  });
+
+  it('should return appropriate dot class for each status', () => {
+    expect(component.getStatusDotClass('PROGRAMADA')).toBe('bg-amber-500');
+    expect(component.getStatusDotClass('CONFIRMADA')).toBe('bg-blue-500');
+    expect(component.getStatusDotClass('COMPLETADA')).toBe('bg-emerald-500');
+    expect(component.getStatusDotClass('CANCELADA')).toBe('bg-red-500');
+    expect(component.getStatusDotClass('NO_ASISTIO')).toBe('bg-rose-400');
+    expect(component.getStatusDotClass('OTHER')).toBe('bg-slate-400');
+  });
+
+  it('should toggle and close appointment action menu correctly', () => {
+    expect(component.openMenuAppointmentId).toBeNull();
+
+    const mockEvent = new MouseEvent('click');
+    spyOn(mockEvent, 'stopPropagation');
+
+    component.toggleMenu(5, mockEvent);
+    expect(component.openMenuAppointmentId).toBe(5);
+    expect(mockEvent.stopPropagation).toHaveBeenCalled();
+
+    component.toggleMenu(5);
+    expect(component.openMenuAppointmentId).toBeNull();
+
+    component.toggleMenu(8);
+    expect(component.openMenuAppointmentId).toBe(8);
+
+    component.onDocumentClick();
+    expect(component.openMenuAppointmentId).toBeNull();
+
+    component.toggleMenu(9);
+    component.closeMenu();
+    expect(component.openMenuAppointmentId).toBeNull();
+  });
 });
 

@@ -32,6 +32,34 @@ class AppointmentDtoSerializationTest {
     }
 
     @Test
+    void testAppointmentDtoDeserializationWithExtraFields() throws Exception {
+        ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+
+        String json = "{"
+                + "\"patientId\":1,"
+                + "\"appointmentDate\":\"2026-08-19\","
+                + "\"startTime\":\"15:00\","
+                + "\"endTime\":\"15:30\","
+                + "\"status\":\"PROGRAMADA\","
+                + "\"modality\":\"PRESENCIAL\","
+                + "\"isFirstTime\":false,"
+                + "\"firstTime\":false,"
+                + "\"paid\":false,"
+                + "\"patientName\":\"Carlos Lopez\","
+                + "\"notes\":\"Consulta\""
+                + "}";
+
+        AppointmentDto dto = mapper.readValue(json, AppointmentDto.class);
+        org.junit.jupiter.api.Assertions.assertNotNull(dto);
+        org.junit.jupiter.api.Assertions.assertEquals(1L, dto.getPatientId());
+        org.junit.jupiter.api.Assertions.assertEquals(LocalDate.of(2026, 8, 19), dto.getAppointmentDate());
+        org.junit.jupiter.api.Assertions.assertEquals(LocalTime.of(15, 0), dto.getStartTime());
+        org.junit.jupiter.api.Assertions.assertEquals(LocalTime.of(15, 30), dto.getEndTime());
+        org.junit.jupiter.api.Assertions.assertEquals("PROGRAMADA", dto.getStatus());
+        org.junit.jupiter.api.Assertions.assertEquals("PRESENCIAL", dto.getModality());
+    }
+
+    @Test
     void testDashboardAppointmentDtoSerializationFields() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
 

@@ -30,6 +30,7 @@ class AppointmentServiceTest {
     private PatientRepository patientRepository;
     private ClinicalServiceRepository clinicalServiceRepository;
     private PaymentRepository paymentRepository;
+    private GoogleCalendarService googleCalendarService;
     private AppointmentService appointmentService;
 
     @BeforeEach
@@ -38,7 +39,14 @@ class AppointmentServiceTest {
         patientRepository = mock(PatientRepository.class);
         clinicalServiceRepository = mock(ClinicalServiceRepository.class);
         paymentRepository = mock(PaymentRepository.class);
-        appointmentService = new AppointmentService(appointmentRepository, patientRepository, clinicalServiceRepository, paymentRepository);
+        googleCalendarService = mock(GoogleCalendarService.class);
+        appointmentService = new AppointmentService(
+                appointmentRepository,
+                patientRepository,
+                clinicalServiceRepository,
+                paymentRepository,
+                googleCalendarService
+        );
 
         User user = new User();
         user.setId(1L);
@@ -50,6 +58,7 @@ class AppointmentServiceTest {
                 new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities())
         );
     }
+
 
     @AfterEach
     void tearDown() {
@@ -161,4 +170,54 @@ class AppointmentServiceTest {
         assertEquals(88L, result.getPaymentId());
         assertEquals(new java.math.BigDecimal("150.00"), result.getPaymentAmount());
     }
+
+    @Test
+    void updateStatusToConfirmadaShouldTriggerGoogleCalendarSync() {
+        Appointment appointment = new Appointment();
+        appointment.setId(10L);
+        appointment.setStatus("PROGRAMADA");
+        appointment.setSpecialty("PSICOLOGIA");
+        Patient patient = new Patient();
+        patient.setId(1L);
+        patient.setFirstName("Ana");
+        patient.setLastName("Gomez");
+        appointment.setPatient(patient);
+        appointment.setAppointmentDate(LocalDate.now().plusDays(1));
+        appointment.setStartTime(LocalTime.of(10, 0));
+        appointment.setEndTime(LocalTime.of(10, 30));
+
+        when(appointmentRepository.findById(10L)).thenReturn(Optional.of(appointment));
+        when(appointmentRepository.save(any(Appointment.class))).thenAnswer(i -> i.getArgument(0));
+
+        AppointmentDto result = appointmentService.updateStatus(10L, "CONFIRMADA");
+
+        assertEquals("CONFIRMADA", result.getStatus());
+        verify(googleCalendarService).syncAppointment(appointment);
+    }
+
+    @Test
+    void updateStatusToCanceladaShouldTriggerGoogleCalendarCancellation() {
+        Appointment appointment = new Appointment();
+        appointment.setId(10L);
+        appointment.setStatus("PROGRAMADA");
+        appointment.setSpecialty("PSICOLOGIA");
+        appointment.setGoogleEventId("google-evt-123");
+        Patient patient = new Patient();
+        patient.setId(1L);
+        patient.setFirstName("Ana");
+        patient.setLastName("Gomez");
+        appointment.setPatient(patient);
+        appointment.setAppointmentDate(LocalDate.now().plusDays(1));
+        appointment.setStartTime(LocalTime.of(10, 0));
+        appointment.setEndTime(LocalTime.of(10, 30));
+
+        when(appointmentRepository.findById(10L)).thenReturn(Optional.of(appointment));
+        when(appointmentRepository.save(any(Appointment.class))).thenAnswer(i -> i.getArgument(0));
+
+        AppointmentDto result = appointmentService.updateStatus(10L, "CANCELADA");
+
+        assertEquals("CANCELADA", result.getStatus());
+        verify(googleCalendarService).cancelAppointmentEvent(appointment);
+    }
 }
+

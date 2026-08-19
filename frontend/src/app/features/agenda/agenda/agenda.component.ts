@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -11,6 +11,7 @@ import { ToastService } from '../../../shared/services/toast/toast.service';
 import { ExportService } from '../../../shared/services/export/export.service';
 import { StatusPillComponent } from '../../../shared/components/status-pill/status-pill.component';
 import { DrawerSheetComponent } from '../../../shared/components/drawer-sheet/drawer-sheet.component';
+import { ViewPreferenceService } from '../../../shared/services/view-preference/view-preference.service';
 import {
   LucideAngularModule,
   Plus,
@@ -33,7 +34,9 @@ import {
   AlertTriangle,
   UserX,
   RotateCcw,
-  CheckCircle2
+  CheckCircle2,
+  MoreHorizontal,
+  ExternalLink
 } from 'lucide-angular';
 
 @Component({
@@ -72,6 +75,8 @@ export class AgendaComponent implements OnInit, OnDestroy {
   readonly UserX = UserX;
   readonly RotateCcw = RotateCcw;
   readonly CheckCircle2 = CheckCircle2;
+  readonly MoreHorizontal = MoreHorizontal;
+  readonly ExternalLink = ExternalLink;
 
   appointments: Appointment[] = [];
   showForm = false;
@@ -79,10 +84,14 @@ export class AgendaComponent implements OnInit, OnDestroy {
   initialAppointmentData: Partial<Appointment> | null = null;
   isLoading = false;
   loadError = false;
+  openMenuAppointmentId: number | null = null;
 
   // Quick Drawer Preview State
   selectedAppointmentPreview: Appointment | null = null;
   isDrawerOpen = false;
+  isUpdatingStatus = false;
+  updatingStatusId: number | null = null;
+  activeStatusAction: string | null = null;
 
   filterForm!: FormGroup;
   private destroy$ = new Subject<void>();
@@ -102,10 +111,12 @@ export class AgendaComponent implements OnInit, OnDestroy {
     private router: Router,
     private notificationService: NotificationService,
     private toastService: ToastService,
-    private exportService: ExportService
+    private exportService: ExportService,
+    private viewPreferenceService: ViewPreferenceService
   ) {}
 
   ngOnInit(): void {
+    this.currentView = this.viewPreferenceService.getViewMode<'calendar' | 'list'>('agenda_view_mode', 'calendar', 'list');
     this.initFilterForm();
     this.initCalendar();
     this.loadTodayCount();
@@ -219,6 +230,7 @@ export class AgendaComponent implements OnInit, OnDestroy {
 
   toggleView(view: 'calendar' | 'list'): void {
     this.currentView = view;
+    this.viewPreferenceService.setViewMode('agenda_view_mode', view);
     this.listSpecificDate = null;
     this.loadAppointments();
   }
@@ -423,15 +435,26 @@ export class AgendaComponent implements OnInit, OnDestroy {
 
   private updateStatus(appointment: Appointment, status: string): void {
     if (appointment.id) {
+      this.isUpdatingStatus = true;
+      this.updatingStatusId = appointment.id;
+      this.activeStatusAction = status;
+
       this.appointmentService.updateStatus(appointment.id, status).subscribe({
-        next: () => {
+        next: (updated) => {
+          this.isUpdatingStatus = false;
+          this.updatingStatusId = null;
+          this.activeStatusAction = null;
           this.loadAppointments();
           if (this.selectedAppointmentPreview && this.selectedAppointmentPreview.id === appointment.id) {
-            this.selectedAppointmentPreview.status = status;
+            this.selectedAppointmentPreview = { ...this.selectedAppointmentPreview, ...updated, status: status };
           }
-          this.toastService.show(`Estado actualizado: ${this.getStatusLabel(status)}.`, 'success');
+          const syncNote = (status === 'CONFIRMADA' && updated.googleEventLink) ? ' y sincronizada con Google Calendar' : '';
+          this.toastService.show(`Estado actualizado: ${this.getStatusLabel(status)}${syncNote}.`, 'success');
         },
         error: (err) => {
+          this.isUpdatingStatus = false;
+          this.updatingStatusId = null;
+          this.activeStatusAction = null;
           console.error(`Error updating status to ${status}`, err);
           this.toastService.show(err.error?.message || 'Hubo un error al cambiar el estado.', 'error');
         }
@@ -465,6 +488,42 @@ export class AgendaComponent implements OnInit, OnDestroy {
       case 'NO_ASISTIO': return 'No asistió';
       case 'CANCELADA': return 'Cancelada';
       default: return status || '';
+    }
+  }
+
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.openMenuAppointmentId = null;
+  }
+
+  toggleMenu(appointmentId?: number, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (!appointmentId) return;
+    this.openMenuAppointmentId = this.openMenuAppointmentId === appointmentId ? null : appointmentId;
+  }
+
+  closeMenu(): void {
+    this.openMenuAppointmentId = null;
+  }
+
+  formatTimeRange(start?: string, end?: string): string {
+    if (!start) return '';
+    const s = start.length >= 5 ? start.substring(0, 5) : start;
+    const e = end ? (end.length >= 5 ? end.substring(0, 5) : end) : '';
+    return e ? `${s} – ${e}` : s;
+  }
+
+  getStatusDotClass(status: string): string {
+    const s = (status || '').toUpperCase();
+    switch (s) {
+      case 'PROGRAMADA': return 'bg-amber-500';
+      case 'CONFIRMADA': return 'bg-blue-500';
+      case 'COMPLETADA': return 'bg-emerald-500';
+      case 'CANCELADA': return 'bg-red-500';
+      case 'NO_ASISTIO': return 'bg-rose-400';
+      default: return 'bg-slate-400';
     }
   }
 
