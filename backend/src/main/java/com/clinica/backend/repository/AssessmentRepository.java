@@ -14,6 +14,8 @@ import java.util.List;
 public interface AssessmentRepository extends JpaRepository<Assessment, Long> {
     Page<Assessment> findByPatientIdOrderByAssessmentDateDesc(Long patientId, Pageable pageable);
 
+    List<Assessment> findByPatientIdOrderByAssessmentDateAsc(Long patientId);
+
     boolean existsByPsychometricTestId(Long testId);
 
     long countByAssessmentDateBetween(LocalDateTime start, LocalDateTime end);

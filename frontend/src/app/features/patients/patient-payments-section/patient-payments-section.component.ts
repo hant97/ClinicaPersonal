@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { LucideAngularModule, Plus, Receipt, Banknote, Wallet, CreditCard, Landmark, Smartphone } from 'lucide-angular';
 import { PaymentService } from '../../../core/services/payment.service';
 import { CatalogService } from '../../../core/services/catalog.service';
-import { Payment } from '../../../core/models/payment.model';
+import { Payment, PatientBalance } from '../../../core/models/payment.model';
 
 @Component({
   selector: 'app-patient-payments-section',
@@ -26,6 +26,7 @@ export class PatientPaymentsSectionComponent implements OnInit {
 
   payments: Payment[] = [];
   paymentsTotal = 0;
+  balance: PatientBalance | null = null;
   paymentMethodMap = new Map<string, string>();
 
   constructor(
@@ -39,6 +40,7 @@ export class PatientPaymentsSectionComponent implements OnInit {
       next: (items) => items.forEach(item => this.paymentMethodMap.set(item.itemCode, item.itemName))
     });
     this.loadPayments();
+    this.loadBalance();
   }
 
   loadPayments(): void {
@@ -52,8 +54,33 @@ export class PatientPaymentsSectionComponent implements OnInit {
     });
   }
 
+  loadBalance(): void {
+    this.paymentService.getPatientBalance(this.patientId).subscribe({
+      next: (balance) => this.balance = balance,
+      error: (err) => console.error('Error fetching patient balance', err)
+    });
+  }
+
   getPaymentMethodText(method: string): string {
     return this.paymentMethodMap.get(method) || method;
+  }
+
+  getStatusText(status?: string): string {
+    switch (status) {
+      case 'PENDIENTE': return 'Pendiente';
+      case 'PARCIAL': return 'Parcial';
+      case 'PAGADO': return 'Pagado';
+      default: return status || '—';
+    }
+  }
+
+  getStatusVisual(status?: string): { classes: string } {
+    switch (status) {
+      case 'PENDIENTE': return { classes: 'bg-amber-50 text-amber-700 border-amber-200' };
+      case 'PARCIAL': return { classes: 'bg-sky-50 text-sky-700 border-sky-200' };
+      case 'PAGADO': return { classes: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+      default: return { classes: 'bg-slate-100 text-slate-600 border-line' };
+    }
   }
 
   getPaymentMethodVisual(method: string): { icon: any; classes: string } {

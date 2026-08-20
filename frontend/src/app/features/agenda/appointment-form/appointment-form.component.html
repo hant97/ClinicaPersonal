@@ -54,6 +54,20 @@
             }
           </div>
 
+          <!-- Profesional Asignado -->
+          <div>
+            <label for="professionalId" class="form-label flex items-center justify-between mb-1.5">
+              <span>Profesional Asignado</span>
+              <span class="text-[11px] text-muted font-normal">Opcional</span>
+            </label>
+            <select id="professionalId" formControlName="professionalId" class="input-field !text-xs">
+              <option [ngValue]="null">Sin asignar / Cualquier profesional</option>
+              @for (prof of professionals; track prof.id) {
+                <option [value]="prof.id">{{ prof.firstName }} {{ prof.lastName }} ({{ prof.specialty }})</option>
+              }
+            </select>
+          </div>
+
           <!-- Fecha, Hora Inicio y Hora Fin -->
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
@@ -127,6 +141,65 @@
               </p>
             }
           </div>
+
+          <!-- Sección de Citas Recurrentes / Serie -->
+          @if (!appointment) {
+            <div class="rounded-xl border border-indigo-200 bg-indigo-50/50 p-3.5 space-y-3">
+              <label class="flex cursor-pointer items-center justify-between">
+                <span class="flex items-center gap-2 text-xs font-bold text-indigo-950">
+                  <lucide-icon [img]="Repeat" [size]="15" class="text-indigo-600"></lucide-icon>
+                  <span>¿Es una cita recurrente? (Serie semanal)</span>
+                </span>
+                <input
+                  type="checkbox"
+                  formControlName="isRecurring"
+                  class="h-4 w-4 rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500"
+                />
+              </label>
+
+              @if (appointmentForm.get('isRecurring')?.value) {
+                <div class="space-y-3 pt-2 border-t border-indigo-100 animate-fadeIn">
+                  <div>
+                    <label class="block text-[11px] font-bold text-indigo-900 mb-1">Duración del tratamiento / Número de sesiones:</label>
+                    <select formControlName="recurrenceCount" class="input-field !text-xs bg-white">
+                      @for (opt of recurrenceOptions; track opt.value) {
+                        <option [value]="opt.value">{{ opt.label }}</option>
+                      }
+                    </select>
+                  </div>
+
+                  <!-- Fechas generadas de la serie -->
+                  <div class="bg-white/80 rounded-lg p-2.5 border border-indigo-100 space-y-1">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-800">Fechas proyectadas de la serie:</span>
+                    <div class="grid grid-cols-2 gap-1 text-[11px] text-slate-700">
+                      @for (item of getRecurringDatesPreview(); track item) {
+                        <span class="flex items-center gap-1 font-medium truncate">
+                          <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                          {{ item }}
+                        </span>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else if (appointment.recurrenceGroupId) {
+            <!-- Edición de cita recurrente: Opciones de actualización -->
+            <div class="rounded-xl border border-indigo-200 bg-indigo-50/70 p-3 space-y-2">
+              <div class="flex items-center gap-2 text-xs font-bold text-indigo-900">
+                <lucide-icon [img]="Repeat" [size]="15" class="text-indigo-600"></lucide-icon>
+                <span>Esta cita forma parte de una serie recurrente</span>
+              </div>
+              <label class="flex items-center gap-2 text-xs text-indigo-950 font-medium cursor-pointer">
+                <input
+                  type="checkbox"
+                  formControlName="updateSeries"
+                  class="h-4 w-4 rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <span>Aplicar cambios de horario/servicio a todas las sesiones futuras de esta serie</span>
+              </label>
+            </div>
+          }
 
           <!-- Banner Preventivo de Conflictos de Horario -->
           @if (conflicts.length > 0) {

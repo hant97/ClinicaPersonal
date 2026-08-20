@@ -50,6 +50,9 @@ public class Prescription {
     @Column(name = "verification_code", length = 64, unique = true)
     private String verificationCode;
 
+    @Column(name = "attention_id")
+    private Long attentionId;
+
     @OneToMany(mappedBy = "prescription", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PrescriptionItem> items = new ArrayList<>();
 

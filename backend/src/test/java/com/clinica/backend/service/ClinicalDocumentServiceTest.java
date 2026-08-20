@@ -38,6 +38,8 @@ class ClinicalDocumentServiceTest {
     private ClinicalAuthorizationService clinicalAuthorizationService;
     @Mock
     private ClinicalDocumentStorage fileStorage;
+    @Mock
+    private AuditLogService auditLogService;
     @InjectMocks
     private ClinicalDocumentService service;
 

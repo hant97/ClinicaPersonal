@@ -14,42 +14,37 @@ import java.util.Optional;
 import java.util.Collection;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
+    Optional<Payment> findByIdAndDeletedFalse(Long id);
+    Optional<Payment> findByIdAndSpecialtyAndDeletedFalse(Long id, String specialty);
+
     Page<Payment> findByPatientIdAndSpecialtyAndDeletedFalseOrderByPaymentDateDesc(Long patientId, String specialty, Pageable pageable);
 
     Optional<Payment> findFirstByAppointmentIdAndDeletedFalse(Long appointmentId);
 
     List<Payment> findByAppointmentIdInAndDeletedFalse(Collection<Long> appointmentIds);
 
-    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.deleted = false AND p.specialty = :specialty AND p.paymentDate >= :startDate AND p.paymentDate < :endDate")
-    BigDecimal sumIncomeBetweenBySpecialty(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate, @Param("specialty") String specialty);
-
     @Query("SELECT p FROM Payment p WHERE p.deleted = false AND p.specialty = :specialty AND " +
-           "(:searchTerm IS NULL OR :searchTerm = '' OR " +
-           "LOWER(p.patient.firstName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
-           "LOWER(p.patient.lastName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
-           "LOWER(p.description) LIKE LOWER(CONCAT('%', :searchTerm, '%'))) AND " +
-           "(:paymentMethod IS NULL OR :paymentMethod = '' OR p.paymentMethod = :paymentMethod) AND " +
+           "(cast(:searchTerm as string) IS NULL OR cast(:searchTerm as string) = '' OR " +
+           "LOWER(p.patient.firstName) LIKE LOWER(CONCAT('%', cast(:searchTerm as string), '%')) OR " +
+           "LOWER(p.patient.lastName) LIKE LOWER(CONCAT('%', cast(:searchTerm as string), '%')) OR " +
+           "LOWER(p.description) LIKE LOWER(CONCAT('%', cast(:searchTerm as string), '%'))) AND " +
+           "(cast(:paymentMethod as string) IS NULL OR cast(:paymentMethod as string) = '' OR p.paymentMethod = :paymentMethod) AND " +
+           "(cast(:status as string) IS NULL OR cast(:status as string) = '' OR p.status = :status) AND " +
            "p.paymentDate >= :dateFrom AND p.paymentDate < :dateTo " +
            "ORDER BY p.paymentDate DESC")
     Page<Payment> findAllWithFiltersBySpecialty(@Param("searchTerm") String searchTerm,
                                                 @Param("paymentMethod") String paymentMethod,
+                                                @Param("status") String status,
                                                 @Param("dateFrom") LocalDateTime dateFrom,
                                                 @Param("dateTo") LocalDateTime dateTo,
                                                 @Param("specialty") String specialty,
                                                 Pageable pageable);
 
-    @Query("SELECT COUNT(p) FROM Payment p WHERE p.deleted = false AND p.specialty = :specialty AND p.paymentDate >= :startDate AND p.paymentDate < :endDate")
-    long countBetweenBySpecialty(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate, @Param("specialty") String specialty);
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.deleted = false AND p.specialty = :specialty")
+    BigDecimal sumChargedBySpecialty(@Param("specialty") String specialty);
 
-    @Query("SELECT p.paymentMethod, COALESCE(SUM(p.amount), 0), COUNT(p) FROM Payment p " +
-           "WHERE p.deleted = false AND p.specialty = :specialty AND p.paymentDate >= :startDate AND p.paymentDate < :endDate " +
-           "GROUP BY p.paymentMethod ORDER BY SUM(p.amount) DESC")
-    List<Object[]> sumByMethodBetweenBySpecialty(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate, @Param("specialty") String specialty);
-
-    @Query("SELECT CAST(p.paymentDate AS LocalDate) AS day, COALESCE(SUM(p.amount), 0) FROM Payment p " +
-           "WHERE p.deleted = false AND p.specialty = :specialty AND p.paymentDate >= :startDate AND p.paymentDate < :endDate " +
-           "GROUP BY CAST(p.paymentDate AS LocalDate) ORDER BY day")
-    List<Object[]> sumDailyIncomeBetweenBySpecialty(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate, @Param("specialty") String specialty);
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.deleted = false AND p.specialty = :specialty AND p.patient.id = :patientId")
+    BigDecimal sumChargedByPatientAndSpecialty(@Param("patientId") Long patientId, @Param("specialty") String specialty);
 
     @Query("SELECT i.clinicalService.name, SUM(i.quantity), SUM(i.totalPrice) FROM PaymentItem i " +
            "WHERE i.payment.deleted = false AND i.payment.specialty = :specialty AND i.clinicalService IS NOT NULL " +

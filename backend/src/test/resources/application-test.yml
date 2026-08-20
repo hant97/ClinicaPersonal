@@ -24,3 +24,18 @@ auth:
 
 cors:
   allowed-origins: http://localhost:4200
+
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+  health:
+    mail:
+      enabled: false

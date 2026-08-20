@@ -5,12 +5,13 @@ import com.clinica.backend.dto.UpdateAppointmentStatusRequest;
 import com.clinica.backend.service.AppointmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.format.annotation.DateTimeFormat;
-import java.time.LocalDate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/v1/appointments")
@@ -37,12 +38,13 @@ public class AppointmentController {
     public ResponseEntity<Page<AppointmentDto>> search(
             @RequestParam(required = false) String searchTerm,
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long professionalId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity
-                .ok(service.searchAppointments(searchTerm, status, startDate, endDate, PageRequest.of(page, size)));
+                .ok(service.searchAppointments(searchTerm, status, professionalId, startDate, endDate, PageRequest.of(page, size)));
     }
 
     @PostMapping
@@ -51,13 +53,25 @@ public class AppointmentController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AppointmentDto> update(@PathVariable Long id, @Valid @RequestBody AppointmentDto dto) {
-        return ResponseEntity.ok(service.update(id, dto));
+    public ResponseEntity<AppointmentDto> update(
+            @PathVariable Long id,
+            @Valid @RequestBody AppointmentDto dto,
+            @RequestParam(defaultValue = "false") boolean updateSeries) {
+        return ResponseEntity.ok(service.update(id, dto, updateSeries));
     }
 
     @PutMapping("/{id}/status")
-    public ResponseEntity<AppointmentDto> updateStatus(@PathVariable Long id,
-            @Valid @RequestBody UpdateAppointmentStatusRequest payload) {
-        return ResponseEntity.ok(service.updateStatus(id, payload.getStatus()));
+    public ResponseEntity<AppointmentDto> updateStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateAppointmentStatusRequest payload,
+            @RequestParam(defaultValue = "false") boolean updateSeries) {
+        return ResponseEntity.ok(service.updateStatus(id, payload.getStatus(), updateSeries));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<AppointmentDto> cancelAppointment(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "false") boolean cancelSeries) {
+        return ResponseEntity.ok(service.updateStatus(id, "CANCELADA", cancelSeries));
     }
 }

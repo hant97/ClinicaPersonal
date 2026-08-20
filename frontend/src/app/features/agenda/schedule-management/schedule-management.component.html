@@ -1,0 +1,307 @@
+<div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex justify-center items-center p-4" appFocusTrap (escapePressed)="close()">
+  <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    
+    <!-- Modal Header -->
+    <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+          <lucide-icon [img]="Clock" [size]="20"></lucide-icon>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-slate-800">Disponibilidad y Bloqueos de Agenda</h2>
+          <p class="text-xs text-slate-500">Configura jornadas de atención por profesional y gestiona períodos de vacaciones o ausencias</p>
+        </div>
+      </div>
+      <button (click)="close()" class="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-200/60 transition-colors" title="Cerrar">
+        <lucide-icon [img]="X" [size]="20"></lucide-icon>
+      </button>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="px-6 border-b border-slate-200 bg-white flex gap-6">
+      <button
+        (click)="activeTab = 'schedules'"
+        [class.border-blue-600]="activeTab === 'schedules'"
+        [class.text-blue-600]="activeTab === 'schedules'"
+        [class.border-transparent]="activeTab !== 'schedules'"
+        [class.text-slate-500]="activeTab !== 'schedules'"
+        class="py-3 px-2 border-b-2 font-semibold text-sm flex items-center gap-2 transition-colors hover:text-blue-600">
+        <lucide-icon [img]="Clock" [size]="16"></lucide-icon>
+        Horarios de Atención Semanales
+      </button>
+      <button
+        (click)="activeTab = 'blocks'"
+        [class.border-blue-600]="activeTab === 'blocks'"
+        [class.text-blue-600]="activeTab === 'blocks'"
+        [class.border-transparent]="activeTab !== 'blocks'"
+        [class.text-slate-500]="activeTab !== 'blocks'"
+        class="py-3 px-2 border-b-2 font-semibold text-sm flex items-center gap-2 transition-colors hover:text-blue-600">
+        <lucide-icon [img]="CalendarOff" [size]="16"></lucide-icon>
+        Bloqueos y Vacaciones ({{ blocks.length }})
+      </button>
+    </div>
+
+    <!-- Content Area -->
+    <div class="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+
+      <!-- TAB 1: HORARIOS SEMANALES -->
+      @if (activeTab === 'schedules') {
+        <div class="space-y-6">
+          <!-- Professional Selector -->
+          <div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+              <lucide-icon [img]="User" [size]="18" class="text-slate-400"></lucide-icon>
+              <label class="text-sm font-semibold text-slate-700">Profesional:</label>
+            </div>
+            <select
+              (change)="onProfessionalChange($event)"
+              [value]="selectedProfessionalId"
+              class="px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm font-medium text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none min-w-[240px]">
+              @for (prof of professionals; track prof.id) {
+                <option [value]="prof.id">{{ prof.firstName }} {{ prof.lastName }} ({{ prof.specialty }})</option>
+              }
+            </select>
+          </div>
+
+          <!-- Weekly Schedule Table / Grid -->
+          <form [formGroup]="scheduleForm" class="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden shadow-sm">
+            <div formArrayName="days" class="divide-y divide-slate-100">
+              @for (dayGroup of daysArray.controls; track $index) {
+                <div [formGroupName]="$index" class="p-4 flex items-center justify-between gap-4 hover:bg-slate-50/70 transition-colors">
+                  <!-- Day Toggle -->
+                  <div class="flex items-center gap-3 w-44">
+                    <input
+                      type="checkbox"
+                      formControlName="active"
+                      [id]="'day-check-' + $index"
+                      class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+                    <label [for]="'day-check-' + $index" class="text-sm font-bold cursor-pointer" [class.text-slate-800]="dayGroup.get('active')?.value" [class.text-slate-400]="!dayGroup.get('active')?.value">
+                      {{ dayGroup.get('name')?.value }}
+                    </label>
+                  </div>
+
+                  <!-- Active Time Range -->
+                  @if (dayGroup.get('active')?.value) {
+                    <div class="flex items-center gap-3 flex-1 justify-end">
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs text-slate-500 font-medium">De:</span>
+                        <input
+                          type="time"
+                          formControlName="startTime"
+                          class="px-2.5 py-1.5 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                      </div>
+                      <span class="text-slate-400 font-bold">–</span>
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs text-slate-500 font-medium">Hasta:</span>
+                        <input
+                          type="time"
+                          formControlName="endTime"
+                          class="px-2.5 py-1.5 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="flex-1 text-right">
+                      <span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-400 rounded-full">No atiende este día</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </form>
+
+          <!-- Save Button -->
+          <div class="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              (click)="saveSchedule()"
+              [disabled]="isSaving || isLoading"
+              class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold rounded-xl flex items-center gap-2 shadow-sm transition-colors">
+              <lucide-icon [img]="Save" [size]="16"></lucide-icon>
+              {{ isSaving ? 'Guardando...' : 'Guardar Horario Semanal' }}
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- TAB 2: BLOQUEOS Y VACACIONES -->
+      @if (activeTab === 'blocks') {
+        <div class="space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-slate-800">Bloqueos de Agenda Registrados</h3>
+              <p class="text-xs text-slate-500">Los períodos bloqueados no permitirán agendar citas en las fechas u horas indicadas.</p>
+            </div>
+            <button
+              (click)="toggleNewBlock()"
+              class="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors">
+              <lucide-icon [img]="Plus" [size]="15"></lucide-icon>
+              {{ showNewBlockForm ? 'Cancelar Registro' : 'Registrar Nuevo Bloqueo' }}
+            </button>
+          </div>
+
+          <!-- New Block Form Collapsible -->
+          @if (showNewBlockForm) {
+            <form [formGroup]="blockForm" (ngSubmit)="submitBlock()" class="bg-white p-5 rounded-xl border border-blue-200 shadow-md space-y-4">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-blue-800">Nuevo Bloqueo / Vacaciones</h4>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Título del Bloqueo *</label>
+                  <input
+                    type="text"
+                    formControlName="title"
+                    placeholder="Ej. Vacaciones, Congreso Médico, Permiso"
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Profesional Afectado</label>
+                  <select
+                    formControlName="professionalId"
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <option [ngValue]="null">Toda la especialidad (Global)</option>
+                    @for (p of professionals; track p.id) {
+                      <option [value]="p.id">{{ p.firstName }} {{ p.lastName }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Fecha Inicio *</label>
+                  <input
+                    type="date"
+                    formControlName="startDate"
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Fecha Fin *</label>
+                  <input
+                    type="date"
+                    formControlName="endDate"
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+              </div>
+
+              <!-- All Day Checkbox -->
+              <div class="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="isAllDayCheck"
+                  formControlName="isAllDay"
+                  class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+                <label for="isAllDayCheck" class="text-xs font-semibold text-slate-700 cursor-pointer">
+                  Bloquear todo el día (24 horas)
+                </label>
+              </div>
+
+              <!-- Time inputs if not all day -->
+              @if (!blockForm.get('isAllDay')?.value) {
+                <div class="grid grid-cols-2 gap-4 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Hora Inicio *</label>
+                    <input
+                      type="time"
+                      formControlName="startTime"
+                      class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Hora Fin *</label>
+                    <input
+                      type="time"
+                      formControlName="endTime"
+                      class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                  </div>
+                </div>
+              }
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Motivo / Observación (Opcional)</label>
+                <input
+                  type="text"
+                  formControlName="reason"
+                  placeholder="Detalles adicionales sobre el motivo de la ausencia"
+                  class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              </div>
+
+              <div class="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  (click)="toggleNewBlock()"
+                  class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  [disabled]="isSavingBlock"
+                  class="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition-colors">
+                  <lucide-icon [img]="CheckCircle2" [size]="14"></lucide-icon>
+                  {{ isSavingBlock ? 'Guardando...' : 'Guardar Bloqueo' }}
+                </button>
+              </div>
+            </form>
+          }
+
+          <!-- Blocks List -->
+          @if (blocks.length === 0) {
+            <div class="bg-white rounded-xl border border-slate-200 p-8 text-center">
+              <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                <lucide-icon [img]="Calendar" [size]="24"></lucide-icon>
+              </div>
+              <h4 class="text-sm font-bold text-slate-700">Sin bloqueos registrados</h4>
+              <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1">No hay bloqueos activos de vacaciones o ausencias en la agenda.</p>
+            </div>
+          } @else {
+            <div class="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden shadow-sm">
+              @for (block of blocks; track block.id) {
+                <div class="p-4 flex items-center justify-between gap-4 hover:bg-slate-50/70 transition-colors">
+                  <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                      <span class="font-bold text-sm text-slate-800">{{ block.title }}</span>
+                      <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                        {{ block.professionalName || 'Toda la especialidad' }}
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-4 text-xs text-slate-500">
+                      <span class="flex items-center gap-1">
+                        <lucide-icon [img]="Calendar" [size]="13"></lucide-icon>
+                        {{ block.startDate }} @if (block.startDate !== block.endDate) { al {{ block.endDate }} }
+                      </span>
+                      <span class="flex items-center gap-1 font-medium">
+                        <lucide-icon [img]="Clock" [size]="13"></lucide-icon>
+                        @if (block.startTime && block.endTime) {
+                          {{ block.startTime }} – {{ block.endTime }}
+                        } @else {
+                          Todo el día
+                        }
+                      </span>
+                      @if (block.reason) {
+                        <span class="text-slate-400 italic">"{{ block.reason }}"</span>
+                      }
+                    </div>
+                  </div>
+
+                  <button
+                    (click)="deleteBlock(block)"
+                    class="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-colors"
+                    title="Eliminar Bloqueo">
+                    <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="px-6 py-3 border-t border-slate-200 bg-slate-50 flex justify-end">
+      <button
+        (click)="close()"
+        class="px-5 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200/70 rounded-xl transition-colors">
+        Cerrar
+      </button>
+    </div>
+  </div>
+</div>

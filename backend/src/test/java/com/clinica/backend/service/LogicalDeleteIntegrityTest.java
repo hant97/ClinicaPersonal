@@ -35,9 +35,10 @@ class LogicalDeleteIntegrityTest {
         sessionRepository = mock(ClinicalSessionRepository.class);
         AppointmentRepository appointmentRepository = mock(AppointmentRepository.class);
         authService = mock(ClinicalAuthorizationService.class);
+        AuditLogService auditLogService = mock(AuditLogService.class);
 
         allergyService = new AllergyService(allergyRepository, patientRepository, authService);
-        sessionService = new ClinicalSessionService(sessionRepository, patientRepository, appointmentRepository, authService);
+        sessionService = new ClinicalSessionService(sessionRepository, patientRepository, appointmentRepository, authService, auditLogService);
 
         User user = new User();
         user.setId(1L);

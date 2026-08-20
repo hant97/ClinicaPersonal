@@ -1,11 +1,11 @@
 <div
-  class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 sm:p-6 backdrop-blur-xs"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 sm:p-6 backdrop-blur-xs overflow-y-auto"
   role="dialog"
   aria-modal="true"
   appFocusTrap
   (trapClose)="onCancel()"
 >
-  <section class="max-h-[92vh] w-full max-w-5xl rounded-2xl border border-line bg-surface shadow-2xl flex flex-col overflow-hidden animate-fade-in">
+  <section class="max-h-[88vh] w-full max-w-5xl rounded-2xl border border-line bg-surface shadow-2xl flex flex-col overflow-hidden animate-fade-in my-auto">
     <!-- Header Modal -->
     <div class="flex items-center justify-between border-b border-line px-6 py-4 bg-canvas/90 shrink-0">
       <div class="flex items-center gap-3">
@@ -29,13 +29,6 @@
       </button>
     </div>
 
-    @if (initialData?.appointmentId) {
-      <div class="px-6 py-2.5 bg-sky-50/80 border-b border-sky-100 flex items-center gap-2.5 text-xs font-medium text-sky-900 shrink-0">
-        <lucide-icon [img]="Clock" [size]="15" class="text-sky-600 shrink-0"></lucide-icon>
-        <span>Este cobro quedará automáticamente vinculado a la <strong>Cita #{{ initialData?.appointmentId }}</strong>.</span>
-      </div>
-    }
-
     <!-- Form Body (2 Columnas Amplias Factura POS) -->
     <form [formGroup]="paymentForm" (ngSubmit)="onSubmit()" class="flex-1 overflow-y-auto p-6 space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -46,7 +39,11 @@
           <div>
             <label for="patientId" class="form-label flex items-center justify-between text-xs font-semibold mb-1.5">
               <span>Paciente <span class="text-danger font-bold">*</span></span>
-              <span class="text-[11px] text-muted font-normal">Obligatorio</span>
+              @if (initialData?.patientId || payment) {
+                <span class="text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded">Fijado por atención</span>
+              } @else {
+                <span class="text-[11px] text-muted font-normal">Obligatorio</span>
+              }
             </label>
             <app-patient-autocomplete id="patientId" formControlName="patientId"></app-patient-autocomplete>
             @if (paymentForm.get('patientId')?.invalid && (paymentForm.get('patientId')?.dirty || paymentForm.get('patientId')?.touched)) {
@@ -54,8 +51,39 @@
             }
           </div>
 
-          <!-- Vincular a Cita (Opcional) -->
-          @if (patientAppointments.length > 0 || initialData?.appointmentId || payment?.appointmentId) {
+          <!-- Contexto de Vinculación Automática (Inmutable cuando viene de Atención o Cita) -->
+          @if (initialData?.appointmentId) {
+            <div class="rounded-xl border border-sky-200 bg-sky-50/80 p-3.5 flex items-center justify-between gap-3 shadow-2xs">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-700">
+                  <lucide-icon [img]="CalendarCheck" [size]="16"></lucide-icon>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-xs font-bold text-sky-900 leading-tight">Cita Médica Vinculada</p>
+                  <p class="text-[11px] text-sky-700 truncate">Cita #{{ initialData?.appointmentId }} • El estado de la cita se actualizará a Cobrada</p>
+                </div>
+              </div>
+              <span class="rounded-md bg-sky-200/80 px-2.5 py-1 text-[11px] font-bold text-sky-900 shrink-0">
+                ✓ Vinculada a Cita
+              </span>
+            </div>
+          } @else if (initialData?.attentionId) {
+            <div class="rounded-xl border border-indigo-200 bg-indigo-50/80 p-3.5 flex items-center justify-between gap-3 shadow-2xs">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-700">
+                  <lucide-icon [img]="Stethoscope" [size]="16"></lucide-icon>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-xs font-bold text-indigo-900 leading-tight">Atención Clínica Vinculada</p>
+                  <p class="text-[11px] text-indigo-700 truncate">Atención #{{ initialData?.attentionId }} • Quedará registrada como Cobrada</p>
+                </div>
+              </div>
+              <span class="rounded-md bg-indigo-200/80 px-2.5 py-1 text-[11px] font-bold text-indigo-900 shrink-0">
+                ✓ Vinculada a Atención
+              </span>
+            </div>
+          } @else if (!payment && patientAppointments.length > 0) {
+            <!-- Selector manual de cita SOLO cuando se crea un cobro genérico sin origen previo -->
             <div class="rounded-xl border border-sky-200 bg-sky-50/60 p-3.5 space-y-2 shadow-2xs">
               <div class="flex items-center justify-between">
                 <label for="appointmentSelect" class="flex items-center gap-1.5 text-xs font-bold text-sky-900">
@@ -349,6 +377,41 @@
             }
           </div>
 
+          <!-- Forma de Cobro (solo al crear) -->
+          @if (!payment) {
+            <div class="rounded-xl border border-line bg-surface p-4 space-y-3 shadow-xs">
+              <label class="form-label text-xs font-semibold mb-1">Forma de Cobro</label>
+              <div class="space-y-2">
+                <label class="flex items-start gap-2 cursor-pointer">
+                  <input type="radio" formControlName="paymentMode" value="FULL" class="mt-0.5 accent-emerald-600">
+                  <span class="text-xs"><strong>Cobro completo</strong> <span class="text-muted">— se registra el abono por el total</span></span>
+                </label>
+                <label class="flex items-start gap-2 cursor-pointer">
+                  <input type="radio" formControlName="paymentMode" value="PARTIAL" class="mt-0.5 accent-emerald-600">
+                  <span class="text-xs"><strong>Abono parcial</strong> <span class="text-muted">— queda saldo pendiente</span></span>
+                </label>
+                <label class="flex items-start gap-2 cursor-pointer">
+                  <input type="radio" formControlName="paymentMode" value="PENDING" class="mt-0.5 accent-emerald-600">
+                  <span class="text-xs"><strong>Pendiente</strong> <span class="text-muted">— sin abono por ahora</span></span>
+                </label>
+              </div>
+              @if (paymentMode === 'PARTIAL') {
+                <div>
+                  <label for="initialPayment" class="form-label text-xs font-semibold mb-1.5">Monto del abono inicial (S/)</label>
+                  <input
+                    type="number"
+                    id="initialPayment"
+                    formControlName="initialPayment"
+                    min="0.01"
+                    [max]="grandTotal"
+                    step="0.01"
+                    class="input-field !text-xs"
+                  />
+                </div>
+              }
+            </div>
+          }
+
           <!-- Fecha/Hora y Concepto -->
           <div class="rounded-xl border border-line bg-surface p-4 space-y-3 shadow-xs">
             <div>
@@ -382,13 +445,26 @@
                 <small class="mt-1 block text-xs text-danger">Máximo 255 caracteres.</small>
               }
             </div>
+
+            <div>
+              <label for="dueDate" class="form-label text-xs font-semibold mb-1.5 flex items-center justify-between">
+                <span>Fecha de Vencimiento</span>
+                <span class="text-[11px] text-muted font-normal">Opcional</span>
+              </label>
+              <input
+                type="date"
+                id="dueDate"
+                formControlName="dueDate"
+                class="input-field !text-xs"
+              />
+            </div>
           </div>
         </div>
       </div>
     </form>
 
     <!-- Footer Fijo (Sticky Bottom) -->
-    <div class="border-t border-line px-6 py-3.5 bg-canvas/90 flex flex-wrap items-center justify-between gap-3 shrink-0 safe-bottom">
+    <div class="border-t border-line px-6 sm:px-8 py-4.5 sm:py-5 bg-slate-50/95 flex flex-wrap items-center justify-between gap-4 shrink-0">
       <div class="text-xs text-muted">
         <span class="font-semibold text-ink">{{ services.length }}</span> servicio(s)
         @if (supplies.length > 0) {
@@ -398,7 +474,7 @@
       <div class="flex items-center gap-3">
         <button
           type="button"
-          class="btn-secondary !text-xs !py-2 px-4 min-h-[38px]"
+          class="btn-secondary !text-xs !py-2.5 px-5 min-h-[42px] font-medium"
           (click)="onCancel()"
           [disabled]="isSubmitting"
         >
@@ -406,7 +482,7 @@
         </button>
         <button
           type="button"
-          class="btn-primary !text-xs !py-2 px-6 shadow-sm !bg-emerald-600 hover:!bg-emerald-700 font-bold min-h-[38px] flex items-center gap-2"
+          class="btn-primary !text-xs !py-2.5 px-6 shadow-sm !bg-emerald-600 hover:!bg-emerald-700 font-bold min-h-[42px] flex items-center gap-2"
           (click)="onSubmit()"
           [disabled]="isSubmitting || paymentForm.invalid"
         >
@@ -414,7 +490,7 @@
             <span class="spinner !h-3.5 !w-3.5 !border-2 shrink-0" role="status"></span>
             <span>Registrando...</span>
           } @else {
-            <lucide-icon [img]="CheckCircle2" [size]="15" class="shrink-0"></lucide-icon>
+            <lucide-icon [img]="CheckCircle2" [size]="16" class="shrink-0"></lucide-icon>
             <span>{{ payment ? 'Guardar Cambios' : 'Confirmar S/ ' + (grandTotal | number:'1.2-2') }}</span>
           }
         </button>

@@ -35,4 +35,5 @@ public class ClinicalSessionDto {
     private LocalDateTime updatedAt;
     private Long professionalId;
     private Long appointmentId;
+    private Long attentionId;
 }

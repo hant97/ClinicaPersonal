@@ -5,7 +5,7 @@ import { PaymentService } from '../../../core/services/payment.service';
 import { PatientService } from '../../../core/services/patient/patient.service';
 import { AppointmentService } from '../../../core/services/appointment.service';
 import { CatalogService } from '../../../core/services/catalog.service';
-import { Payment, PaymentItem } from '../../../core/models/payment.model';
+import { Payment, PaymentItem, PaymentTransaction } from '../../../core/models/payment.model';
 import { Appointment } from '../../../core/models/appointment.model';
 import { CatalogItem } from '../../../core/models/catalog.model';
 import { Supply, InventoryService } from '../../../core/services/inventory.service';
@@ -50,6 +50,9 @@ interface PaymentFormValue {
   paymentDate: string;
   paymentMethod: string;
   description?: string;
+  dueDate?: string;
+  paymentMode?: 'FULL' | 'PARTIAL' | 'PENDING';
+  initialPayment?: number;
   services: PaymentLineFormValue[];
   supplies: PaymentLineFormValue[];
 }
@@ -81,7 +84,7 @@ export class PaymentFormComponent implements OnInit, OnChanges {
   readonly CalendarCheck = CalendarCheck;
 
   @Input() payment: Payment | null = null;
-  @Input() initialData: { patientId?: number; appointmentId?: number; clinicalServiceId?: number; description?: string } | null = null;
+  @Input() initialData: { patientId?: number; appointmentId?: number; attentionId?: number; clinicalServiceId?: number; description?: string } | null = null;
   @Output() saved = new EventEmitter<void>();
   @Output() cancelled = new EventEmitter<void>();
 
@@ -108,11 +111,15 @@ export class PaymentFormComponent implements OnInit, OnChanges {
   ngOnChanges(): void {
     if (this.initialData?.patientId && this.paymentForm) {
       this.paymentForm.get('patientId')?.setValue(this.initialData.patientId);
-      if (this.initialData.appointmentId) {
+      if (this.initialData.appointmentId || this.initialData.attentionId) {
         this.paymentForm.get('patientId')?.disable({ emitEvent: false });
-        this.selectedAppointmentId = this.initialData.appointmentId;
+        if (this.initialData.appointmentId) {
+          this.selectedAppointmentId = this.initialData.appointmentId;
+        }
       }
-      this.loadPatientAppointments(this.initialData.patientId);
+      if (!this.initialData.appointmentId && !this.initialData.attentionId) {
+        this.loadPatientAppointments(this.initialData.patientId);
+      }
     }
     this.prefillInitialClinicalService();
   }
@@ -128,22 +135,29 @@ export class PaymentFormComponent implements OnInit, OnChanges {
     const initialPatientId = this.payment?.patientId || this.initialData?.patientId || '';
 
     this.paymentForm = this.fb.group({
-      patientId: [{ value: initialPatientId, disabled: !!this.payment || !!this.initialData?.appointmentId }, Validators.required],
+      patientId: [{ value: initialPatientId, disabled: !!this.payment || !!this.initialData?.appointmentId || !!this.initialData?.attentionId }, Validators.required],
       amount: [this.payment?.amount || 0, [Validators.required, Validators.min(0.01)]],
       paymentDate: [this.payment ? this.payment.paymentDate.substring(0, 16) : localISO, Validators.required],
       paymentMethod: [this.payment?.paymentMethod || '', Validators.required],
       description: [this.payment?.description || this.initialData?.description || '', [Validators.maxLength(255)]],
+      dueDate: [this.payment?.dueDate || ''],
+      paymentMode: ['FULL'],
+      initialPayment: [0],
       services: this.fb.array([]),
       supplies: this.fb.array([])
     });
 
-    if (initialPatientId) {
+    if (initialPatientId && !this.initialData?.appointmentId && !this.initialData?.attentionId) {
       this.loadPatientAppointments(initialPatientId);
     }
 
     this.paymentForm.get('patientId')?.valueChanges.subscribe(val => {
-      this.selectedAppointmentId = null;
-      this.loadPatientAppointments(val);
+      if (!this.initialData?.appointmentId) {
+        this.selectedAppointmentId = null;
+      }
+      if (!this.initialData?.appointmentId && !this.initialData?.attentionId) {
+        this.loadPatientAppointments(val);
+      }
     });
 
     if (this.payment?.items && this.payment.items.length > 0) {
@@ -200,6 +214,10 @@ export class PaymentFormComponent implements OnInit, OnChanges {
   setPaymentMethod(code: string): void {
     this.paymentForm.get('paymentMethod')?.setValue(code);
     this.paymentForm.get('paymentMethod')?.markAsDirty();
+  }
+
+  get paymentMode(): string {
+    return this.paymentForm.get('paymentMode')?.value || 'FULL';
   }
 
   addService(itemData?: PaymentItem): void {
@@ -408,15 +426,42 @@ export class PaymentFormComponent implements OnInit, OnChanges {
     }));
 
     const mappedItems = [...mappedServices, ...mappedSupplies];
+    const totalAmount = Number(formValue.amount);
+
+    // Al crear, el abono inicial se traduce en una transacción (o ninguna = PENDIENTE)
+    let transactions: PaymentTransaction[] | undefined;
+    if (!this.payment) {
+      const mode = formValue.paymentMode || 'FULL';
+      if (mode === 'FULL') {
+        transactions = [{ amount: totalAmount, transactionDate: formValue.paymentDate, paymentMethod: formValue.paymentMethod }];
+      } else if (mode === 'PARTIAL') {
+        const initial = Number(formValue.initialPayment || 0);
+        if (initial <= 0) {
+          this.toastService.show('Ingrese un monto de abono inicial mayor a 0.', 'error');
+          this.isSubmitting = false;
+          return;
+        }
+        if (initial >= totalAmount) {
+          this.toastService.show('El abono inicial debe ser menor al total del cobro.', 'error');
+          this.isSubmitting = false;
+          return;
+        }
+        transactions = [{ amount: initial, transactionDate: formValue.paymentDate, paymentMethod: formValue.paymentMethod }];
+      }
+      // mode === 'PENDING' => sin transacciones
+    }
 
     const newPayment: Payment = {
-      patientId: Number(formValue.patientId),
-      amount: Number(formValue.amount),
+      patientId: Number(this.paymentForm.get('patientId')?.value || formValue.patientId),
+      amount: totalAmount,
       paymentDate: formValue.paymentDate,
       paymentMethod: formValue.paymentMethod,
       description: formValue.description,
+      dueDate: formValue.dueDate || undefined,
       appointmentId: this.selectedAppointmentId ?? (this.payment?.appointmentId ?? this.initialData?.appointmentId),
-      items: mappedItems
+      attentionId: this.initialData?.attentionId ?? this.payment?.attentionId,
+      items: mappedItems,
+      transactions
     };
     
     const request$ = this.payment ?

@@ -34,6 +34,18 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  mail:
+    host: ${SMTP_HOST:}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: ${SMTP_AUTH:true}
+          starttls:
+            enable: ${SMTP_STARTTLS:true}
 
 server:
   port: ${SERVER_PORT:8080}
@@ -61,4 +73,27 @@ clinic:
       credentials-json: ${GOOGLE_CALENDAR_CREDENTIALS_JSON:}
       timezone: ${APP_TIMEZONE:America/Lima}
       send-notifications: ${GOOGLE_CALENDAR_SEND_NOTIFICATIONS:false}
+
+appointment:
+  reminder-cron: ${APPOINTMENT_REMINDER_CRON:0 30 9 * * *}
+  reminder-lead-days: ${APPOINTMENT_REMINDER_LEAD_DAYS:1}
+  public-base-url: ${APP_PUBLIC_BASE_URL:http://localhost:4200}
+
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+  health:
+    mail:
+      enabled: false
+  info:
+    env:
+      enabled: false
 

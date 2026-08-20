@@ -147,6 +147,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   private updateRouteTitle(url: string): void {
     if (url.includes('/dashboard')) this.currentRouteTitle = 'Dashboard';
     else if (url.includes('/agenda')) this.currentRouteTitle = 'Agenda';
+    else if (url.includes('/attentions')) this.currentRouteTitle = 'Atenciones';
     else if (url.includes('/patients')) this.currentRouteTitle = 'Pacientes';
     else if (url.includes('/billing')) this.currentRouteTitle = 'Cobros';
     else if (url.includes('/services')) this.currentRouteTitle = 'Servicios Clínicos';

@@ -1,6 +1,7 @@
 package com.clinica.backend.dto;
 import lombok.Data;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import jakarta.validation.Valid;
@@ -16,8 +17,18 @@ public class PaymentDto {
     @Size(max = 50, message = "El método de pago es demasiado largo") private String paymentMethod; // Código de catálogo PAYMENT_METHOD
     private String description;
     private Long appointmentId;
-    
+    private Long clinicalSessionId;
+    private LocalDate dueDate;
+    private Long attentionId;
+
     @Valid private List<PaymentItemDto> items;
+    // Abonos iniciales al crear el cobro (vacío = PENDIENTE). En lectura: historial de abonos activos.
+    @Valid private List<PaymentTransactionDto> transactions;
+
+    // Solo lectura (calculados en el servidor)
+    private String status;
+    private BigDecimal paidAmount;
+    private BigDecimal balanceAmount;
     private String specialty;
     private String patientName;
 }

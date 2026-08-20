@@ -1,8 +1,9 @@
-import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { PaymentSummary } from '../../../core/models/payment.model';
 import {
-  LucideAngularModule, Banknote, Wallet, Receipt, Coins, TrendingUp, TrendingDown
+  LucideAngularModule, Banknote, Wallet, Receipt, Coins, TrendingUp, TrendingDown, CalendarRange, FilterX
 } from 'lucide-angular';
 import { Chart, registerables } from 'chart.js';
 
@@ -13,7 +14,7 @@ const METHOD_CHART_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#64748
 @Component({
   selector: 'app-billing-summary',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule],
   templateUrl: './billing-summary.component.html',
   host: {
     class: 'block'
@@ -26,16 +27,29 @@ export class BillingSummaryComponent implements OnChanges, OnDestroy {
   readonly Coins = Coins;
   readonly TrendingUp = TrendingUp;
   readonly TrendingDown = TrendingDown;
+  readonly CalendarRange = CalendarRange;
+  readonly FilterX = FilterX;
 
   @Input() summary: PaymentSummary | null = null;
   @Input() paymentMethodMap: Map<string, string> = new Map();
   @Input() showCharts: boolean = false;
+  @Input() dateFrom: string = '';
+  @Input() dateTo: string = '';
+  @Output() rangeChange = new EventEmitter<{ dateFrom: string; dateTo: string }>();
 
   @ViewChild('incomeCanvas') incomeCanvas?: ElementRef<HTMLCanvasElement>;
   @ViewChild('methodCanvas') methodCanvas?: ElementRef<HTMLCanvasElement>;
 
-  private incomeChart: Chart | null = null;
-  private methodChart: Chart | null = null;
+  private incomeChart: any = null;
+  private methodChart: any = null;
+
+  get isCustomRange(): boolean {
+    return !!(this.dateFrom || this.dateTo);
+  }
+
+  get periodLabel(): string {
+    return this.isCustomRange ? 'del período' : 'del mes';
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['summary'] || changes['paymentMethodMap'] || changes['showCharts']) {
@@ -52,6 +66,16 @@ export class BillingSummaryComponent implements OnChanges, OnDestroy {
     if (this.methodChart) {
       this.methodChart.destroy();
     }
+  }
+
+  onRangeChange(): void {
+    this.rangeChange.emit({ dateFrom: this.dateFrom, dateTo: this.dateTo });
+  }
+
+  clearRange(): void {
+    this.dateFrom = '';
+    this.dateTo = '';
+    this.rangeChange.emit({ dateFrom: '', dateTo: '' });
   }
 
   getPaymentMethodText(method: string): string {

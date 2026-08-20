@@ -1,0 +1,4 @@
+/* Styles for AuditLogComponent */
+:host {
+  display: block;
+}

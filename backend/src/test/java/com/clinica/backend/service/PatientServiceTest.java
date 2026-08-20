@@ -33,6 +33,7 @@ class PatientServiceTest {
     private PatientRepository patientRepository;
     private RiskAlertRepository riskAlertRepository;
     private WebsiteFileStorage websiteFileStorage;
+    private AuditLogService auditLogService;
     private PatientService patientService;
 
     @BeforeEach
@@ -40,7 +41,8 @@ class PatientServiceTest {
         patientRepository = mock(PatientRepository.class);
         riskAlertRepository = mock(RiskAlertRepository.class);
         websiteFileStorage = mock(WebsiteFileStorage.class);
-        patientService = new PatientService(patientRepository, riskAlertRepository, websiteFileStorage);
+        auditLogService = mock(AuditLogService.class);
+        patientService = new PatientService(patientRepository, riskAlertRepository, websiteFileStorage, auditLogService);
 
         User user = new User();
         user.setId(1L);

@@ -1,7 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { PaymentDetailComponent } from './payment-detail.component';
 import { ClinicSettingsService, ClinicSettings } from '../../../core/services/clinic-settings.service';
+import { PaymentService } from '../../../core/services/payment.service';
+import { CatalogService } from '../../../core/services/catalog.service';
+import { NotificationService } from '../../../shared/services/notification/notification.service';
+import { ToastService } from '../../../shared/services/toast/toast.service';
 import { Payment } from '../../../core/models/payment.model';
 
 describe('PaymentDetailComponent', () => {
@@ -9,6 +13,10 @@ describe('PaymentDetailComponent', () => {
   let fixture: ComponentFixture<PaymentDetailComponent>;
   let settingsSubject: BehaviorSubject<ClinicSettings>;
   let clinicSettingsServiceMock: any;
+  let paymentServiceMock: any;
+  let catalogServiceMock: any;
+  let notificationServiceMock: any;
+  let toastServiceMock: any;
 
   const mockPayment: Payment = {
     id: 1,
@@ -47,10 +55,31 @@ describe('PaymentDetailComponent', () => {
       getLogoUrl: jasmine.createSpy('getLogoUrl').and.callFake((path: string) => `http://localhost:8080${path}`)
     };
 
+    paymentServiceMock = {
+      addTransaction: jasmine.createSpy('addTransaction').and.returnValue(of({})),
+      deleteTransaction: jasmine.createSpy('deleteTransaction').and.returnValue(of(undefined))
+    };
+
+    catalogServiceMock = {
+      getActiveItemsByCatalogCode: jasmine.createSpy('getActiveItemsByCatalogCode').and.returnValue(of([]))
+    };
+
+    notificationServiceMock = {
+      confirm: jasmine.createSpy('confirm').and.returnValue(Promise.resolve(true))
+    };
+
+    toastServiceMock = {
+      show: jasmine.createSpy('show')
+    };
+
     await TestBed.configureTestingModule({
       imports: [PaymentDetailComponent],
       providers: [
-        { provide: ClinicSettingsService, useValue: clinicSettingsServiceMock }
+        { provide: ClinicSettingsService, useValue: clinicSettingsServiceMock },
+        { provide: PaymentService, useValue: paymentServiceMock },
+        { provide: CatalogService, useValue: catalogServiceMock },
+        { provide: NotificationService, useValue: notificationServiceMock },
+        { provide: ToastService, useValue: toastServiceMock }
       ]
     }).compileComponents();
 

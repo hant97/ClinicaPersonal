@@ -13,15 +13,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
 
     @Query("SELECT u FROM User u WHERE " +
-           "(:query IS NULL OR :query = '' OR " +
-           " LOWER(u.username) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
-           " LOWER(u.firstName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
-           " LOWER(u.lastName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
-           " LOWER(u.email) LIKE LOWER(CONCAT('%', :query, '%'))) AND " +
-           "(:specialty IS NULL OR :specialty = '' OR u.specialty = :specialty) AND " +
+           "(cast(:query as string) IS NULL OR cast(:query as string) = '' OR " +
+           " LOWER(u.username) LIKE LOWER(CONCAT('%', cast(:query as string), '%')) OR " +
+           " LOWER(u.firstName) LIKE LOWER(CONCAT('%', cast(:query as string), '%')) OR " +
+           " LOWER(u.lastName) LIKE LOWER(CONCAT('%', cast(:query as string), '%')) OR " +
+           " LOWER(u.email) LIKE LOWER(CONCAT('%', cast(:query as string), '%'))) AND " +
+           "(cast(:specialty as string) IS NULL OR cast(:specialty as string) = '' OR u.specialty = :specialty) AND " +
            "(:enabled IS NULL OR u.enabled = :enabled)")
     Page<User> searchUsers(@Param("query") String query,
                            @Param("specialty") String specialty,
                            @Param("enabled") Boolean enabled,
                            Pageable pageable);
+
+    java.util.List<User> findBySpecialtyAndEnabledTrueOrderByFirstNameAscLastNameAsc(String specialty);
 }

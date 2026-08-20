@@ -24,5 +24,24 @@ export interface Appointment {
   paymentAmount?: number;
   googleEventId?: string;
   googleEventLink?: string;
+  reminderSentAt?: string;
+  confirmedAt?: string;
+  patientEmail?: string;
+  patientPhone?: string;
+  professionalName?: string;
+  recurrenceGroupId?: string;
+  recurrenceRule?: string;
+  recurrenceCount?: number;
+}
+
+export interface PublicAppointmentConfirmation {
+  confirmed: boolean;
+  alreadyConfirmed: boolean;
+  message: string;
+  patientName?: string;
+  appointmentDate?: string;
+  startTime?: string;
+  modality?: string;
+  clinicName?: string;
 }
 

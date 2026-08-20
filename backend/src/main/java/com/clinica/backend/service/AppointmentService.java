@@ -3,14 +3,17 @@ package com.clinica.backend.service;
 import com.clinica.backend.dto.AppointmentDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.Appointment;
+import com.clinica.backend.model.Attention;
 import com.clinica.backend.model.ClinicalService;
 import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.Payment;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.AppointmentRepository;
+import com.clinica.backend.repository.AttentionRepository;
 import com.clinica.backend.repository.ClinicalServiceRepository;
 import com.clinica.backend.repository.PatientRepository;
 import com.clinica.backend.repository.PaymentRepository;
+import com.clinica.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,16 +27,21 @@ import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
+    private final AttentionRepository attentionRepository;
     private final PatientRepository patientRepository;
     private final ClinicalServiceRepository clinicalServiceRepository;
     private final PaymentRepository paymentRepository;
+    private final UserRepository userRepository;
     private final GoogleCalendarService googleCalendarService;
+    private final ProfessionalScheduleService professionalScheduleService;
+    private final ScheduleBlockService scheduleBlockService;
 
     private String getCurrentUserSpecialty() {
         return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getSpecialty();
@@ -54,7 +62,7 @@ public class AppointmentService {
     }
 
     @Transactional(readOnly = true)
-    public Page<AppointmentDto> searchAppointments(String searchTerm, String status, LocalDate startDate,
+    public Page<AppointmentDto> searchAppointments(String searchTerm, String status, Long professionalId, LocalDate startDate,
             LocalDate endDate, Pageable pageable) {
         if (searchTerm == null)
             searchTerm = "";
@@ -62,76 +70,166 @@ public class AppointmentService {
             status = null;
         String specialty = getCurrentUserSpecialty();
 
-        return mapPageToDto(appointmentRepository.searchAppointmentsBySpecialty(searchTerm, status, startDate, endDate, specialty, pageable));
+        return mapPageToDto(appointmentRepository.searchAppointmentsBySpecialty(searchTerm, status, professionalId, startDate, endDate, specialty, pageable));
     }
 
     @Transactional
     public AppointmentDto create(AppointmentDto dto) {
-        validateAppointmentTime(dto.getAppointmentDate(), dto.getStartTime(), dto.getEndTime(), dto.getProfessionalId(), null);
-        Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(dto.getPatientId(), getCurrentUserSpecialty())
+        String specialty = getCurrentUserSpecialty();
+        Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(dto.getPatientId(), specialty)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
-        Appointment appointment = new Appointment();
-        appointment.setPatient(patient);
+        ClinicalService clinicalService = resolveClinicalService(dto.getClinicalServiceId());
 
-        appointment.setAppointmentDate(dto.getAppointmentDate());
-        appointment.setStartTime(dto.getStartTime());
-        appointment.setEndTime(dto.getEndTime());
-        appointment.setStatus(dto.getStatus() == null ? "PROGRAMADA" : dto.getStatus());
-        appointment.setModality(dto.getModality());
-        appointment.setVideoCallLink(dto.getVideoCallLink());
-        appointment.setProfessionalId(dto.getProfessionalId());
-        appointment.setFirstTime(dto.isFirstTime());
-        appointment.setClinicalSessionId(dto.getClinicalSessionId());
-        appointment.setClinicalService(resolveClinicalService(dto.getClinicalServiceId()));
-        appointment.setNotes(dto.getNotes());
-        appointment.setSpecialty(getCurrentUserSpecialty());
+        int count = (dto.getRecurrenceCount() != null && dto.getRecurrenceCount() > 1)
+                ? Math.min(dto.getRecurrenceCount(), 52)
+                : 1;
 
-        Appointment savedAppointment = appointmentRepository.save(appointment);
-        if ("CONFIRMADA".equals(savedAppointment.getStatus())) {
-            googleCalendarService.syncAppointment(savedAppointment);
-            savedAppointment = appointmentRepository.save(savedAppointment);
+        // Validar todas las ocurrencias antes de persistir
+        for (int i = 0; i < count; i++) {
+            LocalDate occurrenceDate = dto.getAppointmentDate().plusWeeks(i);
+            validateAppointmentTime(occurrenceDate, dto.getStartTime(), dto.getEndTime(), dto.getProfessionalId(), null);
+            professionalScheduleService.validateProfessionalAvailability(dto.getProfessionalId(), occurrenceDate, dto.getStartTime(), dto.getEndTime(), specialty);
+            scheduleBlockService.validateNoBlockConflict(occurrenceDate, dto.getStartTime(), dto.getEndTime(), dto.getProfessionalId(), specialty);
         }
 
-        return mapToDto(savedAppointment);
+        String recurrenceGroupId = count > 1 ? UUID.randomUUID().toString() : null;
+        String recurrenceRule = count > 1 ? "WEEKLY;COUNT=" + count : null;
+
+        Appointment firstSaved = null;
+        for (int i = 0; i < count; i++) {
+            LocalDate occurrenceDate = dto.getAppointmentDate().plusWeeks(i);
+            Appointment appointment = new Appointment();
+            appointment.setPatient(patient);
+            appointment.setAppointmentDate(occurrenceDate);
+            appointment.setStartTime(dto.getStartTime());
+            appointment.setEndTime(dto.getEndTime());
+            appointment.setStatus(dto.getStatus() == null ? "PROGRAMADA" : dto.getStatus());
+            appointment.setModality(dto.getModality());
+            appointment.setVideoCallLink(dto.getVideoCallLink());
+            appointment.setProfessionalId(dto.getProfessionalId());
+            appointment.setFirstTime(i == 0 && dto.isFirstTime());
+            appointment.setClinicalSessionId(i == 0 ? dto.getClinicalSessionId() : null);
+            appointment.setClinicalService(clinicalService);
+            appointment.setNotes(dto.getNotes());
+            appointment.setSpecialty(specialty);
+            appointment.setConfirmationToken(UUID.randomUUID().toString());
+            appointment.setRecurrenceGroupId(recurrenceGroupId);
+            appointment.setRecurrenceRule(recurrenceRule);
+
+            Appointment saved = appointmentRepository.save(appointment);
+            if ("CONFIRMADA".equals(saved.getStatus())) {
+                googleCalendarService.syncAppointment(saved);
+                syncAttentionOnConfirmed(saved);
+                saved = appointmentRepository.save(saved);
+            }
+
+            if (i == 0) {
+                firstSaved = saved;
+            }
+        }
+
+        return mapToDto(firstSaved);
     }
 
     @Transactional
     public AppointmentDto update(Long id, AppointmentDto dto) {
-        validateAppointmentTime(dto.getAppointmentDate(), dto.getStartTime(), dto.getEndTime(), dto.getProfessionalId(), id);
+        return update(id, dto, false);
+    }
+
+    @Transactional
+    public AppointmentDto update(Long id, AppointmentDto dto, boolean updateSeries) {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Cita no encontrada con ID: " + id));
-        if (!getCurrentUserSpecialty().equals(appointment.getSpecialty())) {
+        String specialty = getCurrentUserSpecialty();
+        if (!specialty.equals(appointment.getSpecialty())) {
             throw new AccessDeniedException("Cita fuera de la especialidad del usuario");
         }
 
-        appointment.setAppointmentDate(dto.getAppointmentDate());
-        appointment.setStartTime(dto.getStartTime());
-        appointment.setEndTime(dto.getEndTime());
-        appointment.setModality(dto.getModality());
-        appointment.setVideoCallLink(dto.getVideoCallLink());
-        appointment.setProfessionalId(dto.getProfessionalId());
-        appointment.setFirstTime(dto.isFirstTime());
-        appointment.setClinicalService(resolveClinicalService(dto.getClinicalServiceId()));
-        appointment.setNotes(dto.getNotes());
+        ClinicalService clinicalService = resolveClinicalService(dto.getClinicalServiceId());
 
-        if ("CONFIRMADA".equals(appointment.getStatus())) {
-            googleCalendarService.syncAppointment(appointment);
+        if (updateSeries && appointment.getRecurrenceGroupId() != null) {
+            List<Appointment> series = appointmentRepository
+                    .findByRecurrenceGroupIdAndSpecialtyAndAppointmentDateGreaterThanEqualOrderByAppointmentDateAscStartTimeAsc(
+                            appointment.getRecurrenceGroupId(), specialty, appointment.getAppointmentDate());
+
+            for (Appointment app : series) {
+                validateAppointmentTime(app.getAppointmentDate(), dto.getStartTime(), dto.getEndTime(), dto.getProfessionalId(), app.getId());
+                professionalScheduleService.validateProfessionalAvailability(dto.getProfessionalId(), app.getAppointmentDate(), dto.getStartTime(), dto.getEndTime(), specialty);
+                scheduleBlockService.validateNoBlockConflict(app.getAppointmentDate(), dto.getStartTime(), dto.getEndTime(), dto.getProfessionalId(), specialty);
+            }
+
+            for (Appointment app : series) {
+                app.setStartTime(dto.getStartTime());
+                app.setEndTime(dto.getEndTime());
+                app.setModality(dto.getModality());
+                app.setVideoCallLink(dto.getVideoCallLink());
+                app.setProfessionalId(dto.getProfessionalId());
+                app.setClinicalService(clinicalService);
+                app.setNotes(dto.getNotes());
+                if ("CONFIRMADA".equals(app.getStatus())) {
+                    googleCalendarService.syncAppointment(app);
+                }
+                syncAttentionOnRescheduled(app);
+                appointmentRepository.save(app);
+            }
+            return mapToDto(appointment);
+        } else {
+            validateAppointmentTime(dto.getAppointmentDate(), dto.getStartTime(), dto.getEndTime(), dto.getProfessionalId(), id);
+            professionalScheduleService.validateProfessionalAvailability(dto.getProfessionalId(), dto.getAppointmentDate(), dto.getStartTime(), dto.getEndTime(), specialty);
+            scheduleBlockService.validateNoBlockConflict(dto.getAppointmentDate(), dto.getStartTime(), dto.getEndTime(), dto.getProfessionalId(), specialty);
+
+            appointment.setAppointmentDate(dto.getAppointmentDate());
+            appointment.setStartTime(dto.getStartTime());
+            appointment.setEndTime(dto.getEndTime());
+            appointment.setModality(dto.getModality());
+            appointment.setVideoCallLink(dto.getVideoCallLink());
+            appointment.setProfessionalId(dto.getProfessionalId());
+            appointment.setFirstTime(dto.isFirstTime());
+            appointment.setClinicalService(clinicalService);
+            appointment.setNotes(dto.getNotes());
+
+            if ("CONFIRMADA".equals(appointment.getStatus())) {
+                googleCalendarService.syncAppointment(appointment);
+            }
+            syncAttentionOnRescheduled(appointment);
+
+            return mapToDto(appointmentRepository.save(appointment));
         }
-
-        return mapToDto(appointmentRepository.save(appointment));
     }
 
     @Transactional
     public AppointmentDto updateStatus(Long id, String newStatus) {
+        return updateStatus(id, newStatus, false);
+    }
+
+    @Transactional
+    public AppointmentDto updateStatus(Long id, String newStatus, boolean updateSeries) {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Cita no encontrada con ID: " + id));
-        if (!getCurrentUserSpecialty().equals(appointment.getSpecialty())) {
+        String specialty = getCurrentUserSpecialty();
+        if (!specialty.equals(appointment.getSpecialty())) {
             throw new AccessDeniedException("Cita fuera de la especialidad del usuario");
         }
-        String currentStatus = appointment.getStatus();
 
-        if (newStatus.equals(currentStatus)) {
+        if (updateSeries && appointment.getRecurrenceGroupId() != null) {
+            List<Appointment> series = appointmentRepository
+                    .findByRecurrenceGroupIdAndSpecialtyAndAppointmentDateGreaterThanEqualOrderByAppointmentDateAscStartTimeAsc(
+                            appointment.getRecurrenceGroupId(), specialty, appointment.getAppointmentDate());
+            for (Appointment app : series) {
+                applyStatusTransition(app, newStatus);
+                appointmentRepository.save(app);
+            }
             return mapToDto(appointment);
+        } else {
+            applyStatusTransition(appointment, newStatus);
+            return mapToDto(appointmentRepository.save(appointment));
+        }
+    }
+
+    private void applyStatusTransition(Appointment appointment, String newStatus) {
+        String currentStatus = appointment.getStatus();
+        if (newStatus.equals(currentStatus)) {
+            return;
         }
 
         // Máquina de estados
@@ -152,11 +250,81 @@ public class AppointmentService {
 
         if ("CONFIRMADA".equals(newStatus)) {
             googleCalendarService.syncAppointment(appointment);
-        } else if ("CANCELADA".equals(newStatus)) {
-            googleCalendarService.cancelAppointmentEvent(appointment);
+            syncAttentionOnConfirmed(appointment);
+        } else if ("CANCELADA".equals(newStatus) || "NO_ASISTIO".equals(newStatus)) {
+            if ("CANCELADA".equals(newStatus)) {
+                googleCalendarService.cancelAppointmentEvent(appointment);
+            }
+            syncAttentionOnCancelled(appointment);
         }
+    }
 
-        return mapToDto(appointmentRepository.save(appointment));
+    private void syncAttentionOnConfirmed(Appointment appointment) {
+        if (attentionRepository == null || appointment == null || appointment.getId() == null) {
+            return;
+        }
+        var existing = attentionRepository.findByAppointmentIdAndDeletedFalse(appointment.getId());
+        if (existing.isEmpty()) {
+            User professional = null;
+            if (appointment.getProfessionalId() != null && userRepository != null) {
+                professional = userRepository.findById(appointment.getProfessionalId()).orElse(null);
+            }
+            if (professional == null) {
+                try {
+                    professional = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+                } catch (Exception ignored) {
+                }
+            }
+
+            Attention attention = new Attention();
+            attention.setPatient(appointment.getPatient());
+            attention.setProfessional(professional);
+            attention.setSpecialty(appointment.getSpecialty());
+            attention.setAttentionDate(appointment.getAppointmentDate());
+            attention.setStartTime(appointment.getStartTime());
+            attention.setEndTime(appointment.getEndTime());
+            attention.setAppointment(appointment);
+            attention.setClinicalService(appointment.getClinicalService());
+            attention.setMotive(appointment.getNotes());
+            attention.setStatus(Attention.STATUS_AGENDADA);
+
+            Attention saved = attentionRepository.save(attention);
+            if (saved != null) {
+                appointment.setAttentionId(saved.getId());
+            }
+        }
+    }
+
+    private void syncAttentionOnCancelled(Appointment appointment) {
+        if (attentionRepository == null || appointment == null || appointment.getId() == null) {
+            return;
+        }
+        var existing = attentionRepository.findByAppointmentIdAndDeletedFalse(appointment.getId());
+        if (existing.isPresent()) {
+            Attention att = existing.get();
+            if (Attention.STATUS_AGENDADA.equals(att.getStatus())) {
+                att.setStatus(Attention.STATUS_CANCELADA);
+                attentionRepository.save(att);
+            }
+        }
+    }
+
+    private void syncAttentionOnRescheduled(Appointment appointment) {
+        if (attentionRepository == null || appointment == null || appointment.getId() == null) {
+            return;
+        }
+        var existing = attentionRepository.findByAppointmentIdAndDeletedFalse(appointment.getId());
+        if (existing.isPresent()) {
+            Attention att = existing.get();
+            if (Attention.STATUS_AGENDADA.equals(att.getStatus())) {
+                att.setAttentionDate(appointment.getAppointmentDate());
+                att.setStartTime(appointment.getStartTime());
+                att.setEndTime(appointment.getEndTime());
+                att.setClinicalService(appointment.getClinicalService());
+                att.setMotive(appointment.getNotes());
+                attentionRepository.save(att);
+            }
+        }
     }
 
     private void validateAppointmentTime(LocalDate date, LocalTime start, LocalTime end, Long professionalId, Long excludeId) {
@@ -175,7 +343,7 @@ public class AppointmentService {
                 .anyMatch(app -> excludeId == null || !app.getId().equals(excludeId));
 
         if (hasConflict) {
-            throw new IllegalArgumentException("Ya existe una cita programada en este horario.");
+            throw new IllegalArgumentException("Ya existe una cita programada en este horario (" + date + " " + start + " - " + end + ").");
         }
     }
 
@@ -199,7 +367,7 @@ public class AppointmentService {
         dto.setId(appointment.getId());
         dto.setPatientId(appointment.getPatient().getId());
         dto.setPatientUuid(appointment.getPatient().getUuid() != null ? appointment.getPatient().getUuid().toString() : null);
-        dto.setPatientName((appointment.getPatient().getFirstName() + " " + appointment.getPatient().getLastName()).trim());
+        dto.setPatientName(appointment.getPatient().getFullName());
         dto.setAppointmentDate(appointment.getAppointmentDate());
         dto.setStartTime(appointment.getStartTime());
         dto.setEndTime(appointment.getEndTime());
@@ -207,8 +375,14 @@ public class AppointmentService {
         dto.setModality(appointment.getModality());
         dto.setVideoCallLink(appointment.getVideoCallLink());
         dto.setProfessionalId(appointment.getProfessionalId());
+        if (appointment.getProfessionalId() != null) {
+            userRepository.findById(appointment.getProfessionalId()).ifPresent(u -> 
+                dto.setProfessionalName(u.getFullName())
+            );
+        }
         dto.setFirstTime(appointment.isFirstTime());
         dto.setClinicalSessionId(appointment.getClinicalSessionId());
+        dto.setAttentionId(appointment.getAttentionId());
         if (appointment.getClinicalService() != null) {
             dto.setClinicalServiceId(appointment.getClinicalService().getId());
             dto.setClinicalServiceName(appointment.getClinicalService().getName());
@@ -217,6 +391,14 @@ public class AppointmentService {
         dto.setSpecialty(appointment.getSpecialty());
         dto.setGoogleEventId(appointment.getGoogleEventId());
         dto.setGoogleEventLink(appointment.getGoogleEventLink());
+        dto.setReminderSentAt(appointment.getReminderSentAt());
+        dto.setConfirmedAt(appointment.getConfirmedAt());
+        dto.setRecurrenceGroupId(appointment.getRecurrenceGroupId());
+        dto.setRecurrenceRule(appointment.getRecurrenceRule());
+        if (appointment.getPatient() != null) {
+            dto.setPatientEmail(appointment.getPatient().getEmail());
+            dto.setPatientPhone(appointment.getPatient().getContactNumber());
+        }
 
         if (payment != null) {
             dto.setPaid(true);

@@ -6,6 +6,7 @@ import com.clinica.backend.repository.UserRepository;
 import com.clinica.backend.security.JwtService;
 import com.clinica.backend.security.LoginAttemptService;
 import com.clinica.backend.security.TokenRevocationService;
+import com.clinica.backend.service.AuditLogService;
 import com.clinica.backend.service.RefreshTokenService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ public class AuthController {
     private final LoginAttemptService loginAttemptService;
     private final RefreshTokenService refreshTokenService;
     private final TokenRevocationService tokenRevocationService;
+    private final AuditLogService auditLogService;
 
     @Value("${auth.cookie-secure}")
     private boolean secureCookie;
@@ -53,6 +55,8 @@ public class AuthController {
         String ip = extractClientIp(httpRequest);
 
         if (loginAttemptService.isBlocked(username) || loginAttemptService.isIpBlocked(ip)) {
+            auditLogService.record(null, username, null, "LOGIN_FAILED", "AUTH", null,
+                    "Intento de inicio de sesión bloqueado para usuario: " + username, ip);
             throw new BadCredentialsException("Usuario o contraseña incorrectos");
         }
 
@@ -66,6 +70,8 @@ public class AuthController {
         } catch (AuthenticationException ex) {
             loginAttemptService.loginFailed(username);
             loginAttemptService.loginFailedFromIp(ip);
+            auditLogService.record(null, username, null, "LOGIN_FAILED", "AUTH", null,
+                    "Intento de inicio de sesión fallido para usuario: " + username, ip);
             throw new BadCredentialsException("Usuario o contraseña incorrectos");
         }
 
@@ -76,6 +82,10 @@ public class AuthController {
                 .orElseThrow(() -> new BadCredentialsException("Usuario o contraseña incorrectos"));
         var jwtToken = jwtService.generateToken(user);
         setRefreshCookie(httpResponse, refreshTokenService.issue(user));
+
+        auditLogService.record(user.getId(), user.getUsername(), user.getSpecialty(), "LOGIN", "AUTH",
+                user.getId() != null ? user.getId().toString() : null, "Inicio de sesión exitoso", ip);
+
         return ResponseEntity.ok(AuthResponse.builder()
                 .token(jwtToken)
                 .specialty(user.getSpecialty())
@@ -99,16 +109,38 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@CookieValue(name = "refresh_token", required = false) String refreshToken,
                                        @RequestHeader(value = "Authorization", required = false) String authorization,
+                                       HttpServletRequest httpRequest,
                                        HttpServletResponse response) {
+        String ip = extractClientIp(httpRequest);
+        String username = null;
+        Long userId = null;
+        String specialty = null;
+
         refreshTokenService.revoke(refreshToken);
         if (authorization != null && authorization.startsWith("Bearer ")) {
             String token = authorization.substring(7);
+            try {
+                username = jwtService.extractUsername(token);
+                if (username != null) {
+                    var userOpt = userRepository.findByUsername(username);
+                    if (userOpt.isPresent()) {
+                        var u = userOpt.get();
+                        userId = u.getId();
+                        specialty = u.getSpecialty();
+                    }
+                }
+            } catch (Exception ignored) {
+            }
             String tokenId = jwtService.extractTokenId(token);
             Date expiration = jwtService.extractClaim(token, claims -> claims.getExpiration());
             if (expiration != null) tokenRevocationService.revoke(tokenId, expiration.toInstant());
         }
         response.addHeader("Set-Cookie", ResponseCookie.from("refresh_token", "")
                 .httpOnly(true).secure(secureCookie).sameSite(cookieSameSite).path("/api/v1/auth").maxAge(0).build().toString());
+
+        auditLogService.record(userId, username, specialty, "LOGOUT", "AUTH",
+                userId != null ? userId.toString() : null, "Cierre de sesión", ip);
+
         return ResponseEntity.noContent().build();
     }
 

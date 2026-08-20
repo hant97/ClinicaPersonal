@@ -1,76 +1,178 @@
 <div class="card space-y-5">
+  <!-- Header & Action Bar -->
   <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-line pb-3">
     <div>
-      <h3 class="text-sm font-bold uppercase tracking-wider text-slate-800">Evaluaciones Psicométricas</h3>
-      <p class="text-xs text-muted">Historial de tests aplicados y puntajes estandarizados</p>
+      <h3 class="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-slate-800">
+        <lucide-icon [img]="Brain" [size]="16" class="text-purple-600"></lucide-icon>
+        Reporte de Evolución Psicométrica
+      </h3>
+      <p class="text-xs text-muted">Seguimiento longitudinal de puntajes clínicos estandarizados y respuesta terapéutica</p>
     </div>
-    <button type="button" class="btn-primary !text-xs !py-1.5" (click)="openForm()">
-      + Registrar Evaluación
-    </button>
+    <div class="flex items-center gap-2">
+      @if (availableTestNames.length > 1) {
+        <div class="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-lg border border-line text-xs">
+          <lucide-icon [img]="Filter" [size]="13" class="text-muted"></lucide-icon>
+          <select [(ngModel)]="selectedTestFilter" (ngModelChange)="onFilterChange()" class="bg-transparent border-0 font-medium text-xs text-ink focus:ring-0 cursor-pointer">
+            <option value="ALL">Todas las pruebas</option>
+            @for (name of availableTestNames; track name) {
+              <option [value]="name">{{ name }}</option>
+            }
+          </select>
+        </div>
+      }
+      <button type="button" class="btn-primary !text-xs !py-1.5 !bg-purple-600 hover:!bg-purple-700" (click)="openForm()">
+        <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
+        <span>Nueva Evaluación</span>
+      </button>
+    </div>
   </div>
 
-  @if (assessments.length > 0) {
-    @if (assessments.length > 1) {
-      <div class="relative h-72 w-full rounded-xl border border-line bg-slate-50/60 p-4 shadow-sm">
-        <canvas #chartCanvas></canvas>
+  @if (allAssessments.length > 0) {
+    <!-- Clinical Evolution KPI Summary Cards -->
+    @if (activeSummary) {
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <!-- Card 1: Test & Total Evaluations -->
+        <div class="rounded-xl border border-line bg-gradient-to-br from-purple-50/50 to-surface p-3.5 space-y-1 shadow-xs">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-muted flex items-center gap-1.5">
+            <lucide-icon [img]="Activity" [size]="13" class="text-purple-600"></lucide-icon>
+            Prueba Activa
+          </span>
+          <p class="text-sm font-bold text-ink truncate" [title]="activeSummary.testName">{{ activeSummary.testName }}</p>
+          <span class="inline-block text-[11px] text-purple-700 font-medium">
+            {{ activeSummary.count }} {{ activeSummary.count === 1 ? 'evaluación registrada' : 'evaluaciones en el tiempo' }}
+          </span>
+        </div>
+
+        <!-- Card 2: Initial Baseline Score -->
+        <div class="rounded-xl border border-line bg-surface p-3.5 space-y-1 shadow-xs">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-muted flex items-center gap-1.5">
+            <lucide-icon [img]="Calendar" [size]="13" class="text-slate-500"></lucide-icon>
+            Línea Base (Inicial)
+          </span>
+          <div class="flex items-baseline gap-2">
+            <span class="text-lg font-extrabold text-slate-800">{{ activeSummary.initialScore }}</span>
+            <span class="text-xs text-muted font-medium">pts</span>
+          </div>
+          <p class="text-[10px] text-muted truncate">Fecha: {{ activeSummary.initialDate | date: 'dd/MM/yyyy' }}</p>
+        </div>
+
+        <!-- Card 3: Latest Score & Severity -->
+        <div class="rounded-xl border border-line bg-surface p-3.5 space-y-1 shadow-xs">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-muted flex items-center gap-1.5">
+            <lucide-icon [img]="Sparkles" [size]="13" class="text-amber-500"></lucide-icon>
+            Puntaje Actual
+          </span>
+          <div class="flex items-baseline gap-2">
+            <span class="text-lg font-extrabold text-ink">{{ activeSummary.latestScore }}</span>
+            <span class="text-xs text-muted font-medium">pts</span>
+          </div>
+          @if (activeSummary.latestInterpretation) {
+            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700">
+              <span class="h-2 w-2 rounded-full bg-purple-500"></span>
+              {{ activeSummary.latestInterpretation.label }}
+            </span>
+          }
+        </div>
+
+        <!-- Card 4: Clinical Delta & Trend -->
+        <div class="rounded-xl border p-3.5 space-y-1 shadow-xs"
+             [ngClass]="activeSummary.trend === 'improvement' ? 'bg-emerald-50/60 border-emerald-200' : (activeSummary.trend === 'worsened' ? 'bg-red-50/60 border-red-200' : 'bg-slate-50/60 border-line')">
+          <span class="text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1.5"
+                [ngClass]="activeSummary.trend === 'improvement' ? 'text-emerald-800' : (activeSummary.trend === 'worsened' ? 'text-red-800' : 'text-slate-600')">
+            @if (activeSummary.trend === 'improvement') {
+              <lucide-icon [img]="TrendingDown" [size]="14" class="text-emerald-600"></lucide-icon>
+              Evolución Favorable
+            } @else if (activeSummary.trend === 'worsened') {
+              <lucide-icon [img]="TrendingUp" [size]="14" class="text-red-600"></lucide-icon>
+              Alerta de Variación
+            } @else {
+              <lucide-icon [img]="Minus" [size]="14" class="text-slate-500"></lucide-icon>
+              Respuesta Estable
+            }
+          </span>
+          <div class="flex items-baseline gap-1.5">
+            <span class="text-base font-extrabold"
+                  [ngClass]="activeSummary.trend === 'improvement' ? 'text-emerald-700' : (activeSummary.trend === 'worsened' ? 'text-red-700' : 'text-slate-700')">
+              {{ activeSummary.delta > 0 ? '+' : '' }}{{ activeSummary.delta }} pts
+            </span>
+            <span class="text-xs font-semibold"
+                  [ngClass]="activeSummary.trend === 'improvement' ? 'text-emerald-600' : (activeSummary.trend === 'worsened' ? 'text-red-600' : 'text-slate-500')">
+              ({{ activeSummary.percentChange > 0 ? '+' : '' }}{{ activeSummary.percentChange }}%)
+            </span>
+          </div>
+          <p class="text-[10px] font-medium leading-tight"
+             [ngClass]="activeSummary.trend === 'improvement' ? 'text-emerald-700' : (activeSummary.trend === 'worsened' ? 'text-red-700' : 'text-slate-600')">
+            {{ activeSummary.trendLabel }}
+          </p>
+        </div>
       </div>
     }
 
-    <div class="table-responsive">
-      <table class="minimal-table">
-        <thead>
-          <tr>
-            <th>Fecha</th>
-            <th>Test Aplicado</th>
-            <th>Puntaje Total</th>
-            <th>Interpretación</th>
-            <th>Notas</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (assessment of assessments; track assessment.id) {
-            <tr>
-              <td class="font-mono text-xs text-slate-700">
-                {{ assessment.assessmentDate | date: 'dd/MM/yyyy HH:mm' }}
-              </td>
-              <td class="font-semibold text-xs text-ink">{{ assessment.testName }}</td>
-              <td>
-                <span class="inline-flex rounded-md bg-purple-50 px-2.5 py-0.5 text-xs font-bold text-purple-700 border border-purple-200">
-                  {{ assessment.totalScore }} pts
-                </span>
-              </td>
-              <td>
-                @if (interpretationOf(assessment); as band) {
-                  <span
-                    class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-bold border"
-                    [ngClass]="bandClasses(assessment).badge"
-                    [title]="band.description || ''"
-                  >
-                    <span class="h-1.5 w-1.5 rounded-full" [ngClass]="bandClasses(assessment).dot"></span>
-                    {{ band.label }}
-                  </span>
-                } @else {
-                  <span class="text-xs text-muted">—</span>
-                }
-              </td>
-              <td class="max-w-xs truncate text-xs text-muted" [title]="assessment.notes || ''">
-                {{ assessment.notes || '—' }}
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
+    <!-- Evolution Chart -->
+    <div class="relative h-72 w-full rounded-xl border border-line bg-slate-50/50 p-4 shadow-sm">
+      <canvas #chartCanvas></canvas>
     </div>
 
-    <app-pagination
-      [currentPage]="currentPage"
-      [totalPages]="totalPages"
-      (pageChange)="onPageChange($event)"
-    ></app-pagination>
+    <!-- Paginated History Table -->
+    <div class="space-y-3 pt-2">
+      <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">Historial Detallado de Evaluaciones</h4>
+      <div class="table-responsive">
+        <table class="minimal-table">
+          <thead>
+            <tr>
+              <th>Fecha de Aplicación</th>
+              <th>Test Aplicado</th>
+              <th>Puntaje Obtenido</th>
+              <th>Interpretación Clínica</th>
+              <th>Observaciones Terapéuticas</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (assessment of tableAssessments; track assessment.id) {
+              <tr>
+                <td class="font-mono text-xs text-slate-700 whitespace-nowrap">
+                  {{ assessment.assessmentDate | date: 'dd/MM/yyyy HH:mm' }}
+                </td>
+                <td class="font-semibold text-xs text-ink">{{ assessment.testName }}</td>
+                <td>
+                  <span class="inline-flex rounded-md bg-purple-50 px-2.5 py-0.5 text-xs font-bold text-purple-700 border border-purple-200">
+                    {{ assessment.totalScore }} pts
+                  </span>
+                </td>
+                <td>
+                  @if (interpretationOf(assessment); as band) {
+                    <span
+                      class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-bold border"
+                      [ngClass]="bandClasses(assessment).badge"
+                      [title]="band.description || ''"
+                    >
+                      <span class="h-1.5 w-1.5 rounded-full" [ngClass]="bandClasses(assessment).dot"></span>
+                      {{ band.label }}
+                    </span>
+                  } @else {
+                    <span class="text-xs text-muted">—</span>
+                  }
+                </td>
+                <td class="max-w-xs truncate text-xs text-muted" [title]="assessment.notes || ''">
+                  {{ assessment.notes || '—' }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <app-pagination
+        [currentPage]="currentPage"
+        [totalPages]="totalPages"
+        (pageChange)="onPageChange($event)"
+      ></app-pagination>
+    </div>
   } @else {
     <div class="list-state">
+      <lucide-icon [img]="Brain" [size]="28" class="text-purple-300 mx-auto mb-2"></lucide-icon>
       <p class="text-sm font-medium text-ink">No hay evaluaciones psicométricas registradas</p>
-      <p class="text-xs text-muted">Aplica un test del catálogo para comenzar el seguimiento psicométrico.</p>
+      <p class="text-xs text-muted">Aplica un test del catálogo para comenzar el seguimiento psicométrico longitudinal.</p>
     </div>
   }
 </div>
@@ -78,3 +180,4 @@
 @if (showForm) {
   <app-assessment-form [patientId]="patientId" (close)="closeForm($event)"></app-assessment-form>
 }
+

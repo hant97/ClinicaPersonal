@@ -177,6 +177,27 @@
         </a>
 
         <a
+          routerLink="/attentions"
+          routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+          [class.lg:justify-center]="!isSidebarExpanded"
+          [class.lg:px-0]="!isSidebarExpanded"
+          [class.lg:justify-start]="isSidebarExpanded"
+          [class.lg:px-2.5]="isSidebarExpanded"
+          title="Atenciones"
+          aria-label="Atenciones"
+          (click)="closeSidebar()"
+        >
+          <lucide-icon [img]="Stethoscope" [size]="18" class="shrink-0"></lucide-icon>
+          <span
+            class="truncate block md:hidden"
+            [class.lg:inline]="isSidebarExpanded"
+            [class.lg:hidden]="!isSidebarExpanded"
+          >Atenciones</span>
+        </a>
+
+        <a
           routerLink="/patients"
           routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
           [routerLinkActiveOptions]="{ paths: 'subset', queryParams: 'exact', matrixParams: 'ignored', fragment: 'ignored' }"
@@ -337,6 +358,26 @@
               [class.lg:inline]="isSidebarExpanded"
               [class.lg:hidden]="!isSidebarExpanded"
             >Personal & Cuentas</span>
+          </a>
+
+          <a
+            routerLink="/settings/audit"
+            routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
+            class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+            [class.lg:justify-center]="!isSidebarExpanded"
+            [class.lg:px-0]="!isSidebarExpanded"
+            [class.lg:justify-start]="isSidebarExpanded"
+            [class.lg:px-2.5]="isSidebarExpanded"
+            title="Auditoría"
+            aria-label="Auditoría"
+            (click)="closeSidebar()"
+          >
+            <lucide-icon [img]="Shield" [size]="18" class="shrink-0"></lucide-icon>
+            <span
+              class="truncate block md:hidden"
+              [class.lg:inline]="isSidebarExpanded"
+              [class.lg:hidden]="!isSidebarExpanded"
+            >Auditoría</span>
           </a>
         }
       }

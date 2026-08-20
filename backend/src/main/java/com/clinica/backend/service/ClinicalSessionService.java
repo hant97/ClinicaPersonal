@@ -24,6 +24,7 @@ public class ClinicalSessionService {
     private final PatientRepository patientRepository;
     private final AppointmentRepository appointmentRepository;
     private final ClinicalAuthorizationService clinicalAuthorizationService;
+    private final AuditLogService auditLogService;
 
     @Transactional(readOnly = true)
     public Page<ClinicalSessionDto> getSessionsByPatientId(Long patientId, Pageable pageable) {
@@ -69,6 +70,13 @@ public class ClinicalSessionService {
                     });
         }
 
+        auditLogService.record(
+                "CREATE",
+                "CLINICAL_SESSION",
+                saved.getId().toString(),
+                "Sesión clínica creada (Fecha: " + saved.getSessionDate() + ", Tipo: " + saved.getSessionType() + ") para paciente ID: " + patient.getId()
+        );
+
         return mapToDto(saved);
     }
 
@@ -77,7 +85,16 @@ public class ClinicalSessionService {
         ClinicalSession session = getActiveSession(id);
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator(session.getSpecialty(), session.getProfessionalId());
         copyEditableFields(dto, session);
-        return mapToDto(sessionRepository.save(session));
+        ClinicalSession updated = sessionRepository.save(session);
+
+        auditLogService.record(
+                "UPDATE",
+                "CLINICAL_SESSION",
+                updated.getId().toString(),
+                "Sesión clínica actualizada ID: " + updated.getId()
+        );
+
+        return mapToDto(updated);
     }
 
     @Transactional
@@ -88,6 +105,13 @@ public class ClinicalSessionService {
         session.setDeletedAt(LocalDateTime.now());
         session.setDeletedBy(clinicalAuthorizationService.currentUser().getId());
         sessionRepository.save(session);
+
+        auditLogService.record(
+                "DELETE",
+                "CLINICAL_SESSION",
+                id.toString(),
+                "Sesión clínica eliminada lógicamente ID: " + id
+        );
     }
 
     private ClinicalSession getActiveSession(Long id) {
@@ -108,6 +132,7 @@ public class ClinicalSessionService {
         session.setPlan(dto.getPlan());
         session.setConfidential(dto.isConfidential());
         session.setAppointmentId(dto.getAppointmentId());
+        session.setAttentionId(dto.getAttentionId());
     }
 
     private ClinicalSessionDto mapToDto(ClinicalSession entity) {
@@ -130,6 +155,7 @@ public class ClinicalSessionService {
         dto.setUpdatedAt(entity.getUpdatedAt());
         dto.setProfessionalId(entity.getProfessionalId());
         dto.setAppointmentId(entity.getAppointmentId());
+        dto.setAttentionId(entity.getAttentionId());
         return dto;
     }
 }

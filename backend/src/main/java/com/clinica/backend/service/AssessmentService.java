@@ -41,6 +41,17 @@ public class AssessmentService {
         return assessmentRepository.findByPatientIdOrderByAssessmentDateDesc(patientId, pageable).map(this::mapToDto);
     }
 
+    @Transactional(readOnly = true)
+    public List<AssessmentDto> getPatientEvolution(Long patientId) {
+        String specialty = clinicalAuthorizationService.currentUser().getSpecialty();
+        if (!patientRepository.existsByIdAndSpecialtyAndDeletedFalse(patientId, specialty)) {
+            throw new ResourceNotFoundException("Paciente no encontrado");
+        }
+        return assessmentRepository.findByPatientIdOrderByAssessmentDateAsc(patientId).stream()
+                .map(this::mapToDto)
+                .toList();
+    }
+
     @Transactional
     public AssessmentDto saveAssessment(AssessmentDto dto) {
         String specialty = clinicalAuthorizationService.currentUser().getSpecialty();

@@ -4,8 +4,14 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 import { AppointmentService } from '../../../core/services/appointment.service';
+import { AttentionService } from '../../../core/services/attention.service';
+import { ScheduleBlockService } from '../../../core/services/schedule-block.service';
+import { UserService } from '../../../core/services/user.service';
 import { Appointment } from '../../../core/models/appointment.model';
+import { ScheduleBlock } from '../../../core/models/schedule-block.model';
+import { UserProfile } from '../../../core/models/user-profile.model';
 import { AppointmentFormComponent } from '../appointment-form/appointment-form.component';
+import { ScheduleManagementComponent } from '../schedule-management/schedule-management.component';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { ExportService } from '../../../shared/services/export/export.service';
@@ -36,7 +42,12 @@ import {
   RotateCcw,
   CheckCircle2,
   MoreHorizontal,
-  ExternalLink
+  ExternalLink,
+  MessageCircle,
+  BellRing,
+  Repeat,
+  CalendarOff,
+  Settings
 } from 'lucide-angular';
 
 @Component({
@@ -46,6 +57,7 @@ import {
     CommonModule,
     RouterModule,
     AppointmentFormComponent,
+    ScheduleManagementComponent,
     LucideAngularModule,
     ReactiveFormsModule,
     StatusPillComponent,
@@ -77,9 +89,18 @@ export class AgendaComponent implements OnInit, OnDestroy {
   readonly CheckCircle2 = CheckCircle2;
   readonly MoreHorizontal = MoreHorizontal;
   readonly ExternalLink = ExternalLink;
+  readonly MessageCircle = MessageCircle;
+  readonly BellRing = BellRing;
+  readonly Repeat = Repeat;
+  readonly CalendarOff = CalendarOff;
+  readonly Settings = Settings;
 
   appointments: Appointment[] = [];
+  scheduleBlocks: ScheduleBlock[] = [];
+  professionals: UserProfile[] = [];
+
   showForm = false;
+  showScheduleModal = false;
   appointmentToEdit: Appointment | null = null;
   initialAppointmentData: Partial<Appointment> | null = null;
   isLoading = false;
@@ -90,6 +111,7 @@ export class AgendaComponent implements OnInit, OnDestroy {
   selectedAppointmentPreview: Appointment | null = null;
   isDrawerOpen = false;
   isUpdatingStatus = false;
+  isStartingAttention = false;
   updatingStatusId: number | null = null;
   activeStatusAction: string | null = null;
 
@@ -107,6 +129,9 @@ export class AgendaComponent implements OnInit, OnDestroy {
   constructor(
     private fb: FormBuilder,
     private appointmentService: AppointmentService,
+    private attentionService: AttentionService,
+    private blockService: ScheduleBlockService,
+    private userService: UserService,
     private route: ActivatedRoute,
     private router: Router,
     private notificationService: NotificationService,
@@ -119,6 +144,7 @@ export class AgendaComponent implements OnInit, OnDestroy {
     this.currentView = this.viewPreferenceService.getViewMode<'calendar' | 'list'>('agenda_view_mode', 'calendar', 'list');
     this.initFilterForm();
     this.initCalendar();
+    this.loadProfessionals();
     this.loadTodayCount();
 
     this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
@@ -140,6 +166,7 @@ export class AgendaComponent implements OnInit, OnDestroy {
     this.filterForm = this.fb.group({
       searchTerm: [''],
       status: ['ALL'],
+      professionalId: ['ALL'],
       dateRange: ['ALL']
     });
 
@@ -153,6 +180,15 @@ export class AgendaComponent implements OnInit, OnDestroy {
         this.listSpecificDate = null;
         this.loadAppointments();
       });
+  }
+
+  loadProfessionals(): void {
+    this.userService.getProfessionals().subscribe({
+      next: (profs) => {
+        this.professionals = profs;
+      },
+      error: (err) => console.error('Error loading professionals', err)
+    });
   }
 
   // --- CALENDAR & TIMELINE LOGIC ---
@@ -243,9 +279,17 @@ export class AgendaComponent implements OnInit, OnDestroy {
     });
   }
 
+  getBlocksForDay(day: Date): ScheduleBlock[] {
+    const dateStr = this.toDateKey(day);
+    return this.scheduleBlocks.filter(b => b.startDate <= dateStr && b.endDate >= dateStr);
+  }
+
   loadAppointments(): void {
     const filters = this.filterForm.getRawValue();
-    
+    const professionalId = filters.professionalId && filters.professionalId !== 'ALL' 
+      ? Number(filters.professionalId) 
+      : undefined;
+
     let startDate: string | undefined = undefined;
     let endDate: string | undefined = undefined;
 
@@ -283,7 +327,7 @@ export class AgendaComponent implements OnInit, OnDestroy {
 
     this.isLoading = true;
     this.loadError = false;
-    this.appointmentService.search(filters.searchTerm, filters.status, startDate, endDate).subscribe({
+    this.appointmentService.search(filters.searchTerm, filters.status, startDate, endDate, professionalId).subscribe({
       next: (data) => {
         this.appointments = data.content;
         this.isLoading = false;
@@ -293,6 +337,14 @@ export class AgendaComponent implements OnInit, OnDestroy {
         this.isLoading = false;
         this.loadError = true;
       }
+    });
+
+    // Load blocks in range
+    this.blockService.getBlocks(startDate, endDate, professionalId).subscribe({
+      next: (blocks) => {
+        this.scheduleBlocks = blocks;
+      },
+      error: (err) => console.error('Error fetching schedule blocks', err)
     });
   }
 
@@ -317,6 +369,18 @@ export class AgendaComponent implements OnInit, OnDestroy {
     this.closePreview();
   }
 
+  openScheduleModal(): void {
+    this.showScheduleModal = true;
+  }
+
+  closeScheduleModal(): void {
+    this.showScheduleModal = false;
+  }
+
+  onScheduleUpdated(): void {
+    this.loadAppointments();
+  }
+
   onSlotClick(day: Date, hourString: string): void {
     const dateStr = this.toDateKey(day);
 
@@ -327,11 +391,15 @@ export class AgendaComponent implements OnInit, OnDestroy {
     const endM = endMinutes % 60;
     const endTime = `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
 
+    const filters = this.filterForm.getRawValue();
+    const profId = filters.professionalId && filters.professionalId !== 'ALL' ? Number(filters.professionalId) : undefined;
+
     this.appointmentToEdit = null;
     this.initialAppointmentData = {
       appointmentDate: dateStr,
       startTime: startTime,
-      endTime: endTime
+      endTime: endTime,
+      professionalId: profId
     };
     this.showForm = true;
   }
@@ -353,6 +421,23 @@ export class AgendaComponent implements OnInit, OnDestroy {
 
   confirmAppointment(appointment: Appointment): void {
     this.updateStatus(appointment, 'CONFIRMADA');
+  }
+
+  startAttention(appointment: Appointment): void {
+    if (!appointment.id || this.isStartingAttention || this.isUpdatingStatus) return;
+    this.isStartingAttention = true;
+    this.attentionService.createFromAppointment(appointment.id).subscribe({
+      next: (attention) => {
+        this.isStartingAttention = false;
+        this.toastService.show('Atención iniciada desde la cita', 'success');
+        this.closePreview();
+        this.router.navigate(['/attentions']);
+      },
+      error: () => {
+        this.isStartingAttention = false;
+        this.toastService.show('Error al iniciar la atención', 'error');
+      }
+    });
   }
 
   registerConsultation(appointment: Appointment): void {
@@ -387,14 +472,24 @@ export class AgendaComponent implements OnInit, OnDestroy {
   }
 
   async cancelAppointment(appointment: Appointment): Promise<void> {
-    const confirmed = await this.notificationService.confirm(
-      'Cancelar Cita',
-      '¿Estás seguro de cancelar esta cita? Esta acción no se puede deshacer.',
-      'Sí, cancelar',
-      'No, mantener'
-    );
-    if (confirmed) {
-      this.updateStatus(appointment, 'CANCELADA');
+    if (appointment.recurrenceGroupId) {
+      const isSeriesCancel = await this.notificationService.confirm(
+        'Cancelar Cita Recurrente',
+        'Esta cita forma parte de una serie periódica. ¿Deseas cancelar todas las citas futuras de esta serie o únicamente esta sesión?',
+        'Cancelar Toda la Serie',
+        'Cancelar Solo Esta Sesión'
+      );
+      this.updateStatus(appointment, 'CANCELADA', isSeriesCancel);
+    } else {
+      const confirmed = await this.notificationService.confirm(
+        'Cancelar Cita',
+        '¿Estás seguro de cancelar esta cita? Esta acción no se puede deshacer.',
+        'Sí, cancelar',
+        'No, mantener'
+      );
+      if (confirmed) {
+        this.updateStatus(appointment, 'CANCELADA', false);
+      }
     }
   }
 
@@ -433,13 +528,13 @@ export class AgendaComponent implements OnInit, OnDestroy {
     });
   }
 
-  private updateStatus(appointment: Appointment, status: string): void {
+  private updateStatus(appointment: Appointment, status: string, updateSeries: boolean = false): void {
     if (appointment.id) {
       this.isUpdatingStatus = true;
       this.updatingStatusId = appointment.id;
       this.activeStatusAction = status;
 
-      this.appointmentService.updateStatus(appointment.id, status).subscribe({
+      this.appointmentService.updateStatus(appointment.id, status, updateSeries).subscribe({
         next: (updated) => {
           this.isUpdatingStatus = false;
           this.updatingStatusId = null;
@@ -449,7 +544,8 @@ export class AgendaComponent implements OnInit, OnDestroy {
             this.selectedAppointmentPreview = { ...this.selectedAppointmentPreview, ...updated, status: status };
           }
           const syncNote = (status === 'CONFIRMADA' && updated.googleEventLink) ? ' y sincronizada con Google Calendar' : '';
-          this.toastService.show(`Estado actualizado: ${this.getStatusLabel(status)}${syncNote}.`, 'success');
+          const seriesNote = updateSeries ? ' (serie completa)' : '';
+          this.toastService.show(`Estado actualizado: ${this.getStatusLabel(status)}${seriesNote}${syncNote}.`, 'success');
         },
         error: (err) => {
           this.isUpdatingStatus = false;
@@ -515,6 +611,15 @@ export class AgendaComponent implements OnInit, OnDestroy {
     return e ? `${s} – ${e}` : s;
   }
 
+  whatsAppLink(app: Appointment): string | null {
+    const phone = app.patientPhone;
+    if (!phone) return null;
+    const digits = phone.replace(/\D/g, '');
+    if (!digits) return null;
+    const text = encodeURIComponent(`Hola, le recordamos su cita del ${app.appointmentDate} a las ${app.startTime}.`);
+    return `https://wa.me/${digits}?text=${text}`;
+  }
+
   getStatusDotClass(status: string): string {
     const s = (status || '').toUpperCase();
     switch (s) {
@@ -530,9 +635,11 @@ export class AgendaComponent implements OnInit, OnDestroy {
   exportAppointments(): void {
     const dataToExport = this.appointments.map(app => ({
       'Paciente': app.patientName,
+      'Profesional': app.professionalName || '',
       'Fecha': (app.appointmentDate || '').replace('T', ' '),
       'Hora Inicio': app.startTime,
       'Hora Fin': app.endTime,
+      'Recurrente': app.recurrenceGroupId ? 'Sí' : 'No',
       'Motivo': app.notes || '',
       'Estado': this.getStatusLabel(app.status),
       'Tipo': app.modality === 'VIRTUAL' ? 'Virtual' : 'Presencial'

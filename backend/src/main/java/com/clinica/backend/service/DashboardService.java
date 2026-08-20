@@ -13,6 +13,7 @@ import com.clinica.backend.repository.AppointmentRepository;
 import com.clinica.backend.repository.ClinicalSessionRepository;
 import com.clinica.backend.repository.PatientRepository;
 import com.clinica.backend.repository.PaymentRepository;
+import com.clinica.backend.repository.PaymentTransactionRepository;
 import com.clinica.backend.repository.RiskAlertRepository;
 import com.clinica.backend.repository.AssessmentRepository;
 import com.clinica.backend.repository.DermatologicalEvaluationRepository;
@@ -39,6 +40,7 @@ public class DashboardService {
     private final PatientRepository patientRepository;
     private final AppointmentRepository appointmentRepository;
     private final PaymentRepository paymentRepository;
+    private final PaymentTransactionRepository paymentTransactionRepository;
     private final RiskAlertRepository riskAlertRepository;
     private final SupplyService supplyService;
     private final AssessmentRepository assessmentRepository;
@@ -63,9 +65,9 @@ public class DashboardService {
         // 2. Citas hoy
         long appointmentsToday = appointmentRepository.countByAppointmentDateAndSpecialty(today, specialty);
 
-        // 3. Cobros del mes actual y mes anterior
-        BigDecimal monthlyIncome = paymentRepository.sumIncomeBetweenBySpecialty(startOfCurrentMonth, endOfCurrentMonth, specialty);
-        BigDecimal previousMonthlyIncome = paymentRepository.sumIncomeBetweenBySpecialty(startOfPreviousMonth, startOfCurrentMonth, specialty);
+        // 3. Ingresos del mes actual y mes anterior (abonos realmente recibidos)
+        BigDecimal monthlyIncome = paymentTransactionRepository.sumIncomeBetweenBySpecialty(startOfCurrentMonth, endOfCurrentMonth, specialty);
+        BigDecimal previousMonthlyIncome = paymentTransactionRepository.sumIncomeBetweenBySpecialty(startOfPreviousMonth, startOfCurrentMonth, specialty);
 
         int monthlyIncomeGrowth = 0;
         if (previousMonthlyIncome != null && previousMonthlyIncome.compareTo(BigDecimal.ZERO) > 0) {
@@ -173,7 +175,7 @@ public class DashboardService {
         if (!patientIds.isEmpty()) {
             List<Patient> patients = patientRepository.findAllById(patientIds);
             for (Patient p : patients) {
-                patientNamesMap.put(p.getId(), (p.getFirstName() + " " + p.getLastName()).trim());
+                patientNamesMap.put(p.getId(), p.getFullName());
             }
         }
 
@@ -201,7 +203,7 @@ public class DashboardService {
                         .id(s.getId())
                         .patientId(s.getPatient() != null ? s.getPatient().getId() : null)
                         .patientName(s.getPatient() != null
-                                ? (s.getPatient().getFirstName() + " " + s.getPatient().getLastName()).trim()
+                                ? s.getPatient().getFullName()
                                 : "Paciente #" + s.getId())
                         .sessionDate(s.getSessionDate())
                         .sessionType(s.getSessionType())
@@ -243,7 +245,7 @@ public class DashboardService {
 
     private DashboardAppointmentDto toDashboardAppointmentDto(Appointment app, Payment payment) {
         String patientName = app.getPatient() != null
-                ? (app.getPatient().getFirstName() + " " + app.getPatient().getLastName()).trim()
+                ? app.getPatient().getFullName()
                 : "Paciente #" + app.getId();
         return DashboardAppointmentDto.builder()
                 .id(app.getId())

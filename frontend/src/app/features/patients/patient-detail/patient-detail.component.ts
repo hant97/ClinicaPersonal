@@ -210,6 +210,11 @@ export class PatientDetailComponent implements OnInit {
         this.activeTab = 'timeline';
         this.openForm();
       }
+      if (params['tab'] === 'prescriptions') {
+        this.activeTab = 'expediente';
+        this.activeExpedienteSubTab = 'recetas';
+        this.collapsedSections['recetas'] = false;
+      }
     });
   }
 

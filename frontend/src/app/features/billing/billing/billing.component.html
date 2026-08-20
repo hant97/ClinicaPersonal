@@ -71,7 +71,14 @@
     </div>
   </div>
 
-  <app-billing-summary [summary]="summary" [paymentMethodMap]="paymentMethodMap" [showCharts]="showCharts"></app-billing-summary>
+  <app-billing-summary
+    [summary]="summary"
+    [paymentMethodMap]="paymentMethodMap"
+    [showCharts]="showCharts"
+    [dateFrom]="summaryDateFrom"
+    [dateTo]="summaryDateTo"
+    (rangeChange)="onSummaryRangeChange($event)"
+  ></app-billing-summary>
 
   <!-- Filters -->
   <div class="flex flex-wrap items-end gap-2">
@@ -116,6 +123,19 @@
           <option value="">Todos</option>
           @for (method of paymentMethodOptions; track method.code) {
             <option [value]="method.code">{{ method.name }}</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label class="form-label !mb-1 !text-[10px]">Estado</label>
+        <select
+          class="input-field !py-1.5 text-xs"
+          [(ngModel)]="filterStatus"
+          (change)="applyFilters()"
+        >
+          <option value="">Todos</option>
+          @for (status of statusOptions; track status.code) {
+            <option [value]="status.code">{{ status.name }}</option>
           }
         </select>
       </div>
@@ -172,6 +192,14 @@
               <p class="font-bold text-ink text-sm sm:text-base leading-tight">
                 {{ payment.amount | currency:'PEN':'S/ ':'1.2-2' }}
               </p>
+              @if (payment.status && payment.status !== 'PAGADO') {
+                <span
+                  class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold border"
+                  [ngClass]="getStatusVisual(payment.status).classes"
+                >
+                  {{ getStatusText(payment.status) }}
+                </span>
+              }
 
               <!-- Action Menu Popup -->
               <div class="relative" (click)="$event.stopPropagation()">
@@ -267,6 +295,14 @@
                   <span class="font-mono font-bold text-xs text-ink">
                     {{ payment.amount | currency:'PEN':'S/ ':'1.2-2' }}
                   </span>
+                  @if (payment.status && payment.status !== 'PAGADO') {
+                    <span
+                      class="ml-1.5 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold border"
+                      [ngClass]="getStatusVisual(payment.status).classes"
+                    >
+                      {{ getStatusText(payment.status) }}
+                    </span>
+                  }
                 </td>
                 <td>
                   <span class="inline-flex items-center gap-1.5 text-xs text-ink font-medium">
@@ -351,5 +387,6 @@
     [payment]="viewingPayment"
     [paymentMethodText]="getPaymentMethodText(viewingPayment.paymentMethod)"
     (close)="closeView()"
+    (changed)="onPaymentChanged()"
   ></app-payment-detail>
 }

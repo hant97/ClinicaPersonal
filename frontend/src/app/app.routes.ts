@@ -6,6 +6,7 @@ import { PatientListComponent } from './features/patients/patient-list/patient-l
 import { PatientFormComponent } from './features/patients/patient-form/patient-form.component';
 import { PatientDetailComponent } from './features/patients/patient-detail/patient-detail.component';
 import { AgendaComponent } from './features/agenda/agenda/agenda.component';
+import { AttentionListComponent } from './features/attentions/attention-list/attention-list.component';
 import { BillingComponent } from './features/billing/billing/billing.component';
 import { authGuard } from './core/guards/auth.guard';
 import { specialtyGuard } from './core/guards/specialty.guard';
@@ -18,9 +19,11 @@ import { InventoryListComponent } from './features/inventory/inventory-list/inve
 import { ClinicalServicesListComponent } from './features/clinical-services/clinical-services-list/clinical-services-list.component';
 import { CatalogManagementComponent } from './features/settings/catalog-management/catalog-management.component';
 import { UserManagementComponent } from './features/settings/user-management/user-management.component';
+import { AuditLogComponent } from './features/settings/audit-log/audit-log.component';
 import { UserProfileComponent } from './features/profile/user-profile/user-profile.component';
 import { LandingComponent } from './features/public/landing/landing.component';
 import { PrescriptionVerifyComponent } from './features/public/prescription-verify/prescription-verify.component';
+import { AppointmentConfirmComponent } from './features/public/appointment-confirm/appointment-confirm.component';
 import { NotFoundComponent } from './features/public/not-found/not-found.component';
 
 import { ClinicalSessionPageComponent } from './features/patients/clinical-session-page/clinical-session-page.component';
@@ -29,6 +32,7 @@ export const routes: Routes = [
   { path: '', component: LandingComponent, pathMatch: 'full', title: 'Dermatología y Psicología' },
   { path: 'login', component: LoginComponent, title: 'Iniciar sesión' },
   { path: 'verificar-receta/:code', component: PrescriptionVerifyComponent, title: 'Verificación de Receta Médica' },
+  { path: 'confirmar-cita/:token', component: AppointmentConfirmComponent, title: 'Confirmación de Cita' },
   {
     path: 'editar-sitio',
     canActivate: [siteAdminGuard],
@@ -48,6 +52,7 @@ export const routes: Routes = [
       { path: 'patients/:id/sessions/new', component: ClinicalSessionPageComponent, title: 'Nueva Consulta Clínica' },
       { path: 'patients/:id/sessions/:sessionId/edit', component: ClinicalSessionPageComponent, title: 'Editar Consulta Clínica' },
       { path: 'agenda', component: AgendaComponent, title: 'Agenda' },
+      { path: 'attentions', component: AttentionListComponent, title: 'Atenciones' },
       { path: 'billing', component: BillingComponent, title: 'Cobros' },
 
       // Rutas exclusivas de Psicología
@@ -59,6 +64,7 @@ export const routes: Routes = [
       { path: 'services', component: ClinicalServicesListComponent, title: 'Servicios clínicos' },
       { path: 'settings/catalogs', component: CatalogManagementComponent, title: 'Catálogos' },
       { path: 'settings/users', component: UserManagementComponent, canActivate: [adminGuard], title: 'Gestión de Personal y Cuentas' },
+      { path: 'settings/audit', component: AuditLogComponent, canActivate: [adminGuard], title: 'Registro de Auditoría' },
       { path: 'settings/website', redirectTo: '/editar-sitio', pathMatch: 'full' },
       { path: 'profile', component: UserProfileComponent, title: 'Mi perfil' }
     ]

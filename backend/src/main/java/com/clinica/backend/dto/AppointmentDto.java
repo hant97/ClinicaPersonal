@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.LocalDateTime;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -48,6 +49,15 @@ public class AppointmentDto {
     private java.math.BigDecimal paymentAmount;
     private String googleEventId;
     private String googleEventLink;
+    private LocalDateTime reminderSentAt;
+    private LocalDateTime confirmedAt;
+    private String patientEmail;
+    private String patientPhone;
+    private String professionalName;
+    private String recurrenceGroupId;
+    private String recurrenceRule;
+    private Integer recurrenceCount; // Usado al crear series de citas (ej. 2 a 12 sesiones semanales)
+    private Long attentionId;
 
     public boolean isFirstTime() {
         return Boolean.TRUE.equals(this.isFirstTime);

@@ -94,4 +94,11 @@ public class Patient {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = true)
     private LocalDateTime createdAt;
+
+    public String getFullName() {
+        String first = firstName != null ? firstName.trim() : "";
+        String last = lastName != null ? lastName.trim() : "";
+        String full = (first + " " + last).trim();
+        return !full.isEmpty() ? full : "Paciente";
+    }
 }

@@ -85,4 +85,17 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return enabled;
     }
+
+    public String getFullName() {
+        String first = firstName != null ? firstName.trim() : "";
+        String last = lastName != null ? lastName.trim() : "";
+        String full = (first + " " + last).trim();
+        if (!full.isEmpty()) {
+            return full;
+        }
+        if (username != null && !username.trim().isEmpty()) {
+            return username.trim();
+        }
+        return "Profesional";
+    }
 }

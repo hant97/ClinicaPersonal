@@ -4,13 +4,15 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractContro
 import { AppointmentService } from '../../../core/services/appointment.service';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { ClinicalServiceService } from '../../../core/services/clinical-service.service';
+import { UserService } from '../../../core/services/user.service';
 import { Appointment } from '../../../core/models/appointment.model';
 import { ClinicalService } from '../../../core/models/clinical-service.model';
 import { CatalogItem } from '../../../core/models/catalog.model';
+import { UserProfile } from '../../../core/models/user-profile.model';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { PatientAutocompleteComponent } from '../../../shared/components/patient-autocomplete/patient-autocomplete.component';
-import { LucideAngularModule, Clock, AlertTriangle, X, Calendar, User, Save, Video } from 'lucide-angular';
+import { LucideAngularModule, Clock, AlertTriangle, X, Calendar, User, Save, Video, Repeat, CheckCircle2 } from 'lucide-angular';
 import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
 
 export function futureDateValidator(): ValidatorFn {
@@ -45,6 +47,8 @@ export class AppointmentFormComponent implements OnInit {
   readonly User = User;
   readonly Save = Save;
   readonly Video = Video;
+  readonly Repeat = Repeat;
+  readonly CheckCircle2 = CheckCircle2;
 
   @Output() saved = new EventEmitter<void>();
   @Output() cancelled = new EventEmitter<void>();
@@ -56,6 +60,7 @@ export class AppointmentFormComponent implements OnInit {
   
   appointmentModalities: CatalogItem[] = [];
   clinicalServices: ClinicalService[] = [];
+  professionals: UserProfile[] = [];
   dayAppointments: Appointment[] = [];
   conflicts: Appointment[] = [];
 
@@ -68,17 +73,28 @@ export class AppointmentFormComponent implements OnInit {
   ];
   selectedDuration: number | null = 30;
 
+  recurrenceOptions = [
+    { label: '2 semanas (2 sesiones)', value: 2 },
+    { label: '3 semanas (3 sesiones)', value: 3 },
+    { label: '4 semanas (1 mes - 4 sesiones)', value: 4 },
+    { label: '6 semanas (6 sesiones)', value: 6 },
+    { label: '8 semanas (2 meses - 8 sesiones)', value: 8 },
+    { label: '12 semanas (3 meses - 12 sesiones)', value: 12 },
+  ];
+
   constructor(
     private fb: FormBuilder,
     private appointmentService: AppointmentService,
     private catalogService: CatalogService,
     private clinicalServiceService: ClinicalServiceService,
+    private userService: UserService,
     private notificationService: NotificationService,
     private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
     this.loadCatalogs();
+    this.loadProfessionals();
 
     const now = new Date();
     const tzOffset = now.getTimezoneOffset() * 60000;
@@ -89,6 +105,7 @@ export class AppointmentFormComponent implements OnInit {
     const initialStartTime = this.appointment?.startTime || this.initialData?.startTime || '';
     const initialEndTime = this.appointment?.endTime || this.initialData?.endTime || '';
     const initialPatientId = this.appointment?.patientId || this.initialData?.patientId || '';
+    const initialProfessionalId = this.appointment?.professionalId || this.initialData?.professionalId || null;
 
     if (initialStartTime && initialEndTime) {
       this.selectedDuration = this.calculateDurationFromTimes(initialStartTime, initialEndTime);
@@ -103,9 +120,13 @@ export class AppointmentFormComponent implements OnInit {
       endTime: [initialEndTime, Validators.required],
       status: [this.appointment?.status || 'PROGRAMADA', Validators.required],
       modality: [this.appointment?.modality || 'PRESENCIAL', Validators.required],
+      professionalId: [initialProfessionalId],
       videoCallLink: [this.appointment?.videoCallLink || ''],
       clinicalServiceId: [this.appointment?.clinicalServiceId || ''],
       isFirstTime: [this.appointment ? this.appointment.isFirstTime : false],
+      isRecurring: [false],
+      recurrenceCount: [4],
+      updateSeries: [false],
       notes: [this.appointment?.notes || '', [Validators.maxLength(255)]]
     }, { validators: [timeOrderValidator()] });
 
@@ -151,6 +172,18 @@ export class AppointmentFormComponent implements OnInit {
     });
   }
 
+  loadProfessionals(): void {
+    this.userService.getProfessionals().subscribe({
+      next: (profs) => {
+        this.professionals = profs;
+        if (!this.appointment && !this.initialData?.professionalId && profs.length > 0) {
+          // Si hay profesionales disponibles y no se especificó uno, se puede preseleccionar
+        }
+      },
+      error: (err) => console.error('Error loading professionals', err)
+    });
+  }
+
   loadDayAppointments(dateStr: string): void {
     if (!dateStr) return;
     this.appointmentService.search(undefined, 'ALL', dateStr, dateStr).subscribe({
@@ -179,7 +212,6 @@ export class AppointmentFormComponent implements OnInit {
     this.conflicts = this.dayAppointments.filter(app => {
       const appStart = app.startTime.length === 5 ? app.startTime + ':00' : app.startTime;
       const appEnd = app.endTime.length === 5 ? app.endTime + ':00' : app.endTime;
-      // Overlap condition: startNorm < appEnd && appStart < endNorm
       return startNorm < appEnd && appStart < endNorm;
     });
   }
@@ -239,6 +271,22 @@ export class AppointmentFormComponent implements OnInit {
     }
   }
 
+  getRecurringDatesPreview(): string[] {
+    const dateStr = this.appointmentForm.get('appointmentDate')?.value;
+    const count = Number(this.appointmentForm.get('recurrenceCount')?.value) || 4;
+    if (!dateStr) return [];
+
+    const preview: string[] = [];
+    const [y, m, d] = dateStr.split('-').map(Number);
+    for (let i = 0; i < count; i++) {
+      const date = new Date(y, m - 1, d + (i * 7));
+      const dayName = date.toLocaleDateString('es-ES', { weekday: 'short' });
+      const formatted = date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      preview.push(`Sesión ${i + 1}: ${dayName} ${formatted}`);
+    }
+    return preview;
+  }
+
   onSubmit(): void {
     if (this.appointmentForm.invalid) {
       this.appointmentForm.markAllAsTouched();
@@ -259,27 +307,32 @@ export class AppointmentFormComponent implements OnInit {
 
     this.isSubmitting = true;
     const formValue = this.appointmentForm.getRawValue();
-    const newAppointment: Appointment = {
+    const isRecurring = Boolean(formValue.isRecurring && !this.appointment);
+
+    const appointmentPayload: Appointment = {
       ...formValue,
       patientId: Number(formValue.patientId),
+      professionalId: formValue.professionalId ? Number(formValue.professionalId) : undefined,
       clinicalServiceId: formValue.clinicalServiceId ? Number(formValue.clinicalServiceId) : undefined,
       videoCallLink: formValue.videoCallLink ? formValue.videoCallLink.trim() : undefined,
-      notes: formValue.notes ? formValue.notes.trim() : undefined
+      notes: formValue.notes ? formValue.notes.trim() : undefined,
+      recurrenceCount: isRecurring ? Number(formValue.recurrenceCount) : undefined
     };
     
     const request$ = this.appointment ? 
-      this.appointmentService.update(this.appointment.id!, newAppointment) : 
-      this.appointmentService.create(newAppointment);
+      this.appointmentService.update(this.appointment.id!, appointmentPayload, Boolean(formValue.updateSeries)) : 
+      this.appointmentService.create(appointmentPayload);
 
     request$.subscribe({
       next: () => {
         this.isSubmitting = false;
+        this.toastService.show(isRecurring ? 'Serie de citas recurrentes generada exitosamente.' : 'Cita guardada exitosamente.', 'success');
         this.saved.emit();
       },
       error: (err) => {
         console.error('Error saving appointment', err);
         this.isSubmitting = false;
-        this.notificationService.alert('Error al guardar', err.error?.message || 'Ocurrió un error al guardar la cita (verifique conflictos de horario).', 'error');
+        this.notificationService.alert('Error al guardar cita', err.error?.message || 'Ocurrió un error al guardar la cita (verifique disponibilidad o bloqueos).', 'error');
       }
     });
   }

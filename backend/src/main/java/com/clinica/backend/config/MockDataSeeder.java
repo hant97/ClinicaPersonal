@@ -567,6 +567,14 @@ public class MockDataSeeder {
                 }
 
                 payment.setAmount(totalAmount);
+                // Datos mock: los cobros nacen pagados con un abono equivalente al total
+                payment.setStatus(Payment.STATUS_PAGADO);
+                PaymentTransaction initialTransaction = new PaymentTransaction();
+                initialTransaction.setPayment(payment);
+                initialTransaction.setAmount(totalAmount);
+                initialTransaction.setTransactionDate(payment.getPaymentDate());
+                initialTransaction.setPaymentMethod(payment.getPaymentMethod());
+                payment.getTransactions().add(initialTransaction);
                 paymentRepository.save(payment);
             }
 

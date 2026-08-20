@@ -26,6 +26,7 @@ public class ClinicalDocumentService {
     private final PatientRepository patientRepository;
     private final ClinicalAuthorizationService clinicalAuthorizationService;
     private final ClinicalDocumentStorage fileStorage;
+    private final AuditLogService auditLogService;
 
     @Transactional(readOnly = true)
     public Page<ClinicalDocumentDto> getDocuments(Long patientId, Pageable pageable) {
@@ -53,7 +54,16 @@ public class ClinicalDocumentService {
         document.setSizeBytes(file.getSize());
         document.setDocumentDate(documentDate);
         document.setFileUrl(key);
-        return mapToDto(repository.save(document));
+        ClinicalDocument saved = repository.save(document);
+
+        auditLogService.record(
+                "CREATE",
+                "DOCUMENT",
+                saved.getId().toString(),
+                "Documento subido: " + saved.getName() + " (" + saved.getCategory() + ") para paciente ID: " + patientId
+        );
+
+        return mapToDto(saved);
     }
 
     @Transactional(readOnly = true)
@@ -79,6 +89,13 @@ public class ClinicalDocumentService {
         document.setDeletedBy(clinicalAuthorizationService.currentUser().getId());
         repository.save(document);
         fileStorage.delete(document.getFileUrl());
+
+        auditLogService.record(
+                "DELETE",
+                "DOCUMENT",
+                id.toString(),
+                "Documento eliminado ID: " + id + " (" + document.getName() + ")"
+        );
     }
 
     private ClinicalDocument getActiveDocument(Long id) {

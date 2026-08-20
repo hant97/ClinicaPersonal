@@ -14,14 +14,23 @@
     </button>
   </div>
 
-  <div class="grid grid-cols-2 gap-3">
+  <div class="grid grid-cols-3 gap-3">
     <div class="rounded-xl border border-line p-3.5 bg-surface">
       <span class="text-[11px] font-semibold uppercase tracking-wider text-muted">Total Facturado</span>
       <p class="mt-1.5 text-xl font-bold text-emerald-700">{{ paymentsTotal | currency:'PEN':'S/ ':'1.2-2' }}</p>
     </div>
     <div class="rounded-xl border border-line p-3.5 bg-surface">
-      <span class="text-[11px] font-semibold uppercase tracking-wider text-muted">Cobros Registrados</span>
-      <p class="mt-1.5 text-xl font-bold text-ink">{{ payments.length }}</p>
+      <span class="text-[11px] font-semibold uppercase tracking-wider text-muted">Abonado</span>
+      <p class="mt-1.5 text-xl font-bold text-ink">{{ (balance?.totalPaid ?? 0) | currency:'PEN':'S/ ':'1.2-2' }}</p>
+    </div>
+    <div class="rounded-xl border border-line p-3.5 bg-surface">
+      <span class="text-[11px] font-semibold uppercase tracking-wider text-muted">Saldo Pendiente</span>
+      <p
+        class="mt-1.5 text-xl font-bold"
+        [ngClass]="(balance?.balance ?? 0) > 0 ? 'text-amber-700' : 'text-emerald-700'"
+      >
+        {{ (balance?.balance ?? 0) | currency:'PEN':'S/ ':'1.2-2' }}
+      </p>
     </div>
   </div>
 
@@ -38,6 +47,7 @@
           <tr>
             <th>Fecha</th>
             <th>Concepto</th>
+            <th>Estado</th>
             <th>Método</th>
             <th class="text-right">Monto</th>
           </tr>
@@ -51,6 +61,14 @@
                 @if (payment.appointmentId) {
                   <span class="ml-1.5 rounded bg-sky-50 px-1.5 py-0.5 text-[10px] font-semibold text-sky-700 border border-sky-200">Cita</span>
                 }
+              </td>
+              <td>
+                <span
+                  class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold border"
+                  [ngClass]="getStatusVisual(payment.status).classes"
+                >
+                  {{ getStatusText(payment.status) }}
+                </span>
               </td>
               <td>
                 <span

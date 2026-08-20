@@ -1,3 +1,5 @@
+export type PaymentStatus = 'PENDIENTE' | 'PARCIAL' | 'PAGADO';
+
 export interface PaymentItem {
   id?: number;
   paymentId?: number;
@@ -9,6 +11,15 @@ export interface PaymentItem {
   clinicalServiceId?: number;
 }
 
+export interface PaymentTransaction {
+  id?: number;
+  paymentId?: number;
+  amount: number;
+  transactionDate?: string;
+  paymentMethod?: string;
+  notes?: string;
+}
+
 export interface Payment {
   id?: number;
   patientId: number;
@@ -17,9 +28,24 @@ export interface Payment {
   paymentMethod: string;
   description?: string;
   appointmentId?: number;
+  attentionId?: number;
+  clinicalSessionId?: number;
+  dueDate?: string;
+  // Solo lectura (calculados en el servidor)
+  status?: PaymentStatus;
+  paidAmount?: number;
+  balanceAmount?: number;
   // Para UI
   patientName?: string;
   items?: PaymentItem[];
+  transactions?: PaymentTransaction[];
+}
+
+export interface PatientBalance {
+  patientId: number;
+  totalCharged: number;
+  totalPaid: number;
+  balance: number;
 }
 
 export interface PaymentMethodSummary {
@@ -45,6 +71,7 @@ export interface PaymentSummary {
   monthlyGrowth: number;
   paymentsCountMonth: number;
   averageTicket: number;
+  pendingBalance: number;
   methodBreakdown: PaymentMethodSummary[];
   dailyIncome: DailyIncome[];
   topServices: ServiceSummary[];

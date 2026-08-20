@@ -30,6 +30,12 @@ public class AssessmentController {
         return ResponseEntity.ok(assessmentService.getAssessmentsByPatientId(patientId, PageRequest.of(page, size)));
     }
 
+    @GetMapping("/patient/{patientId}/evolution")
+    @PreAuthorize("principal.specialty == 'PSICOLOGIA'")
+    public ResponseEntity<List<AssessmentDto>> getPatientEvolution(@PathVariable Long patientId) {
+        return ResponseEntity.ok(assessmentService.getPatientEvolution(patientId));
+    }
+
     @PostMapping
     @PreAuthorize("principal.specialty == 'PSICOLOGIA'")
     public ResponseEntity<AssessmentDto> saveAssessment(@Valid @RequestBody AssessmentDto dto) {

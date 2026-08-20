@@ -1,7 +1,9 @@
 package com.clinica.backend.controller;
 
+import com.clinica.backend.dto.PatientBalanceDto;
 import com.clinica.backend.dto.PaymentDto;
 import com.clinica.backend.dto.PaymentSummaryDto;
+import com.clinica.backend.dto.PaymentTransactionDto;
 import com.clinica.backend.service.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,11 @@ import java.time.LocalDate;
 public class PaymentController {
     private final PaymentService service;
 
+    @GetMapping("/{id}")
+    public ResponseEntity<PaymentDto> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getById(id));
+    }
+
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<Page<PaymentDto>> getByPatientId(
             @PathVariable Long patientId,
@@ -27,9 +34,16 @@ public class PaymentController {
         return ResponseEntity.ok(service.getByPatientId(patientId, PageRequest.of(page, size)));
     }
 
+    @GetMapping("/patient/{patientId}/balance")
+    public ResponseEntity<PatientBalanceDto> getPatientBalance(@PathVariable Long patientId) {
+        return ResponseEntity.ok(service.getPatientBalance(patientId));
+    }
+
     @GetMapping("/summary")
-    public ResponseEntity<PaymentSummaryDto> getSummary() {
-        return ResponseEntity.ok(service.getSummary());
+    public ResponseEntity<PaymentSummaryDto> getSummary(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
+        return ResponseEntity.ok(service.getSummary(dateFrom, dateTo));
     }
 
     @GetMapping
@@ -38,9 +52,10 @@ public class PaymentController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
             @RequestParam(required = false) String paymentMethod,
+            @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(service.getAll(searchTerm, dateFrom, dateTo, paymentMethod, PageRequest.of(page, size)));
+        return ResponseEntity.ok(service.getAll(searchTerm, dateFrom, dateTo, paymentMethod, status, PageRequest.of(page, size)));
     }
 
     @PostMapping
@@ -51,6 +66,17 @@ public class PaymentController {
     @PutMapping("/{id}")
     public ResponseEntity<PaymentDto> update(@PathVariable Long id, @Valid @RequestBody PaymentDto dto) {
         return ResponseEntity.ok(service.update(id, dto));
+    }
+
+    @PostMapping("/{id}/transactions")
+    public ResponseEntity<PaymentDto> addTransaction(@PathVariable Long id, @Valid @RequestBody PaymentTransactionDto dto) {
+        return ResponseEntity.ok(service.addTransaction(id, dto));
+    }
+
+    @DeleteMapping("/{id}/transactions/{transactionId}")
+    public ResponseEntity<Void> deleteTransaction(@PathVariable Long id, @PathVariable Long transactionId) {
+        service.deleteTransaction(id, transactionId);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")

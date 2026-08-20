@@ -22,6 +22,7 @@ public class PrescriptionDto {
     private String notes;
     private Long professionalId;
     private String verificationCode;
+    private Long attentionId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     @Valid

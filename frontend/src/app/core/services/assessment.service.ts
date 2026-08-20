@@ -23,6 +23,10 @@ export class AssessmentService {
     return this.http.get<PageResponse<Assessment>>(`${this.apiUrl}/assessments/patient/${patientId}`, { params });
   }
 
+  getPatientEvolution(patientId: number): Observable<Assessment[]> {
+    return this.http.get<Assessment[]>(`${this.apiUrl}/assessments/patient/${patientId}/evolution`);
+  }
+
   saveAssessment(assessment: Assessment): Observable<Assessment> {
     return this.http.post<Assessment>(`${this.apiUrl}/assessments`, assessment);
   }

@@ -27,7 +27,7 @@ class ClinicalAuditMigrationTest {
                 .locations("classpath:db/migration")
                 .load();
 
-        assertEquals(4, flyway.migrate().migrationsExecuted);
+        assertEquals(9, flyway.migrate().migrationsExecuted);
         assertAuditColumns("clinical_sessions");
         assertAuditColumns("dermatological_evaluations");
         assertAuditColumns("general_history");
@@ -36,7 +36,133 @@ class ClinicalAuditMigrationTest {
         assertSpecialtiesTable();
         assertPatientUuidColumn();
         assertAppointmentGoogleColumns();
+        assertPaymentPhase0Columns();
+        assertAppointmentReminderColumns();
+        assertAuditLogTable();
+        assertAgendaAdvancedPhase3();
+        assertAttentionsPhase4();
         assertEquals(0, flyway.migrate().migrationsExecuted);
+    }
+
+    private void assertAgendaAdvancedPhase3() throws Exception {
+        try (Connection connection = DriverManager.getConnection(URL, "sa", "");
+             ResultSet columns = connection.getMetaData().getColumns(null, null, "appointments", null)) {
+            boolean hasRecurrenceGroup = false;
+            boolean hasRecurrenceRule = false;
+            while (columns.next()) {
+                String column = columns.getString("COLUMN_NAME");
+                hasRecurrenceGroup |= "recurrence_group_id".equalsIgnoreCase(column);
+                hasRecurrenceRule |= "recurrence_rule".equalsIgnoreCase(column);
+            }
+            assertTrue(hasRecurrenceGroup, "Column 'recurrence_group_id' missing in appointments table");
+            assertTrue(hasRecurrenceRule, "Column 'recurrence_rule' missing in appointments table");
+        }
+
+        try (Connection connection = DriverManager.getConnection(URL, "sa", "");
+             Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery(
+                     "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'professional_schedules'")) {
+            assertTrue(rs.next());
+            assertEquals(1, rs.getInt(1), "Table 'professional_schedules' should exist");
+        }
+
+        try (Connection connection = DriverManager.getConnection(URL, "sa", "");
+             Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery(
+                     "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'schedule_blocks'")) {
+            assertTrue(rs.next());
+            assertEquals(1, rs.getInt(1), "Table 'schedule_blocks' should exist");
+        }
+    }
+
+    private void assertAuditLogTable() throws Exception {
+        try (Connection connection = DriverManager.getConnection(URL, "sa", "");
+             ResultSet columns = connection.getMetaData().getColumns(null, null, "audit_log", null)) {
+            boolean hasId = false;
+            boolean hasUserId = false;
+            boolean hasUsername = false;
+            boolean hasSpecialty = false;
+            boolean hasAction = false;
+            boolean hasEntityType = false;
+            boolean hasEntityId = false;
+            boolean hasDetail = false;
+            boolean hasIp = false;
+            boolean hasCreatedAt = false;
+            while (columns.next()) {
+                String column = columns.getString("COLUMN_NAME");
+                hasId |= "id".equalsIgnoreCase(column);
+                hasUserId |= "user_id".equalsIgnoreCase(column);
+                hasUsername |= "username".equalsIgnoreCase(column);
+                hasSpecialty |= "specialty".equalsIgnoreCase(column);
+                hasAction |= "action".equalsIgnoreCase(column);
+                hasEntityType |= "entity_type".equalsIgnoreCase(column);
+                hasEntityId |= "entity_id".equalsIgnoreCase(column);
+                hasDetail |= "detail".equalsIgnoreCase(column);
+                hasIp |= "ip".equalsIgnoreCase(column);
+                hasCreatedAt |= "created_at".equalsIgnoreCase(column);
+            }
+            assertTrue(hasId, "Column 'id' missing in audit_log table");
+            assertTrue(hasUserId, "Column 'user_id' missing in audit_log table");
+            assertTrue(hasUsername, "Column 'username' missing in audit_log table");
+            assertTrue(hasSpecialty, "Column 'specialty' missing in audit_log table");
+            assertTrue(hasAction, "Column 'action' missing in audit_log table");
+            assertTrue(hasEntityType, "Column 'entity_type' missing in audit_log table");
+            assertTrue(hasEntityId, "Column 'entity_id' missing in audit_log table");
+            assertTrue(hasDetail, "Column 'detail' missing in audit_log table");
+            assertTrue(hasIp, "Column 'ip' missing in audit_log table");
+            assertTrue(hasCreatedAt, "Column 'created_at' missing in audit_log table");
+        }
+    }
+
+    private void assertAppointmentReminderColumns() throws Exception {
+        try (Connection connection = DriverManager.getConnection(URL, "sa", "");
+             ResultSet columns = connection.getMetaData().getColumns(null, null, "appointments", null)) {
+            boolean hasReminderSentAt = false;
+            boolean hasConfirmationToken = false;
+            boolean hasConfirmedAt = false;
+            while (columns.next()) {
+                String column = columns.getString("COLUMN_NAME");
+                hasReminderSentAt |= "reminder_sent_at".equalsIgnoreCase(column);
+                hasConfirmationToken |= "confirmation_token".equalsIgnoreCase(column);
+                hasConfirmedAt |= "confirmed_at".equalsIgnoreCase(column);
+            }
+            assertTrue(hasReminderSentAt, "Column 'reminder_sent_at' missing in appointments table");
+            assertTrue(hasConfirmationToken, "Column 'confirmation_token' missing in appointments table");
+            assertTrue(hasConfirmedAt, "Column 'confirmed_at' missing in appointments table");
+        }
+    }
+
+    private void assertPaymentPhase0Columns() throws Exception {
+        try (Connection connection = DriverManager.getConnection(URL, "sa", "");
+             ResultSet columns = connection.getMetaData().getColumns(null, null, "payments", null)) {
+            boolean hasStatus = false;
+            boolean hasDueDate = false;
+            boolean hasClinicalSessionId = false;
+            while (columns.next()) {
+                String column = columns.getString("COLUMN_NAME");
+                hasStatus |= "status".equalsIgnoreCase(column);
+                hasDueDate |= "due_date".equalsIgnoreCase(column);
+                hasClinicalSessionId |= "clinical_session_id".equalsIgnoreCase(column);
+            }
+            assertTrue(hasStatus, "Column 'status' missing in payments table");
+            assertTrue(hasDueDate, "Column 'due_date' missing in payments table");
+            assertTrue(hasClinicalSessionId, "Column 'clinical_session_id' missing in payments table");
+        }
+
+        try (Connection connection = DriverManager.getConnection(URL, "sa", "");
+             Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery(
+                     "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'payment_transactions'")) {
+            assertTrue(rs.next());
+            assertEquals(1, rs.getInt(1), "Table 'payment_transactions' should exist");
+        }
+
+        try (Connection connection = DriverManager.getConnection(URL, "sa", "");
+             Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery("SELECT COUNT(*) FROM payment_transactions")) {
+            assertTrue(rs.next());
+            assertEquals(0, rs.getInt(1), "payment_transactions backfill expects no payments in a fresh schema");
+        }
     }
 
     private void assertAppointmentGoogleColumns() throws Exception {
@@ -90,6 +216,51 @@ class ClinicalAuditMigrationTest {
              ResultSet rs = statement.executeQuery("SELECT COUNT(*) FROM specialties")) {
             assertTrue(rs.next());
             assertEquals(2, rs.getInt(1));
+        }
+    }
+
+    private void assertAttentionsPhase4() throws Exception {
+        try (Connection connection = DriverManager.getConnection(URL, "sa", "");
+             Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery(
+                     "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'attentions'")) {
+            assertTrue(rs.next());
+            assertEquals(1, rs.getInt(1), "Table 'attentions' should exist");
+        }
+
+        try (Connection connection = DriverManager.getConnection(URL, "sa", "");
+             ResultSet columns = connection.getMetaData().getColumns(null, null, "attentions", null)) {
+            boolean hasPatientId = false;
+            boolean hasProfessionalId = false;
+            boolean hasStatus = false;
+            boolean hasAttentionDate = false;
+            boolean hasDeleted = false;
+            while (columns.next()) {
+                String column = columns.getString("COLUMN_NAME");
+                hasPatientId |= "patient_id".equalsIgnoreCase(column);
+                hasProfessionalId |= "professional_id".equalsIgnoreCase(column);
+                hasStatus |= "status".equalsIgnoreCase(column);
+                hasAttentionDate |= "attention_date".equalsIgnoreCase(column);
+                hasDeleted |= "deleted".equalsIgnoreCase(column);
+            }
+            assertTrue(hasPatientId, "Column 'patient_id' missing in attentions table");
+            assertTrue(hasProfessionalId, "Column 'professional_id' missing in attentions table");
+            assertTrue(hasStatus, "Column 'status' missing in attentions table");
+            assertTrue(hasAttentionDate, "Column 'attention_date' missing in attentions table");
+            assertTrue(hasDeleted, "Column 'deleted' missing in attentions table");
+        }
+
+        String[] tablesWithAttentionId = {"appointments", "clinical_sessions", "prescriptions", "payments"};
+        for (String table : tablesWithAttentionId) {
+            try (Connection connection = DriverManager.getConnection(URL, "sa", "");
+                 ResultSet columns = connection.getMetaData().getColumns(null, null, table, null)) {
+                boolean hasAttentionId = false;
+                while (columns.next()) {
+                    String column = columns.getString("COLUMN_NAME");
+                    hasAttentionId |= "attention_id".equalsIgnoreCase(column);
+                }
+                assertTrue(hasAttentionId, "Column 'attention_id' missing in " + table + " table");
+            }
         }
     }
 }

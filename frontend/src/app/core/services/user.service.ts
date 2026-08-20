@@ -83,4 +83,8 @@ export class UserService {
   adminResetPassword(id: number, request: AdminResetPasswordRequest): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/${id}/reset-password`, request);
   }
+
+  getProfessionals(): Observable<UserProfile[]> {
+    return this.http.get<UserProfile[]>(`${this.apiUrl}/professionals`);
+  }
 }

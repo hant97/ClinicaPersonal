@@ -26,6 +26,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
+    private final AuditLogService auditLogService;
 
     @Transactional(readOnly = true)
     public Page<UserProfileDTO> getAllUsers(String query, String specialty, Boolean enabled, Pageable pageable) {
@@ -58,8 +59,16 @@ public class UserService {
                 : Set.of("ROLE_ADMIN"));
         user.setSpecialty(request.getSpecialty());
         user.setEnabled(true);
-        userRepository.save(user);
-        return mapToDTO(user);
+        User savedUser = userRepository.save(user);
+
+        auditLogService.record(
+                "CREATE",
+                "USER",
+                savedUser.getId().toString(),
+                "Usuario creado: " + savedUser.getUsername() + " (Especialidad: " + savedUser.getSpecialty() + ")"
+        );
+
+        return mapToDTO(savedUser);
     }
 
     @Transactional(readOnly = true)
@@ -79,8 +88,16 @@ public class UserService {
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
 
-        userRepository.save(user);
-        return mapToDTO(user);
+        User updatedUser = userRepository.save(user);
+
+        auditLogService.record(
+                "UPDATE",
+                "USER",
+                updatedUser.getId().toString(),
+                "Perfil de usuario actualizado: " + username
+        );
+
+        return mapToDTO(updatedUser);
     }
 
     @Transactional
@@ -107,8 +124,16 @@ public class UserService {
             }
         }
 
-        userRepository.save(user);
-        return mapToDTO(user);
+        User updatedUser = userRepository.save(user);
+
+        auditLogService.record(
+                "UPDATE",
+                "USER",
+                updatedUser.getId().toString(),
+                "Usuario modificado por administración: " + updatedUser.getUsername()
+        );
+
+        return mapToDTO(updatedUser);
     }
 
     @Transactional
@@ -124,6 +149,13 @@ public class UserService {
         user.setTokenVersion(user.getTokenVersion() + 1);
         userRepository.save(user);
         refreshTokenService.revokeAllForUser(user.getId());
+
+        auditLogService.record(
+                "UPDATE",
+                "USER",
+                user.getId().toString(),
+                "Contraseña modificada por el usuario: " + username
+        );
     }
 
     @Transactional
@@ -141,6 +173,13 @@ public class UserService {
             refreshTokenService.revokeAllForUser(userId);
         }
         userRepository.save(user);
+
+        auditLogService.record(
+                "UPDATE",
+                "USER",
+                userId.toString(),
+                "Estado de usuario " + user.getUsername() + " cambiado a " + (enabled ? "Habilitado" : "Deshabilitado")
+        );
     }
 
     @Transactional
@@ -154,6 +193,21 @@ public class UserService {
         user.setTokenVersion(user.getTokenVersion() + 1);
         userRepository.save(user);
         refreshTokenService.revokeAllForUser(userId);
+
+        auditLogService.record(
+                "UPDATE",
+                "USER",
+                userId.toString(),
+                "Contraseña restablecida por administración para usuario: " + user.getUsername()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<UserProfileDTO> getProfessionalsInSpecialty(String specialty) {
+        return userRepository.findBySpecialtyAndEnabledTrueOrderByFirstNameAscLastNameAsc(specialty)
+                .stream()
+                .map(this::mapToDTO)
+                .collect(java.util.stream.Collectors.toList());
     }
 
     private UserProfileDTO mapToDTO(User user) {

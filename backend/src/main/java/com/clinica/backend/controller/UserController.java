@@ -105,6 +105,12 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/professionals")
+    public ResponseEntity<java.util.List<UserProfileDTO>> getProfessionals(Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        return ResponseEntity.ok(userService.getProfessionalsInSpecialty(user.getSpecialty()));
+    }
+
     @GetMapping("/me")
     public ResponseEntity<UserProfileDTO> getCurrentUser(Authentication authentication) {
         String username = authentication.getName();

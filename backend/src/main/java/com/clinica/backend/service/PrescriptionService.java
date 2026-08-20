@@ -34,6 +34,7 @@ public class PrescriptionService {
     private final ClinicalAuthorizationService clinicalAuthorizationService;
     private final UserRepository userRepository;
     private final ClinicSettingsRepository clinicSettingsRepository;
+    private final AuditLogService auditLogService;
 
     @Transactional(readOnly = true)
     public Page<PrescriptionDto> getPrescriptions(Long patientId, Pageable pageable) {
@@ -56,7 +57,16 @@ public class PrescriptionService {
         prescription.setProfessionalId(user.getId());
         prescription.setVerificationCode(generateVerificationCode());
         copyEditableFields(dto, prescription);
-        return mapToDto(repository.save(prescription));
+        Prescription saved = repository.save(prescription);
+
+        auditLogService.record(
+                "CREATE",
+                "PRESCRIPTION",
+                saved.getId().toString(),
+                "Receta médica creada con código " + saved.getVerificationCode() + " para paciente ID: " + patientId
+        );
+
+        return mapToDto(saved);
     }
 
     @Transactional
@@ -67,7 +77,16 @@ public class PrescriptionService {
             prescription.setVerificationCode(generateVerificationCode());
         }
         copyEditableFields(dto, prescription);
-        return mapToDto(repository.save(prescription));
+        Prescription updated = repository.save(prescription);
+
+        auditLogService.record(
+                "UPDATE",
+                "PRESCRIPTION",
+                updated.getId().toString(),
+                "Receta médica actualizada ID: " + updated.getId()
+        );
+
+        return mapToDto(updated);
     }
 
     @Transactional
@@ -78,6 +97,13 @@ public class PrescriptionService {
         prescription.setDeletedAt(LocalDateTime.now());
         prescription.setDeletedBy(clinicalAuthorizationService.currentUser().getId());
         repository.save(prescription);
+
+        auditLogService.record(
+                "DELETE",
+                "PRESCRIPTION",
+                id.toString(),
+                "Receta médica eliminada lógicamente ID: " + id
+        );
     }
 
     @Transactional(readOnly = true)
@@ -138,6 +164,9 @@ public class PrescriptionService {
         prescription.setPrescriptionDate(dto.getPrescriptionDate());
         prescription.setValidUntil(dto.getValidUntil());
         prescription.setNotes(dto.getNotes());
+        if (dto.getAttentionId() != null) {
+            prescription.setAttentionId(dto.getAttentionId());
+        }
         replaceItems(dto, prescription);
     }
 
@@ -171,6 +200,7 @@ public class PrescriptionService {
         dto.setNotes(prescription.getNotes());
         dto.setProfessionalId(prescription.getProfessionalId());
         dto.setVerificationCode(prescription.getVerificationCode());
+        dto.setAttentionId(prescription.getAttentionId());
         dto.setCreatedAt(prescription.getCreatedAt());
         dto.setUpdatedAt(prescription.getUpdatedAt());
         dto.setItems(mapItems(prescription));

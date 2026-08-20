@@ -17,6 +17,7 @@ public class PaymentSummaryDto {
     private int monthlyGrowth;
     private long paymentsCountMonth;
     private BigDecimal averageTicket;
+    private BigDecimal pendingBalance;
     private List<MethodSummary> methodBreakdown;
     private List<DailyIncome> dailyIncome;
     private List<ServiceSummary> topServices;

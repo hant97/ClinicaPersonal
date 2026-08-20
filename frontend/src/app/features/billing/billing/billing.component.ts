@@ -68,6 +68,16 @@ export class BillingComponent implements OnInit, OnDestroy {
   filterDateFrom: string = '';
   filterDateTo: string = '';
   filterMethod: string = '';
+  filterStatus: string = '';
+
+  summaryDateFrom: string = '';
+  summaryDateTo: string = '';
+
+  readonly statusOptions: { code: string; name: string }[] = [
+    { code: 'PENDIENTE', name: 'Pendiente' },
+    { code: 'PARCIAL', name: 'Parcial' },
+    { code: 'PAGADO', name: 'Pagado' }
+  ];
 
   private searchSubject = new Subject<string>();
   private searchSubscription?: Subscription;
@@ -110,9 +120,9 @@ export class BillingComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Prefill form when navigating from Agenda ("Registrar Cobro" de una cita)
+    // Prefill form when navigating from Agenda or Atenciones ("Registrar Cobro")
     this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
-      if (params['newPayment'] === 'true' && params['patientId']) {
+      if ((params['newPayment'] === 'true' || params['attentionId']) && params['patientId']) {
         this.initialPaymentData = {
           patientId: Number(params['patientId']),
           appointmentId: params['appointmentId'] ? Number(params['appointmentId']) : undefined,
@@ -120,6 +130,12 @@ export class BillingComponent implements OnInit, OnDestroy {
           description: params['description'] || undefined
         };
         this.openForm();
+        this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
+      } else if (params['paymentId']) {
+        this.paymentService.getById(Number(params['paymentId'])).subscribe({
+          next: (payment: Payment) => this.viewPayment(payment),
+          error: () => {}
+        });
         this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
       }
     });
@@ -145,12 +161,13 @@ export class BillingComponent implements OnInit, OnDestroy {
       searchTerm: this.searchTerm || undefined,
       dateFrom: this.filterDateFrom || undefined,
       dateTo: this.filterDateTo || undefined,
-      paymentMethod: this.filterMethod || undefined
+      paymentMethod: this.filterMethod || undefined,
+      status: this.filterStatus || undefined
     };
   }
 
   get hasActiveFilters(): boolean {
-    return !!(this.filterDateFrom || this.filterDateTo || this.filterMethod);
+    return !!(this.filterDateFrom || this.filterDateTo || this.filterMethod || this.filterStatus);
   }
 
   applyFilters(): void {
@@ -162,6 +179,7 @@ export class BillingComponent implements OnInit, OnDestroy {
     this.filterDateFrom = '';
     this.filterDateTo = '';
     this.filterMethod = '';
+    this.filterStatus = '';
     this.currentPage = 0;
     this.loadPayments();
   }
@@ -185,11 +203,17 @@ export class BillingComponent implements OnInit, OnDestroy {
     });
   }
 
-  loadSummary(): void {
-    this.paymentService.getSummary().subscribe({
+  loadSummary(dateFrom?: string, dateTo?: string): void {
+    this.paymentService.getSummary(dateFrom, dateTo).subscribe({
       next: (summary) => this.summary = summary,
       error: (err) => console.error('Error fetching payment summary', err)
     });
+  }
+
+  onSummaryRangeChange(range: { dateFrom: string; dateTo: string }): void {
+    this.summaryDateFrom = range.dateFrom;
+    this.summaryDateTo = range.dateTo;
+    this.loadSummary(range.dateFrom || undefined, range.dateTo || undefined);
   }
 
   onPageChange(page: number): void {
@@ -216,6 +240,11 @@ export class BillingComponent implements OnInit, OnDestroy {
 
   closeView(): void {
     this.viewingPayment = null;
+  }
+
+  onPaymentChanged(): void {
+    this.loadPayments();
+    this.loadSummary(this.summaryDateFrom || undefined, this.summaryDateTo || undefined);
   }
 
   onPaymentSaved(): void {
@@ -319,6 +348,9 @@ export class BillingComponent implements OnInit, OnDestroy {
           'Paciente': pay.patientName || 'Paciente Desconocido',
           'Fecha': (pay.paymentDate || '').replace('T', ' '),
           'Monto': pay.amount,
+          'Abonado': pay.paidAmount ?? 0,
+          'Saldo': pay.balanceAmount ?? pay.amount,
+          'Estado': this.getStatusText(pay.status),
           'Método de Pago': this.getPaymentMethodText(pay.paymentMethod),
           'Motivo': pay.description || ''
         }));
@@ -331,5 +363,27 @@ export class BillingComponent implements OnInit, OnDestroy {
         this.toastService.show('Error al exportar los cobros', 'error');
       }
     });
+  }
+
+  getStatusText(status?: string): string {
+    switch (status) {
+      case 'PENDIENTE': return 'Pendiente';
+      case 'PARCIAL': return 'Parcial';
+      case 'PAGADO': return 'Pagado';
+      default: return status || '—';
+    }
+  }
+
+  getStatusVisual(status?: string): { classes: string } {
+    switch (status) {
+      case 'PENDIENTE':
+        return { classes: 'bg-amber-50 text-amber-700 border-amber-200' };
+      case 'PARCIAL':
+        return { classes: 'bg-sky-50 text-sky-700 border-sky-200' };
+      case 'PAGADO':
+        return { classes: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+      default:
+        return { classes: 'bg-slate-100 text-slate-600 border-line' };
+    }
   }
 }

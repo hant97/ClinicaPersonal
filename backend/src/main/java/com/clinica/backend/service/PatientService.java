@@ -30,6 +30,7 @@ public class PatientService {
     private final PatientRepository patientRepository;
     private final RiskAlertRepository riskAlertRepository;
     private final WebsiteFileStorage fileStorage;
+    private final AuditLogService auditLogService;
 
     @Transactional(readOnly = true)
     public Page<PatientDto> getAllPatients(Boolean active, String gender, Pageable pageable) {
@@ -110,6 +111,15 @@ public class PatientService {
         Patient patient = mapToEntity(patientDto);
         patient.setSpecialty(currentSpecialty());
         Patient savedPatient = patientRepository.save(patient);
+
+        auditLogService.record(
+                "CREATE",
+                "PATIENT",
+                savedPatient.getId().toString(),
+                "Paciente creado: " + savedPatient.getFirstName() + " " + savedPatient.getLastName() +
+                        (savedPatient.getIdentificationDocument() != null ? " (Doc: " + savedPatient.getIdentificationDocument() + ")" : "")
+        );
+
         return mapToDto(savedPatient, false);
     }
 
@@ -139,6 +149,14 @@ public class PatientService {
 
         Patient updatedPatient = patientRepository.save(patient);
         boolean hasAlerts = riskAlertRepository.existsByPatientIdAndSpecialtyAndActiveTrue(updatedPatient.getId(), specialty);
+
+        auditLogService.record(
+                "UPDATE",
+                "PATIENT",
+                updatedPatient.getId().toString(),
+                "Paciente actualizado: " + updatedPatient.getFirstName() + " " + updatedPatient.getLastName()
+        );
+
         return mapToDto(updatedPatient, hasAlerts);
     }
 
@@ -149,6 +167,13 @@ public class PatientService {
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
         patient.setDeleted(true);
         patientRepository.save(patient);
+
+        auditLogService.record(
+                "DELETE",
+                "PATIENT",
+                id.toString(),
+                "Paciente eliminado lógicamente: " + patient.getFirstName() + " " + patient.getLastName() + " (ID: " + id + ")"
+        );
     }
 
     @Transactional
@@ -161,6 +186,14 @@ public class PatientService {
         patient.setPhotoUrl(fileStorage.publicUrl(key));
         patientRepository.save(patient);
         boolean hasAlerts = riskAlertRepository.existsByPatientIdAndSpecialtyAndActiveTrue(patient.getId(), specialty);
+
+        auditLogService.record(
+                "UPDATE",
+                "PATIENT",
+                id.toString(),
+                "Foto de perfil actualizada para paciente: " + patient.getFirstName() + " " + patient.getLastName() + " (ID: " + id + ")"
+        );
+
         return mapToDto(patient, hasAlerts);
     }
 

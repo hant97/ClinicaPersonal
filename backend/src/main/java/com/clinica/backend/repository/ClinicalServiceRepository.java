@@ -26,8 +26,8 @@ public interface ClinicalServiceRepository extends JpaRepository<ClinicalService
     long countBySpecialtyAndDeletedFalse(String specialty);
 
     @Query("SELECT c FROM ClinicalService c WHERE c.deleted = false AND c.specialty = :specialty AND " +
-           "(:name IS NULL OR :name = '' OR LOWER(c.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
-           "(:category IS NULL OR :category = '' OR c.category = :category) AND " +
+           "(cast(:name as string) IS NULL OR cast(:name as string) = '' OR LOWER(c.name) LIKE LOWER(CONCAT('%', cast(:name as string), '%'))) AND " +
+           "(cast(:category as string) IS NULL OR cast(:category as string) = '' OR c.category = :category) AND " +
            "(:active IS NULL OR c.active = :active) AND " +
            "(:minPrice IS NULL OR c.price >= :minPrice) AND " +
            "(:maxPrice IS NULL OR c.price <= :maxPrice) " +

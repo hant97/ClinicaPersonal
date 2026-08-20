@@ -76,6 +76,9 @@ public class ClinicalSession {
     @Column(name = "appointment_id")
     private Long appointmentId;
 
+    @Column(name = "attention_id")
+    private Long attentionId;
+
     @Column(name = "deleted", nullable = false)
     private boolean deleted = false;
 

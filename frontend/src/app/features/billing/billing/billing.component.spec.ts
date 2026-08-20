@@ -17,6 +17,7 @@ function emptySummary(): PaymentSummary {
     monthlyGrowth: 0,
     paymentsCountMonth: 0,
     averageTicket: 0,
+    pendingBalance: 0,
     methodBreakdown: [],
     dailyIncome: [],
     topServices: []

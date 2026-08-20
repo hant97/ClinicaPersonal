@@ -8,7 +8,16 @@ import { LesionPhoto } from '../../../core/models/lesion-photo.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule, Activity, ImagePlus, Edit, Trash2 } from 'lucide-angular';
+import { LesionPhotoCompareComponent } from '../lesion-photo-compare/lesion-photo-compare.component';
+import {
+  LucideAngularModule,
+  Activity,
+  ImagePlus,
+  Edit,
+  Trash2,
+  Sparkles,
+  Layers
+} from 'lucide-angular';
 
 interface PhotoView {
   photo: LesionPhoto;
@@ -18,7 +27,13 @@ interface PhotoView {
 @Component({
   selector: 'app-lesions-section',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PaginationComponent, LucideAngularModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    PaginationComponent,
+    LucideAngularModule,
+    LesionPhotoCompareComponent
+  ],
   templateUrl: './lesions-section.component.html',
 })
 export class LesionsSectionComponent implements OnInit, OnDestroy {
@@ -26,6 +41,8 @@ export class LesionsSectionComponent implements OnInit, OnDestroy {
   readonly ImagePlus = ImagePlus;
   readonly Edit = Edit;
   readonly Trash2 = Trash2;
+  readonly Sparkles = Sparkles;
+  readonly Layers = Layers;
 
   @Input() patientId!: number;
 
@@ -43,6 +60,10 @@ export class LesionsSectionComponent implements OnInit, OnDestroy {
   pageSize = 10;
   totalPages = 0;
   totalElements = 0;
+
+  showCompareModal = false;
+  compareLesion: Lesion | null = null;
+  comparePhotos: LesionPhoto[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -220,5 +241,23 @@ export class LesionsSectionComponent implements OnInit, OnDestroy {
         URL.revokeObjectURL(item.url);
       }
     });
+  }
+
+  openCompare(lesion: Lesion): void {
+    if (!lesion.id) return;
+    this.photoService.getPhotos(lesion.id).subscribe({
+      next: (photos) => {
+        this.compareLesion = lesion;
+        this.comparePhotos = photos;
+        this.showCompareModal = true;
+      },
+      error: () => this.toast.show('Error al cargar fotografías para comparación', 'error')
+    });
+  }
+
+  closeCompare(): void {
+    this.showCompareModal = false;
+    this.compareLesion = null;
+    this.comparePhotos = [];
   }
 }

@@ -1,0 +1,244 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+  <div class="card max-h-[92vh] w-full max-w-5xl overflow-hidden flex flex-col !p-0 shadow-floating">
+    
+    <!-- Modal Header -->
+    <div class="flex items-center justify-between border-b border-line px-6 py-4 bg-slate-50/90">
+      <div class="space-y-0.5">
+        <div class="flex items-center gap-2">
+          <lucide-icon [img]="Sparkles" [size]="16" class="text-cyan-600"></lucide-icon>
+          <h2 class="text-base font-bold text-ink">Comparador Fotográfico y Evolución de Lesión</h2>
+        </div>
+        <p class="text-xs text-muted">
+          <span class="font-semibold text-slate-700">{{ lesion.bodyArea }}</span> • {{ lesion.lesionType }}
+          @if (patientName) {
+            <span class="text-muted"> | Paciente: <strong class="text-slate-700">{{ patientName }}</strong></span>
+          }
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Mode Switcher -->
+        <div class="flex items-center rounded-lg bg-slate-200/80 p-0.5 border border-slate-300">
+          <button
+            type="button"
+            class="flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-semibold transition"
+            [ngClass]="compareMode === 'side-by-side' ? 'bg-surface text-cyan-800 shadow-xs font-bold' : 'text-muted hover:text-ink'"
+            (click)="setMode('side-by-side')"
+          >
+            <lucide-icon [img]="Layers" [size]="13"></lucide-icon>
+            <span>Lado a Lado</span>
+          </button>
+          <button
+            type="button"
+            class="flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-semibold transition"
+            [ngClass]="compareMode === 'slider' ? 'bg-surface text-cyan-800 shadow-xs font-bold' : 'text-muted hover:text-ink'"
+            (click)="setMode('slider')"
+          >
+            <lucide-icon [img]="Activity" [size]="13"></lucide-icon>
+            <span>Split Slider</span>
+          </button>
+        </div>
+
+        <!-- Close button -->
+        <button type="button" class="btn-text !p-1 text-muted hover:text-ink" (click)="closeModal()" aria-label="Cerrar modal">
+          <lucide-icon [img]="X" [size]="18"></lucide-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="overflow-y-auto p-6 space-y-5 flex-1">
+      @if (photoItems.length < 2) {
+        <div class="list-state py-12">
+          <lucide-icon [img]="Activity" [size]="32" class="text-cyan-400 mx-auto mb-2"></lucide-icon>
+          <p class="text-sm font-semibold text-ink">Se requieren al menos 2 fotografías para la comparativa</p>
+          <p class="text-xs text-muted max-w-sm mx-auto mt-1">
+            Esta lesión cuenta actualmente con {{ photoItems.length }} foto(s). Sube capturas en distintas fechas para realizar seguimiento temporal de la evolución morfológica.
+          </p>
+        </div>
+      } @else {
+        <!-- Photo Selection Toolbar & Time Elapsed Banner -->
+        <div class="flex flex-wrap items-center justify-between gap-4 bg-slate-50 p-3.5 rounded-xl border border-line">
+          <!-- Photo A Selector -->
+          <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+            <span class="rounded bg-cyan-100 text-cyan-800 font-bold px-2 py-0.5 text-xs border border-cyan-300">Foto A (Antes)</span>
+            <select
+              [ngModel]="selectedPhotoA"
+              (ngModelChange)="selectPhotoA($event)"
+              class="input-field !py-1 text-xs font-medium bg-surface cursor-pointer"
+            >
+              @for (item of photoItems; track item.photo.id) {
+                <option [ngValue]="item">
+                  {{ (item.photo.takenDate | date: 'dd/MM/yyyy') || (item.photo.createdAt | date: 'dd/MM/yyyy') }} - {{ item.photo.description || 'Sin nota' }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <!-- Swap Button -->
+          <button
+            type="button"
+            class="btn-secondary !p-2 !rounded-full hover:bg-cyan-50 hover:text-cyan-700"
+            (click)="swapPhotos()"
+            title="Intercambiar orden (Foto A <-> Foto B)"
+          >
+            <lucide-icon [img]="ArrowLeftRight" [size]="15"></lucide-icon>
+          </button>
+
+          <!-- Photo B Selector -->
+          <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+            <span class="rounded bg-purple-100 text-purple-800 font-bold px-2 py-0.5 text-xs border border-purple-300">Foto B (Después)</span>
+            <select
+              [ngModel]="selectedPhotoB"
+              (ngModelChange)="selectPhotoB($event)"
+              class="input-field !py-1 text-xs font-medium bg-surface cursor-pointer"
+            >
+              @for (item of photoItems; track item.photo.id) {
+                <option [ngValue]="item">
+                  {{ (item.photo.takenDate | date: 'dd/MM/yyyy') || (item.photo.createdAt | date: 'dd/MM/yyyy') }} - {{ item.photo.description || 'Sin nota' }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <!-- Days Elapsed Badge -->
+          @if (daysBetween !== null) {
+            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-50 border border-cyan-200 text-xs font-bold text-cyan-800">
+              <lucide-icon [img]="Clock" [size]="14" class="text-cyan-600"></lucide-icon>
+              <span>{{ daysBetween }} días entre tomas</span>
+            </div>
+          }
+        </div>
+
+        <!-- MAIN VIEW: Side-by-Side Mode -->
+        @if (compareMode === 'side-by-side') {
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Left Frame: Photo A -->
+            <div class="space-y-2 rounded-xl border border-line bg-surface p-3.5 shadow-xs">
+              <div class="flex items-center justify-between text-xs pb-1 border-b border-line">
+                <span class="font-bold text-cyan-800 flex items-center gap-1">
+                  <span class="h-2 w-2 rounded-full bg-cyan-500"></span>
+                  Foto A: {{ (selectedPhotoA?.photo?.takenDate | date: 'dd/MM/yyyy') || (selectedPhotoA?.photo?.createdAt | date: 'dd/MM/yyyy') || 'S/F' }}
+                </span>
+                <span class="text-muted text-[11px] truncate max-w-[200px]">{{ selectedPhotoA?.photo?.description || 'Sin descripción' }}</span>
+              </div>
+
+              <div class="relative h-72 sm:h-80 w-full overflow-hidden rounded-lg bg-slate-900 flex items-center justify-center">
+                @if (selectedPhotoA?.url) {
+                  <img [src]="selectedPhotoA?.url" class="h-full w-full object-contain" alt="Foto A Lesión" />
+                } @else {
+                  <div class="text-xs text-slate-400">Cargando fotografía...</div>
+                }
+              </div>
+            </div>
+
+            <!-- Right Frame: Photo B -->
+            <div class="space-y-2 rounded-xl border border-line bg-surface p-3.5 shadow-xs">
+              <div class="flex items-center justify-between text-xs pb-1 border-b border-line">
+                <span class="font-bold text-purple-800 flex items-center gap-1">
+                  <span class="h-2 w-2 rounded-full bg-purple-500"></span>
+                  Foto B: {{ (selectedPhotoB?.photo?.takenDate | date: 'dd/MM/yyyy') || (selectedPhotoB?.photo?.createdAt | date: 'dd/MM/yyyy') || 'S/F' }}
+                </span>
+                <span class="text-muted text-[11px] truncate max-w-[200px]">{{ selectedPhotoB?.photo?.description || 'Sin descripción' }}</span>
+              </div>
+
+              <div class="relative h-72 sm:h-80 w-full overflow-hidden rounded-lg bg-slate-900 flex items-center justify-center">
+                @if (selectedPhotoB?.url) {
+                  <img [src]="selectedPhotoB?.url" class="h-full w-full object-contain" alt="Foto B Lesión" />
+                } @else {
+                  <div class="text-xs text-slate-400">Cargando fotografía...</div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- MAIN VIEW: Split Slider Mode -->
+        @if (compareMode === 'slider') {
+          <div class="space-y-3">
+            <div class="relative h-80 sm:h-96 w-full select-none overflow-hidden rounded-xl border border-line bg-slate-900">
+              <!-- Background Image (Photo B - Right/After) -->
+              @if (selectedPhotoB?.url) {
+                <img [src]="selectedPhotoB?.url" class="absolute inset-0 h-full w-full object-contain pointer-events-none" alt="Foto B (Después)" />
+              }
+
+              <!-- Foreground Clipped Image (Photo A - Left/Before) -->
+              @if (selectedPhotoA?.url) {
+                <div
+                  class="absolute inset-0 overflow-hidden"
+                  [style.width.%]="sliderPosition"
+                >
+                  <img
+                    [src]="selectedPhotoA?.url"
+                    class="absolute inset-0 h-full w-full object-contain max-w-none pointer-events-none"
+                    [style.width]="'100%'"
+                    alt="Foto A (Antes)"
+                  />
+                </div>
+              }
+
+              <!-- Divider Line -->
+              <div
+                class="absolute top-0 bottom-0 w-1 bg-white shadow-lg pointer-events-none"
+                [style.left.%]="sliderPosition"
+              >
+                <div class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md text-slate-800 text-[10px] font-bold border border-slate-300">
+                  <lucide-icon [img]="ArrowLeftRight" [size]="14"></lucide-icon>
+                </div>
+              </div>
+
+              <!-- Labels Overlay -->
+              <div class="absolute top-3 left-3 rounded bg-slate-900/80 px-2 py-1 text-[11px] font-bold text-cyan-300 backdrop-blur-xs">
+                Antes: {{ (selectedPhotoA?.photo?.takenDate | date: 'dd/MM/yyyy') || (selectedPhotoA?.photo?.createdAt | date: 'dd/MM/yyyy') }}
+              </div>
+              <div class="absolute top-3 right-3 rounded bg-slate-900/80 px-2 py-1 text-[11px] font-bold text-purple-300 backdrop-blur-xs">
+                Después: {{ (selectedPhotoB?.photo?.takenDate | date: 'dd/MM/yyyy') || (selectedPhotoB?.photo?.createdAt | date: 'dd/MM/yyyy') }}
+              </div>
+            </div>
+
+            <!-- Slider Range Control -->
+            <div class="flex items-center gap-3 px-4">
+              <span class="text-xs font-bold text-cyan-800">Foto A (Antes)</span>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                [value]="sliderPosition"
+                (input)="onSliderInput($event)"
+                class="h-2 flex-1 cursor-pointer appearance-none rounded-lg bg-slate-200 accent-cyan-600"
+              />
+              <span class="text-xs font-bold text-purple-800">Foto B (Después)</span>
+            </div>
+          </div>
+        }
+
+        <!-- Lesion Clinical Context Details Footer -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-xl border border-line bg-slate-50/60 p-3.5 text-xs">
+          <div>
+            <span class="text-muted uppercase text-[10px] font-semibold block">Morfología / Color</span>
+            <p class="font-medium text-ink">{{ lesion.morphology || 'S/D' }} ({{ lesion.color || 'Sin coloración' }})</p>
+          </div>
+          <div>
+            <span class="text-muted uppercase text-[10px] font-semibold block">Tamaño Clínico</span>
+            <p class="font-medium text-ink font-mono">{{ lesion.size || 'S/D' }}</p>
+          </div>
+          <div>
+            <span class="text-muted uppercase text-[10px] font-semibold block">Evolución Clínica</span>
+            <p class="font-medium text-ink">{{ lesion.evolution || 'Sin notas de evolución' }}</p>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="flex items-center justify-between border-t border-line px-6 py-3 bg-slate-50">
+      <div class="text-xs text-muted">
+        Total de fotos disponibles: <strong>{{ photoItems.length }}</strong>
+      </div>
+      <button type="button" class="btn-secondary !text-xs !py-2" (click)="closeModal()">
+        Cerrar Comparador
+      </button>
+    </div>
+
+  </div>
+</div>

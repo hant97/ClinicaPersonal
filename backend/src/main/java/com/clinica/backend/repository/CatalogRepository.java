@@ -18,8 +18,8 @@ public interface CatalogRepository extends JpaRepository<Catalog, Long> {
     Page<Catalog> findBySpecialty(String specialty, Pageable pageable);
 
     @Query("SELECT c FROM Catalog c WHERE " +
-           "(:specialty IS NULL OR :specialty = 'ALL' OR c.specialty = 'GENERAL' OR c.specialty = :specialty) AND " +
-           "(:search IS NULL OR :search = '' OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(c.code) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(c.description) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           "(cast(:specialty as string) IS NULL OR cast(:specialty as string) = 'ALL' OR c.specialty = 'GENERAL' OR c.specialty = :specialty) AND " +
+           "(cast(:search as string) IS NULL OR cast(:search as string) = '' OR LOWER(c.name) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) OR LOWER(c.code) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) OR LOWER(c.description) LIKE LOWER(CONCAT('%', cast(:search as string), '%'))) " +
            "ORDER BY c.name ASC")
     Page<Catalog> findAccessibleCatalogs(@Param("specialty") String specialty, @Param("search") String search, Pageable pageable);
 

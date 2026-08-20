@@ -56,7 +56,11 @@
               }
             </div>
 
-            <div class="flex shrink-0 gap-1">
+            <div class="flex shrink-0 items-center gap-1.5">
+              <button type="button" class="btn-secondary !text-xs !py-1 flex items-center gap-1 hover:bg-cyan-50 hover:text-cyan-700" (click)="openCompare(lesion)" title="Comparativa Fotográfica Evolutiva">
+                <lucide-icon [img]="Sparkles" [size]="13" class="text-cyan-600"></lucide-icon>
+                <span>Comparar</span>
+              </button>
               <button type="button" class="btn-secondary !text-xs !py-1" (click)="togglePhotos(lesion.id!)">
                 Fotos
               </button>
@@ -177,4 +181,12 @@
       </form>
     </div>
   </div>
+}
+
+@if (showCompareModal && compareLesion) {
+  <app-lesion-photo-compare
+    [lesion]="compareLesion"
+    [photos]="comparePhotos"
+    (close)="closeCompare()"
+  ></app-lesion-photo-compare>
 }

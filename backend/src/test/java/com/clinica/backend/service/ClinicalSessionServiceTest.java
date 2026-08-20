@@ -37,6 +37,8 @@ class ClinicalSessionServiceTest {
     private PatientRepository patientRepository;
     @Mock
     private ClinicalAuthorizationService clinicalAuthorizationService;
+    @Mock
+    private AuditLogService auditLogService;
     @InjectMocks
     private ClinicalSessionService clinicalSessionService;
 

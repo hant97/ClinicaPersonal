@@ -44,6 +44,8 @@ class PrescriptionServiceTest {
     private UserRepository userRepository;
     @Mock
     private ClinicSettingsRepository clinicSettingsRepository;
+    @Mock
+    private AuditLogService auditLogService;
     @InjectMocks
     private PrescriptionService service;
 

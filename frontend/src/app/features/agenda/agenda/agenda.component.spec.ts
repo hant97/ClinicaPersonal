@@ -5,13 +5,21 @@ import { of } from 'rxjs';
 
 import { AgendaComponent } from './agenda.component';
 import { AppointmentService } from '../../../core/services/appointment.service';
+import { ScheduleBlockService } from '../../../core/services/schedule-block.service';
+import { UserService } from '../../../core/services/user.service';
+import { ViewPreferenceService } from '../../../shared/services/view-preference/view-preference.service';
 
 describe('AgendaComponent', () => {
   let component: AgendaComponent;
   let fixture: ComponentFixture<AgendaComponent>;
   let appointmentService: jasmine.SpyObj<AppointmentService>;
+  let blockService: jasmine.SpyObj<ScheduleBlockService>;
+  let userService: jasmine.SpyObj<UserService>;
+  let viewPreferenceService: jasmine.SpyObj<ViewPreferenceService>;
 
   beforeEach(async () => {
+    localStorage.clear();
+
     const appointmentSpy = jasmine.createSpyObj('AppointmentService', ['search', 'updateStatus', 'create', 'update']);
     appointmentSpy.search.and.returnValue(of({
       content: [],
@@ -25,15 +33,33 @@ describe('AgendaComponent', () => {
       empty: true
     }));
 
+    const blockSpy = jasmine.createSpyObj('ScheduleBlockService', ['getBlocks', 'createBlock', 'deleteBlock']);
+    blockSpy.getBlocks.and.returnValue(of([]));
+
+    const userSpy = jasmine.createSpyObj('UserService', ['getProfessionals']);
+    userSpy.getProfessionals.and.returnValue(of([
+      { id: 1, username: 'dr1', firstName: 'Juan', lastName: 'Pérez', specialty: 'PSICOLOGIA', enabled: true, roles: ['ROLE_ADMIN'] }
+    ]));
+
+    const viewPreferenceSpy = jasmine.createSpyObj('ViewPreferenceService', ['getViewMode', 'setViewMode', 'isMobile']);
+    viewPreferenceSpy.getViewMode.and.returnValue('calendar');
+    viewPreferenceSpy.setViewMode.and.returnValue(undefined);
+
     await TestBed.configureTestingModule({
       imports: [AgendaComponent, HttpClientTestingModule, RouterTestingModule],
       providers: [
-        { provide: AppointmentService, useValue: appointmentSpy }
+        { provide: AppointmentService, useValue: appointmentSpy },
+        { provide: ScheduleBlockService, useValue: blockSpy },
+        { provide: UserService, useValue: userSpy },
+        { provide: ViewPreferenceService, useValue: viewPreferenceSpy }
       ]
     })
     .compileComponents();
 
     appointmentService = TestBed.inject(AppointmentService) as jasmine.SpyObj<AppointmentService>;
+    blockService = TestBed.inject(ScheduleBlockService) as jasmine.SpyObj<ScheduleBlockService>;
+    userService = TestBed.inject(UserService) as jasmine.SpyObj<UserService>;
+    viewPreferenceService = TestBed.inject(ViewPreferenceService) as jasmine.SpyObj<ViewPreferenceService>;
 
     fixture = TestBed.createComponent(AgendaComponent);
     component = fixture.componentInstance;
@@ -43,6 +69,7 @@ describe('AgendaComponent', () => {
   it('should create and default to calendar view', () => {
     expect(component).toBeTruthy();
     expect(component.currentView).toBe('calendar');
+    expect(component.professionals.length).toBe(1);
   });
 
   it('should keep dateRange form control enabled in calendar and list views', () => {
@@ -67,7 +94,6 @@ describe('AgendaComponent', () => {
   }));
 
   it('should update calendar week when dateRange changes in calendar view', fakeAsync(() => {
-    const today = new Date();
     component.filterForm.patchValue({ dateRange: 'TODAY' });
     tick(350);
 
@@ -114,4 +140,3 @@ describe('AgendaComponent', () => {
     expect(component.openMenuAppointmentId).toBeNull();
   });
 });
-

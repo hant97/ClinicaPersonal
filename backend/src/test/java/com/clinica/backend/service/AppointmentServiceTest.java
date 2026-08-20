@@ -8,9 +8,16 @@ import com.clinica.backend.repository.AppointmentRepository;
 import com.clinica.backend.repository.ClinicalServiceRepository;
 import com.clinica.backend.repository.PatientRepository;
 import com.clinica.backend.repository.PaymentRepository;
+import com.clinica.backend.repository.UserRepository;
+import com.clinica.backend.model.Attention;
+import com.clinica.backend.repository.AttentionRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -24,30 +31,33 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class AppointmentServiceTest {
 
+    @Mock
     private AppointmentRepository appointmentRepository;
+    @Mock
+    private AttentionRepository attentionRepository;
+    @Mock
     private PatientRepository patientRepository;
+    @Mock
     private ClinicalServiceRepository clinicalServiceRepository;
+    @Mock
     private PaymentRepository paymentRepository;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
     private GoogleCalendarService googleCalendarService;
+    @Mock
+    private ProfessionalScheduleService professionalScheduleService;
+    @Mock
+    private ScheduleBlockService scheduleBlockService;
+
+    @InjectMocks
     private AppointmentService appointmentService;
 
     @BeforeEach
     void setUp() {
-        appointmentRepository = mock(AppointmentRepository.class);
-        patientRepository = mock(PatientRepository.class);
-        clinicalServiceRepository = mock(ClinicalServiceRepository.class);
-        paymentRepository = mock(PaymentRepository.class);
-        googleCalendarService = mock(GoogleCalendarService.class);
-        appointmentService = new AppointmentService(
-                appointmentRepository,
-                patientRepository,
-                clinicalServiceRepository,
-                paymentRepository,
-                googleCalendarService
-        );
-
         User user = new User();
         user.setId(1L);
         user.setUsername("doctor");
@@ -58,7 +68,6 @@ class AppointmentServiceTest {
                 new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities())
         );
     }
-
 
     @AfterEach
     void tearDown() {
@@ -105,6 +114,12 @@ class AppointmentServiceTest {
         dto.setEndTime(LocalTime.of(11, 0));
         dto.setProfessionalId(1L);
 
+        Patient patient = new Patient();
+        patient.setId(5L);
+
+        when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(5L, "PSICOLOGIA"))
+                .thenReturn(Optional.of(patient));
+
         Appointment existing = new Appointment();
         existing.setId(50L);
         existing.setStartTime(LocalTime.of(10, 30));
@@ -129,6 +144,12 @@ class AppointmentServiceTest {
         dto.setStartTime(LocalTime.of(11, 0));
         dto.setEndTime(LocalTime.of(10, 0));
 
+        Patient patient = new Patient();
+        patient.setId(5L);
+
+        when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(5L, "PSICOLOGIA"))
+                .thenReturn(Optional.of(patient));
+
         assertThrows(IllegalArgumentException.class, () -> appointmentService.create(dto));
         verify(appointmentRepository, never()).save(any());
     }
@@ -152,10 +173,6 @@ class AppointmentServiceTest {
         payment.setAmount(new java.math.BigDecimal("150.00"));
         payment.setAppointment(appointment);
 
-        when(paymentRepository.findFirstByAppointmentIdAndDeletedFalse(100L)).thenReturn(Optional.of(payment));
-        when(appointmentRepository.findById(100L)).thenReturn(Optional.of(appointment));
-
-        // Testing mapping via update or search
         when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(5L, "PSICOLOGIA")).thenReturn(Optional.of(patient));
         when(appointmentRepository.findByPatientIdAndSpecialtyOrderByAppointmentDateDescStartTimeDesc(eq(5L), eq("PSICOLOGIA"), any()))
                 .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(appointment)));
@@ -219,5 +236,40 @@ class AppointmentServiceTest {
         assertEquals("CANCELADA", result.getStatus());
         verify(googleCalendarService).cancelAppointmentEvent(appointment);
     }
-}
 
+    @Test
+    void updateStatusToConfirmadaShouldCreateAttentionInAgendadaState() {
+        Appointment appointment = new Appointment();
+        appointment.setId(10L);
+        appointment.setStatus("PROGRAMADA");
+        appointment.setSpecialty("PSICOLOGIA");
+        Patient patient = new Patient();
+        patient.setId(1L);
+        patient.setFirstName("Ana");
+        patient.setLastName("Gomez");
+        appointment.setPatient(patient);
+        appointment.setAppointmentDate(LocalDate.now());
+        appointment.setStartTime(LocalTime.of(14, 0));
+        appointment.setEndTime(LocalTime.of(14, 30));
+
+        when(appointmentRepository.findById(10L)).thenReturn(Optional.of(appointment));
+        when(attentionRepository.findByAppointmentIdAndDeletedFalse(10L)).thenReturn(Optional.empty());
+        when(attentionRepository.save(any(Attention.class))).thenAnswer(i -> {
+            Attention a = i.getArgument(0);
+            a.setId(999L);
+            return a;
+        });
+        when(appointmentRepository.save(any(Appointment.class))).thenAnswer(i -> i.getArgument(0));
+
+        AppointmentDto result = appointmentService.updateStatus(10L, "CONFIRMADA");
+
+        assertEquals("CONFIRMADA", result.getStatus());
+        verify(attentionRepository).save(argThat(att ->
+                "AGENDADA".equals(att.getStatus()) &&
+                LocalDate.now().equals(att.getAttentionDate()) &&
+                LocalTime.of(14, 0).equals(att.getStartTime()) &&
+                patient.equals(att.getPatient())
+        ));
+        assertEquals(999L, appointment.getAttentionId());
+    }
+}

@@ -7,6 +7,7 @@ import com.clinica.backend.repository.UserRepository;
 import com.clinica.backend.security.JwtService;
 import com.clinica.backend.security.LoginAttemptService;
 import com.clinica.backend.security.TokenRevocationService;
+import com.clinica.backend.service.AuditLogService;
 import com.clinica.backend.service.RefreshTokenService;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,6 +58,9 @@ class AuthControllerTest {
 
     @Mock
     private TokenRevocationService tokenRevocationService;
+
+    @Mock
+    private AuditLogService auditLogService;
 
     @InjectMocks
     private AuthController authController;

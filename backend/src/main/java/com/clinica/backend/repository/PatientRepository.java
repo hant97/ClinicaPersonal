@@ -35,15 +35,15 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
 
     @Query("SELECT p FROM Patient p WHERE p.deleted = false AND p.specialty = :specialty AND " +
            "(:active IS NULL OR p.active = :active) AND " +
-           "(:gender IS NULL OR p.gender = :gender) " +
+           "(cast(:gender as string) IS NULL OR p.gender = :gender) " +
            "ORDER BY p.lastName ASC, p.firstName ASC")
     Page<Patient> findAllBySpecialty(@Param("specialty") String specialty, @Param("active") Boolean active, @Param("gender") String gender, Pageable pageable);
 
     @Query("SELECT p FROM Patient p WHERE p.deleted = false AND p.specialty = :specialty AND " +
            "(:active IS NULL OR p.active = :active) AND " +
-           "(:gender IS NULL OR p.gender = :gender) AND " +
-           "(LOWER(p.firstName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
-           "LOWER(p.lastName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
-           "p.identificationDocument LIKE CONCAT('%', :query, '%'))")
+           "(cast(:gender as string) IS NULL OR p.gender = :gender) AND " +
+           "(LOWER(p.firstName) LIKE LOWER(CONCAT('%', cast(:query as string), '%')) OR " +
+           "LOWER(p.lastName) LIKE LOWER(CONCAT('%', cast(:query as string), '%')) OR " +
+           "p.identificationDocument LIKE CONCAT('%', cast(:query as string), '%'))")
     Page<Patient> searchPatients(@Param("query") String query, @Param("specialty") String specialty, @Param("active") Boolean active, @Param("gender") String gender, Pageable pageable);
 }
