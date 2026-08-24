@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import {
@@ -21,7 +21,7 @@ import { FIELD_LIMITS, ICON_LABELS } from '../landing-editor.validation';
 @Component({
   selector: 'app-editor-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, LucideAngularModule, IconPickerComponent],
+  imports: [FormsModule, RouterLink, LucideAngularModule, IconPickerComponent],
   templateUrl: './editor-panel.component.html',
   styleUrl: './editor-panel.component.css'
 })

@@ -503,7 +503,7 @@
                       <td>{{ medication.dose || '—' }}</td>
                       <td>{{ medication.frequency || '—' }}</td>
                       <td>
-                        {{ medication.startDate | date: 'dd/MM/yyyy' || '—' }} —
+                        {{ (medication.startDate | date: 'dd/MM/yyyy') || '—' }} —
                         {{ medication.endDate ? (medication.endDate | date: 'dd/MM/yyyy') : 'actualidad' }}
                       </td>
                       <td>{{ medication.active ? 'Activo' : 'Inactivo' }}</td>
@@ -533,7 +533,7 @@
                       <td>{{ diagnosis.category || '—' }}</td>
                       <td class="font-medium">{{ diagnosis.description }}</td>
                       <td>{{ statusLabel(diagnosis.status) }}</td>
-                      <td>{{ diagnosis.diagnosisDate | date: 'dd/MM/yyyy' || '—' }}</td>
+                    <td>{{ (diagnosis.diagnosisDate | date: 'dd/MM/yyyy') || '—' }}</td>
                     </tr>
                   }
                 </tbody>
@@ -584,7 +584,7 @@
                         {{ statusLabel(plan.status) }}
                         @if (plan.startDate || plan.endDate) {
                           <span class="font-normal normal-case">
-                            ({{ plan.startDate | date: 'dd/MM/yyyy' || '—' }} —
+                            ({{ (plan.startDate | date: 'dd/MM/yyyy') || '—' }} —
                             {{ plan.endDate ? (plan.endDate | date: 'dd/MM/yyyy') : 'actualidad' }})
                           </span>
                         }
@@ -638,7 +638,7 @@
                           <td>
                             {{ evaluation.treatmentIndicated || evaluation.procedurePerformed || '—' }}
                           </td>
-                          <td>{{ evaluation.nextReviewDate | date: 'dd/MM/yyyy' || '—' }}</td>
+                    <td>{{ (evaluation.nextReviewDate | date: 'dd/MM/yyyy') || '—' }}</td>
                         </tr>
                       }
                     </tbody>
@@ -719,7 +719,7 @@
                           <td>{{ lesion.lesionType || '—' }}</td>
                           <td>{{ lesion.size || '—' }}</td>
                           <td>{{ lesion.color || '—' }}</td>
-                          <td>{{ lesion.sinceDate | date: 'dd/MM/yyyy' || '—' }}</td>
+                    <td>{{ (lesion.sinceDate | date: 'dd/MM/yyyy') || '—' }}</td>
                           <td>{{ lesion.evolution || '—' }}</td>
                         </tr>
                       }
@@ -745,7 +745,7 @@
                       @for (exam of (history?.auxiliaryExams ?? []); track $index) {
                         <tr>
                           <td>{{ exam.examType || '—' }}</td>
-                          <td>{{ exam.examDate | date: 'dd/MM/yyyy' || '—' }}</td>
+                    <td>{{ (exam.examDate | date: 'dd/MM/yyyy') || '—' }}</td>
                           <td>{{ exam.description || '—' }}</td>
                           <td>{{ exam.result || '—' }}</td>
                         </tr>
@@ -778,7 +778,7 @@
                           <td>{{ treatment.route || '—' }}</td>
                           <td>{{ treatment.frequency || '—' }}</td>
                           <td>
-                            {{ treatment.startDate | date: 'dd/MM/yyyy' || '—' }} —
+                        {{ (treatment.startDate | date: 'dd/MM/yyyy') || '—' }} —
                             {{ treatment.endDate ? (treatment.endDate | date: 'dd/MM/yyyy') : 'actualidad' }}
                           </td>
                           <td>{{ statusLabel(treatment.status) }}</td>
@@ -805,7 +805,7 @@
                       @for (procedure of (history?.procedures ?? []); track $index) {
                         <tr>
                           <td class="font-medium">{{ procedure.name }}</td>
-                          <td>{{ procedure.procedureDate | date: 'dd/MM/yyyy' || '—' }}</td>
+                    <td>{{ (procedure.procedureDate | date: 'dd/MM/yyyy') || '—' }}</td>
                           <td>{{ procedure.description || '—' }}</td>
                         </tr>
                       }

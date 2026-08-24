@@ -1,6 +1,8 @@
 import { Component, EventEmitter, Output, OnInit, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { AppointmentService } from '../../../core/services/appointment.service';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { ClinicalServiceService } from '../../../core/services/clinical-service.service';
@@ -93,9 +95,6 @@ export class AppointmentFormComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.loadCatalogs();
-    this.loadProfessionals();
-
     const now = new Date();
     const tzOffset = now.getTimezoneOffset() * 60000;
     const localISO = new Date(now.getTime() - tzOffset).toISOString();
@@ -129,6 +128,9 @@ export class AppointmentFormComponent implements OnInit {
       updateSeries: [false],
       notes: [this.appointment?.notes || '', [Validators.maxLength(255)]]
     }, { validators: [timeOrderValidator()] });
+
+    this.loadCatalogs();
+    this.loadProfessionals();
 
     // Cargar citas del día inicial para validación de colisiones
     this.loadDayAppointments(initialDate);
@@ -173,15 +175,28 @@ export class AppointmentFormComponent implements OnInit {
   }
 
   loadProfessionals(): void {
-    this.userService.getProfessionals().subscribe({
-      next: (profs) => {
+    forkJoin({
+      profs: this.userService.getProfessionals(),
+      currentUser: this.userService.getCurrentUserProfile().pipe(catchError(() => of(null)))
+    }).subscribe({
+      next: ({ profs, currentUser }) => {
         this.professionals = profs;
-        if (!this.appointment && !this.initialData?.professionalId && profs.length > 0) {
-          // Si hay profesionales disponibles y no se especificó uno, se puede preseleccionar
+        if (!this.appointment && !this.initialData?.professionalId) {
+          if (currentUser && profs.some(p => p.id === currentUser.id)) {
+            this.appointmentForm.patchValue({ professionalId: currentUser.id });
+          } else if (profs.length === 1) {
+            this.appointmentForm.patchValue({ professionalId: profs[0].id });
+          }
         }
       },
       error: (err) => console.error('Error loading professionals', err)
     });
+  }
+
+  getProfessionalDisplayName(prof: UserProfile): string {
+    const fullName = [prof.firstName, prof.lastName].filter(Boolean).join(' ').trim();
+    const name = fullName || prof.username || `Profesional #${prof.id}`;
+    return prof.specialty ? `${name} (${prof.specialty})` : name;
   }
 
   loadDayAppointments(dateStr: string): void {

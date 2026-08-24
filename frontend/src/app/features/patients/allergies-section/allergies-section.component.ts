@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AllergyService } from '../../../core/services/allergy.service';
 import { Allergy } from '../../../core/models/allergy.model';
@@ -11,7 +11,7 @@ import { LucideAngularModule, AlertTriangle, Edit, Trash2 } from 'lucide-angular
 @Component({
   selector: 'app-allergies-section',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PaginationComponent, LucideAngularModule],
+  imports: [ReactiveFormsModule, PaginationComponent, LucideAngularModule],
   templateUrl: './allergies-section.component.html',
 })
 export class AllergiesSectionComponent implements OnInit {

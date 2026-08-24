@@ -2,7 +2,7 @@
   "name": "frontend",
   "version": "0.0.0",
   "engines": {
-    "node": ">=20.20.2 <21",
+    "node": ">=20.19.0 <21",
     "npm": ">=10 <11"
   },
   "scripts": {
@@ -11,34 +11,39 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "test:coverage": "ng test --watch=false --browsers=ChromeHeadless --code-coverage",
+    "lint": "eslint \"src/**/*.{ts,html}\"",
+    "audit:prod": "npm audit --omit=dev",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^18.2.0",
-    "@angular/common": "^18.2.0",
-    "@angular/compiler": "^18.2.0",
-    "@angular/core": "^18.2.0",
-    "@angular/forms": "^18.2.0",
-    "@angular/platform-browser": "^18.2.0",
-    "@angular/platform-browser-dynamic": "^18.2.0",
-    "@angular/router": "^18.2.0",
+    "@angular/animations": "^21.2.21",
+    "@angular/common": "^21.2.21",
+    "@angular/compiler": "^21.2.21",
+    "@angular/core": "^21.2.21",
+    "@angular/forms": "^21.2.21",
+    "@angular/platform-browser": "^21.2.21",
+    "@angular/platform-browser-dynamic": "^21.2.21",
+    "@angular/router": "^21.2.21",
     "chart.js": "^4.5.1",
     "lucide-angular": "^1.0.0",
     "rxjs": "~7.8.0",
     "sweetalert2": "^11.26.25",
     "tslib": "^2.8.1",
-    "xlsx": "^0.18.5",
-    "zone.js": "~0.14.10"
+    "zone.js": "~0.15.1"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^18.2.21",
-    "@angular/cli": "^18.2.21",
-    "@angular/compiler-cli": "^18.2.0",
+    "@angular-devkit/build-angular": "^21.2.21",
+    "@angular/cli": "^21.2.21",
+    "@angular/compiler-cli": "^21.2.21",
+    "@eslint/js": "^9.39.5",
     "@playwright/test": "^1.48.0",
     "@types/jasmine": "~5.1.0",
+    "angular-eslint": "^21.4.0",
     "autoprefixer": "^10.5.4",
+    "eslint": "^9.39.5",
     "jasmine-core": "~5.2.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
@@ -47,6 +52,7 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "postcss": "^8.5.25",
     "tailwindcss": "^3.4.17",
-    "typescript": "~5.5.2"
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.67.0"
   }
 }

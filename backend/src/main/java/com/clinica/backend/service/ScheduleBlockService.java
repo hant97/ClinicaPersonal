@@ -15,6 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,7 +43,17 @@ public class ScheduleBlockService {
         LocalDate end = endDate != null ? endDate : LocalDate.now().plusMonths(6);
 
         List<ScheduleBlock> blocks = blockRepository.findBlocksInRange(specialty, professionalId, start, end);
-        return blocks.stream().map(this::mapToDto).collect(Collectors.toList());
+        Set<Long> professionalIds = blocks.stream()
+                .map(ScheduleBlock::getProfessionalId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<Long, User> professionalsById = professionalIds.isEmpty()
+                ? Map.of()
+                : userRepository.findByIdIn(professionalIds).stream()
+                        .collect(Collectors.toMap(User::getId, Function.identity()));
+        return blocks.stream()
+                .map(block -> mapToDto(block, professionalsById.get(block.getProfessionalId())))
+                .collect(Collectors.toList());
     }
 
     @Transactional
@@ -123,13 +137,18 @@ public class ScheduleBlockService {
     }
 
     private ScheduleBlockDto mapToDto(ScheduleBlock block) {
+        User professional = block.getProfessionalId() == null
+                ? null
+                : userRepository.findById(block.getProfessionalId()).orElse(null);
+        return mapToDto(block, professional);
+    }
+
+    private ScheduleBlockDto mapToDto(ScheduleBlock block, User professional) {
         ScheduleBlockDto dto = new ScheduleBlockDto();
         dto.setId(block.getId());
         dto.setProfessionalId(block.getProfessionalId());
         if (block.getProfessionalId() != null) {
-            userRepository.findById(block.getProfessionalId()).ifPresent(u -> 
-                dto.setProfessionalName(u.getFullName())
-            );
+            dto.setProfessionalName(professional != null ? professional.getFullName() : null);
         } else {
             dto.setProfessionalName("Toda la especialidad");
         }

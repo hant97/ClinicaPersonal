@@ -5,6 +5,7 @@ import com.clinica.backend.dto.PaymentDto;
 import com.clinica.backend.dto.PaymentSummaryDto;
 import com.clinica.backend.dto.PaymentTransactionDto;
 import com.clinica.backend.service.PaymentService;
+import com.clinica.backend.service.PaymentReportService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -20,6 +21,7 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class PaymentController {
     private final PaymentService service;
+    private final PaymentReportService reportService;
 
     @GetMapping("/{id}")
     public ResponseEntity<PaymentDto> getById(@PathVariable Long id) {
@@ -36,14 +38,14 @@ public class PaymentController {
 
     @GetMapping("/patient/{patientId}/balance")
     public ResponseEntity<PatientBalanceDto> getPatientBalance(@PathVariable Long patientId) {
-        return ResponseEntity.ok(service.getPatientBalance(patientId));
+        return ResponseEntity.ok(reportService.getPatientBalance(patientId));
     }
 
     @GetMapping("/summary")
     public ResponseEntity<PaymentSummaryDto> getSummary(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
-        return ResponseEntity.ok(service.getSummary(dateFrom, dateTo));
+        return ResponseEntity.ok(reportService.getSummary(dateFrom, dateTo));
     }
 
     @GetMapping

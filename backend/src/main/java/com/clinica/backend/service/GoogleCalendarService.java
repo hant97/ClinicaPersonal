@@ -154,7 +154,7 @@ public class GoogleCalendarService {
         }
     }
 
-    private InputStream resolveCredentialsStream() {
+    InputStream resolveCredentialsStream() {
         // 1. Prioridad: JSON directo o Base64 desde variable de entorno
         if (properties.getCredentialsJson() != null && !properties.getCredentialsJson().isBlank()) {
             String rawJson = properties.getCredentialsJson().trim();

@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { GeneralHistoryService } from '../../../core/services/general-history.service';
 import { GeneralHistory } from '../../../core/models/general-history.model';
@@ -9,7 +9,7 @@ import { LucideAngularModule, FileText } from 'lucide-angular';
 @Component({
   selector: 'app-general-history-section',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+  imports: [ReactiveFormsModule, LucideAngularModule],
   templateUrl: './general-history-section.component.html',
 })
 export class GeneralHistorySectionComponent implements OnInit {

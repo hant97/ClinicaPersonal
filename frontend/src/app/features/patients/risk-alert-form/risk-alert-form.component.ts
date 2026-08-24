@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RiskAlertService } from '../../../core/services/risk-alert.service';
 import { CatalogService } from '../../../core/services/catalog.service';
@@ -12,7 +12,7 @@ import { FocusTrapDirective } from '../../../shared/directives/focus-trap.direct
 @Component({
   selector: 'app-risk-alert-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FocusTrapDirective],
+  imports: [ReactiveFormsModule, FocusTrapDirective],
   templateUrl: './risk-alert-form.component.html',
 })
 export class RiskAlertFormComponent implements OnInit {

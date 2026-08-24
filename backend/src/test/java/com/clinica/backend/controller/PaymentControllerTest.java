@@ -5,6 +5,7 @@ import com.clinica.backend.dto.PaymentDto;
 import com.clinica.backend.dto.PaymentSummaryDto;
 import com.clinica.backend.dto.PaymentTransactionDto;
 import com.clinica.backend.service.PaymentService;
+import com.clinica.backend.service.PaymentReportService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,12 +37,14 @@ class PaymentControllerTest {
 
     @Mock
     private PaymentService paymentService;
+    @Mock
+    private PaymentReportService paymentReportService;
 
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(new PaymentController(paymentService)).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(new PaymentController(paymentService, paymentReportService)).build();
     }
 
     @Test
@@ -77,7 +80,7 @@ class PaymentControllerTest {
 
     @Test
     void getSummaryReturnsOk() throws Exception {
-        when(paymentService.getSummary(any(), any())).thenReturn(PaymentSummaryDto.builder().build());
+        when(paymentReportService.getSummary(any(), any())).thenReturn(PaymentSummaryDto.builder().build());
 
         mockMvc.perform(get("/api/v1/payments/summary"))
                 .andExpect(status().isOk());
@@ -85,19 +88,19 @@ class PaymentControllerTest {
 
     @Test
     void getSummaryPassesDateRangeToService() throws Exception {
-        when(paymentService.getSummary(any(), any())).thenReturn(PaymentSummaryDto.builder().build());
+        when(paymentReportService.getSummary(any(), any())).thenReturn(PaymentSummaryDto.builder().build());
 
         mockMvc.perform(get("/api/v1/payments/summary")
                         .param("dateFrom", "2026-01-01")
                         .param("dateTo", "2026-01-31"))
                 .andExpect(status().isOk());
 
-        verify(paymentService).getSummary(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31));
+        verify(paymentReportService).getSummary(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31));
     }
 
     @Test
     void getPatientBalanceReturnsOk() throws Exception {
-        when(paymentService.getPatientBalance(5L)).thenReturn(
+        when(paymentReportService.getPatientBalance(5L)).thenReturn(
                 PatientBalanceDto.builder().patientId(5L)
                         .totalCharged(new BigDecimal("100.00"))
                         .totalPaid(new BigDecimal("40.00"))
@@ -107,7 +110,7 @@ class PaymentControllerTest {
         mockMvc.perform(get("/api/v1/payments/patient/5/balance"))
                 .andExpect(status().isOk());
 
-        verify(paymentService).getPatientBalance(5L);
+        verify(paymentReportService).getPatientBalance(5L);
     }
 
     @Test

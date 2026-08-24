@@ -13,9 +13,7 @@ import com.clinica.backend.repository.WebsiteProcessStepRepository;
 import com.clinica.backend.repository.WebsiteProfessionalRepository;
 import com.clinica.backend.repository.WebsiteSettingsRepository;
 import com.clinica.backend.repository.WebsiteSpecialtyRepository;
-import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
-import jakarta.validation.Validator;
 import org.springframework.web.multipart.MultipartFile;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,7 +55,7 @@ class WebsiteEditorServiceTest {
     @Mock private WebsiteProfessionalRepository professionalRepository;
     @Mock private WebsiteFileStorage fileStorage;
     @Mock private ObjectMapper objectMapper;
-    @Mock private Validator validator;
+    @Mock private WebsiteDraftValidationService draftValidationService;
 
     @InjectMocks private WebsiteSettingsService service;
 
@@ -81,7 +79,6 @@ class WebsiteEditorServiceTest {
         when(settingsRepository.findBySingletonKey("S")).thenReturn(Optional.of(settings));
         when(objectMapper.writeValueAsString(any())).thenReturn("{}");
         when(objectMapper.readValue(anyString(), eq(WebsiteDraftDto.class))).thenReturn(dto);
-        when(validator.validate(any(WebsiteDraftDto.class))).thenReturn(Collections.emptySet());
         when(specialtyRepository.findAll()).thenReturn(Collections.emptyList());
         when(benefitRepository.findAll()).thenReturn(Collections.emptyList());
         when(processStepRepository.findAll()).thenReturn(Collections.emptyList());
@@ -130,9 +127,8 @@ class WebsiteEditorServiceTest {
 
     @Test
     void publishDoesNotWriteAnythingWhenDraftIsInvalid() {
-        @SuppressWarnings("unchecked")
-        ConstraintViolation<WebsiteDraftDto> violation = mock(ConstraintViolation.class);
-        when(validator.validate(any(WebsiteDraftDto.class))).thenReturn(Collections.singleton(violation));
+        ConstraintViolationException exception = mock(ConstraintViolationException.class);
+        org.mockito.Mockito.doThrow(exception).when(draftValidationService).validate(dto);
 
         assertThrows(ConstraintViolationException.class, () -> service.publish(3L));
 
@@ -147,6 +143,8 @@ class WebsiteEditorServiceTest {
     @Test
     void publishRejectsInvalidUrlBeforeWriting() {
         dto.setFacebookUrl("no-es-una-url");
+        org.mockito.Mockito.doThrow(new IllegalArgumentException("Una URL del sitio no es válida"))
+                .when(draftValidationService).validate(dto);
 
         assertThrows(IllegalArgumentException.class, () -> service.publish(3L));
 

@@ -1,4 +1,5 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PrescriptionService } from '../../../core/services/prescription.service';
@@ -22,6 +23,7 @@ import { LucideAngularModule, FileText, Printer, Plus, Trash2, X, Edit, QrCode, 
   styleUrls: ['./prescriptions-section.component.css'],
 })
 export class PrescriptionsSectionComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   readonly FileText = FileText;
   readonly Printer = Printer;
   readonly Plus = Plus;
@@ -66,7 +68,9 @@ export class PrescriptionsSectionComponent implements OnInit {
       next: (patient) => (this.patient = patient),
       error: () => {}
     });
-    this.clinicSettingsService.settings$.subscribe((settings) => (this.clinicSettings = settings));
+    this.clinicSettingsService.settings$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((settings) => (this.clinicSettings = settings));
     this.clinicSettingsService.loadSettings();
     this.userService.getCurrentUserProfile().subscribe({
       next: (profile) => (this.currentProfessional = profile),

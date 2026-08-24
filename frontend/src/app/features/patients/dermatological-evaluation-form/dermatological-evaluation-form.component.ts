@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DermatologicalEvaluationService } from '../../../core/services/dermatological-evaluation.service';
 import { CatalogService } from '../../../core/services/catalog.service';
@@ -11,7 +11,7 @@ import { ToastService } from '../../../shared/services/toast/toast.service';
 @Component({
   selector: 'app-dermatological-evaluation-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FocusTrapDirective],
+  imports: [ReactiveFormsModule, FocusTrapDirective],
   templateUrl: './dermatological-evaluation-form.component.html',
 })
 export class DermatologicalEvaluationFormComponent implements OnInit {

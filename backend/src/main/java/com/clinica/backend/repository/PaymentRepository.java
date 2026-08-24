@@ -4,6 +4,7 @@ import com.clinica.backend.model.Payment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -17,12 +18,16 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     Optional<Payment> findByIdAndDeletedFalse(Long id);
     Optional<Payment> findByIdAndSpecialtyAndDeletedFalse(Long id, String specialty);
 
+    @EntityGraph(attributePaths = {"patient", "appointment", "clinicalSession"})
     Page<Payment> findByPatientIdAndSpecialtyAndDeletedFalseOrderByPaymentDateDesc(Long patientId, String specialty, Pageable pageable);
 
     Optional<Payment> findFirstByAppointmentIdAndDeletedFalse(Long appointmentId);
 
-    List<Payment> findByAppointmentIdInAndDeletedFalse(Collection<Long> appointmentIds);
+    @Query("SELECT p FROM Payment p JOIN FETCH p.appointment a " +
+           "WHERE a.id IN :appointmentIds AND p.deleted = false")
+    List<Payment> findByAppointmentIdInAndDeletedFalse(@Param("appointmentIds") Collection<Long> appointmentIds);
 
+    @EntityGraph(attributePaths = {"patient", "appointment", "clinicalSession"})
     @Query("SELECT p FROM Payment p WHERE p.deleted = false AND p.specialty = :specialty AND " +
            "(cast(:searchTerm as string) IS NULL OR cast(:searchTerm as string) = '' OR " +
            "LOWER(p.patient.firstName) LIKE LOWER(CONCAT('%', cast(:searchTerm as string), '%')) OR " +

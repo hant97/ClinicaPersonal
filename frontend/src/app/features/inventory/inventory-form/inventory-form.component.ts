@@ -1,5 +1,5 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { InventoryService } from '../../../core/services/inventory.service';
 import { CatalogService } from '../../../core/services/catalog.service';
@@ -24,10 +24,10 @@ import { FocusTrapDirective } from '../../../shared/directives/focus-trap.direct
 @Component({
   selector: 'app-inventory-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, FocusTrapDirective],
+  imports: [ReactiveFormsModule, LucideAngularModule, FocusTrapDirective],
   templateUrl: './inventory-form.component.html'
 })
-export class InventoryFormComponent implements OnInit {
+export class InventoryFormComponent implements OnInit, OnDestroy {
   @Input() supplyId: number | null = null;
   @Output() closeModal = new EventEmitter<boolean>();
 
@@ -77,6 +77,10 @@ export class InventoryFormComponent implements OnInit {
     }
   }
 
+  ngOnDestroy(): void {
+    this.revokeImagePreviewUrl();
+  }
+
   initForm(): void {
     this.form = this.fb.group({
       name: ['', [Validators.required]],
@@ -123,13 +127,21 @@ export class InventoryFormComponent implements OnInit {
       return;
     }
     this.selectedImageFile = file;
+    this.revokeImagePreviewUrl();
     this.imagePreviewUrl = URL.createObjectURL(file);
   }
 
   removeImage(): void {
     this.selectedImageFile = null;
-    this.imagePreviewUrl = null;
+    this.revokeImagePreviewUrl();
     this.form.get('imageUrl')?.setValue('');
+  }
+
+  private revokeImagePreviewUrl(): void {
+    if (this.imagePreviewUrl) {
+      URL.revokeObjectURL(this.imagePreviewUrl);
+      this.imagePreviewUrl = null;
+    }
   }
 
   onSubmit(): void {

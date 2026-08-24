@@ -5,7 +5,12 @@ import com.clinica.backend.model.Appointment;
 import com.clinica.backend.model.Patient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -70,11 +75,18 @@ class GoogleCalendarServiceTest {
     }
 
     @Test
-    void testResolvingCredentialsPathWhenFileExists() {
-        properties.setEnabled(true);
-        properties.setCredentialsPath("./backend/google-credentials.json");
+    void testResolvingCredentialsPathWhenFileExists(@TempDir Path tempDir) throws Exception {
+        String credentials = "{\"type\":\"service_account\"}";
+        Path credentialsFile = tempDir.resolve("google-credentials.json");
+        Files.writeString(credentialsFile, credentials, StandardCharsets.UTF_8);
 
-        assertNotNull(service.getCalendarClient());
+        properties.setEnabled(true);
+        properties.setCredentialsPath(credentialsFile.toString());
+
+        try (InputStream resolved = service.resolveCredentialsStream()) {
+            assertNotNull(resolved);
+            assertEquals(credentials, new String(resolved.readAllBytes(), StandardCharsets.UTF_8));
+        }
     }
 }
 

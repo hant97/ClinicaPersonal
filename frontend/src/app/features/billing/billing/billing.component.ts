@@ -19,6 +19,7 @@ import { ToastService } from '../../../shared/services/toast/toast.service';
 import { ViewPreferenceService } from '../../../shared/services/view-preference/view-preference.service';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
+import { fetchAllPages } from '../../../core/utils/pagination.util';
 
 @Component({
   selector: 'app-billing',
@@ -341,10 +342,9 @@ export class BillingComponent implements OnInit, OnDestroy {
   }
 
   exportPayments(): void {
-    const size = this.totalElements > 0 ? this.totalElements : this.pageSize;
-    this.paymentService.getAll(0, size, this.currentFilters()).subscribe({
-      next: (page) => {
-        const dataToExport = page.content.map(pay => ({
+    fetchAllPages((page, size) => this.paymentService.getAll(page, size, this.currentFilters())).subscribe({
+      next: (payments) => {
+        const dataToExport = payments.map(pay => ({
           'Paciente': pay.patientName || 'Paciente Desconocido',
           'Fecha': (pay.paymentDate || '').replace('T', ' '),
           'Monto': pay.amount,
@@ -355,8 +355,8 @@ export class BillingComponent implements OnInit, OnDestroy {
           'Motivo': pay.description || ''
         }));
 
-        this.exportService.exportToExcel(dataToExport, 'Cobros_Facturacion');
-        this.toastService.show(`${page.content.length} cobros exportados`, 'success');
+        this.exportService.exportToCsv(dataToExport, 'Cobros_Facturacion');
+        this.toastService.show(`${payments.length} cobros exportados`, 'success');
       },
       error: (err) => {
         console.error('Error exporting payments', err);

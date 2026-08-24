@@ -1,5 +1,5 @@
 import { Component, HostListener, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { WebsiteSettingsService } from '../../../core/services/website-settings.service';
@@ -17,7 +17,7 @@ import { environment } from '../../../../environments/environment';
 @Component({
   selector: 'app-landing-editor',
   standalone: true,
-  imports: [CommonModule, LandingViewComponent, EditorToolbarComponent, EditorPanelComponent],
+  imports: [LandingViewComponent, EditorToolbarComponent, EditorPanelComponent],
   templateUrl: './landing-editor.component.html',
   styleUrl: './landing-editor.component.css'
 })

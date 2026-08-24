@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ClinicalServiceService } from '../../../core/services/clinical-service.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
@@ -9,7 +9,7 @@ import { FocusTrapDirective } from '../../../shared/directives/focus-trap.direct
 @Component({
   selector: 'app-clinical-services-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, FocusTrapDirective],
+  imports: [ReactiveFormsModule, LucideAngularModule, FocusTrapDirective],
   templateUrl: './clinical-services-form.component.html'
 })
 export class ClinicalServicesFormComponent implements OnInit {

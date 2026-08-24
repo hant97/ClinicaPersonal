@@ -15,6 +15,7 @@ import java.time.LocalTime;
 public class PublicAppointmentConfirmationDto {
     private boolean confirmed;
     private boolean alreadyConfirmed;
+    private boolean confirmable;
     private String message;
     private String patientName;
     private LocalDate appointmentDate;

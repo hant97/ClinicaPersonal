@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { DermatologicalHistoryService } from '../../../core/services/dermatological-history.service';
 import { DermatologicalHistory } from '../../../core/models/dermatological-history.model';
@@ -9,7 +9,7 @@ import { LucideAngularModule, FileText } from 'lucide-angular';
 @Component({
   selector: 'app-dermatological-history-section',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+  imports: [ReactiveFormsModule, LucideAngularModule],
   templateUrl: './dermatological-history-section.component.html',
 })
 export class DermatologicalHistorySectionComponent implements OnInit {

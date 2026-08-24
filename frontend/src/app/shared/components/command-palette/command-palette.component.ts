@@ -1,5 +1,5 @@
 import { Component, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
@@ -37,7 +37,7 @@ export interface CommandItem {
 @Component({
   selector: 'app-command-palette',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+  imports: [ReactiveFormsModule, LucideAngularModule],
   template: `
     @if (isOpen) {
       <div
@@ -57,7 +57,7 @@ export interface CommandItem {
           class="relative w-full max-w-2xl overflow-hidden rounded-xl border border-line bg-surface shadow-floating transform transition-all max-h-[88vh] flex flex-col"
         >
           <!-- Search Header -->
-          <div class="relative flex items-center border-b border-line px-3.5 sm:px-4 bg-slate-50/50 shrink-0">
+          <div class="relative flex items-center border-b border-line px-3.5 sm:px-4 bg-slate-50/50 shrink-0 gap-3">
             <lucide-icon
               [img]="Search"
               [size]="18"
@@ -68,7 +68,7 @@ export interface CommandItem {
               type="text"
               [formControl]="searchControl"
               placeholder="Escribe un comando o busca un paciente..."
-              class="w-full bg-transparent px-2.5 sm:px-3 py-3 sm:py-3.5 text-sm text-ink outline-none placeholder:text-muted"
+              class="w-full bg-transparent py-3 sm:py-3.5 text-sm text-ink outline-none placeholder:text-muted"
               (keydown)="onKeydown($event)"
             />
             <div class="flex items-center gap-1.5 shrink-0">

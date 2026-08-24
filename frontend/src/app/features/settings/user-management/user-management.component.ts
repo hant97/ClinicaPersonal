@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserService } from '../../../core/services/user.service';
 import { UserProfile, CreateUserRequest, AdminUpdateUserRequest } from '../../../core/models/user-profile.model';
@@ -30,7 +30,7 @@ import { SpecialtyItem } from '../../../core/models/specialty.model';
 @Component({
   selector: 'app-user-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PaginationComponent, LucideAngularModule],
+  imports: [ReactiveFormsModule, PaginationComponent, LucideAngularModule],
   templateUrl: './user-management.component.html',
   styleUrls: ['./user-management.component.css'],
 })

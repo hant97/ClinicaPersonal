@@ -1,7 +1,8 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin, Observable, of } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ClinicalHistoryService } from '../../../core/services/clinical-history.service';
 import { ClinicalHistory } from '../../../core/models/clinical-history.model';
 import { PatientService } from '../../../core/services/patient/patient.service';
@@ -10,7 +11,7 @@ import { ClinicalSessionService } from '../../../core/services/clinical-session.
 import { ClinicalSession } from '../../../core/models/clinical-session.model';
 import { DermatologicalEvaluationService } from '../../../core/services/dermatological-evaluation.service';
 import { DermatologicalEvaluation } from '../../../core/models/dermatological-evaluation.model';
-import { PageResponse } from '../../../core/models/page.model';
+import { fetchAllPages } from '../../../core/utils/pagination.util';
 import { ClinicSettingsService, ClinicSettings } from '../../../core/services/clinic-settings.service';
 import { UserService } from '../../../core/services/user.service';
 import { UserProfile } from '../../../core/models/user-profile.model';
@@ -63,6 +64,7 @@ export interface PrintSectionsConfig {
   styleUrls: ['./clinical-history-print.component.css'],
 })
 export class ClinicalHistoryPrintComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   readonly Printer = Printer;
   readonly X = X;
   readonly FileText = FileText;
@@ -335,7 +337,9 @@ export class ClinicalHistoryPrintComponent implements OnInit {
 
 
   ngOnInit(): void {
-    this.clinicSettingsService.settings$.subscribe((settings) => (this.clinicSettings = settings));
+    this.clinicSettingsService.settings$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((settings) => (this.clinicSettings = settings));
     this.clinicSettingsService.loadSettings();
     this.loadData();
   }
@@ -344,24 +348,28 @@ export class ClinicalHistoryPrintComponent implements OnInit {
     this.loading = true;
     this.loadError = false;
 
-    const dermatologicalEvaluations$: Observable<PageResponse<DermatologicalEvaluation> | null> =
+    const dermatologicalEvaluations$: Observable<DermatologicalEvaluation[] | null> =
       this.isDermatology
-        ? this.dermatologicalEvaluationService.getByPatientId(this.patientId, 0, 1000)
+        ? fetchAllPages((page, size) =>
+            this.dermatologicalEvaluationService.getByPatientId(this.patientId, page, size)
+          )
         : of(null);
 
     forkJoin({
       patient: this.patientService.getById(this.patientId),
       history: this.clinicalHistoryService.get(this.patientId),
-      sessions: this.sessionService.getSessionsByPatientId(this.patientId, 0, 1000),
+      sessions: fetchAllPages((page, size) =>
+        this.sessionService.getSessionsByPatientId(this.patientId, page, size)
+      ),
       professional: this.userService.getCurrentUserProfile(),
       dermatologicalEvaluations: dermatologicalEvaluations$,
     }).subscribe({
       next: (result) => {
         this.patient = result.patient;
         this.history = result.history;
-        this.sessions = result.sessions.content;
+        this.sessions = result.sessions;
         this.professional = result.professional;
-        this.dermatologicalEvaluations = result.dermatologicalEvaluations?.content ?? [];
+        this.dermatologicalEvaluations = result.dermatologicalEvaluations ?? [];
         this.loading = false;
         this.loadError = false;
       },

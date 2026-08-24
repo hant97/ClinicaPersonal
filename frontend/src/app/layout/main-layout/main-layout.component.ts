@@ -1,5 +1,5 @@
 import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import {
   LucideAngularModule,
@@ -18,12 +18,14 @@ import {
   Search,
   ChevronRight,
   ChevronLeft,
+  ChevronDown,
   Sparkles,
   Brain,
   Shield,
   X,
   Plus,
-  UserCog
+  UserCog,
+  User
 } from 'lucide-angular';
 import { UserService } from '../../core/services/user.service';
 import { ClinicSettingsService, ClinicSettings } from '../../core/services/clinic-settings.service';
@@ -36,7 +38,7 @@ import { CommandPaletteComponent } from '../../shared/components/command-palette
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule, CommandPaletteComponent],
+  imports: [RouterModule, LucideAngularModule, CommandPaletteComponent],
   templateUrl: './main-layout.component.html',
 })
 export class MainLayoutComponent implements OnInit, OnDestroy {
@@ -55,16 +57,19 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   readonly Search = Search;
   readonly ChevronRight = ChevronRight;
   readonly ChevronLeft = ChevronLeft;
+  readonly ChevronDown = ChevronDown;
   readonly Sparkles = Sparkles;
   readonly Brain = Brain;
   readonly Shield = Shield;
   readonly X = X;
   readonly Plus = Plus;
   readonly UserCog = UserCog;
+  readonly User = User;
 
   isSidebarOpen = false;
   isSidebarExpanded = true;
   isCommandPaletteOpen = false;
+  isProfileMenuOpen = false;
   
   userProfile: UserProfile | null = null;
   greetingName = 'Profesional';
@@ -86,10 +91,27 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   };
 
   @ViewChild('menuToggle', { static: false }) menuToggle?: ElementRef<HTMLButtonElement>;
+  @ViewChild('profileDropdownContainer', { static: false }) profileDropdownContainer?: ElementRef<HTMLElement>;
 
   private profileSubscription?: Subscription;
   private settingsSubscription?: Subscription;
   private routerSubscription?: Subscription;
+
+  get userFullName(): string {
+    if (this.userProfile?.firstName || this.userProfile?.lastName) {
+      return `${this.userProfile.firstName || ''} ${this.userProfile.lastName || ''}`.trim();
+    }
+    return this.userProfile?.username || this.greetingName || 'Usuario';
+  }
+
+  get roleLabel(): string {
+    if (this.isSiteAdmin) return 'Super Admin';
+    if (this.isAdmin) return 'Administrador';
+    if (this.userProfile?.specialty) return this.userProfile.specialty;
+    if (this.isPsychology) return 'Psicología';
+    if (this.isDermatology) return 'Dermatología';
+    return 'Profesional';
+  }
 
   constructor(
     private userService: UserService,
@@ -121,6 +143,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
       .subscribe((event) => {
         this.updateRouteTitle(event.urlAfterRedirects);
+        this.closeProfileMenu();
         if (this.isMobile) {
           this.closeSidebar();
         }
@@ -200,12 +223,37 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     }
   }
 
+  toggleProfileMenu(event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.isProfileMenuOpen = !this.isProfileMenuOpen;
+  }
+
+  closeProfileMenu(): void {
+    this.isProfileMenuOpen = false;
+  }
+
   openCommandPalette(): void {
     this.isCommandPaletteOpen = true;
   }
 
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (
+      this.isProfileMenuOpen &&
+      this.profileDropdownContainer &&
+      !this.profileDropdownContainer.nativeElement.contains(event.target as Node)
+    ) {
+      this.closeProfileMenu();
+    }
+  }
+
   @HostListener('document:keydown.escape')
   onEscape(): void {
+    if (this.isProfileMenuOpen) {
+      this.closeProfileMenu();
+    }
     if (this.isSidebarOpen) {
       this.closeSidebar();
       this.menuToggle?.nativeElement.focus();
@@ -230,6 +278,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
+    this.closeProfileMenu();
     this.authService.logout();
     this.router.navigate(['/login']);
   }

@@ -20,9 +20,6 @@ import com.clinica.backend.repository.WebsiteProfessionalRepository;
 import com.clinica.backend.repository.WebsiteSettingsRepository;
 import com.clinica.backend.repository.WebsiteSpecialtyRepository;
 import jakarta.transaction.Transactional;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ConstraintViolationException;
-import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -33,10 +30,8 @@ import org.springframework.web.multipart.MultipartFile;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
-import java.net.URI;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +46,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class WebsiteSettingsService {
     private static final String SINGLETON_KEY = "S";
-    private static final Set<String> ALLOWED_ICON_CODES = Set.of("HEART_HANDSHAKE", "SHIELD_CHECK", "STETHOSCOPE", "SPARKLES", "MICROSCOPE", "BRAIN");
     private static final Set<String> ALLOWED_IMAGE_CATEGORIES = Set.of("logo", "hero", "approach", "seo");
     private final WebsiteSettingsRepository settingsRepository;
     private final WebsiteLandingDraftRepository draftRepository;
@@ -62,7 +56,7 @@ public class WebsiteSettingsService {
     private final WebsiteProfessionalRepository professionalRepository;
     private final WebsiteFileStorage fileStorage;
     private final ObjectMapper objectMapper;
-    private final Validator validator;
+    private final WebsiteDraftValidationService draftValidationService;
 
     @Transactional
     public PublicLandingDto getPublicLanding() {
@@ -122,7 +116,7 @@ public class WebsiteSettingsService {
         requireRevision(draft, revision);
         WebsiteDraftDto dto = parseDraft(draft.getContent());
         ensureDraftKeys(dto);
-        validateDraft(dto);
+        draftValidationService.validate(dto);
         normalizeDisplayOrder(dto);
 
         Long userId = currentUserId();
@@ -274,30 +268,6 @@ public class WebsiteSettingsService {
         }
         order = 1;
         for (WebsiteDraftDto.Professional item : dto.getProfessionals()) item.setDisplayOrder(order++);
-    }
-
-    private void validateDraft(WebsiteDraftDto dto) {
-        Set<ConstraintViolation<WebsiteDraftDto>> violations = validator.validate(dto);
-        if (!violations.isEmpty()) {
-            throw new ConstraintViolationException(violations);
-        }
-        validateDraftUrlsAndIcons(dto);
-    }
-
-    private void validateDraftUrlsAndIcons(WebsiteDraftDto dto) {
-        List<String> urls = Arrays.asList(
-                dto.getHeroExternalImageUrl(),
-                dto.getApproachExternalImageUrl(),
-                dto.getSeoExternalImageUrl(),
-                dto.getMapUrl(),
-                dto.getFacebookUrl(),
-                dto.getInstagramUrl(),
-                dto.getTiktokUrl(),
-                dto.getLinkedinUrl());
-        urls.forEach(this::validateUrl);
-        dto.getProfessionals().forEach(p -> validateUrl(p.getPhotoExternalUrl()));
-        dto.getSpecialties().forEach(s -> validateIcon(s.getIconCode()));
-        dto.getBenefits().forEach(b -> validateIcon(b.getIconCode()));
     }
 
     private void copyDraftSettings(WebsiteDraftDto d, WebsiteSettings s) {
@@ -581,6 +551,4 @@ public class WebsiteSettingsService {
 
     private String resolve(String assetKey, String externalUrl) { return assetKey == null || assetKey.isBlank() ? externalUrl : fileStorage.publicUrl(assetKey); }
     private String trimToNull(String value) { return value == null || value.trim().isEmpty() ? null : value.trim(); }
-    private void validateIcon(String code) { if (code == null || !ALLOWED_ICON_CODES.contains(code.trim().toUpperCase())) throw new IllegalArgumentException("El icono seleccionado no está permitido"); }
-    private void validateUrl(String value) { if (value == null || value.isBlank()) return; URI uri; try { uri = URI.create(value.trim()); } catch (IllegalArgumentException ex) { throw new IllegalArgumentException("Una URL del sitio no es válida"); } if (!("http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme())) || uri.getHost() == null) throw new IllegalArgumentException("Las URLs deben usar http o https"); }
 }

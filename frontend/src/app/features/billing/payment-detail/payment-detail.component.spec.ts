@@ -43,7 +43,7 @@ describe('PaymentDetailComponent', () => {
       id: 1,
       clinicName: "Cousin'n",
       shortName: 'Cousin',
-      logoUrl: '/api/settings/clinic/logo/test-logo.png',
+      logoUrl: '/api/v1/settings/clinic/logo/test-logo.png',
       contactEmail: 'contacto@clinica.com',
       contactPhone: '999999999',
       address: 'Av. Principal 123'
@@ -108,7 +108,7 @@ describe('PaymentDetailComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const logoImg = compiled.querySelector('header img') as HTMLImageElement;
     expect(logoImg).toBeTruthy();
-    expect(logoImg.src).toContain('http://localhost:8080/api/settings/clinic/logo/test-logo.png');
+    expect(logoImg.src).toContain('http://localhost:8080/api/v1/settings/clinic/logo/test-logo.png');
   });
 
   it('should display fallback icon if logoUrl is not present', () => {

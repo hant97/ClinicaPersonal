@@ -58,6 +58,7 @@ class PaymentServiceTest {
     private InventoryTransactionService inventoryTransactionService;
     private AuditLogService auditLogService;
     private PaymentService paymentService;
+    private PaymentReportService paymentReportService;
 
     @BeforeEach
     void setUp() {
@@ -71,9 +72,10 @@ class PaymentServiceTest {
         attentionRepository = mock(com.clinica.backend.repository.AttentionRepository.class);
         inventoryTransactionService = mock(InventoryTransactionService.class);
         auditLogService = mock(AuditLogService.class);
-        paymentService = new PaymentService(paymentRepository, paymentTransactionRepository, patientRepository,
-                supplyRepository, clinicalServiceRepository, appointmentRepository, clinicalSessionRepository,
+        paymentService = new PaymentService(paymentRepository, patientRepository, supplyRepository,
+                clinicalServiceRepository, appointmentRepository, clinicalSessionRepository,
                 attentionRepository, inventoryTransactionService, auditLogService);
+        paymentReportService = new PaymentReportService(paymentRepository, paymentTransactionRepository, patientRepository);
 
         User user = new User();
         user.setId(1L);
@@ -637,7 +639,7 @@ class PaymentServiceTest {
         when(paymentTransactionRepository.sumReceivedByPatientAndSpecialty(5L, "PSICOLOGIA"))
                 .thenReturn(new BigDecimal("200.00"));
 
-        PatientBalanceDto balance = paymentService.getPatientBalance(5L);
+        PatientBalanceDto balance = paymentReportService.getPatientBalance(5L);
 
         assertEquals(5L, balance.getPatientId());
         assertEquals(new BigDecimal("500.00"), balance.getTotalCharged());
@@ -650,7 +652,7 @@ class PaymentServiceTest {
         when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(5L, "PSICOLOGIA"))
                 .thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> paymentService.getPatientBalance(5L));
+        assertThrows(IllegalArgumentException.class, () -> paymentReportService.getPatientBalance(5L));
     }
 
     @Test
@@ -700,7 +702,7 @@ class PaymentServiceTest {
         when(paymentRepository.sumChargedBySpecialty("PSICOLOGIA")).thenReturn(new BigDecimal("2000.00"));
         when(paymentTransactionRepository.sumReceivedBySpecialty("PSICOLOGIA")).thenReturn(new BigDecimal("1500.00"));
 
-        PaymentSummaryDto summary = paymentService.getSummary(null, null);
+        PaymentSummaryDto summary = paymentReportService.getSummary(null, null);
 
         assertEquals(new BigDecimal("50.00"), summary.getIncomeToday());
         assertEquals(new BigDecimal("1500.00"), summary.getIncomeMonth());
@@ -736,7 +738,7 @@ class PaymentServiceTest {
         when(paymentRepository.sumChargedBySpecialty("PSICOLOGIA")).thenReturn(new BigDecimal("1000.00"));
         when(paymentTransactionRepository.sumReceivedBySpecialty("PSICOLOGIA")).thenReturn(new BigDecimal("400.00"));
 
-        PaymentSummaryDto summary = paymentService.getSummary(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 10));
+        PaymentSummaryDto summary = paymentReportService.getSummary(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 10));
 
         assertEquals(new BigDecimal("300.00"), summary.getIncomeMonth());
         assertEquals(3L, summary.getPaymentsCountMonth());
@@ -756,12 +758,12 @@ class PaymentServiceTest {
     @Test
     void getSummaryShouldFailWhenRangeIsInverted() {
         assertThrows(IllegalArgumentException.class,
-                () -> paymentService.getSummary(LocalDate.of(2026, 2, 1), LocalDate.of(2026, 1, 1)));
+                () -> paymentReportService.getSummary(LocalDate.of(2026, 2, 1), LocalDate.of(2026, 1, 1)));
     }
 
     @Test
     void getSummaryShouldFailWhenRangeExceedsMaxDays() {
         assertThrows(IllegalArgumentException.class,
-                () -> paymentService.getSummary(LocalDate.of(2025, 1, 1), LocalDate.of(2026, 2, 1)));
+                () -> paymentReportService.getSummary(LocalDate.of(2025, 1, 1), LocalDate.of(2026, 2, 1)));
     }
 }

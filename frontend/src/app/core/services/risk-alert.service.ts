@@ -22,7 +22,7 @@ export class RiskAlertService {
     return this.http.get<PageResponse<RiskAlert>>(`${this.apiUrl}/${patientId}/alerts`, { params });
   }
 
-  getAllActiveAlerts(page: number = 0, size: number = 1000): Observable<PageResponse<RiskAlert>> {
+  getAllActiveAlerts(page: number = 0, size: number = 100): Observable<PageResponse<RiskAlert>> {
     const params = new HttpParams().set('page', page.toString()).set('size', size.toString());
     return this.http.get<PageResponse<RiskAlert>>(`${environment.apiUrl}/v1/alerts/active`, { params });
   }

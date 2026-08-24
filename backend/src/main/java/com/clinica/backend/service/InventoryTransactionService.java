@@ -1,6 +1,7 @@
 package com.clinica.backend.service;
 
 import com.clinica.backend.dto.InventoryTransactionDto;
+import com.clinica.backend.exception.ConflictException;
 import com.clinica.backend.model.InventoryTransaction;
 import com.clinica.backend.model.Supply;
 import com.clinica.backend.model.TransactionType;
@@ -36,7 +37,7 @@ public class InventoryTransactionService {
             throw new IllegalArgumentException("El tipo de transacción es obligatorio");
         }
 
-        Supply supply = supplyRepository.findByIdAndDeletedFalse(dto.getSupplyId())
+        Supply supply = supplyRepository.findActiveByIdForUpdate(dto.getSupplyId())
                 .orElseThrow(() -> new IllegalArgumentException("Insumo no encontrado o dado de baja"));
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!user.getSpecialty().equals(supply.getSpecialty())) {
@@ -53,14 +54,14 @@ public class InventoryTransactionService {
         } else if (dto.getType() == TransactionType.OUT) {
             recordedQuantity = Math.abs(dto.getQuantity());
             if (currentStock < recordedQuantity) {
-                throw new IllegalArgumentException("Stock insuficiente para el insumo '" + supply.getName() + "'. Stock actual: " + currentStock + ", requerido: " + recordedQuantity);
+                throw new ConflictException("Stock insuficiente para el insumo '" + supply.getName() + "'. Stock actual: " + currentStock + ", requerido: " + recordedQuantity);
             }
             newStock = currentStock - recordedQuantity;
         } else { // ADJUSTMENT
             recordedQuantity = dto.getQuantity();
             newStock = currentStock + recordedQuantity;
             if (newStock < 0) {
-                throw new IllegalArgumentException("El ajuste resultaría en un stock negativo (" + newStock + ") para el insumo: " + supply.getName());
+                throw new ConflictException("El ajuste resultaría en un stock negativo (" + newStock + ") para el insumo: " + supply.getName());
             }
         }
 

@@ -33,10 +33,19 @@ describe('ScheduleManagementComponent', () => {
     blockSpy.createBlock.and.returnValue(of({ id: 2, title: 'Congreso', startDate: '2026-09-20', endDate: '2026-09-21' }));
     blockSpy.deleteBlock.and.returnValue(of(undefined));
 
-    const userSpy = jasmine.createSpyObj('UserService', ['getProfessionals']);
+    const userSpy = jasmine.createSpyObj('UserService', ['getProfessionals', 'getCurrentUserProfile']);
     userSpy.getProfessionals.and.returnValue(of([
       { id: 1, username: 'dr1', firstName: 'Juan', lastName: 'Pérez', specialty: 'PSICOLOGIA', enabled: true, roles: ['ROLE_ADMIN'] }
     ]));
+    userSpy.getCurrentUserProfile.and.returnValue(of({
+      id: 1,
+      username: 'dr1',
+      firstName: 'Juan',
+      lastName: 'Pérez',
+      specialty: 'PSICOLOGIA',
+      roles: ['ROLE_ADMIN'],
+      enabled: true
+    }));
 
     await TestBed.configureTestingModule({
       imports: [ScheduleManagementComponent, HttpClientTestingModule],

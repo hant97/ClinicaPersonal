@@ -1,23 +1,53 @@
 import { Injectable } from '@angular/core';
-import * as XLSX from 'xlsx';
+
+export type ExportRow = Record<string, unknown>;
 
 @Injectable({
   providedIn: 'root'
 })
 export class ExportService {
 
-  constructor() { }
+  exportToCsv(data: ExportRow[], fileName: string): void {
+    if (data.length === 0) {
+      return;
+    }
 
-  /**
-   * Exports an array of objects to an Excel file (.xlsx)
-   * @param data Array of objects representing the rows
-   * @param fileName The desired name for the downloaded file (without extension)
-   */
-  exportToExcel(data: any[], fileName: string): void {
-    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(data);
-    const workbook: XLSX.WorkBook = { Sheets: { 'data': worksheet }, SheetNames: ['data'] };
-    
-    // Generar buffer y descargar archivo
-    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+    const csv = buildCsv(data);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${sanitizeFileName(fileName)}.csv`;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
   }
+}
+
+export function buildCsv(data: ExportRow[]): string {
+  if (data.length === 0) {
+    return '';
+  }
+
+  const columns = Object.keys(data[0]);
+  const lines = [
+    columns.map(escapeCsvCell).join(';'),
+    ...data.map(row => columns.map(column => escapeCsvCell(row[column])).join(';'))
+  ];
+  return `\uFEFF${lines.join('\r\n')}`;
+}
+
+function escapeCsvCell(value: unknown): string {
+  let text = value == null ? '' : String(value);
+  if (/^[=+\-@]/.test(text)) {
+    text = `'${text}`;
+  }
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
+function sanitizeFileName(fileName: string): string {
+  const sanitized = fileName.trim().replace(/[<>:"/\\|?*\u0000-\u001F]/g, '_');
+  return sanitized || 'exportacion';
 }

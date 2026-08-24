@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaymentSummary } from '../../../core/models/payment.model';
 import {
-  LucideAngularModule, Banknote, Wallet, Receipt, Coins, TrendingUp, TrendingDown, CalendarRange, FilterX
+  LucideAngularModule, Banknote, Wallet, Receipt, Coins, TrendingUp, TrendingDown, CalendarRange, FilterX,
+  CreditCard, AlertCircle, Sparkles, Check, Clock
 } from 'lucide-angular';
 import { Chart, registerables } from 'chart.js';
 
@@ -29,6 +30,11 @@ export class BillingSummaryComponent implements OnChanges, OnDestroy {
   readonly TrendingDown = TrendingDown;
   readonly CalendarRange = CalendarRange;
   readonly FilterX = FilterX;
+  readonly CreditCard = CreditCard;
+  readonly AlertCircle = AlertCircle;
+  readonly Sparkles = Sparkles;
+  readonly Check = Check;
+  readonly Clock = Clock;
 
   @Input() summary: PaymentSummary | null = null;
   @Input() paymentMethodMap: Map<string, string> = new Map();
@@ -40,6 +46,8 @@ export class BillingSummaryComponent implements OnChanges, OnDestroy {
   @ViewChild('incomeCanvas') incomeCanvas?: ElementRef<HTMLCanvasElement>;
   @ViewChild('methodCanvas') methodCanvas?: ElementRef<HTMLCanvasElement>;
 
+  selectedPreset: 'TODAY' | 'WEEK' | 'MONTH' | 'LAST_MONTH' | 'YEAR' | 'CUSTOM' = 'MONTH';
+
   private incomeChart: any = null;
   private methodChart: any = null;
 
@@ -48,7 +56,12 @@ export class BillingSummaryComponent implements OnChanges, OnDestroy {
   }
 
   get periodLabel(): string {
-    return this.isCustomRange ? 'del período' : 'del mes';
+    if (this.selectedPreset === 'TODAY') return 'de hoy';
+    if (this.selectedPreset === 'WEEK') return 'últimos 7 días';
+    if (this.selectedPreset === 'LAST_MONTH') return 'mes anterior';
+    if (this.selectedPreset === 'YEAR') return 'del año';
+    if (this.isCustomRange) return 'del período';
+    return 'este mes';
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -68,6 +81,46 @@ export class BillingSummaryComponent implements OnChanges, OnDestroy {
     }
   }
 
+  setPreset(preset: 'TODAY' | 'WEEK' | 'MONTH' | 'LAST_MONTH' | 'YEAR' | 'CUSTOM'): void {
+    this.selectedPreset = preset;
+    const now = new Date();
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const format = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+    if (preset === 'TODAY') {
+      const todayStr = format(now);
+      this.dateFrom = todayStr;
+      this.dateTo = todayStr;
+    } else if (preset === 'WEEK') {
+      const d = new Date(now);
+      d.setDate(d.getDate() - 6);
+      this.dateFrom = format(d);
+      this.dateTo = format(now);
+    } else if (preset === 'MONTH') {
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      this.dateFrom = format(start);
+      this.dateTo = format(now);
+    } else if (preset === 'LAST_MONTH') {
+      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const end = new Date(now.getFullYear(), now.getMonth(), 0);
+      this.dateFrom = format(start);
+      this.dateTo = format(end);
+    } else if (preset === 'YEAR') {
+      const start = new Date(now.getFullYear(), 0, 1);
+      this.dateFrom = format(start);
+      this.dateTo = format(now);
+    }
+
+    if (preset !== 'CUSTOM') {
+      this.onRangeChange();
+    }
+  }
+
+  onCustomDateChange(): void {
+    this.selectedPreset = 'CUSTOM';
+    this.onRangeChange();
+  }
+
   onRangeChange(): void {
     this.rangeChange.emit({ dateFrom: this.dateFrom, dateTo: this.dateTo });
   }
@@ -75,6 +128,7 @@ export class BillingSummaryComponent implements OnChanges, OnDestroy {
   clearRange(): void {
     this.dateFrom = '';
     this.dateTo = '';
+    this.selectedPreset = 'MONTH';
     this.rangeChange.emit({ dateFrom: '', dateTo: '' });
   }
 

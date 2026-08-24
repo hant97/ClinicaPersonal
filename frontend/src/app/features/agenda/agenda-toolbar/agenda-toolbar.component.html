@@ -1,0 +1,71 @@
+<header class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between border-b border-line pb-4">
+  <div>
+    <div class="flex items-center gap-2">
+      <span class="h-2 w-2 rounded-full bg-primary-600"></span>
+      <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Gestión de Citas y Horarios</p>
+    </div>
+    <h1 id="agenda-title" class="text-2xl font-bold text-ink mt-0.5">Agenda Clínica</h1>
+    <p class="text-xs text-muted mt-1">{{ todayCount }} citas para hoy</p>
+  </div>
+
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
+    <div class="inline-flex rounded-lg border border-line bg-slate-100 p-1">
+      <button type="button" class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition"
+        [ngClass]="currentView === 'calendar' ? 'bg-surface text-primary-700 shadow-sm' : 'text-muted hover:text-ink'"
+        (click)="viewChange.emit('calendar')">
+        <lucide-icon [img]="CalendarDays" [size]="14"></lucide-icon><span>Semana</span>
+      </button>
+      <button type="button" class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition"
+        [ngClass]="currentView === 'list' ? 'bg-surface text-primary-700 shadow-sm' : 'text-muted hover:text-ink'"
+        (click)="viewChange.emit('list')">
+        <lucide-icon [img]="LayoutList" [size]="14"></lucide-icon><span>Lista</span>
+      </button>
+    </div>
+    <button type="button" class="btn-secondary !text-xs !py-1.5" (click)="manageSchedule.emit()">
+      <lucide-icon [img]="Clock" [size]="14"></lucide-icon><span>Disponibilidad y Bloqueos</span>
+    </button>
+    <button type="button" class="btn-secondary !text-xs !py-1.5" (click)="exportRequested.emit()">
+      <lucide-icon [img]="Download" [size]="14"></lucide-icon><span>Exportar</span>
+    </button>
+    <button type="button" class="btn-primary !text-xs !py-1.5" (click)="createRequested.emit()">
+      <lucide-icon [img]="Plus" [size]="14"></lucide-icon><span>Agendar Cita</span>
+    </button>
+  </div>
+</header>
+
+<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" [formGroup]="filterForm">
+  <label class="relative">
+    <span class="sr-only">Buscar por paciente</span>
+    <lucide-icon [img]="Search" [size]="16" class="input-leading-icon"></lucide-icon>
+    <input type="search" formControlName="searchTerm" placeholder="Buscar por paciente..." class="input-field input-with-leading-icon !py-1.5 text-xs" />
+  </label>
+  <label class="relative">
+    <span class="sr-only">Filtrar por profesional</span>
+    <lucide-icon [img]="User" [size]="16" class="input-leading-icon"></lucide-icon>
+    <select formControlName="professionalId" class="input-field input-with-leading-icon !py-1.5 text-xs">
+      <option value="ALL">Todos los profesionales</option>
+      @for (professional of professionals; track professional.id) {
+        <option [value]="professional.id">{{ getProfessionalDisplayName(professional) }}</option>
+      }
+    </select>
+  </label>
+  <label class="relative">
+    <span class="sr-only">Filtrar por estado</span>
+    <lucide-icon [img]="Filter" [size]="16" class="input-leading-icon"></lucide-icon>
+    <select formControlName="status" class="input-field input-with-leading-icon !py-1.5 text-xs">
+      <option value="ALL">Todos los estados</option><option value="PROGRAMADA">Programada</option>
+      <option value="CONFIRMADA">Confirmada</option><option value="COMPLETADA">Completada</option>
+      <option value="NO_ASISTIO">No asistió</option><option value="CANCELADA">Cancelada</option>
+    </select>
+  </label>
+  @if (currentView === 'list') {
+    <label class="relative">
+      <span class="sr-only">Filtrar por fecha</span>
+      <lucide-icon [img]="Calendar" [size]="16" class="input-leading-icon"></lucide-icon>
+      <select formControlName="dateRange" class="input-field input-with-leading-icon !py-1.5 text-xs">
+        <option value="ALL">Cualquier fecha</option><option value="TODAY">Hoy</option>
+        <option value="WEEK">Esta semana</option><option value="MONTH">Este mes</option>
+      </select>
+    </label>
+  }
+</div>

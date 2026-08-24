@@ -10,7 +10,7 @@ import { NotificationService } from '../../../shared/services/notification/notif
 import { ExportService } from '../../../shared/services/export/export.service';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { ViewPreferenceService } from '../../../shared/services/view-preference/view-preference.service';
-import { PatientFormComponent } from '../patient-form/patient-form.component';
+import { fetchAllPages } from '../../../core/utils/pagination.util';
 import {
   LucideAngularModule,
   Search,
@@ -48,8 +48,7 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
     FormsModule,
     PaginationComponent,
     RouterLink,
-    LucideAngularModule,
-    PatientFormComponent
+    LucideAngularModule
   ],
   templateUrl: './patient-list.component.html',
 })
@@ -323,13 +322,13 @@ export class PatientListComponent implements OnInit, OnDestroy {
   }
 
   exportPatients(): void {
-    const size = this.totalElements > 0 ? this.totalElements : this.pageSize;
-    const request = this.searchTerm
-      ? this.patientService.search(this.searchTerm, 0, size, this.activeFilter, this.filterGender || undefined)
-      : this.patientService.getAll(0, size, this.activeFilter, this.filterGender || undefined);
-    request.subscribe({
-      next: (page) => {
-        const dataToExport = page.content.map(patient => ({
+    const requestPage = (page: number, size: number) => this.searchTerm
+      ? this.patientService.search(this.searchTerm, page, size, this.activeFilter, this.filterGender || undefined)
+      : this.patientService.getAll(page, size, this.activeFilter, this.filterGender || undefined);
+
+    fetchAllPages(requestPage).subscribe({
+      next: (patients) => {
+        const dataToExport = patients.map(patient => ({
           'Nombre Completo': `${patient.firstName} ${patient.lastName}`,
           'Documento': patient.identificationDocument || '',
           'Contacto': patient.contactNumber || '',
@@ -340,8 +339,8 @@ export class PatientListComponent implements OnInit, OnDestroy {
           'Estado': patient.active === false ? 'Inactivo' : 'Activo'
         }));
 
-        this.exportService.exportToExcel(dataToExport, 'Directorio_Pacientes');
-        this.toastService.show(`${page.content.length} pacientes exportados`, 'success');
+        this.exportService.exportToCsv(dataToExport, 'Directorio_Pacientes');
+        this.toastService.show(`${patients.length} pacientes exportados`, 'success');
       },
       error: () => this.toastService.show('Error al exportar los pacientes', 'error')
     });

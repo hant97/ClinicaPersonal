@@ -1,5 +1,5 @@
 import { Component, ElementRef, forwardRef, HostListener, Input, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ControlValueAccessor, FormBuilder, FormControl, FormGroup, NG_VALUE_ACCESSOR, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PatientService } from '../../../core/services/patient/patient.service';
 import { Patient } from '../../../core/models/patient.model';
@@ -12,7 +12,7 @@ import { debounceTime, distinctUntilChanged, Subject, switchMap, takeUntil, tap,
 @Component({
   selector: 'app-patient-autocomplete',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+  imports: [ReactiveFormsModule, LucideAngularModule],
   templateUrl: './patient-autocomplete.component.html',
   providers: [
     {

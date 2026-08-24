@@ -1,6 +1,8 @@
 import { Component, OnInit, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { ProfessionalScheduleService } from '../../../core/services/professional-schedule.service';
 import { ScheduleBlockService } from '../../../core/services/schedule-block.service';
 import { UserService } from '../../../core/services/user.service';
@@ -37,11 +39,10 @@ interface DayConfig {
   selector: 'app-schedule-management',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     LucideAngularModule,
     FocusTrapDirective
-  ],
+],
   templateUrl: './schedule-management.component.html'
 })
 export class ScheduleManagementComponent implements OnInit {
@@ -149,17 +150,29 @@ export class ScheduleManagementComponent implements OnInit {
   }
 
   loadProfessionals(): void {
-    this.userService.getProfessionals().subscribe({
-      next: (profs) => {
+    forkJoin({
+      profs: this.userService.getProfessionals(),
+      currentUser: this.userService.getCurrentUserProfile().pipe(catchError(() => of(null)))
+    }).subscribe({
+      next: ({ profs, currentUser }) => {
         this.professionals = profs;
         if (profs.length > 0) {
-          this.selectedProfessionalId = profs[0].id;
-          this.scheduleForm.patchValue({ professionalId: profs[0].id });
-          this.loadScheduleForProfessional(profs[0].id);
+          const defaultProf = currentUser && profs.some(p => p.id === currentUser.id)
+            ? currentUser.id
+            : profs[0].id;
+          this.selectedProfessionalId = defaultProf;
+          this.scheduleForm.patchValue({ professionalId: defaultProf });
+          this.loadScheduleForProfessional(defaultProf);
         }
       },
       error: (err) => console.error('Error loading professionals', err)
     });
+  }
+
+  getProfessionalDisplayName(prof: UserProfile): string {
+    const fullName = [prof.firstName, prof.lastName].filter(Boolean).join(' ').trim();
+    const name = fullName || prof.username || `Profesional #${prof.id}`;
+    return prof.specialty ? `${name} (${prof.specialty})` : name;
   }
 
   onProfessionalChange(event: Event): void {

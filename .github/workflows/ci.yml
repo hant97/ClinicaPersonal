@@ -18,9 +18,9 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: maven
-      - name: Ejecutar pruebas backend
+      - name: Verificar backend, cobertura y análisis estático
         working-directory: backend
-        run: bash mvnw --batch-mode test
+        run: bash mvnw --batch-mode verify
 
   frontend:
     runs-on: ubuntu-latest
@@ -35,9 +35,15 @@ jobs:
       - name: Instalar dependencias
         working-directory: frontend
         run: npm ci
-      - name: Ejecutar pruebas Angular
+      - name: Ejecutar lint Angular y TypeScript
         working-directory: frontend
-        run: npm test -- --watch=false --browsers=ChromeHeadless
+        run: npm run lint
+      - name: Ejecutar pruebas Angular con cobertura
+        working-directory: frontend
+        run: npm run test:coverage
       - name: Compilar Angular
         working-directory: frontend
         run: npm run build
+      - name: Auditar dependencias de producción
+        working-directory: frontend
+        run: npm run audit:prod

@@ -5,6 +5,7 @@ import com.clinica.backend.model.Appointment;
 import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.AppointmentRepository;
+import com.clinica.backend.repository.AppointmentScheduleLockRepository;
 import com.clinica.backend.repository.ClinicalServiceRepository;
 import com.clinica.backend.repository.PatientRepository;
 import com.clinica.backend.repository.PaymentRepository;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -52,6 +54,8 @@ class AppointmentServiceTest {
     private ProfessionalScheduleService professionalScheduleService;
     @Mock
     private ScheduleBlockService scheduleBlockService;
+    @Mock
+    private AppointmentScheduleLockRepository appointmentScheduleLockRepository;
 
     @InjectMocks
     private AppointmentService appointmentService;
@@ -102,6 +106,11 @@ class AppointmentServiceTest {
         assertNotNull(created);
         assertEquals(100L, created.getId());
         assertEquals("PROGRAMADA", created.getStatus());
+        InOrder validationOrder = inOrder(appointmentScheduleLockRepository, appointmentRepository);
+        validationOrder.verify(appointmentScheduleLockRepository)
+                .acquireScheduleLock("PSICOLOGIA", dto.getAppointmentDate());
+        validationOrder.verify(appointmentRepository).findOverlappingAppointments(
+                dto.getAppointmentDate(), dto.getStartTime(), dto.getEndTime(), "PSICOLOGIA", 1L);
         verify(appointmentRepository).save(any(Appointment.class));
     }
 
@@ -186,6 +195,54 @@ class AppointmentServiceTest {
         assertTrue(result.isPaid());
         assertEquals(88L, result.getPaymentId());
         assertEquals(new java.math.BigDecimal("150.00"), result.getPaymentAmount());
+    }
+
+    @Test
+    void listLoadsProfessionalNamesInOneBatch() {
+        Patient patient = new Patient();
+        patient.setId(5L);
+        patient.setFirstName("Ana");
+        patient.setLastName("Pérez");
+
+        Appointment first = appointmentForList(100L, 10L, patient);
+        Appointment second = appointmentForList(101L, 11L, patient);
+        User firstProfessional = new User();
+        firstProfessional.setId(10L);
+        firstProfessional.setFirstName("Lucía");
+        firstProfessional.setLastName("Ramos");
+        User secondProfessional = new User();
+        secondProfessional.setId(11L);
+        secondProfessional.setFirstName("Diego");
+        secondProfessional.setLastName("Vega");
+
+        when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(5L, "PSICOLOGIA"))
+                .thenReturn(Optional.of(patient));
+        when(appointmentRepository.findByPatientIdAndSpecialtyOrderByAppointmentDateDescStartTimeDesc(
+                eq(5L), eq("PSICOLOGIA"), any()))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(first, second)));
+        when(paymentRepository.findByAppointmentIdInAndDeletedFalse(List.of(100L, 101L)))
+                .thenReturn(List.of());
+        when(userRepository.findByIdIn(Set.of(10L, 11L)))
+                .thenReturn(List.of(firstProfessional, secondProfessional));
+
+        var result = appointmentService.getByPatientId(5L, org.springframework.data.domain.PageRequest.of(0, 10));
+
+        assertEquals(List.of("Lucía Ramos", "Diego Vega"),
+                result.getContent().stream().map(AppointmentDto::getProfessionalName).toList());
+        verify(userRepository, times(1)).findByIdIn(Set.of(10L, 11L));
+        verify(userRepository, never()).findById(anyLong());
+    }
+
+    private Appointment appointmentForList(Long id, Long professionalId, Patient patient) {
+        Appointment appointment = new Appointment();
+        appointment.setId(id);
+        appointment.setPatient(patient);
+        appointment.setProfessionalId(professionalId);
+        appointment.setAppointmentDate(LocalDate.now());
+        appointment.setStartTime(LocalTime.of(9, 0));
+        appointment.setEndTime(LocalTime.of(10, 0));
+        appointment.setStatus("PROGRAMADA");
+        return appointment;
     }
 
     @Test

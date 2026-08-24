@@ -147,4 +147,36 @@ class ScheduleBlockServiceTest {
 
         verify(blockRepository).delete(block);
     }
+
+    @Test
+    void listLoadsProfessionalNamesInOneBatch() {
+        ScheduleBlock first = new ScheduleBlock();
+        first.setId(1L);
+        first.setProfessionalId(10L);
+        first.setTitle("Capacitación");
+        ScheduleBlock second = new ScheduleBlock();
+        second.setId(2L);
+        second.setProfessionalId(11L);
+        second.setTitle("Vacaciones");
+        User firstProfessional = new User();
+        firstProfessional.setId(10L);
+        firstProfessional.setFirstName("Ana");
+        firstProfessional.setLastName("Rojas");
+        User secondProfessional = new User();
+        secondProfessional.setId(11L);
+        secondProfessional.setFirstName("Luis");
+        secondProfessional.setLastName("Vega");
+
+        when(blockRepository.findBlocksInRange(eq("PSICOLOGIA"), isNull(), any(), any()))
+                .thenReturn(List.of(first, second));
+        when(userRepository.findByIdIn(Set.of(10L, 11L)))
+                .thenReturn(List.of(firstProfessional, secondProfessional));
+
+        List<ScheduleBlockDto> result = blockService.getBlocks(null, null, null);
+
+        assertEquals(List.of("Ana Rojas", "Luis Vega"),
+                result.stream().map(ScheduleBlockDto::getProfessionalName).toList());
+        verify(userRepository, times(1)).findByIdIn(Set.of(10L, 11L));
+        verify(userRepository, never()).findById(anyLong());
+    }
 }

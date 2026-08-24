@@ -29,8 +29,8 @@ import { CatalogService } from '../../../core/services/catalog.service';
 import { SpecialtyService } from '../../../core/services/specialty.service';
 import { Catalog, CatalogItem } from '../../../core/models/catalog.model';
 import { SpecialtyItem } from '../../../core/models/specialty.model';
-import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-catalog-management',
@@ -108,8 +108,8 @@ export class CatalogManagementComponent implements OnInit {
   constructor(
     private catalogService: CatalogService,
     private specialtyService: SpecialtyService,
-    private notificationService: NotificationService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -133,7 +133,8 @@ export class CatalogManagementComponent implements OnInit {
 
   loadCatalogs(selectedCodeToKeep?: string): void {
     this.loadingCatalogs = true;
-    this.catalogService.getAllAccessibleCatalogs('ALL').subscribe({
+    const requestedSpecialty = this.authService.hasRole('ROLE_SITE_ADMIN') ? 'ALL' : undefined;
+    this.catalogService.getAllAccessibleCatalogs(requestedSpecialty).subscribe({
       next: (catalogs) => {
         this.catalogs = catalogs || [];
         this.loadingCatalogs = false;
@@ -166,7 +167,7 @@ export class CatalogManagementComponent implements OnInit {
       error: (err) => {
         console.error(err);
         this.loadingCatalogs = false;
-        this.notificationService.alert('Error', 'Error al cargar los catálogos del sistema', 'error');
+        this.toastService.error('Error al cargar los catálogos del sistema');
       }
     });
   }

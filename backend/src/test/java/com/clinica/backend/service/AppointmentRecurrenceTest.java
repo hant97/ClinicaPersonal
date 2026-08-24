@@ -5,6 +5,7 @@ import com.clinica.backend.model.Appointment;
 import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.AppointmentRepository;
+import com.clinica.backend.repository.AppointmentScheduleLockRepository;
 import com.clinica.backend.repository.ClinicalServiceRepository;
 import com.clinica.backend.repository.PatientRepository;
 import com.clinica.backend.repository.PaymentRepository;
@@ -53,6 +54,8 @@ class AppointmentRecurrenceTest {
     private ProfessionalScheduleService professionalScheduleService;
     @Mock
     private ScheduleBlockService scheduleBlockService;
+    @Mock
+    private AppointmentScheduleLockRepository appointmentScheduleLockRepository;
 
     @InjectMocks
     private AppointmentService appointmentService;
@@ -115,6 +118,15 @@ class AppointmentRecurrenceTest {
         assertNotNull(result);
         assertNotNull(result.getRecurrenceGroupId());
         assertEquals("WEEKLY;COUNT=4", result.getRecurrenceRule());
+
+        ArgumentCaptor<LocalDate> lockedDates = ArgumentCaptor.forClass(LocalDate.class);
+        verify(appointmentScheduleLockRepository, times(4))
+                .acquireScheduleLock(eq("PSICOLOGIA"), lockedDates.capture());
+        assertEquals(List.of(
+                LocalDate.of(2026, 9, 1),
+                LocalDate.of(2026, 9, 8),
+                LocalDate.of(2026, 9, 15),
+                LocalDate.of(2026, 9, 22)), lockedDates.getAllValues());
 
         ArgumentCaptor<Appointment> captor = ArgumentCaptor.forClass(Appointment.class);
         verify(appointmentRepository, times(4)).save(captor.capture());

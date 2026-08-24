@@ -1,13 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { PatientService } from '../../../core/services/patient/patient.service';
 import { ClinicalSessionService } from '../../../core/services/clinical-session.service';
 import { AppointmentService } from '../../../core/services/appointment.service';
 import { Patient } from '../../../core/models/patient.model';
 import { ClinicalSession } from '../../../core/models/clinical-session.model';
 import { Appointment } from '../../../core/models/appointment.model';
-import { ClinicalSessionFormComponent } from '../clinical-session-form/clinical-session-form.component';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { AssessmentListComponent } from '../assessment-list/assessment-list.component';
@@ -18,6 +18,9 @@ import { CatalogService } from '../../../core/services/catalog.service';
 import { SpecialtyService } from '../../../core/services/specialty.service';
 import { ClinicalHistoryService } from '../../../core/services/clinical-history.service';
 import { ClinicalHistory } from '../../../core/models/clinical-history.model';
+import { Allergy } from '../../../core/models/allergy.model';
+import { Medication } from '../../../core/models/medication.model';
+import { Diagnosis } from '../../../core/models/diagnosis.model';
 import { GeneralHistorySectionComponent } from '../general-history-section/general-history-section.component';
 import { AllergiesSectionComponent } from '../allergies-section/allergies-section.component';
 import { MedicationsSectionComponent } from '../medications-section/medications-section.component';
@@ -36,7 +39,7 @@ import { EvolutionsSectionComponent } from '../evolutions-section/evolutions-sec
 import { DermatologicalEvaluationListComponent } from '../dermatological-evaluation-list/dermatological-evaluation-list.component';
 import { ClinicalHistoryPrintComponent } from '../clinical-history-print/clinical-history-print.component';
 import { PatientPaymentsSectionComponent } from '../patient-payments-section/patient-payments-section.component';
-import { StatusPillComponent } from '../../../shared/components/status-pill/status-pill.component';
+import { PatientSummaryHeaderComponent } from '../patient-summary-header/patient-summary-header.component';
 import {
   LucideAngularModule,
   FileText,
@@ -77,8 +80,6 @@ export type MainTabType = 'timeline' | 'expediente' | 'especialidad' | 'cobros';
   standalone: true,
   imports: [
     CommonModule,
-    RouterLink,
-    ClinicalSessionFormComponent,
     AssessmentListComponent,
     RiskAlertFormComponent,
     GeneralHistorySectionComponent,
@@ -99,12 +100,13 @@ export type MainTabType = 'timeline' | 'expediente' | 'especialidad' | 'cobros';
     ClinicalHistoryPrintComponent,
     PatientPaymentsSectionComponent,
     RiskAlertBannerComponent,
-    LucideAngularModule,
-    StatusPillComponent
+    PatientSummaryHeaderComponent,
+    LucideAngularModule
   ],
   templateUrl: './patient-detail.component.html',
 })
 export class PatientDetailComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   readonly FileText = FileText;
   readonly Pill = Pill;
   readonly ClipboardList = ClipboardList;
@@ -158,9 +160,9 @@ export class PatientDetailComponent implements OnInit {
   collapsedSections: Record<string, boolean> = {};
 
   counts: Record<string, number> = {};
-  allergies: any[] = [];
-  medications: any[] = [];
-  diagnoses: any[] = [];
+  allergies: Allergy[] = [];
+  medications: Medication[] = [];
+  diagnoses: Diagnosis[] = [];
 
   isPsychology = false;
   isDermatology = false;
@@ -198,14 +200,14 @@ export class PatientDetailComponent implements OnInit {
       this.activeSpecialtySubTab = 'evaluacion-inicial';
     }
 
-    this.route.paramMap.subscribe(params => {
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       const id = params.get('id');
       if (id) {
         this.loadAllPatientData(id);
       }
     });
 
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       if (params['newSession'] === 'true') {
         this.activeTab = 'timeline';
         this.openForm();
@@ -351,7 +353,7 @@ export class PatientDetailComponent implements OnInit {
         };
         this.updateComputedCounts();
       },
-      error: () => {}
+      error: () => this.toastService.show('No se pudo cargar la historia clínica', 'error')
     });
   }
 
@@ -361,7 +363,7 @@ export class PatientDetailComponent implements OnInit {
         this.activeAlerts = data.content;
         this.resolveAlertLabels();
       },
-      error: (err) => console.error('Error fetching alerts', err)
+      error: () => this.toastService.show('No se pudieron cargar las alertas del paciente', 'error')
     });
   }
 
@@ -387,10 +389,16 @@ export class PatientDetailComponent implements OnInit {
 
             this.activeAlerts = filteredAlerts;
           },
-          error: (err) => console.error('Error fetching RISK_ALERT_LEVEL', err)
+          error: (err) => {
+            console.error('Error fetching RISK_ALERT_LEVEL', err);
+            this.toastService.show('No se pudieron resolver los niveles de alerta', 'error');
+          }
         });
       },
-      error: (err) => console.error('Error fetching ' + catalogCode, err)
+      error: (err) => {
+        console.error('Error fetching ' + catalogCode, err);
+        this.toastService.show('No se pudieron resolver los tipos de alerta', 'error');
+      }
     });
   }
 
@@ -477,7 +485,7 @@ export class PatientDetailComponent implements OnInit {
   loadSessions(patientId: number): void {
     this.sessionService.getSessionsByPatientId(patientId).subscribe({
       next: (data) => this.sessions = data.content,
-      error: (err) => console.error('Error fetching sessions', err)
+      error: () => this.toastService.show('No se pudieron cargar las sesiones clínicas', 'error')
     });
   }
 
@@ -495,7 +503,7 @@ export class PatientDetailComponent implements OnInit {
           .slice(0, 3);
         this.nextUpcomingAppointment = this.upcomingAppointments.length > 0 ? this.upcomingAppointments[0] : undefined;
       },
-      error: (err) => console.error('Error fetching appointments', err)
+      error: () => this.toastService.show('No se pudieron cargar las citas del paciente', 'error')
     });
   }
 

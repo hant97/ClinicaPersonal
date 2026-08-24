@@ -53,7 +53,7 @@ class AppointmentConfirmationServiceTest {
         Appointment appointment = buildAppointment("PROGRAMADA");
         ClinicSettings settings = new ClinicSettings();
         settings.setClinicName("Clínica Vida Saludable");
-        when(appointmentRepository.findByConfirmationToken("token-123")).thenReturn(Optional.of(appointment));
+        when(appointmentRepository.findByConfirmationTokenForUpdate("token-123")).thenReturn(Optional.of(appointment));
         when(clinicSettingsRepository.findTopBySpecialtyAndDeletedFalseOrderByIdAsc("PSICOLOGIA"))
                 .thenReturn(Optional.of(settings));
         when(appointmentRepository.save(any(Appointment.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -62,6 +62,7 @@ class AppointmentConfirmationServiceTest {
 
         assertTrue(result.isConfirmed());
         assertFalse(result.isAlreadyConfirmed());
+        assertFalse(result.isConfirmable());
         assertEquals("Ana Gomez", result.getPatientName());
         assertEquals("Clínica Vida Saludable", result.getClinicName());
         assertEquals("CONFIRMADA", appointment.getStatus());
@@ -72,7 +73,7 @@ class AppointmentConfirmationServiceTest {
     @Test
     void confirmShouldReportAlreadyConfirmedWithoutSaving() {
         Appointment appointment = buildAppointment("CONFIRMADA");
-        when(appointmentRepository.findByConfirmationToken("token-123")).thenReturn(Optional.of(appointment));
+        when(appointmentRepository.findByConfirmationTokenForUpdate("token-123")).thenReturn(Optional.of(appointment));
 
         PublicAppointmentConfirmationDto result = confirmationService.confirmByToken("token-123");
 
@@ -84,7 +85,7 @@ class AppointmentConfirmationServiceTest {
     @Test
     void confirmShouldRejectCancelledAppointment() {
         Appointment appointment = buildAppointment("CANCELADA");
-        when(appointmentRepository.findByConfirmationToken("token-123")).thenReturn(Optional.of(appointment));
+        when(appointmentRepository.findByConfirmationTokenForUpdate("token-123")).thenReturn(Optional.of(appointment));
 
         PublicAppointmentConfirmationDto result = confirmationService.confirmByToken("token-123");
 
@@ -95,8 +96,24 @@ class AppointmentConfirmationServiceTest {
 
     @Test
     void confirmShouldThrowWhenTokenNotFound() {
-        when(appointmentRepository.findByConfirmationToken("missing")).thenReturn(Optional.empty());
+        when(appointmentRepository.findByConfirmationTokenForUpdate("missing")).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class, () -> confirmationService.confirmByToken("missing"));
+    }
+
+    @Test
+    void getShouldReturnPreviewWithoutChangingAppointment() {
+        Appointment appointment = buildAppointment("PROGRAMADA");
+        when(appointmentRepository.findByConfirmationToken("token-123")).thenReturn(Optional.of(appointment));
+
+        PublicAppointmentConfirmationDto result = confirmationService.getConfirmationByToken("token-123");
+
+        assertFalse(result.isConfirmed());
+        assertFalse(result.isAlreadyConfirmed());
+        assertTrue(result.isConfirmable());
+        assertEquals("PROGRAMADA", appointment.getStatus());
+        assertNull(appointment.getConfirmedAt());
+        verify(appointmentRepository, never()).save(any(Appointment.class));
+        verify(appointmentRepository, never()).findByConfirmationTokenForUpdate(any());
     }
 }

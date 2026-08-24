@@ -72,7 +72,7 @@ export class DrawerSheetComponent {
   @Output() closed = new EventEmitter<void>();
 
   @HostListener('document:keydown.escape', ['$event'])
-  onEscapeKey(event: KeyboardEvent): void {
+  onEscapeKey(event: Event): void {
     if (this.isOpen) {
       event.preventDefault();
       this.close();

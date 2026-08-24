@@ -21,12 +21,10 @@
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-12">
       <!-- Search input -->
       <div class="sm:col-span-6 relative">
-        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-muted">
-          <lucide-icon [img]="Search" [size]="16"></lucide-icon>
-        </div>
+        <lucide-icon [img]="Search" [size]="16" class="input-leading-icon"></lucide-icon>
         <input
           type="text"
-          class="input-field !pl-9"
+          class="input-field input-with-leading-icon"
           placeholder="Buscar por nombre, usuario o email…"
           [value]="searchQuery"
           (input)="onSearch($any($event.target).value)"

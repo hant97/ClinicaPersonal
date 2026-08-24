@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AssessmentService } from '../../../core/services/assessment.service';
@@ -18,7 +18,7 @@ interface TestCatalogFormValue {
 @Component({
   selector: 'app-tests-catalog-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+  imports: [ReactiveFormsModule, LucideAngularModule],
   templateUrl: './tests-catalog-form.component.html'
 })
 export class TestsCatalogFormComponent implements OnInit {

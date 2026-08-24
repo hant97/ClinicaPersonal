@@ -5,6 +5,7 @@ import com.clinica.backend.model.Appointment;
 import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.AppointmentRepository;
+import com.clinica.backend.repository.AppointmentScheduleLockRepository;
 import com.clinica.backend.repository.ClinicalServiceRepository;
 import com.clinica.backend.repository.PatientRepository;
 import com.clinica.backend.repository.PaymentRepository;
@@ -48,6 +49,8 @@ class AppointmentAvailabilityTest {
     private ProfessionalScheduleService professionalScheduleService;
     @Mock
     private ScheduleBlockService scheduleBlockService;
+    @Mock
+    private AppointmentScheduleLockRepository appointmentScheduleLockRepository;
 
     @InjectMocks
     private AppointmentService appointmentService;

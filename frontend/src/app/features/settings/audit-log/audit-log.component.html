@@ -27,12 +27,10 @@
           Búsqueda de detalle
         </label>
         <div class="relative">
-          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-muted">
-            <lucide-icon [img]="Search" [size]="15"></lucide-icon>
-          </div>
+          <lucide-icon [img]="Search" [size]="15" class="input-leading-icon"></lucide-icon>
           <input
             type="text"
-            class="input-field !pl-9 text-sm"
+            class="input-field input-with-leading-icon text-sm"
             placeholder="Buscar por detalle o ID..."
             [(ngModel)]="searchQuery"
             (keyup.enter)="applyFilters()"
@@ -46,12 +44,10 @@
           Usuario
         </label>
         <div class="relative">
-          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-muted">
-            <lucide-icon [img]="User" [size]="15"></lucide-icon>
-          </div>
+          <lucide-icon [img]="User" [size]="15" class="input-leading-icon"></lucide-icon>
           <input
             type="text"
-            class="input-field !pl-9 text-sm"
+            class="input-field input-with-leading-icon text-sm"
             placeholder="Filtrar por usuario..."
             [(ngModel)]="searchUsername"
             (keyup.enter)="applyFilters()"

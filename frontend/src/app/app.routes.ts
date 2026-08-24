@@ -1,38 +1,32 @@
 import { Routes } from '@angular/router';
-import { LoginComponent } from './features/auth/login/login.component';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
-import { DashboardComponent } from './features/dashboard/dashboard/dashboard.component';
-import { PatientListComponent } from './features/patients/patient-list/patient-list.component';
-import { PatientFormComponent } from './features/patients/patient-form/patient-form.component';
-import { PatientDetailComponent } from './features/patients/patient-detail/patient-detail.component';
-import { AgendaComponent } from './features/agenda/agenda/agenda.component';
-import { AttentionListComponent } from './features/attentions/attention-list/attention-list.component';
-import { BillingComponent } from './features/billing/billing/billing.component';
 import { authGuard } from './core/guards/auth.guard';
 import { specialtyGuard } from './core/guards/specialty.guard';
 import { adminGuard } from './core/guards/admin.guard';
 import { siteAdminGuard } from './core/guards/site-admin.guard';
 
-import { TestsCatalogListComponent } from './features/tests-catalog/tests-catalog-list/tests-catalog-list.component';
-import { TestsCatalogFormComponent } from './features/tests-catalog/tests-catalog-form/tests-catalog-form.component';
-import { InventoryListComponent } from './features/inventory/inventory-list/inventory-list.component';
-import { ClinicalServicesListComponent } from './features/clinical-services/clinical-services-list/clinical-services-list.component';
-import { CatalogManagementComponent } from './features/settings/catalog-management/catalog-management.component';
-import { UserManagementComponent } from './features/settings/user-management/user-management.component';
-import { AuditLogComponent } from './features/settings/audit-log/audit-log.component';
-import { UserProfileComponent } from './features/profile/user-profile/user-profile.component';
-import { LandingComponent } from './features/public/landing/landing.component';
-import { PrescriptionVerifyComponent } from './features/public/prescription-verify/prescription-verify.component';
-import { AppointmentConfirmComponent } from './features/public/appointment-confirm/appointment-confirm.component';
-import { NotFoundComponent } from './features/public/not-found/not-found.component';
-
-import { ClinicalSessionPageComponent } from './features/patients/clinical-session-page/clinical-session-page.component';
-
 export const routes: Routes = [
-  { path: '', component: LandingComponent, pathMatch: 'full', title: 'Dermatología y Psicología' },
-  { path: 'login', component: LoginComponent, title: 'Iniciar sesión' },
-  { path: 'verificar-receta/:code', component: PrescriptionVerifyComponent, title: 'Verificación de Receta Médica' },
-  { path: 'confirmar-cita/:token', component: AppointmentConfirmComponent, title: 'Confirmación de Cita' },
+  {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () => import('./features/public/landing/landing.component').then(m => m.LandingComponent),
+    title: 'Dermatología y Psicología'
+  },
+  {
+    path: 'login',
+    loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent),
+    title: 'Iniciar sesión'
+  },
+  {
+    path: 'verificar-receta/:code',
+    loadComponent: () => import('./features/public/prescription-verify/prescription-verify.component').then(m => m.PrescriptionVerifyComponent),
+    title: 'Verificación de Receta Médica'
+  },
+  {
+    path: 'confirmar-cita/:token',
+    loadComponent: () => import('./features/public/appointment-confirm/appointment-confirm.component').then(m => m.AppointmentConfirmComponent),
+    title: 'Confirmación de Cita'
+  },
   {
     path: 'editar-sitio',
     canActivate: [siteAdminGuard],
@@ -44,30 +38,30 @@ export const routes: Routes = [
     component: MainLayoutComponent,
     canActivate: [authGuard],
     children: [
-      { path: 'dashboard', component: DashboardComponent, title: 'Dashboard' },
-      { path: 'patients', component: PatientListComponent, title: 'Pacientes' },
-      { path: 'patients/new', component: PatientFormComponent, title: 'Nuevo Paciente' },
-      { path: 'patients/:identifier/edit', component: PatientFormComponent, title: 'Editar Paciente' },
-      { path: 'patients/:id', component: PatientDetailComponent, title: 'Ficha del paciente' },
-      { path: 'patients/:id/sessions/new', component: ClinicalSessionPageComponent, title: 'Nueva Consulta Clínica' },
-      { path: 'patients/:id/sessions/:sessionId/edit', component: ClinicalSessionPageComponent, title: 'Editar Consulta Clínica' },
-      { path: 'agenda', component: AgendaComponent, title: 'Agenda' },
-      { path: 'attentions', component: AttentionListComponent, title: 'Atenciones' },
-      { path: 'billing', component: BillingComponent, title: 'Cobros' },
+      { path: 'dashboard', loadComponent: () => import('./features/dashboard/dashboard/dashboard.component').then(m => m.DashboardComponent), title: 'Dashboard' },
+      { path: 'patients', loadComponent: () => import('./features/patients/patient-list/patient-list.component').then(m => m.PatientListComponent), title: 'Pacientes' },
+      { path: 'patients/new', loadComponent: () => import('./features/patients/patient-form/patient-form.component').then(m => m.PatientFormComponent), title: 'Nuevo Paciente' },
+      { path: 'patients/:identifier/edit', loadComponent: () => import('./features/patients/patient-form/patient-form.component').then(m => m.PatientFormComponent), title: 'Editar Paciente' },
+      { path: 'patients/:id', loadComponent: () => import('./features/patients/patient-detail/patient-detail.component').then(m => m.PatientDetailComponent), title: 'Ficha del paciente' },
+      { path: 'patients/:id/sessions/new', loadComponent: () => import('./features/patients/clinical-session-page/clinical-session-page.component').then(m => m.ClinicalSessionPageComponent), title: 'Nueva Consulta Clínica' },
+      { path: 'patients/:id/sessions/:sessionId/edit', loadComponent: () => import('./features/patients/clinical-session-page/clinical-session-page.component').then(m => m.ClinicalSessionPageComponent), title: 'Editar Consulta Clínica' },
+      { path: 'agenda', loadComponent: () => import('./features/agenda/agenda/agenda.component').then(m => m.AgendaComponent), title: 'Agenda' },
+      { path: 'attentions', loadComponent: () => import('./features/attentions/attention-list/attention-list.component').then(m => m.AttentionListComponent), title: 'Atenciones' },
+      { path: 'billing', loadComponent: () => import('./features/billing/billing/billing.component').then(m => m.BillingComponent), title: 'Cobros' },
 
       // Rutas exclusivas de Psicología
-      { path: 'tests-catalog', component: TestsCatalogListComponent, canActivate: [specialtyGuard('PSICOLOGIA')], title: 'Pruebas psicométricas' },
-      { path: 'tests-catalog/new', component: TestsCatalogFormComponent, canActivate: [specialtyGuard('PSICOLOGIA')], title: 'Nueva prueba' },
-      { path: 'tests-catalog/edit/:id', component: TestsCatalogFormComponent, canActivate: [specialtyGuard('PSICOLOGIA')], title: 'Editar prueba' },
+      { path: 'tests-catalog', loadComponent: () => import('./features/tests-catalog/tests-catalog-list/tests-catalog-list.component').then(m => m.TestsCatalogListComponent), canActivate: [specialtyGuard('PSICOLOGIA')], title: 'Pruebas psicométricas' },
+      { path: 'tests-catalog/new', loadComponent: () => import('./features/tests-catalog/tests-catalog-form/tests-catalog-form.component').then(m => m.TestsCatalogFormComponent), canActivate: [specialtyGuard('PSICOLOGIA')], title: 'Nueva prueba' },
+      { path: 'tests-catalog/edit/:id', loadComponent: () => import('./features/tests-catalog/tests-catalog-form/tests-catalog-form.component').then(m => m.TestsCatalogFormComponent), canActivate: [specialtyGuard('PSICOLOGIA')], title: 'Editar prueba' },
 
-      { path: 'inventory', component: InventoryListComponent, title: 'Inventario' },
-      { path: 'services', component: ClinicalServicesListComponent, title: 'Servicios clínicos' },
-      { path: 'settings/catalogs', component: CatalogManagementComponent, title: 'Catálogos' },
-      { path: 'settings/users', component: UserManagementComponent, canActivate: [adminGuard], title: 'Gestión de Personal y Cuentas' },
-      { path: 'settings/audit', component: AuditLogComponent, canActivate: [adminGuard], title: 'Registro de Auditoría' },
+      { path: 'inventory', loadComponent: () => import('./features/inventory/inventory-list/inventory-list.component').then(m => m.InventoryListComponent), title: 'Inventario' },
+      { path: 'services', loadComponent: () => import('./features/clinical-services/clinical-services-list/clinical-services-list.component').then(m => m.ClinicalServicesListComponent), title: 'Servicios clínicos' },
+      { path: 'settings/catalogs', loadComponent: () => import('./features/settings/catalog-management/catalog-management.component').then(m => m.CatalogManagementComponent), canActivate: [adminGuard], title: 'Catálogos' },
+      { path: 'settings/users', loadComponent: () => import('./features/settings/user-management/user-management.component').then(m => m.UserManagementComponent), canActivate: [adminGuard], title: 'Gestión de Personal y Cuentas' },
+      { path: 'settings/audit', loadComponent: () => import('./features/settings/audit-log/audit-log.component').then(m => m.AuditLogComponent), canActivate: [adminGuard], title: 'Registro de Auditoría' },
       { path: 'settings/website', redirectTo: '/editar-sitio', pathMatch: 'full' },
-      { path: 'profile', component: UserProfileComponent, title: 'Mi perfil' }
+      { path: 'profile', loadComponent: () => import('./features/profile/user-profile/user-profile.component').then(m => m.UserProfileComponent), title: 'Mi perfil' }
     ]
   },
-  { path: '**', component: NotFoundComponent, title: 'Página no encontrada' }
+  { path: '**', loadComponent: () => import('./features/public/not-found/not-found.component').then(m => m.NotFoundComponent), title: 'Página no encontrada' }
 ];

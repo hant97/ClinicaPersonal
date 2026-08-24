@@ -15,7 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 @RestController
-@RequestMapping({"/api/v1/assessments", "/api/assessments"})
+@RequestMapping("/api/v1/assessments")
 @RequiredArgsConstructor
 public class AssessmentController {
 

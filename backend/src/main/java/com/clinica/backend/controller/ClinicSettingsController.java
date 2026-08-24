@@ -19,7 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @RestController
-@RequestMapping({"/api/v1/settings/clinic", "/api/settings/clinic"})
+@RequestMapping("/api/v1/settings/clinic")
 @RequiredArgsConstructor
 public class ClinicSettingsController {
 

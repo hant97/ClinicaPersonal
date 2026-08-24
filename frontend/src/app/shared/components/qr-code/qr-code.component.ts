@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 /**
  * Lightweight, zero-dependency QR Code generator component.
@@ -8,7 +8,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-qr-code',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <div class="qr-container inline-block" [style.width.px]="size" [style.height.px]="size">
       <svg

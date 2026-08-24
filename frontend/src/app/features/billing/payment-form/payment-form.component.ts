@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Output, OnInit, OnChanges, Input } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, Output, OnInit, OnChanges, Input, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormArray } from '@angular/forms';
 import { PaymentService } from '../../../core/services/payment.service';
@@ -64,6 +65,7 @@ interface PaymentFormValue {
   templateUrl: './payment-form.component.html'
 })
 export class PaymentFormComponent implements OnInit, OnChanges {
+  private readonly destroyRef = inject(DestroyRef);
   // Lucide Icons
   readonly Receipt = Receipt;
   readonly Plus = Plus;
@@ -151,7 +153,7 @@ export class PaymentFormComponent implements OnInit, OnChanges {
       this.loadPatientAppointments(initialPatientId);
     }
 
-    this.paymentForm.get('patientId')?.valueChanges.subscribe(val => {
+    this.paymentForm.get('patientId')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(val => {
       if (!this.initialData?.appointmentId) {
         this.selectedAppointmentId = null;
       }
@@ -175,8 +177,8 @@ export class PaymentFormComponent implements OnInit, OnChanges {
     }
 
     // Auto-calculate total amount based on items
-    this.services.valueChanges.subscribe(() => this.calculateTotal());
-    this.supplies.valueChanges.subscribe(() => this.calculateTotal());
+    this.services.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.calculateTotal());
+    this.supplies.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.calculateTotal());
   }
 
   get services(): FormArray {
@@ -229,8 +231,8 @@ export class PaymentFormComponent implements OnInit, OnChanges {
       clinicalServiceId: [itemData?.clinicalServiceId || null, Validators.required]
     });
 
-    itemGroup.get('quantity')?.valueChanges.subscribe(() => this.updateItemTotal(itemGroup));
-    itemGroup.get('unitPrice')?.valueChanges.subscribe(() => this.updateItemTotal(itemGroup));
+    itemGroup.get('quantity')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.updateItemTotal(itemGroup));
+    itemGroup.get('unitPrice')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.updateItemTotal(itemGroup));
 
     this.services.push(itemGroup);
   }
@@ -244,8 +246,8 @@ export class PaymentFormComponent implements OnInit, OnChanges {
       supplyId: [itemData?.supplyId || null, Validators.required]
     });
 
-    itemGroup.get('quantity')?.valueChanges.subscribe(() => this.updateItemTotal(itemGroup));
-    itemGroup.get('unitPrice')?.valueChanges.subscribe(() => this.updateItemTotal(itemGroup));
+    itemGroup.get('quantity')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.updateItemTotal(itemGroup));
+    itemGroup.get('unitPrice')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.updateItemTotal(itemGroup));
 
     this.supplies.push(itemGroup);
   }

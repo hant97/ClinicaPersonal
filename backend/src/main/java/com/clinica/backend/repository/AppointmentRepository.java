@@ -1,9 +1,12 @@
 package com.clinica.backend.repository;
 
 import com.clinica.backend.model.Appointment;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -15,7 +18,15 @@ import java.util.Optional;
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
     Optional<Appointment> findByIdAndSpecialty(Long id, String specialty);
     Optional<Appointment> findByConfirmationToken(String confirmationToken);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT a FROM Appointment a WHERE a.confirmationToken = :confirmationToken")
+    Optional<Appointment> findByConfirmationTokenForUpdate(
+            @Param("confirmationToken") String confirmationToken);
+    @EntityGraph(attributePaths = {"patient", "clinicalService"})
     Page<Appointment> findByPatientIdAndSpecialtyOrderByAppointmentDateDescStartTimeDesc(Long patientId, String specialty, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"patient", "clinicalService"})
     Page<Appointment> findAllBySpecialtyOrderByAppointmentDateAscStartTimeAsc(String specialty, Pageable pageable);
     List<Appointment> findByAppointmentDateAndStatusNotAndSpecialty(LocalDate date, String status, String specialty);
 
@@ -58,6 +69,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findByRecurrenceGroupIdAndSpecialtyAndAppointmentDateGreaterThanEqualOrderByAppointmentDateAscStartTimeAsc(
             String recurrenceGroupId, String specialty, LocalDate startDate);
 
+    @EntityGraph(attributePaths = {"patient", "clinicalService"})
     @Query("SELECT a FROM Appointment a " +
            "WHERE (cast(:searchTerm as string) IS NULL OR cast(:searchTerm as string) = '' OR LOWER(a.patient.firstName) LIKE LOWER(CONCAT('%', cast(:searchTerm as string), '%')) OR LOWER(a.patient.lastName) LIKE LOWER(CONCAT('%', cast(:searchTerm as string), '%'))) " +
            "AND (cast(:status as string) IS NULL OR a.status = :status) " +

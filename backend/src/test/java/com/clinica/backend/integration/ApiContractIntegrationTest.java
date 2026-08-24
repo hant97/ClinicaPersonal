@@ -4,10 +4,12 @@ import com.clinica.backend.config.CatalogDataInitializer;
 import com.clinica.backend.config.DataSeeder;
 import com.clinica.backend.config.MockDataSeeder;
 import com.clinica.backend.model.ClinicalSession;
+import com.clinica.backend.model.Catalog;
 import com.clinica.backend.model.DermatologicalEvaluation;
 import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.ClinicalSessionRepository;
+import com.clinica.backend.repository.CatalogRepository;
 import com.clinica.backend.repository.DermatologicalEvaluationRepository;
 import com.clinica.backend.repository.PatientRepository;
 import com.clinica.backend.repository.UserRepository;
@@ -30,6 +32,7 @@ import java.time.LocalTime;
 import java.util.Set;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -57,6 +60,9 @@ class ApiContractIntegrationTest {
 
     @Autowired
     private ClinicalSessionRepository clinicalSessionRepository;
+
+    @Autowired
+    private CatalogRepository catalogRepository;
 
     @Autowired
     private DermatologicalEvaluationRepository dermatologicalEvaluationRepository;
@@ -169,6 +175,58 @@ class ApiContractIntegrationTest {
     }
 
     @Test
+    void rejectsInvalidOrMassivePaginationParameters() throws Exception {
+        User professional = createUser("pagination.staff", "password", "PSICOLOGIA", "ROLE_STAFF");
+
+        mockMvc.perform(get("/api/v1/patients")
+                        .param("page", "-1")
+                        .param("size", "20")
+                        .header("Authorization", bearer(professional)))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(get("/api/v1/patients")
+                        .param("page", "0")
+                        .param("size", "101")
+                        .header("Authorization", bearer(professional)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void catalogScopeComesFromAuthenticatedUser() throws Exception {
+        User professional = createUser("catalog.professional", "password", "PSICOLOGIA", "ROLE_STAFF");
+        User clinicalAdmin = createUser("catalog.admin", "password", "DERMATOLOGIA", "ROLE_ADMIN");
+        User siteAdmin = createUser("catalog.site-admin", "password", "GENERAL", "ROLE_SITE_ADMIN");
+        saveCatalog("CAT_GENERAL", "GENERAL");
+        saveCatalog("CAT_PSYCHOLOGY", "PSICOLOGIA");
+        saveCatalog("CAT_DERMATOLOGY", "DERMATOLOGIA");
+
+        mockMvc.perform(get("/api/v1/catalogs")
+                        .param("size", "100")
+                        .header("Authorization", bearer(professional)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[*].code")
+                        .value(containsInAnyOrder("CAT_GENERAL", "CAT_PSYCHOLOGY")));
+
+        mockMvc.perform(get("/api/v1/catalogs")
+                        .param("specialty", "ALL")
+                        .header("Authorization", bearer(professional)))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(get("/api/v1/catalogs")
+                        .param("specialty", "PSICOLOGIA")
+                        .header("Authorization", bearer(clinicalAdmin)))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(get("/api/v1/catalogs")
+                        .param("specialty", "ALL")
+                        .param("size", "100")
+                        .header("Authorization", bearer(siteAdmin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[*].code")
+                        .value(containsInAnyOrder("CAT_GENERAL", "CAT_PSYCHOLOGY", "CAT_DERMATOLOGY")));
+    }
+
+    @Test
     void returnsStructuredValidationErrorsForInvalidPatientDto() throws Exception {
         User professional = createUser("validation.staff", "password", "PSICOLOGIA", "ROLE_STAFF");
 
@@ -221,6 +279,14 @@ class ApiContractIntegrationTest {
         patient.setDateOfBirth(LocalDate.of(1990, 1, 1));
         patient.setGender("Masculino");
         return patientRepository.saveAndFlush(patient);
+    }
+
+    private void saveCatalog(String code, String specialty) {
+        Catalog catalog = new Catalog();
+        catalog.setCode(code);
+        catalog.setName(code);
+        catalog.setSpecialty(specialty);
+        catalogRepository.saveAndFlush(catalog);
     }
 
     private void saveEvaluation(Patient patient, User professional, LocalDate date) {

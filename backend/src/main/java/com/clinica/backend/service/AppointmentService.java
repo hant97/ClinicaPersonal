@@ -1,6 +1,7 @@
 package com.clinica.backend.service;
 
 import com.clinica.backend.dto.AppointmentDto;
+import com.clinica.backend.exception.ConflictException;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.Appointment;
 import com.clinica.backend.model.Attention;
@@ -9,6 +10,7 @@ import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.Payment;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.AppointmentRepository;
+import com.clinica.backend.repository.AppointmentScheduleLockRepository;
 import com.clinica.backend.repository.AttentionRepository;
 import com.clinica.backend.repository.ClinicalServiceRepository;
 import com.clinica.backend.repository.PatientRepository;
@@ -24,10 +26,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 import java.util.UUID;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,6 +48,7 @@ public class AppointmentService {
     private final GoogleCalendarService googleCalendarService;
     private final ProfessionalScheduleService professionalScheduleService;
     private final ScheduleBlockService scheduleBlockService;
+    private final AppointmentScheduleLockRepository appointmentScheduleLockRepository;
 
     private String getCurrentUserSpecialty() {
         return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getSpecialty();
@@ -84,9 +91,15 @@ public class AppointmentService {
                 ? Math.min(dto.getRecurrenceCount(), 52)
                 : 1;
 
-        // Validar todas las ocurrencias antes de persistir
+        validateTimeRange(dto.getAppointmentDate(), dto.getStartTime(), dto.getEndTime());
+        List<LocalDate> occurrenceDates = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
-            LocalDate occurrenceDate = dto.getAppointmentDate().plusWeeks(i);
+            occurrenceDates.add(dto.getAppointmentDate().plusWeeks(i));
+        }
+        acquireScheduleLocks(specialty, occurrenceDates);
+
+        // Validar todas las ocurrencias antes de persistir
+        for (LocalDate occurrenceDate : occurrenceDates) {
             validateAppointmentTime(occurrenceDate, dto.getStartTime(), dto.getEndTime(), dto.getProfessionalId(), null);
             professionalScheduleService.validateProfessionalAvailability(dto.getProfessionalId(), occurrenceDate, dto.getStartTime(), dto.getEndTime(), specialty);
             scheduleBlockService.validateNoBlockConflict(occurrenceDate, dto.getStartTime(), dto.getEndTime(), dto.getProfessionalId(), specialty);
@@ -152,6 +165,9 @@ public class AppointmentService {
                     .findByRecurrenceGroupIdAndSpecialtyAndAppointmentDateGreaterThanEqualOrderByAppointmentDateAscStartTimeAsc(
                             appointment.getRecurrenceGroupId(), specialty, appointment.getAppointmentDate());
 
+            validateTimeRange(appointment.getAppointmentDate(), dto.getStartTime(), dto.getEndTime());
+            acquireScheduleLocks(specialty, series.stream().map(Appointment::getAppointmentDate).toList());
+
             for (Appointment app : series) {
                 validateAppointmentTime(app.getAppointmentDate(), dto.getStartTime(), dto.getEndTime(), dto.getProfessionalId(), app.getId());
                 professionalScheduleService.validateProfessionalAvailability(dto.getProfessionalId(), app.getAppointmentDate(), dto.getStartTime(), dto.getEndTime(), specialty);
@@ -174,6 +190,8 @@ public class AppointmentService {
             }
             return mapToDto(appointment);
         } else {
+            validateTimeRange(dto.getAppointmentDate(), dto.getStartTime(), dto.getEndTime());
+            acquireScheduleLocks(specialty, List.of(appointment.getAppointmentDate(), dto.getAppointmentDate()));
             validateAppointmentTime(dto.getAppointmentDate(), dto.getStartTime(), dto.getEndTime(), dto.getProfessionalId(), id);
             professionalScheduleService.validateProfessionalAvailability(dto.getProfessionalId(), dto.getAppointmentDate(), dto.getStartTime(), dto.getEndTime(), specialty);
             scheduleBlockService.validateNoBlockConflict(dto.getAppointmentDate(), dto.getStartTime(), dto.getEndTime(), dto.getProfessionalId(), specialty);
@@ -328,13 +346,7 @@ public class AppointmentService {
     }
 
     private void validateAppointmentTime(LocalDate date, LocalTime start, LocalTime end, Long professionalId, Long excludeId) {
-        if (date == null || start == null || end == null) {
-            throw new IllegalArgumentException("La fecha, hora de inicio y hora de fin son obligatorias.");
-        }
-
-        if (!start.isBefore(end)) {
-            throw new IllegalArgumentException("La hora de inicio (" + start + ") debe ser anterior a la hora de fin (" + end + ").");
-        }
+        validateTimeRange(date, start, end);
 
         String specialty = getCurrentUserSpecialty();
         List<Appointment> overlapping = appointmentRepository.findOverlappingAppointments(date, start, end, specialty, professionalId);
@@ -343,7 +355,23 @@ public class AppointmentService {
                 .anyMatch(app -> excludeId == null || !app.getId().equals(excludeId));
 
         if (hasConflict) {
-            throw new IllegalArgumentException("Ya existe una cita programada en este horario (" + date + " " + start + " - " + end + ").");
+            throw new ConflictException("Ya existe una cita programada en este horario (" + date + " " + start + " - " + end + ").");
+        }
+    }
+
+    private void validateTimeRange(LocalDate date, LocalTime start, LocalTime end) {
+        if (date == null || start == null || end == null) {
+            throw new IllegalArgumentException("La fecha, hora de inicio y hora de fin son obligatorias.");
+        }
+
+        if (!start.isBefore(end)) {
+            throw new IllegalArgumentException("La hora de inicio (" + start + ") debe ser anterior a la hora de fin (" + end + ").");
+        }
+    }
+
+    private void acquireScheduleLocks(String specialty, Collection<LocalDate> dates) {
+        for (LocalDate date : new TreeSet<>(dates)) {
+            appointmentScheduleLockRepository.acquireScheduleLock(specialty, date);
         }
     }
 
@@ -363,6 +391,16 @@ public class AppointmentService {
     }
 
     private AppointmentDto mapToDto(Appointment appointment, Payment payment) {
+        String professionalName = null;
+        if (appointment.getProfessionalId() != null) {
+            professionalName = userRepository.findById(appointment.getProfessionalId())
+                    .map(User::getFullName)
+                    .orElse(null);
+        }
+        return mapToDto(appointment, payment, professionalName);
+    }
+
+    private AppointmentDto mapToDto(Appointment appointment, Payment payment, String professionalName) {
         AppointmentDto dto = new AppointmentDto();
         dto.setId(appointment.getId());
         dto.setPatientId(appointment.getPatient().getId());
@@ -375,11 +413,7 @@ public class AppointmentService {
         dto.setModality(appointment.getModality());
         dto.setVideoCallLink(appointment.getVideoCallLink());
         dto.setProfessionalId(appointment.getProfessionalId());
-        if (appointment.getProfessionalId() != null) {
-            userRepository.findById(appointment.getProfessionalId()).ifPresent(u -> 
-                dto.setProfessionalName(u.getFullName())
-            );
-        }
+        dto.setProfessionalName(professionalName);
         dto.setFirstTime(appointment.isFirstTime());
         dto.setClinicalSessionId(appointment.getClinicalSessionId());
         dto.setAttentionId(appointment.getAttentionId());
@@ -426,6 +460,20 @@ public class AppointmentService {
                     });
         }
 
-        return page.map(app -> mapToDto(app, paymentsByAppointmentId.get(app.getId())));
+        var professionalIds = page.getContent().stream()
+                .map(Appointment::getProfessionalId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<Long, String> professionalNamesById = professionalIds.isEmpty()
+                ? Map.of()
+                : userRepository.findByIdIn(professionalIds).stream()
+                        .collect(Collectors.toMap(User::getId, User::getFullName));
+
+        return page.map(app -> mapToDto(
+                app,
+                paymentsByAppointmentId.get(app.getId()),
+                app.getProfessionalId() == null
+                        ? null
+                        : professionalNamesById.get(app.getProfessionalId())));
     }
 }

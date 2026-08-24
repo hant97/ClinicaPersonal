@@ -4,6 +4,7 @@ import com.clinica.backend.model.Attention;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -15,14 +16,17 @@ import java.util.Optional;
 @Repository
 public interface AttentionRepository extends JpaRepository<Attention, Long> {
 
+    @EntityGraph(attributePaths = {"patient", "professional", "appointment", "clinicalSession", "prescription", "payment", "clinicalService"})
     Optional<Attention> findByIdAndDeletedFalse(Long id);
 
+    @EntityGraph(attributePaths = {"patient", "professional", "appointment", "clinicalSession", "prescription", "payment", "clinicalService"})
     Optional<Attention> findByIdAndSpecialtyAndDeletedFalse(Long id, String specialty);
 
     Optional<Attention> findByAppointmentIdAndDeletedFalse(Long appointmentId);
 
     List<Attention> findByAttentionDateAndSpecialtyAndDeletedFalse(LocalDate date, String specialty);
 
+    @EntityGraph(attributePaths = {"patient", "professional", "appointment", "clinicalSession", "prescription", "payment", "clinicalService"})
     @Query("SELECT a FROM Attention a " +
            "WHERE a.specialty = :specialty " +
            "AND a.deleted = false " +

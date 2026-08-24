@@ -14,7 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 @RestController
-@RequestMapping({"/api/v1/tests", "/api/tests"})
+@RequestMapping("/api/v1/tests")
 @RequiredArgsConstructor
 public class PsychometricTestController {
 

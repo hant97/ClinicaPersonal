@@ -19,47 +19,91 @@ public class AppointmentConfirmationService {
     private final AppointmentRepository appointmentRepository;
     private final ClinicSettingsRepository clinicSettingsRepository;
 
-    @Transactional
-    public PublicAppointmentConfirmationDto confirmByToken(String token) {
+    @Transactional(readOnly = true)
+    public PublicAppointmentConfirmationDto getConfirmationByToken(String token) {
         Appointment appointment = appointmentRepository.findByConfirmationToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("Token de confirmación no encontrado"));
 
-        String clinicName = clinicSettingsRepository.findTopBySpecialtyAndDeletedFalseOrderByIdAsc(appointment.getSpecialty())
-                .map(settings -> settings.getClinicName() != null ? settings.getClinicName() : CLINIC_DEFAULT_NAME)
-                .orElse(CLINIC_DEFAULT_NAME);
+        return responseForCurrentStatus(appointment);
+    }
 
-        PublicAppointmentConfirmationDto.PublicAppointmentConfirmationDtoBuilder builder =
-                PublicAppointmentConfirmationDto.builder()
-                        .patientName(appointment.getPatient() != null
-                                ? (appointment.getPatient().getFirstName() + " " + appointment.getPatient().getLastName()).trim()
-                                : null)
-                        .appointmentDate(appointment.getAppointmentDate())
-                        .startTime(appointment.getStartTime())
-                        .modality(appointment.getModality())
-                        .clinicName(clinicName);
+    @Transactional
+    public PublicAppointmentConfirmationDto confirmByToken(String token) {
+        Appointment appointment = appointmentRepository.findByConfirmationTokenForUpdate(token)
+                .orElseThrow(() -> new IllegalArgumentException("Token de confirmación no encontrado"));
 
-        String status = appointment.getStatus();
-        if ("CONFIRMADA".equals(status)) {
-            return builder.confirmed(true)
+        if ("CONFIRMADA".equals(appointment.getStatus())) {
+            return responseBuilder(appointment)
+                    .confirmed(true)
                     .alreadyConfirmed(true)
+                    .confirmable(false)
                     .message("La cita ya estaba confirmada.")
                     .build();
         }
 
-        if ("CANCELADA".equals(status) || "COMPLETADA".equals(status) || "NO_ASISTIO".equals(status)) {
-            return builder.confirmed(false)
-                    .alreadyConfirmed(false)
-                    .message("Esta cita se encuentra en estado " + status + " y no puede confirmarse.")
-                    .build();
+        if (!"PROGRAMADA".equals(appointment.getStatus())) {
+            return nonConfirmableResponse(appointment);
         }
 
         appointment.setStatus("CONFIRMADA");
         appointment.setConfirmedAt(LocalDateTime.now());
         appointmentRepository.save(appointment);
 
-        return builder.confirmed(true)
+        return responseBuilder(appointment)
+                .confirmed(true)
                 .alreadyConfirmed(false)
+                .confirmable(false)
                 .message("Cita confirmada exitosamente.")
                 .build();
+    }
+
+    private PublicAppointmentConfirmationDto responseForCurrentStatus(Appointment appointment) {
+        if ("CONFIRMADA".equals(appointment.getStatus())) {
+            return responseBuilder(appointment)
+                    .confirmed(true)
+                    .alreadyConfirmed(true)
+                    .confirmable(false)
+                    .message("La cita ya estaba confirmada.")
+                    .build();
+        }
+
+        if ("PROGRAMADA".equals(appointment.getStatus())) {
+            return responseBuilder(appointment)
+                    .confirmed(false)
+                    .alreadyConfirmed(false)
+                    .confirmable(true)
+                    .message("La cita está pendiente de confirmación.")
+                    .build();
+        }
+
+        return nonConfirmableResponse(appointment);
+    }
+
+    private PublicAppointmentConfirmationDto nonConfirmableResponse(Appointment appointment) {
+        return responseBuilder(appointment)
+                .confirmed(false)
+                .alreadyConfirmed(false)
+                .confirmable(false)
+                .message("Esta cita se encuentra en estado " + appointment.getStatus() + " y no puede confirmarse.")
+                .build();
+    }
+
+    private PublicAppointmentConfirmationDto.PublicAppointmentConfirmationDtoBuilder responseBuilder(
+            Appointment appointment) {
+        String clinicName = clinicSettingsRepository
+                .findTopBySpecialtyAndDeletedFalseOrderByIdAsc(appointment.getSpecialty())
+                .map(settings -> settings.getClinicName() != null
+                        ? settings.getClinicName()
+                        : CLINIC_DEFAULT_NAME)
+                .orElse(CLINIC_DEFAULT_NAME);
+
+        return PublicAppointmentConfirmationDto.builder()
+                .patientName(appointment.getPatient() != null
+                        ? (appointment.getPatient().getFirstName() + " " + appointment.getPatient().getLastName()).trim()
+                        : null)
+                .appointmentDate(appointment.getAppointmentDate())
+                .startTime(appointment.getStartTime())
+                .modality(appointment.getModality())
+                .clinicName(clinicName);
     }
 }

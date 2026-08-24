@@ -7,6 +7,7 @@ import { ToastService } from '../../../shared/services/toast/toast.service';
 import { of } from 'rxjs';
 import { Catalog, CatalogItem } from '../../../core/models/catalog.model';
 import { SpecialtyItem } from '../../../core/models/specialty.model';
+import { AuthService } from '../../../core/services/auth.service';
 
 describe('CatalogManagementComponent', () => {
   let component: CatalogManagementComponent;
@@ -15,6 +16,7 @@ describe('CatalogManagementComponent', () => {
   let specialtyServiceSpy: jasmine.SpyObj<SpecialtyService>;
   let notificationServiceSpy: jasmine.SpyObj<NotificationService>;
   let toastServiceSpy: jasmine.SpyObj<ToastService>;
+  let authServiceSpy: jasmine.SpyObj<AuthService>;
 
   const mockSpecialties: SpecialtyItem[] = [
     { id: 1, code: 'PSICOLOGIA', name: 'Psicología', active: true, displayOrder: 1 },
@@ -69,6 +71,8 @@ describe('CatalogManagementComponent', () => {
     specialtyServiceSpy = jasmine.createSpyObj('SpecialtyService', ['getActiveSpecialties']);
     notificationServiceSpy = jasmine.createSpyObj('NotificationService', ['alert']);
     toastServiceSpy = jasmine.createSpyObj('ToastService', ['success', 'error', 'info', 'warning', 'show']);
+    authServiceSpy = jasmine.createSpyObj('AuthService', ['hasRole']);
+    authServiceSpy.hasRole.and.returnValue(false);
 
     specialtyServiceSpy.getActiveSpecialties.and.returnValue(of(mockSpecialties));
 
@@ -81,7 +85,8 @@ describe('CatalogManagementComponent', () => {
         { provide: CatalogService, useValue: catalogServiceSpy },
         { provide: SpecialtyService, useValue: specialtyServiceSpy },
         { provide: NotificationService, useValue: notificationServiceSpy },
-        { provide: ToastService, useValue: toastServiceSpy }
+        { provide: ToastService, useValue: toastServiceSpy },
+        { provide: AuthService, useValue: authServiceSpy }
       ]
     }).compileComponents();
 
@@ -91,9 +96,19 @@ describe('CatalogManagementComponent', () => {
   });
 
   it('debe inicializarse y cargar los catálogos seleccionando el primero', () => {
+    expect(catalogServiceSpy.getAllAccessibleCatalogs).toHaveBeenCalledWith(undefined);
     expect(component.catalogs.length).toBe(3);
     expect(component.selectedCatalog?.code).toBe('PAYMENT_METHOD');
     expect(component.items.length).toBe(3);
+  });
+
+  it('solo solicita todos los ámbitos para el administrador global', () => {
+    catalogServiceSpy.getAllAccessibleCatalogs.calls.reset();
+    authServiceSpy.hasRole.and.returnValue(true);
+
+    component.loadCatalogs();
+
+    expect(catalogServiceSpy.getAllAccessibleCatalogs).toHaveBeenCalledWith('ALL');
   });
 
   it('debe filtrar catálogos por especialidad', () => {

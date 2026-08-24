@@ -18,6 +18,7 @@ import { ExportService } from '../../../shared/services/export/export.service';
 import { StatusPillComponent } from '../../../shared/components/status-pill/status-pill.component';
 import { DrawerSheetComponent } from '../../../shared/components/drawer-sheet/drawer-sheet.component';
 import { ViewPreferenceService } from '../../../shared/services/view-preference/view-preference.service';
+import { AgendaToolbarComponent } from '../agenda-toolbar/agenda-toolbar.component';
 import {
   LucideAngularModule,
   Plus,
@@ -61,7 +62,8 @@ import {
     LucideAngularModule,
     ReactiveFormsModule,
     StatusPillComponent,
-    DrawerSheetComponent
+    DrawerSheetComponent,
+    AgendaToolbarComponent
   ],
   templateUrl: './agenda.component.html',
 })
@@ -187,8 +189,17 @@ export class AgendaComponent implements OnInit, OnDestroy {
       next: (profs) => {
         this.professionals = profs;
       },
-      error: (err) => console.error('Error loading professionals', err)
+      error: (err) => {
+        console.error('Error loading professionals', err);
+        this.toastService.show('No se pudieron cargar los profesionales', 'error');
+      }
     });
+  }
+
+  getProfessionalDisplayName(prof: UserProfile): string {
+    const fullName = [prof.firstName, prof.lastName].filter(Boolean).join(' ').trim();
+    const name = fullName || prof.username || `Profesional #${prof.id}`;
+    return prof.specialty ? `${name} (${prof.specialty})` : name;
   }
 
   // --- CALENDAR & TIMELINE LOGIC ---
@@ -260,7 +271,9 @@ export class AgendaComponent implements OnInit, OnDestroy {
     const key = this.toDateKey(new Date());
     this.appointmentService.search(undefined, 'ALL', key, key).subscribe({
       next: (page) => { this.todayCount = page.content.length; },
-      error: () => {}
+      error: () => {
+        this.todayCount = 0;
+      }
     });
   }
 
@@ -344,7 +357,10 @@ export class AgendaComponent implements OnInit, OnDestroy {
       next: (blocks) => {
         this.scheduleBlocks = blocks;
       },
-      error: (err) => console.error('Error fetching schedule blocks', err)
+      error: (err) => {
+        console.error('Error fetching schedule blocks', err);
+        this.toastService.show('No se pudieron cargar los bloqueos de agenda', 'error');
+      }
     });
   }
 
@@ -645,6 +661,6 @@ export class AgendaComponent implements OnInit, OnDestroy {
       'Tipo': app.modality === 'VIRTUAL' ? 'Virtual' : 'Presencial'
     }));
 
-    this.exportService.exportToExcel(dataToExport, 'Citas_Agenda');
+    this.exportService.exportToCsv(dataToExport, 'Citas_Agenda');
   }
 }

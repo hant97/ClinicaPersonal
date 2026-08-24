@@ -13,7 +13,7 @@ export class AppointmentService {
 
   constructor(private http: HttpClient) { }
 
-  getAll(page: number = 0, size: number = 1000): Observable<PageResponse<Appointment>> {
+  getAll(page: number = 0, size: number = 100): Observable<PageResponse<Appointment>> {
     const params = new HttpParams().set('page', page.toString()).set('size', size.toString());
     return this.http.get<PageResponse<Appointment>>(this.apiUrl, { params });
   }
@@ -25,7 +25,7 @@ export class AppointmentService {
     endDate?: string,
     professionalId?: number,
     page: number = 0,
-    size: number = 1000
+    size: number = 100
   ): Observable<PageResponse<Appointment>> {
     let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
     if (searchTerm) params = params.set('searchTerm', searchTerm);
@@ -36,7 +36,7 @@ export class AppointmentService {
     return this.http.get<PageResponse<Appointment>>(`${this.apiUrl}/search`, { params });
   }
 
-  getByPatientId(patientId: number, page: number = 0, size: number = 1000): Observable<PageResponse<Appointment>> {
+  getByPatientId(patientId: number, page: number = 0, size: number = 100): Observable<PageResponse<Appointment>> {
     const params = new HttpParams().set('page', page.toString()).set('size', size.toString());
     return this.http.get<PageResponse<Appointment>>(`${this.apiUrl}/patient/${patientId}`, { params });
   }
@@ -69,7 +69,14 @@ export class AppointmentService {
     return this.http.delete<Appointment>(`${this.apiUrl}/${id}`, { params });
   }
 
-  confirmByToken(token: string): Observable<PublicAppointmentConfirmation> {
+  getConfirmation(token: string): Observable<PublicAppointmentConfirmation> {
     return this.http.get<PublicAppointmentConfirmation>(`${environment.apiUrl}/v1/public/appointments/confirm/${token}`);
+  }
+
+  confirm(token: string): Observable<PublicAppointmentConfirmation> {
+    return this.http.post<PublicAppointmentConfirmation>(
+      `${environment.apiUrl}/v1/public/appointments/confirm/${token}`,
+      null
+    );
   }
 }

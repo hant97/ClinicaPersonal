@@ -63,7 +63,7 @@
             <select id="professionalId" formControlName="professionalId" class="input-field !text-xs">
               <option [ngValue]="null">Sin asignar / Cualquier profesional</option>
               @for (prof of professionals; track prof.id) {
-                <option [value]="prof.id">{{ prof.firstName }} {{ prof.lastName }} ({{ prof.specialty }})</option>
+                <option [value]="prof.id">{{ getProfessionalDisplayName(prof) }}</option>
               }
             </select>
           </div>

@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MedicationService } from '../../../core/services/medication.service';
 import { Medication } from '../../../core/models/medication.model';
@@ -11,7 +11,7 @@ import { LucideAngularModule, Pill, Edit, Trash2 } from 'lucide-angular';
 @Component({
   selector: 'app-medications-section',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PaginationComponent, LucideAngularModule],
+  imports: [ReactiveFormsModule, PaginationComponent, LucideAngularModule],
   templateUrl: './medications-section.component.html',
 })
 export class MedicationsSectionComponent implements OnInit {

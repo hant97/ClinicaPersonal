@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
+import java.util.Collection;
+import java.util.List;
 
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
@@ -26,4 +28,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
                            Pageable pageable);
 
     java.util.List<User> findBySpecialtyAndEnabledTrueOrderByFirstNameAscLastNameAsc(String specialty);
+
+    List<User> findByIdIn(Collection<Long> ids);
 }

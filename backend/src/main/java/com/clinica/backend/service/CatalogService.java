@@ -25,6 +25,7 @@ public class CatalogService {
 
     private final CatalogRepository catalogRepository;
     private final CatalogItemRepository catalogItemRepository;
+    private final CatalogAuthorizationService catalogAuthorizationService;
 
     public Page<CatalogDto> getAllCatalogs(String specialty, Pageable pageable) {
         return getAllCatalogs(specialty, null, pageable);
@@ -42,14 +43,18 @@ public class CatalogService {
                 .collect(Collectors.toList());
     }
 
-    public CatalogDto getCatalogByCode(String code) {
+    public CatalogDto getCatalogByCode(String code, String effectiveSpecialty) {
         Catalog catalog = catalogRepository.findByCode(code)
                 .orElseThrow(() -> new ResourceNotFoundException("Catálogo no encontrado: " + code));
+        catalogAuthorizationService.ensureCatalogAccessible(catalog.getSpecialty(), effectiveSpecialty);
         return mapToDto(catalog);
     }
 
     @Cacheable("catalogItems")
-    public List<CatalogItemDto> getActiveItemsByCatalogCode(String code) {
+    public List<CatalogItemDto> getActiveItemsByCatalogCode(String code, String effectiveSpecialty) {
+        Catalog catalog = catalogRepository.findByCode(code)
+                .orElseThrow(() -> new ResourceNotFoundException("Catálogo no encontrado: " + code));
+        catalogAuthorizationService.ensureCatalogAccessible(catalog.getSpecialty(), effectiveSpecialty);
         return catalogItemRepository.findByCatalogCodeAndActiveTrueOrderByOrderIndexAsc(code)
                 .stream()
                 .map(this::mapItemToDto)
@@ -57,10 +62,12 @@ public class CatalogService {
     }
 
     @Transactional
-    public CatalogDto createCatalog(CatalogDto dto) {
+    public CatalogDto createCatalog(CatalogDto dto, String effectiveSpecialty) {
         if (catalogRepository.existsByCode(dto.getCode())) {
             throw new ConflictException("Ya existe un catálogo con el código: " + dto.getCode());
         }
+
+        catalogAuthorizationService.ensureTargetSpecialtyAccessible(dto.getSpecialty(), effectiveSpecialty);
 
         Catalog catalog = new Catalog();
         catalog.setCode(dto.getCode().trim().toUpperCase());
@@ -73,9 +80,11 @@ public class CatalogService {
     }
 
     @Transactional
-    public CatalogDto updateCatalog(Long id, CatalogDto dto) {
+    public CatalogDto updateCatalog(Long id, CatalogDto dto, String effectiveSpecialty) {
         Catalog catalog = catalogRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Catálogo no encontrado con id: " + id));
+        catalogAuthorizationService.ensureCatalogAccessible(catalog.getSpecialty(), effectiveSpecialty);
+        catalogAuthorizationService.ensureTargetSpecialtyAccessible(dto.getSpecialty(), effectiveSpecialty);
 
         if (dto.getName() != null && !dto.getName().isBlank()) {
             catalog.setName(dto.getName().trim());
@@ -93,9 +102,10 @@ public class CatalogService {
 
     @Transactional
     @CacheEvict(value = "catalogItems", allEntries = true)
-    public CatalogItemDto addCatalogItem(String catalogCode, CatalogItemDto itemDto) {
+    public CatalogItemDto addCatalogItem(String catalogCode, CatalogItemDto itemDto, String effectiveSpecialty) {
         Catalog catalog = catalogRepository.findByCode(catalogCode)
                 .orElseThrow(() -> new ResourceNotFoundException("Catálogo no encontrado: " + catalogCode));
+        catalogAuthorizationService.ensureCatalogAccessible(catalog.getSpecialty(), effectiveSpecialty);
 
         String sanitizedItemCode = itemDto.getItemCode() != null && !itemDto.getItemCode().isBlank()
                 ? itemDto.getItemCode().trim().toUpperCase()
@@ -129,9 +139,10 @@ public class CatalogService {
 
     @Transactional
     @CacheEvict(value = "catalogItems", allEntries = true)
-    public CatalogItemDto updateCatalogItem(Long itemId, CatalogItemDto itemDto) {
+    public CatalogItemDto updateCatalogItem(Long itemId, CatalogItemDto itemDto, String effectiveSpecialty) {
         CatalogItem item = catalogItemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ítem de catálogo no encontrado: " + itemId));
+        catalogAuthorizationService.ensureCatalogAccessible(item.getCatalog().getSpecialty(), effectiveSpecialty);
 
         if (itemDto.getItemName() != null && !itemDto.getItemName().isBlank()) {
             item.setItemName(itemDto.getItemName().trim());
@@ -147,17 +158,22 @@ public class CatalogService {
 
     @Transactional
     @CacheEvict(value = "catalogItems", allEntries = true)
-    public void deleteCatalogItem(Long itemId) {
+    public void deleteCatalogItem(Long itemId, String effectiveSpecialty) {
         CatalogItem item = catalogItemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ítem de catálogo no encontrado con id: " + itemId));
+        catalogAuthorizationService.ensureCatalogAccessible(item.getCatalog().getSpecialty(), effectiveSpecialty);
         catalogItemRepository.delete(item);
     }
 
     @Transactional
     @CacheEvict(value = "catalogItems", allEntries = true)
-    public List<CatalogItemDto> reorderCatalogItems(String catalogCode, List<Long> orderedItemIds) {
-        catalogRepository.findByCode(catalogCode)
+    public List<CatalogItemDto> reorderCatalogItems(
+            String catalogCode,
+            List<Long> orderedItemIds,
+            String effectiveSpecialty) {
+        Catalog catalog = catalogRepository.findByCode(catalogCode)
                 .orElseThrow(() -> new ResourceNotFoundException("Catálogo no encontrado: " + catalogCode));
+        catalogAuthorizationService.ensureCatalogAccessible(catalog.getSpecialty(), effectiveSpecialty);
 
         List<CatalogItem> items = catalogItemRepository.findByCatalogCodeOrderByOrderIndexAsc(catalogCode);
         for (int i = 0; i < orderedItemIds.size(); i++) {

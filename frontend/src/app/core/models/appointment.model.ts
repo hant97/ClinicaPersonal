@@ -37,6 +37,7 @@ export interface Appointment {
 export interface PublicAppointmentConfirmation {
   confirmed: boolean;
   alreadyConfirmed: boolean;
+  confirmable: boolean;
   message: string;
   patientName?: string;
   appointmentDate?: string;

@@ -85,7 +85,7 @@ public class ClinicSettingsService {
             ClinicSettings settings = repository.findTopBySpecialtyAndDeletedFalseOrderByIdAsc(specialty)
                     .orElseGet(() -> createDefaultSettings(specialty));
             
-            String logoUrl = "/api/settings/clinic/logo/" + filename;
+            String logoUrl = "/api/v1/settings/clinic/logo/" + filename;
             settings.setLogoUrl(logoUrl);
             repository.save(settings);
             

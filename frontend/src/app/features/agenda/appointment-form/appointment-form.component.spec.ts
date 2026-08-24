@@ -42,10 +42,19 @@ describe('AppointmentFormComponent', () => {
       { id: 1, name: 'Consulta General', price: 100, durationMinutes: 45, active: true }
     ]));
 
-    const userSpy = jasmine.createSpyObj('UserService', ['getProfessionals']);
+    const userSpy = jasmine.createSpyObj('UserService', ['getProfessionals', 'getCurrentUserProfile']);
     userSpy.getProfessionals.and.returnValue(of([
       { id: 1, username: 'dr1', firstName: 'Juan', lastName: 'Pérez', specialty: 'PSICOLOGIA', enabled: true, roles: ['ROLE_ADMIN'] }
     ]));
+    userSpy.getCurrentUserProfile.and.returnValue(of({
+      id: 1,
+      username: 'dr1',
+      firstName: 'Juan',
+      lastName: 'Pérez',
+      specialty: 'PSICOLOGIA',
+      roles: ['ROLE_ADMIN'],
+      enabled: true
+    }));
 
     await TestBed.configureTestingModule({
       imports: [AppointmentFormComponent, HttpClientTestingModule],
@@ -86,6 +95,18 @@ describe('AppointmentFormComponent', () => {
     expect(preview[0]).toContain('Sesión 1');
     expect(preview[1]).toContain('Sesión 2');
     expect(preview[2]).toContain('Sesión 3');
+  });
+
+  it('should auto-select current user if user is a professional', () => {
+    expect(component.appointmentForm.get('professionalId')?.value).toBe(1);
+  });
+
+  it('should format professional display name with fallback to username', () => {
+    const profWithNames = { id: 1, username: 'dr1', firstName: 'Juan', lastName: 'Pérez', specialty: 'DERMATOLOGIA' };
+    expect(component.getProfessionalDisplayName(profWithNames)).toBe('Juan Pérez (DERMATOLOGIA)');
+
+    const profWithoutNames = { id: 2, username: 'admin', firstName: '', lastName: '', specialty: 'DERMATOLOGIA' };
+    expect(component.getProfessionalDisplayName(profWithoutNames)).toBe('admin (DERMATOLOGIA)');
   });
 
   it('should submit appointment successfully when valid', () => {

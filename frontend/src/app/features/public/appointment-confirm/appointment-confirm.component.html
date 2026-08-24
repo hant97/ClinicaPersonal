@@ -15,7 +15,7 @@
     @if (loading) {
       <div class="card p-12 text-center shadow-raised">
         <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-r-transparent"></div>
-        <p class="mt-4 text-sm font-medium text-slate-600">Confirmando su cita…</p>
+        <p class="mt-4 text-sm font-medium text-slate-600">Consultando su cita…</p>
       </div>
     } @else if (error || !result) {
       <div class="card p-8 sm:p-10 text-center shadow-raised border-red-200">
@@ -28,6 +28,59 @@
         </p>
         <div class="mt-6">
           <a routerLink="/" class="btn-primary !text-xs">Ir a la página principal</a>
+        </div>
+      </div>
+    } @else if (result.confirmable) {
+      <div class="card overflow-hidden shadow-raised border-line bg-white">
+        <div class="bg-primary-600 p-6 text-white text-center">
+          <div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm mb-2">
+            <lucide-icon [img]="Calendar" [size]="28" class="text-white"></lucide-icon>
+          </div>
+          <h1 class="text-xl font-bold tracking-tight">Confirme su cita</h1>
+          <p class="text-xs text-white/80 mt-1">Revise los datos antes de registrar su asistencia.</p>
+        </div>
+
+        <div class="p-6 sm:p-8 space-y-5">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 rounded-xl bg-slate-50 p-4 border border-slate-200">
+            <div>
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Clínica</span>
+              <p class="text-sm font-bold text-slate-900 mt-0.5">{{ result.clinicName || 'Clínica' }}</p>
+            </div>
+            <div>
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Paciente</span>
+              <p class="text-sm font-bold text-slate-900 mt-0.5">{{ result.patientName || '—' }}</p>
+            </div>
+            <div>
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Fecha</span>
+              <p class="text-sm font-semibold text-slate-800 mt-0.5 flex items-center gap-1.5">
+                <lucide-icon [img]="Calendar" [size]="14" class="text-primary-600"></lucide-icon>
+                {{ result.appointmentDate | date:'fullDate' | titlecase }}
+              </p>
+            </div>
+            <div>
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Hora</span>
+              <p class="text-sm font-semibold text-slate-800 mt-0.5 flex items-center gap-1.5">
+                <lucide-icon [img]="Clock" [size]="14" class="text-primary-600"></lucide-icon>
+                <span class="font-mono">{{ result.startTime }}</span>
+              </p>
+            </div>
+          </div>
+
+          @if (actionError) {
+            <p class="text-center text-sm text-red-600" role="alert">
+              No se pudo confirmar la cita. Inténtelo nuevamente.
+            </p>
+          }
+
+          <div class="flex justify-center">
+            <button
+              type="button"
+              class="btn-primary !text-xs min-w-36"
+              [disabled]="submitting"
+              (click)="confirm()">
+              {{ submitting ? 'Confirmando…' : 'Confirmar cita' }}
+            </button>
+          </div>
         </div>
       </div>
     } @else if (!result.confirmed) {

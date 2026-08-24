@@ -18,7 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 @RestController
-@RequestMapping({"/api/v1/supplies", "/api/supplies"})
+@RequestMapping("/api/v1/supplies")
 @RequiredArgsConstructor
 public class SupplyController {
 

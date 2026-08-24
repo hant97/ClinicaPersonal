@@ -138,7 +138,7 @@ describe('ClinicalHistoryPrintComponent', () => {
   it('should fetch dermatological evaluations only for dermatology', () => {
     fixture.detectChanges();
 
-    expect(dermatologicalEvaluationServiceMock.getByPatientId).toHaveBeenCalledWith(42, 0, 1000);
+    expect(dermatologicalEvaluationServiceMock.getByPatientId).toHaveBeenCalledWith(42, 0, 100);
   });
 
   it('should render patient name and clinic name in the document', () => {

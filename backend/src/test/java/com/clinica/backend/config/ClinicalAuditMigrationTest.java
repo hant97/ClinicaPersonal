@@ -6,9 +6,11 @@ import org.junit.jupiter.api.Test;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ClinicalAuditMigrationTest {
@@ -27,7 +29,7 @@ class ClinicalAuditMigrationTest {
                 .locations("classpath:db/migration")
                 .load();
 
-        assertEquals(9, flyway.migrate().migrationsExecuted);
+        assertEquals(11, flyway.migrate().migrationsExecuted);
         assertAuditColumns("clinical_sessions");
         assertAuditColumns("dermatological_evaluations");
         assertAuditColumns("general_history");
@@ -41,7 +43,28 @@ class ClinicalAuditMigrationTest {
         assertAuditLogTable();
         assertAgendaAdvancedPhase3();
         assertAttentionsPhase4();
+        assertConcurrencyProtections();
         assertEquals(0, flyway.migrate().migrationsExecuted);
+    }
+
+    private void assertConcurrencyProtections() throws Exception {
+        try (Connection connection = DriverManager.getConnection(URL, "sa", "");
+             Statement statement = connection.createStatement()) {
+            assertThrows(SQLException.class, () -> statement.executeUpdate(
+                    "INSERT INTO supplies(name, current_stock, min_stock_level, specialty) " +
+                            "VALUES ('Inválido', -1, 0, 'PSICOLOGIA')"));
+        }
+
+        try (Connection connection = DriverManager.getConnection(URL, "sa", "");
+             ResultSet indexes = connection.getMetaData()
+                     .getIndexInfo(null, null, "appointments", false, false)) {
+            boolean hasConflictLookupIndex = false;
+            while (indexes.next()) {
+                hasConflictLookupIndex |= "idx_appointments_conflict_lookup"
+                        .equalsIgnoreCase(indexes.getString("INDEX_NAME"));
+            }
+            assertTrue(hasConflictLookupIndex, "Appointment conflict lookup index is missing");
+        }
     }
 
     private void assertAgendaAdvancedPhase3() throws Exception {

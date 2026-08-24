@@ -1,34 +1,85 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { UserService } from '../../../core/services/user.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ClinicSettingsService } from '../../../core/services/clinic-settings.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
-import { LucideAngularModule, User, Key, Save, Mail, Phone, Shield, Building2, ImagePlus } from 'lucide-angular';
+import { UserProfile } from '../../../core/models/user-profile.model';
+import {
+  LucideAngularModule,
+  User,
+  KeyRound,
+  Save,
+  Mail,
+  Phone,
+  Shield,
+  ShieldCheck,
+  Building2,
+  ImagePlus,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  AlertCircle,
+  RefreshCw,
+  Sparkles,
+  Check,
+  X,
+  Lock,
+  Brain,
+  Stethoscope,
+  ChevronRight,
+  Info
+} from 'lucide-angular';
 
 @Component({
   selector: 'app-user-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+  imports: [ReactiveFormsModule, LucideAngularModule],
   templateUrl: './user-profile.component.html',
 })
 export class UserProfileComponent implements OnInit {
+  // Lucide Icons
   readonly UserIcon = User;
-  readonly KeyIcon = Key;
+  readonly KeyRoundIcon = KeyRound;
   readonly SaveIcon = Save;
   readonly MailIcon = Mail;
   readonly PhoneIcon = Phone;
   readonly ShieldIcon = Shield;
+  readonly ShieldCheckIcon = ShieldCheck;
   readonly Building2Icon = Building2;
   readonly ImagePlusIcon = ImagePlus;
+  readonly EyeIcon = Eye;
+  readonly EyeOffIcon = EyeOff;
+  readonly CheckCircle2Icon = CheckCircle2;
+  readonly AlertCircleIcon = AlertCircle;
+  readonly RefreshCwIcon = RefreshCw;
+  readonly SparklesIcon = Sparkles;
+  readonly CheckIcon = Check;
+  readonly XIcon = X;
+  readonly LockIcon = Lock;
+  readonly BrainIcon = Brain;
+  readonly StethoscopeIcon = Stethoscope;
+  readonly ChevronRightIcon = ChevronRight;
+  readonly InfoIcon = Info;
 
   activeTab: 'personal' | 'password' | 'clinic' = 'personal';
   profileForm: FormGroup;
   passwordForm: FormGroup;
   clinicForm: FormGroup;
-  isLoading = false;
 
+  userProfile: UserProfile | null = null;
+  isLoading = false;
+  savingProfile = false;
+  savingPassword = false;
+  savingClinic = false;
+
+  // Password visibility flags
+  showCurrentPassword = false;
+  showNewPassword = false;
+  showConfirmPassword = false;
+
+  // Clinic Logo handling
   selectedLogo: File | null = null;
   logoPreview: string | null = null;
 
@@ -40,17 +91,27 @@ export class UserProfileComponent implements OnInit {
     private toastService: ToastService
   ) {
     this.profileForm = this.fb.group({
-      firstName: ['', Validators.required],
-      lastName: ['', Validators.required],
+      firstName: ['', [Validators.required, Validators.maxLength(50)]],
+      lastName: ['', [Validators.required, Validators.maxLength(50)]],
       email: ['', [Validators.required, Validators.email]],
-      phone: ['']
+      phone: ['', [Validators.pattern(/^[0-9+() -]{6,20}$/)]]
     });
 
-    this.passwordForm = this.fb.group({
-      currentPassword: ['', Validators.required],
-       newPassword: ['', [Validators.required, Validators.minLength(8), Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/)]],
-      confirmPassword: ['', Validators.required]
-    }, { validators: this.passwordMatchValidator });
+    this.passwordForm = this.fb.group(
+      {
+        currentPassword: ['', Validators.required],
+        newPassword: [
+          '',
+          [
+            Validators.required,
+            Validators.minLength(8),
+            Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/)
+          ]
+        ],
+        confirmPassword: ['', Validators.required]
+      },
+      { validators: this.passwordMatchValidator }
+    );
 
     this.clinicForm = this.fb.group({
       clinicName: ['', Validators.required],
@@ -63,18 +124,83 @@ export class UserProfileComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadProfile();
-    this.loadClinicSettings();
+    if (this.isAdmin) {
+      this.loadClinicSettings();
+    }
+  }
+
+  get isAdmin(): boolean {
+    return this.authService.hasRole('ROLE_ADMIN') || this.authService.hasRole('ROLE_SITE_ADMIN');
+  }
+
+  get userFullName(): string {
+    if (this.userProfile?.firstName || this.userProfile?.lastName) {
+      return `${this.userProfile.firstName || ''} ${this.userProfile.lastName || ''}`.trim();
+    }
+    return this.userProfile?.username || 'Usuario';
+  }
+
+  get avatarLetter(): string {
+    if (this.userProfile?.firstName) {
+      return this.userProfile.firstName.charAt(0).toUpperCase();
+    }
+    if (this.userProfile?.username) {
+      return this.userProfile.username.charAt(0).toUpperCase();
+    }
+    return 'U';
+  }
+
+  get specialty(): string {
+    return this.userProfile?.specialty || this.authService.getSpecialty() || 'GENERAL';
+  }
+
+  get specialtyLabel(): string {
+    const s = this.specialty;
+    if (s === 'PSICOLOGIA') return 'Módulo Psicología';
+    if (s === 'DERMATOLOGIA') return 'Módulo Dermatología';
+    return 'Clínica Integral';
+  }
+
+  get specialtyBadgeClass(): string {
+    const s = this.specialty;
+    if (s === 'PSICOLOGIA') return 'bg-purple-50 text-purple-700 border-purple-200';
+    if (s === 'DERMATOLOGIA') return 'bg-cyan-50 text-cyan-700 border-cyan-200';
+    return 'bg-primary-50 text-primary-700 border-primary-200';
+  }
+
+  get roleLabel(): string {
+    if (this.authService.hasRole('ROLE_SITE_ADMIN')) return 'Super Administrador';
+    if (this.authService.hasRole('ROLE_ADMIN')) return 'Profesional Titular (Admin)';
+    if (this.authService.hasRole('ROLE_ASISTENTE')) return 'Asistente / Recepción';
+    return 'Usuario del Sistema';
   }
 
   passwordMatchValidator(g: FormGroup) {
-    return g.get('newPassword')?.value === g.get('confirmPassword')?.value
-      ? null : { mismatch: true };
+    return g.get('newPassword')?.value === g.get('confirmPassword')?.value ? null : { mismatch: true };
+  }
+
+  // Password requirement check helpers
+  hasMinLength(val: string): boolean {
+    return val ? val.length >= 8 : false;
+  }
+  hasUppercase(val: string): boolean {
+    return /[A-Z]/.test(val || '');
+  }
+  hasLowercase(val: string): boolean {
+    return /[a-z]/.test(val || '');
+  }
+  hasNumber(val: string): boolean {
+    return /\d/.test(val || '');
+  }
+  hasSpecialChar(val: string): boolean {
+    return /[^A-Za-z\d]/.test(val || '');
   }
 
   loadProfile(): void {
     this.isLoading = true;
     this.userService.getCurrentUserProfile().subscribe({
       next: (profile) => {
+        this.userProfile = profile;
         this.profileForm.patchValue({
           firstName: profile.firstName || '',
           lastName: profile.lastName || '',
@@ -91,42 +217,53 @@ export class UserProfileComponent implements OnInit {
   }
 
   saveProfile(): void {
-    if (this.profileForm.valid) {
-      this.isLoading = true;
-      this.userService.updateProfile(this.profileForm.value).subscribe({
-        next: (profile) => {
-          this.toastService.show('Perfil actualizado correctamente', 'success');
-          // Optionally update layout header if communicating via a shared service
-          this.isLoading = false;
-        },
-        error: () => {
-          this.toastService.show('Error al actualizar el perfil', 'error');
-          this.isLoading = false;
-        }
-      });
+    if (this.profileForm.invalid) {
+      this.profileForm.markAllAsTouched();
+      return;
     }
+
+    this.savingProfile = true;
+    this.userService.updateProfile(this.profileForm.value).subscribe({
+      next: (profile) => {
+        this.userProfile = { ...this.userProfile, ...profile };
+        this.toastService.show('Perfil actualizado correctamente', 'success');
+        this.savingProfile = false;
+      },
+      error: () => {
+        this.toastService.show('Error al actualizar el perfil', 'error');
+        this.savingProfile = false;
+      }
+    });
   }
 
   changePassword(): void {
-    if (this.passwordForm.valid) {
-      this.isLoading = true;
-      const request = {
-        currentPassword: this.passwordForm.value.currentPassword,
-        newPassword: this.passwordForm.value.newPassword
-      };
-      this.userService.updatePassword(request).subscribe({
-        next: (response) => {
-          this.authService.loginResponse(response);
-          this.toastService.show('Contraseña actualizada correctamente', 'success');
-          this.passwordForm.reset();
-          this.isLoading = false;
-        },
-        error: () => {
-          this.toastService.show('Error al actualizar la contraseña', 'error');
-          this.isLoading = false;
-        }
-      });
+    if (this.passwordForm.invalid) {
+      this.passwordForm.markAllAsTouched();
+      return;
     }
+
+    this.savingPassword = true;
+    const request = {
+      currentPassword: this.passwordForm.value.currentPassword,
+      newPassword: this.passwordForm.value.newPassword
+    };
+
+    this.userService.updatePassword(request).subscribe({
+      next: (response) => {
+        this.authService.loginResponse(response);
+        this.toastService.show('Contraseña actualizada correctamente', 'success');
+        this.passwordForm.reset();
+        this.showCurrentPassword = false;
+        this.showNewPassword = false;
+        this.showConfirmPassword = false;
+        this.savingPassword = false;
+      },
+      error: (err) => {
+        const message = err?.error?.message || 'Error al actualizar la contraseña. Verifica la contraseña actual.';
+        this.toastService.show(message, 'error');
+        this.savingPassword = false;
+      }
+    });
   }
 
   switchTab(tab: 'personal' | 'password' | 'clinic'): void {
@@ -137,11 +274,11 @@ export class UserProfileComponent implements OnInit {
     this.clinicSettingsService.getSettings().subscribe({
       next: (settings) => {
         this.clinicForm.patchValue({
-          clinicName: settings.clinicName,
-          shortName: settings.shortName,
-          contactEmail: settings.contactEmail,
-          contactPhone: settings.contactPhone,
-          address: settings.address
+          clinicName: settings.clinicName || '',
+          shortName: settings.shortName || '',
+          contactEmail: settings.contactEmail || '',
+          contactPhone: settings.contactPhone || '',
+          address: settings.address || ''
         });
         if (settings.logoUrl) {
           this.logoPreview = this.clinicSettingsService.getLogoUrl(settings.logoUrl);
@@ -159,7 +296,7 @@ export class UserProfileComponent implements OnInit {
         event.target.value = '';
         return;
       }
-      if (file.size > 2 * 1024 * 1024) { // 2MB
+      if (file.size > 2 * 1024 * 1024) {
         this.toastService.show('La imagen no debe superar los 2MB', 'error');
         event.target.value = '';
         return;
@@ -174,32 +311,35 @@ export class UserProfileComponent implements OnInit {
   }
 
   saveClinicSettings(): void {
-    if (this.clinicForm.valid) {
-      this.isLoading = true;
-      this.clinicSettingsService.updateSettings(this.clinicForm.value).subscribe({
-        next: () => {
-          if (this.selectedLogo) {
-            this.clinicSettingsService.uploadLogo(this.selectedLogo).subscribe({
-              next: () => {
-                this.toastService.show('Configuración y logo guardados', 'success');
-                this.isLoading = false;
-                this.selectedLogo = null;
-              },
-              error: () => {
-                this.toastService.show('Error al guardar el logo', 'error');
-                this.isLoading = false;
-              }
-            });
-          } else {
-            this.toastService.show('Configuración de la clínica actualizada', 'success');
-            this.isLoading = false;
-          }
-        },
-        error: () => {
-          this.toastService.show('Error al actualizar configuración', 'error');
-          this.isLoading = false;
-        }
-      });
+    if (this.clinicForm.invalid) {
+      this.clinicForm.markAllAsTouched();
+      return;
     }
+
+    this.savingClinic = true;
+    this.clinicSettingsService.updateSettings(this.clinicForm.value).subscribe({
+      next: () => {
+        if (this.selectedLogo) {
+          this.clinicSettingsService.uploadLogo(this.selectedLogo).subscribe({
+            next: () => {
+              this.toastService.show('Configuración y logo guardados correctamente', 'success');
+              this.savingClinic = false;
+              this.selectedLogo = null;
+            },
+            error: () => {
+              this.toastService.show('Error al guardar el logo', 'error');
+              this.savingClinic = false;
+            }
+          });
+        } else {
+          this.toastService.show('Configuración de la clínica actualizada', 'success');
+          this.savingClinic = false;
+        }
+      },
+      error: () => {
+        this.toastService.show('Error al actualizar la configuración de la clínica', 'error');
+        this.savingClinic = false;
+      }
+    });
   }
 }
