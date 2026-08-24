@@ -31,11 +31,13 @@ public class CatalogService {
         return getAllCatalogs(specialty, null, pageable);
     }
 
+    @Transactional(readOnly = true)
     public Page<CatalogDto> getAllCatalogs(String specialty, String search, Pageable pageable) {
         return catalogRepository.findAccessibleCatalogs(specialty, search, pageable)
                 .map(this::mapToDto);
     }
 
+    @Transactional(readOnly = true)
     public List<CatalogDto> getAllAccessibleCatalogs(String specialty) {
         return catalogRepository.findAllAccessible(specialty)
                 .stream()
@@ -43,6 +45,7 @@ public class CatalogService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public CatalogDto getCatalogByCode(String code, String effectiveSpecialty) {
         Catalog catalog = catalogRepository.findByCode(code)
                 .orElseThrow(() -> new ResourceNotFoundException("Catálogo no encontrado: " + code));

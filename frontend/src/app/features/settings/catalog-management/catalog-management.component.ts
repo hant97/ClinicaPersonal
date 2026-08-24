@@ -37,6 +37,7 @@ import { AuthService } from '../../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule, LucideAngularModule],
   templateUrl: './catalog-management.component.html',
+  styleUrls: ['./catalog-management.component.css'],
 })
 export class CatalogManagementComponent implements OnInit {
   // Iconos

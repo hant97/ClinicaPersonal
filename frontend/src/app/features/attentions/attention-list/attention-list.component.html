@@ -34,7 +34,7 @@
   </div>
 
   <!-- KPI Summary Banner (Today's Pulse) -->
-  <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+  <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6" data-testid="kpi-grid">
     <!-- Total Hoy -->
     <div class="rounded-xl border border-line bg-surface p-3.5 shadow-xs">
       <div class="flex items-center justify-between">
@@ -314,7 +314,7 @@
         </button>
       </div>
     } @else {
-      <div class="overflow-x-auto">
+      <div class="scroll-region overflow-x-auto scroll-touch" tabindex="0" aria-label="Atenciones clínicas en vista de tabla">
         <table class="w-full text-left text-sm text-slate-600">
           <thead class="bg-slate-50/80 text-xs uppercase font-semibold text-muted border-b border-line">
             <tr>
@@ -539,7 +539,14 @@
 
   <!-- Modal: Nueva Atención Rápida -->
   @if (showQuickModal) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-xs">
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-xs"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="quick-attention-title"
+      appFocusTrap
+      (trapClose)="closeQuickModal()"
+    >
       <div class="relative w-full max-w-lg rounded-xl border border-line bg-surface shadow-raised overflow-hidden">
         <!-- Header -->
         <div class="flex items-center justify-between border-b border-line px-5 py-4 bg-slate-50/80">
@@ -548,13 +555,14 @@
               <lucide-icon [img]="Stethoscope" [size]="18"></lucide-icon>
             </div>
             <div>
-              <h3 class="text-base font-semibold text-ink">Nueva Atención Rápida</h3>
+              <h3 id="quick-attention-title" class="text-base font-semibold text-ink">Nueva Atención Rápida</h3>
               <p class="text-xs text-muted">Registro inmediato de encuentro clínico</p>
             </div>
           </div>
           <button
             type="button"
-            class="text-muted hover:text-ink rounded-lg p-1 transition"
+            class="touch-icon-target text-muted hover:text-ink rounded-lg p-1 transition"
+            aria-label="Cerrar atención rápida"
             (click)="closeQuickModal()"
           >
             <lucide-icon [img]="X" [size]="18"></lucide-icon>

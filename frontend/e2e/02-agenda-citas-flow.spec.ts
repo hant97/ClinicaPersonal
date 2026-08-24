@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures/clinic-test';
 
 test.describe('Flujo E2E: Agenda y Gestión de Citas', () => {
 
@@ -33,11 +33,11 @@ test.describe('Flujo E2E: Agenda y Gestión de Citas', () => {
       await expect(modal.first()).toBeVisible();
 
       // Verificar campos del formulario
-      const recurrenceCheckbox = page.locator('input[type="checkbox"][formControlName="isRecurring"], text=Recurrente');
+      const recurrenceCheckbox = page.locator('input[type="checkbox"][formControlName="isRecurring"]');
       if (await recurrenceCheckbox.isVisible()) {
         await recurrenceCheckbox.check();
-        // Verificar que aparezcan campos de recurrencia (frecuencia, repeticiones)
-        await expect(page.locator('input[formControlName="recurrenceCount"], select[formControlName="recurrenceFrequency"]').first()).toBeVisible();
+        // Verificar que aparezca el selector de repeticiones semanales.
+        await expect(page.locator('select[formControlName="recurrenceCount"]')).toBeVisible();
       }
     }
   });

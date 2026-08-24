@@ -79,7 +79,7 @@
   </div>
 
   <!-- Layout Maestro-Detalle -->
-  <div class="grid grid-cols-1 items-start gap-4 sm:gap-6 lg:grid-cols-[20rem_minmax(0,1fr)] xl:grid-cols-[22rem_minmax(0,1fr)] min-w-0 w-full">
+  <div class="catalog-master-detail min-w-0 w-full">
     
     <!-- PANEL IZQUIERDO: Explorador de Catálogos -->
     <aside class="card !p-3.5 sm:!p-4 space-y-3 min-w-0 w-full overflow-hidden">
@@ -94,10 +94,11 @@
       </div>
 
       <!-- Pestañas de Ámbito / Especialidad -->
-      <div class="flex rounded-lg bg-slate-100 p-1 text-xs font-medium text-muted overflow-x-auto no-scrollbar scroll-touch">
+      <div class="scroll-region flex rounded-lg bg-slate-100 p-1 text-xs font-medium text-muted overflow-x-auto scroll-touch" tabindex="0" role="group" aria-label="Filtrar catálogos por especialidad">
         <button
           type="button"
           (click)="setSpecialtyFilter('ALL')"
+          [attr.aria-pressed]="specialtyFilter === 'ALL'"
           class="flex-1 rounded-md py-1 text-center transition px-2 whitespace-nowrap shrink-0 sm:shrink"
           [ngClass]="specialtyFilter === 'ALL' ? 'bg-white text-ink shadow-sm font-semibold' : 'hover:text-ink'"
         >
@@ -106,6 +107,7 @@
         <button
           type="button"
           (click)="setSpecialtyFilter('GENERAL')"
+          [attr.aria-pressed]="specialtyFilter === 'GENERAL'"
           class="flex-1 rounded-md py-1 text-center transition px-2 whitespace-nowrap shrink-0 sm:shrink"
           [ngClass]="specialtyFilter === 'GENERAL' ? 'bg-white text-ink shadow-sm font-semibold' : 'hover:text-ink'"
         >
@@ -115,6 +117,7 @@
           <button
             type="button"
             (click)="setSpecialtyFilter(s.code)"
+            [attr.aria-pressed]="specialtyFilter === s.code"
             class="flex-1 rounded-md py-1 text-center transition truncate px-2 whitespace-nowrap shrink-0 sm:shrink"
             [ngClass]="specialtyFilter === s.code ? 'bg-white text-ink shadow-sm font-semibold' : 'hover:text-ink'"
             [title]="s.name"
@@ -305,7 +308,7 @@
           <div class="mt-6 space-y-3 min-w-0">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
               <!-- Filtro de estado de items -->
-              <div class="flex items-center gap-1 rounded-lg bg-slate-100 p-1 text-xs font-medium text-muted w-full sm:w-fit overflow-x-auto no-scrollbar scroll-touch">
+              <div class="scroll-region flex items-center gap-1 rounded-lg bg-slate-100 p-1 text-xs font-medium text-muted w-full sm:w-fit overflow-x-auto scroll-touch" tabindex="0" aria-label="Filtrar opciones del catálogo por estado">
                 <button
                   type="button"
                   (click)="itemStatusFilter = 'ALL'"
@@ -354,7 +357,7 @@
             </div>
 
             <!-- Tabla de Opciones -->
-            <div class="table-responsive rounded-xl border border-line bg-surface scroll-touch">
+            <div class="table-responsive scroll-region rounded-xl border border-line bg-surface scroll-touch" tabindex="0" aria-label="Opciones del catálogo">
               <table class="minimal-table min-w-[560px]">
                 <thead>
                   <tr class="bg-slate-50/80">
@@ -380,12 +383,12 @@
 
                       <!-- Controles de Reordenamiento -->
                       <td class="text-center">
-                        <div class="inline-flex items-center gap-1">
+                        <div class="touch-action-group inline-flex items-center gap-1">
                           <button
                             type="button"
                             (click)="moveItemUp(i)"
                             [disabled]="i === 0"
-                            class="rounded p-1 text-muted hover:bg-slate-200 hover:text-ink disabled:opacity-30 disabled:cursor-not-allowed transition"
+                            class="touch-icon-target rounded p-1 text-muted hover:bg-slate-200 hover:text-ink disabled:opacity-30 disabled:cursor-not-allowed transition"
                             title="Mover arriba"
                           >
                             <lucide-icon [img]="ArrowUp" [size]="13"></lucide-icon>
@@ -394,7 +397,7 @@
                             type="button"
                             (click)="moveItemDown(i)"
                             [disabled]="i === filteredItems.length - 1"
-                            class="rounded p-1 text-muted hover:bg-slate-200 hover:text-ink disabled:opacity-30 disabled:cursor-not-allowed transition"
+                            class="touch-icon-target rounded p-1 text-muted hover:bg-slate-200 hover:text-ink disabled:opacity-30 disabled:cursor-not-allowed transition"
                             title="Mover abajo"
                           >
                             <lucide-icon [img]="ArrowDown" [size]="13"></lucide-icon>
@@ -417,7 +420,7 @@
                             <button
                               type="button"
                               (click)="saveEditItem(item)"
-                              class="rounded bg-emerald-600 text-white p-1 hover:bg-emerald-700 shadow-sm transition"
+                              class="touch-icon-target rounded bg-emerald-600 text-white p-1 hover:bg-emerald-700 shadow-sm transition"
                               title="Guardar (Enter)"
                             >
                               <lucide-icon [img]="Check" [size]="14"></lucide-icon>
@@ -425,7 +428,7 @@
                             <button
                               type="button"
                               (click)="cancelEditItem()"
-                              class="rounded bg-slate-200 text-slate-700 p-1 hover:bg-slate-300 transition"
+                              class="touch-icon-target rounded bg-slate-200 text-slate-700 p-1 hover:bg-slate-300 transition"
                               title="Cancelar (Esc)"
                             >
                               <lucide-icon [img]="X" [size]="14"></lucide-icon>
@@ -441,7 +444,7 @@
                             <button
                               type="button"
                               (click)="startEditItem(item)"
-                              class="opacity-0 group-hover/edit:opacity-100 text-muted hover:text-primary-600 transition"
+                              class="touch-icon-target touch-always-visible opacity-0 group-hover/edit:opacity-100 focus:opacity-100 text-muted hover:text-primary-600 transition"
                               title="Editar nombre"
                             >
                               <lucide-icon [img]="Edit2" [size]="12"></lucide-icon>
@@ -471,13 +474,14 @@
 
                       <!-- Acciones (Switch Toggle + Eliminar) -->
                       <td class="text-right">
-                        <div class="inline-flex items-center justify-end gap-3">
+                        <div class="touch-action-group inline-flex items-center justify-end gap-3">
                           <!-- Switch Toggle -->
-                          <label class="relative inline-flex cursor-pointer items-center" title="Activar / Desactivar">
+                          <label class="touch-switch-target relative inline-flex cursor-pointer items-center" title="Activar / Desactivar">
                             <input
                               type="checkbox"
                               [(ngModel)]="item.isActive"
                               (change)="toggleActive(item)"
+                              [attr.aria-label]="(item.isActive ? 'Desactivar ' : 'Activar ') + item.itemName"
                               class="peer sr-only"
                             />
                             <span class="h-5 w-9 rounded-full bg-slate-300 transition peer-checked:bg-primary-600 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:bg-white after:transition peer-checked:after:translate-x-4"></span>
@@ -487,7 +491,7 @@
                           <button
                             type="button"
                             (click)="confirmDeleteItem(item)"
-                            class="text-muted hover:text-danger rounded p-1 hover:bg-red-50 transition"
+                            class="touch-icon-target text-muted hover:text-danger rounded p-1 hover:bg-red-50 transition"
                             title="Eliminar opción"
                           >
                             <lucide-icon [img]="Trash2" [size]="14"></lucide-icon>

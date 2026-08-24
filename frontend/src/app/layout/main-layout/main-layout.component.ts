@@ -34,6 +34,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { UserProfile } from '../../core/models/user-profile.model';
 import { Subscription, filter } from 'rxjs';
 import { CommandPaletteComponent } from '../../shared/components/command-palette/command-palette.component';
+import { VIEWPORT_BREAKPOINTS } from '../../shared/services/view-preference/view-preference.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -67,7 +68,8 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   readonly User = User;
 
   isSidebarOpen = false;
-  isSidebarExpanded = true;
+  isSidebarExpanded = false;
+  isDesktopSidebar = false;
   isCommandPaletteOpen = false;
   isProfileMenuOpen = false;
   
@@ -82,15 +84,25 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   currentRouteTitle = 'Dashboard';
 
   isMobile = false;
-  private mobileQuery = window.matchMedia('(max-width: 767px)');
+  private mobileQuery = window.matchMedia(
+    `(max-width: ${VIEWPORT_BREAKPOINTS.mobile - 1}px)`
+  );
+  private desktopSidebarPreference = true;
+  private desktopSidebarQuery = window.matchMedia(
+    `(min-width: ${VIEWPORT_BREAKPOINTS.expandedSidebar}px)`
+  );
   private readonly onMobileChange = (event: MediaQueryListEvent): void => {
     this.isMobile = event.matches;
     if (!this.isMobile) {
       this.setScrollLock(false);
     }
   };
+  private readonly onDesktopSidebarChange = (event: MediaQueryListEvent): void => {
+    this.applyDesktopSidebarMode(event.matches);
+  };
 
   @ViewChild('menuToggle', { static: false }) menuToggle?: ElementRef<HTMLButtonElement>;
+  @ViewChild('profileMenuToggle', { static: false }) profileMenuToggle?: ElementRef<HTMLButtonElement>;
   @ViewChild('profileDropdownContainer', { static: false }) profileDropdownContainer?: ElementRef<HTMLElement>;
 
   private profileSubscription?: Subscription;
@@ -130,11 +142,15 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     try {
       const saved = localStorage.getItem('sidebar_expanded');
       if (saved !== null) {
-        this.isSidebarExpanded = JSON.parse(saved);
+        const parsedPreference: unknown = JSON.parse(saved);
+        if (typeof parsedPreference === 'boolean') {
+          this.desktopSidebarPreference = parsedPreference;
+        }
       }
     } catch {
-      this.isSidebarExpanded = true;
+      this.desktopSidebarPreference = true;
     }
+    this.applyDesktopSidebarMode(this.desktopSidebarQuery.matches);
 
     this.loadProfile();
     this.updateRouteTitle(this.router.url);
@@ -157,6 +173,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     );
     this.isMobile = this.mobileQuery.matches;
     this.mobileQuery.addEventListener('change', this.onMobileChange);
+    this.desktopSidebarQuery.addEventListener('change', this.onDesktopSidebarChange);
   }
 
   ngOnDestroy(): void {
@@ -164,6 +181,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     this.settingsSubscription?.unsubscribe();
     this.routerSubscription?.unsubscribe();
     this.mobileQuery.removeEventListener('change', this.onMobileChange);
+    this.desktopSidebarQuery.removeEventListener('change', this.onDesktopSidebarChange);
     this.setScrollLock(false);
   }
 
@@ -215,12 +233,21 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   }
 
   toggleSidebarCollapse(): void {
+    if (!this.isDesktopSidebar) {
+      return;
+    }
     this.isSidebarExpanded = !this.isSidebarExpanded;
+    this.desktopSidebarPreference = this.isSidebarExpanded;
     try {
       localStorage.setItem('sidebar_expanded', JSON.stringify(this.isSidebarExpanded));
     } catch {
       // ignore
     }
+  }
+
+  private applyDesktopSidebarMode(isDesktopSidebar: boolean): void {
+    this.isDesktopSidebar = isDesktopSidebar;
+    this.isSidebarExpanded = isDesktopSidebar ? this.desktopSidebarPreference : false;
   }
 
   toggleProfileMenu(event?: MouseEvent): void {
@@ -253,6 +280,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   onEscape(): void {
     if (this.isProfileMenuOpen) {
       this.closeProfileMenu();
+      this.profileMenuToggle?.nativeElement.focus();
     }
     if (this.isSidebarOpen) {
       this.closeSidebar();

@@ -1,4 +1,16 @@
 /* User Management Styles */
 :host {
+  container-type: inline-size;
   display: block;
+  min-width: 0;
+}
+
+.user-secondary-column {
+  display: none;
+}
+
+@container (min-width: 64rem) {
+  .user-secondary-column {
+    display: table-cell;
+  }
 }

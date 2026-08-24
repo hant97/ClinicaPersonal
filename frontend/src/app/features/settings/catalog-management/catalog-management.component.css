@@ -1,0 +1,25 @@
+:host {
+  container-type: inline-size;
+  display: block;
+  min-width: 0;
+}
+
+.catalog-master-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 1rem;
+}
+
+@container (min-width: 62rem) {
+  .catalog-master-detail {
+    grid-template-columns: 20rem minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+@container (min-width: 74rem) {
+  .catalog-master-detail {
+    grid-template-columns: 22rem minmax(0, 1fr);
+  }
+}

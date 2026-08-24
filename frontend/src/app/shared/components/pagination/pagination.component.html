@@ -1,11 +1,11 @@
 @if (totalPages > 1) {
   <nav class="my-5 flex flex-wrap items-center justify-center gap-2" aria-label="Paginación">
-    <button type="button" class="btn-secondary !min-h-9 !px-3 !py-2" [disabled]="currentPage === 0" (click)="onPageChange(currentPage - 1)">Anterior</button>
+    <button type="button" class="btn-secondary touch-target !min-h-9 !px-3 !py-2" [disabled]="currentPage === 0" (click)="onPageChange(currentPage - 1)">Anterior</button>
     <div class="flex gap-1" aria-label="Páginas">
       @for (page of pages; track page) {
-        <button type="button" class="flex h-9 min-w-9 items-center justify-center rounded-lg border px-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-clinic-500 focus:ring-offset-2" [class]="page === currentPage ? 'border-clinic-600 bg-clinic-600 text-white shadow-sm' : 'border-line bg-surface text-muted hover:border-clinic-500 hover:bg-clinic-50 hover:text-clinic-800'" [attr.aria-current]="page === currentPage ? 'page' : null" [attr.aria-label]="'Página ' + (page + 1)" (click)="onPageChange(page)">{{ page + 1 }}</button>
+        <button type="button" class="touch-icon-target flex h-9 min-w-9 items-center justify-center rounded-lg border px-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-clinic-500 focus:ring-offset-2" [class]="page === currentPage ? 'border-clinic-600 bg-clinic-600 text-white shadow-sm' : 'border-line bg-surface text-muted hover:border-clinic-500 hover:bg-clinic-50 hover:text-clinic-800'" [attr.aria-current]="page === currentPage ? 'page' : null" [attr.aria-label]="'Página ' + (page + 1)" (click)="onPageChange(page)">{{ page + 1 }}</button>
       }
     </div>
-    <button type="button" class="btn-secondary !min-h-9 !px-3 !py-2" [disabled]="currentPage === totalPages - 1" (click)="onPageChange(currentPage + 1)">Siguiente</button>
+    <button type="button" class="btn-secondary touch-target !min-h-9 !px-3 !py-2" [disabled]="currentPage === totalPages - 1" (click)="onPageChange(currentPage + 1)">Siguiente</button>
   </nav>
 }

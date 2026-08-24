@@ -23,6 +23,7 @@ import {
 import { PatientService } from '../../../core/services/patient/patient.service';
 import { SpecialtyService } from '../../../core/services/specialty.service';
 import { Patient } from '../../../core/models/patient.model';
+import { FocusTrapDirective } from '../../directives/focus-trap.directive';
 
 export interface CommandItem {
   id: string;
@@ -37,7 +38,7 @@ export interface CommandItem {
 @Component({
   selector: 'app-command-palette',
   standalone: true,
-  imports: [ReactiveFormsModule, LucideAngularModule],
+  imports: [ReactiveFormsModule, LucideAngularModule, FocusTrapDirective],
   template: `
     @if (isOpen) {
       <div
@@ -45,6 +46,8 @@ export interface CommandItem {
         role="dialog"
         aria-modal="true"
         aria-label="Paleta de comandos"
+        appFocusTrap
+        (trapClose)="close()"
       >
         <!-- Backdrop -->
         <div
@@ -75,7 +78,7 @@ export interface CommandItem {
               <kbd class="hidden sm:inline-flex rounded border border-line bg-surface px-1.5 py-0.5 text-[10px] font-mono text-muted">ESC</kbd>
               <button
                 type="button"
-                class="btn-text !p-1.5 text-muted"
+                class="btn-text touch-icon-target !p-1.5 text-muted"
                 aria-label="Cerrar paleta"
                 (click)="close()"
               >
@@ -91,8 +94,9 @@ export interface CommandItem {
                 <p class="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted">Pacientes encontrados</p>
                 <div class="space-y-0.5">
                   @for (patient of patientResults; track patient.id; let i = $index) {
-                    <div
-                      class="flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer transition"
+                    <button
+                      type="button"
+                      class="command-palette-item flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm cursor-pointer transition"
                       [class.bg-primary-50]="selectedIndex === i"
                       [class.text-primary-700]="selectedIndex === i"
                       [class.text-ink]="selectedIndex !== i"
@@ -107,7 +111,7 @@ export interface CommandItem {
                         </div>
                       </div>
                       <span class="text-xs text-muted flex items-center gap-1">Ver ficha <lucide-icon [img]="ArrowRight" [size]="14"></lucide-icon></span>
-                    </div>
+                    </button>
                   }
                 </div>
               </div>
@@ -118,8 +122,9 @@ export interface CommandItem {
                 <p class="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted">Comandos y Navegación</p>
                 <div class="space-y-0.5">
                   @for (cmd of filteredCommands; track cmd.id; let i = $index) {
-                    <div
-                      class="flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer transition"
+                    <button
+                      type="button"
+                      class="command-palette-item flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm cursor-pointer transition"
                       [class.bg-primary-50]="selectedIndex === (patientResults.length + i)"
                       [class.text-primary-700]="selectedIndex === (patientResults.length + i)"
                       [class.text-ink]="selectedIndex !== (patientResults.length + i)"
@@ -135,7 +140,7 @@ export interface CommandItem {
                       } @else {
                         <span class="text-xs text-muted">{{ cmd.category }}</span>
                       }
-                    </div>
+                    </button>
                   }
                 </div>
               </div>

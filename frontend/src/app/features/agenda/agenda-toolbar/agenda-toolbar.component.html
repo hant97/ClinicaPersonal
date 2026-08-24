@@ -33,7 +33,7 @@
   </div>
 </header>
 
-<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" [formGroup]="filterForm">
+<div class="responsive-filter-grid" [formGroup]="filterForm">
   <label class="relative">
     <span class="sr-only">Buscar por paciente</span>
     <lucide-icon [img]="Search" [size]="16" class="input-leading-icon"></lucide-icon>

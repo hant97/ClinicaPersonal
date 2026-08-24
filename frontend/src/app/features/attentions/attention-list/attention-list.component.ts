@@ -39,6 +39,7 @@ import { ClinicalService } from '../../../core/models/clinical-service.model';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
 
 @Component({
   selector: 'app-attention-list',
@@ -48,7 +49,8 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
     FormsModule,
     RouterModule,
     LucideAngularModule,
-    PaginationComponent
+    PaginationComponent,
+    FocusTrapDirective
   ],
   templateUrl: './attention-list.component.html'
 })

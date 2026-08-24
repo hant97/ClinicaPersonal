@@ -1,4 +1,4 @@
-<section class="card space-y-6">
+<section class="card responsive-shell space-y-6">
   <!-- Header: Title & Actions -->
   <div class="flex flex-col gap-3.5 sm:gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-line pb-4">
     <div>
@@ -53,7 +53,7 @@
 
   <!-- KPI Cards -->
   @if (stats) {
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+    <div class="responsive-kpi-grid" data-testid="kpi-grid">
       <div class="rounded-xl border border-line p-3.5 bg-surface">
         <div class="flex items-center justify-between">
           <span class="text-[11px] font-semibold uppercase tracking-wider text-muted">Total Insumos</span>
@@ -61,7 +61,7 @@
             <lucide-icon [img]="Package" [size]="15"></lucide-icon>
           </span>
         </div>
-        <p class="mt-1.5 text-xl font-bold text-ink">{{ stats.totalSupplies }}</p>
+        <p class="responsive-kpi-value mt-1.5 font-bold text-ink">{{ stats.totalSupplies }}</p>
       </div>
 
       <div class="rounded-xl border border-line p-3.5 bg-surface">
@@ -71,7 +71,7 @@
             <lucide-icon [img]="Wallet" [size]="15"></lucide-icon>
           </span>
         </div>
-        <p class="mt-1.5 text-xl font-bold text-ink">{{ stats.inventoryValue | currency:'PEN':'S/ ':'1.2-2' }}</p>
+        <p class="responsive-kpi-value mt-1.5 font-bold text-ink">{{ stats.inventoryValue | currency:'PEN':'S/ ':'1.2-2' }}</p>
       </div>
 
       <div class="rounded-xl border border-line p-3.5 bg-surface">
@@ -81,7 +81,7 @@
             <lucide-icon [img]="TrendingUp" [size]="15"></lucide-icon>
           </span>
         </div>
-        <p class="mt-1.5 text-xl font-bold text-amber-700">{{ stats.lowStockCount }}</p>
+        <p class="responsive-kpi-value mt-1.5 font-bold text-amber-700">{{ stats.lowStockCount }}</p>
       </div>
 
       <div class="rounded-xl border border-line p-3.5 bg-surface">
@@ -91,7 +91,7 @@
             <lucide-icon [img]="AlertTriangle" [size]="15"></lucide-icon>
           </span>
         </div>
-        <p class="mt-1.5 text-xl font-bold text-danger">{{ stats.outOfStockCount }}</p>
+        <p class="responsive-kpi-value mt-1.5 font-bold text-danger">{{ stats.outOfStockCount }}</p>
       </div>
 
       <div class="rounded-xl border border-line p-3.5 bg-surface">
@@ -101,7 +101,7 @@
             <lucide-icon [img]="CalendarClock" [size]="15"></lucide-icon>
           </span>
         </div>
-        <p class="mt-1.5 text-xl font-bold text-violet-700">{{ stats.expiringSoonCount }}</p>
+        <p class="responsive-kpi-value mt-1.5 font-bold text-violet-700">{{ stats.expiringSoonCount }}</p>
       </div>
     </div>
 
@@ -233,7 +233,7 @@
               <lucide-icon [img]="SlidersHorizontal" [size]="13"></lucide-icon>
               <span>Ajustar</span>
             </button>
-            <div class="flex items-center gap-0.5">
+            <div class="touch-action-group flex items-center gap-0.5">
               <button type="button" class="btn-text !p-1.5" (click)="openMovements(supply)" title="Historial de movimientos">
                 <lucide-icon [img]="History" [size]="16"></lucide-icon>
               </button>
@@ -255,17 +255,17 @@
     </div>
   } @else {
     <!-- Table -->
-    <div class="table-responsive">
+    <div class="table-responsive scroll-region" tabindex="0" aria-label="Inventario en vista de tabla">
       <table class="minimal-table">
         <thead>
           <tr>
             <th>Insumo / Material</th>
-            <th>Descripción</th>
+            <th class="responsive-table-tertiary">Descripción</th>
             <th>Stock Actual</th>
             <th>Unidad</th>
-            <th>Stock Mínimo</th>
+            <th class="responsive-table-secondary">Stock Mínimo</th>
             <th>Precio Ref.</th>
-            <th>Caducidad</th>
+            <th class="responsive-table-secondary">Caducidad</th>
             <th class="text-right">Acciones</th>
           </tr>
         </thead>
@@ -293,7 +293,7 @@
                   </div>
                 </div>
               </td>
-              <td class="text-xs text-muted max-w-xs truncate">{{ supply.description || '—' }}</td>
+              <td class="responsive-table-tertiary max-w-xs text-xs text-muted">{{ supply.description || '—' }}</td>
               <td>
                 <span
                   class="font-mono font-bold text-xs px-2 py-0.5 rounded border"
@@ -303,11 +303,11 @@
                 </span>
               </td>
               <td class="text-xs text-slate-700 font-medium">{{ supply.unit }}</td>
-              <td class="text-xs text-muted font-mono">{{ supply.minStockLevel }}</td>
+              <td class="responsive-table-secondary text-xs text-muted font-mono">{{ supply.minStockLevel }}</td>
               <td class="text-xs font-mono font-medium text-slate-700">
                 {{ supply.price !== null && supply.price !== undefined ? (supply.price | number:'1.2-2') : '—' }}
               </td>
-              <td class="text-xs font-mono">
+              <td class="responsive-table-secondary text-xs font-mono">
                 @if (isExpiringSoon(supply)) {
                   <span class="inline-flex items-center gap-1 rounded bg-violet-50 px-1.5 py-0.5 text-[10px] font-semibold text-violet-700 border border-violet-200">
                     <lucide-icon [img]="CalendarClock" [size]="10"></lucide-icon>
@@ -318,7 +318,7 @@
                 }
               </td>
               <td class="text-right">
-                <div class="flex items-center justify-end gap-1">
+                <div class="touch-action-group flex items-center justify-end gap-1">
                   <button type="button" class="btn-text !p-1.5" (click)="openAdjustment(supply)" title="Ajustar stock">
                     <lucide-icon [img]="SlidersHorizontal" [size]="15"></lucide-icon>
                   </button>

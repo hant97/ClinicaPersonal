@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures/clinic-test';
 
 test.describe('Flujo E2E: Atenciones Formalizadas y Pipeline Clínico', () => {
 
@@ -20,9 +20,9 @@ test.describe('Flujo E2E: Atenciones Formalizadas y Pipeline Clínico', () => {
   });
 
   test('debe permitir filtrar atenciones por estado en el pipeline', async ({ page }) => {
-    const filterButtons = page.locator('button:has-text("Todas"), button:has-text("En Atención"), button:has-text("Completadas")');
-    if (await filterButtons.count() > 0) {
-      await filterButtons.nth(1).click();
+    const inProgressFilter = page.getByRole('button', { name: 'En Proceso', exact: true });
+    if (await inProgressFilter.isVisible()) {
+      await inProgressFilter.click();
       // Debe actualizar la vista o la tabla
       await expect(page.locator('table, .list-state').first()).toBeVisible();
     }
@@ -32,11 +32,11 @@ test.describe('Flujo E2E: Atenciones Formalizadas y Pipeline Clínico', () => {
     const quickBtn = page.locator('button:has-text("Nueva Atención"), button:has-text("+ Atención")');
     if (await quickBtn.isVisible()) {
       await quickBtn.click();
-      const modal = page.locator('.modal, [role="dialog"], .card');
-      await expect(modal.first()).toBeVisible();
+      const modal = page.getByRole('dialog', { name: 'Nueva Atención Rápida' });
+      await expect(modal).toBeVisible();
 
       // Debe incluir selector de paciente y servicio clínico
-      await expect(page.locator('input, select').first()).toBeVisible();
+      await expect(modal.locator('input, select').first()).toBeVisible();
     }
   });
 

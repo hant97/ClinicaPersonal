@@ -18,6 +18,7 @@ describe('MainLayoutComponent', () => {
   });
 
   beforeEach(async () => {
+    localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [MainLayoutComponent],
       providers: [
@@ -56,6 +57,10 @@ describe('MainLayoutComponent', () => {
     fixture.detectChanges();
   });
 
+  afterEach(() => {
+    localStorage.clear();
+  });
+
   it('should create', () => {
     expect(component).toBeTruthy();
   });
@@ -69,12 +74,33 @@ describe('MainLayoutComponent', () => {
   });
 
   it('should toggle sidebar collapse state', () => {
+    component.isDesktopSidebar = true;
     const initialState = component.isSidebarExpanded;
     component.toggleSidebarCollapse();
     expect(component.isSidebarExpanded).toBe(!initialState);
+    expect(localStorage.getItem('sidebar_expanded')).toBe(JSON.stringify(!initialState));
 
     component.toggleSidebarCollapse();
     expect(component.isSidebarExpanded).toBe(initialState);
+  });
+
+  it('should keep the sidebar compact outside wide desktop', () => {
+    component.isDesktopSidebar = false;
+    component.isSidebarExpanded = false;
+
+    component.toggleSidebarCollapse();
+
+    expect(component.isSidebarExpanded).toBeFalse();
+    expect(localStorage.getItem('sidebar_expanded')).toBeNull();
+  });
+
+  it('should declare compact tablet and expandable desktop classes', () => {
+    const sidebar = fixture.nativeElement.querySelector('#main-navigation') as HTMLElement;
+    const collapseControl = fixture.nativeElement.querySelector('[data-testid="sidebar-collapse"]') as HTMLElement;
+
+    expect(sidebar.classList.contains('md:w-16')).toBeTrue();
+    expect(sidebar.classList.contains('lg:w-64')).toBeFalse();
+    expect(collapseControl.classList.contains('xl:flex')).toBeTrue();
   });
 
   it('should toggle and close the profile dropdown menu', () => {
@@ -88,9 +114,13 @@ describe('MainLayoutComponent', () => {
   });
 
   it('should close profile menu on escape key', () => {
+    const profileToggle = fixture.nativeElement.querySelector('[aria-haspopup="menu"]') as HTMLButtonElement;
+    expect(profileToggle).not.toBeNull();
+    const focusSpy = spyOn(profileToggle, 'focus');
     component.isProfileMenuOpen = true;
     component.onEscape();
     expect(component.isProfileMenuOpen).toBeFalse();
+    expect(focusSpy).toHaveBeenCalled();
   });
 
   it('should call authService.logout and close menu on logout', () => {

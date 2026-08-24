@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures/clinic-test';
 
 test.describe('Flujo E2E: Reportes Clínicos de Evolución y Comparativa Fotográfica', () => {
 

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures/clinic-test';
 
 test.describe('Flujo E2E: Autenticación y Control de Sesión', () => {
 
@@ -23,8 +23,7 @@ test.describe('Flujo E2E: Autenticación y Control de Sesión', () => {
     await page.click('button[type="submit"]');
 
     // Debe mostrar feedback de error (toast o alert)
-    const errorFeedback = page.locator('.toast-error, .swal2-error, [role="alert"], text=incorrectas, text=inválidas, text=Error');
-    await expect(errorFeedback.first()).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/Credenciales incorrectas|Error/i).first()).toBeVisible({ timeout: 5000 });
   });
 
   test('debe permitir inicio de sesión exitoso y redirigir al Dashboard', async ({ page }) => {

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures/clinic-test';
 
 test.describe('Flujo E2E: Recetas Médicas, Facturación y Abonos Parciales', () => {
 
@@ -35,7 +35,7 @@ test.describe('Flujo E2E: Recetas Médicas, Facturación y Abonos Parciales', ()
   test('debe permitir navegar a la verificación pública de receta', async ({ page }) => {
     // Verificación de acceso a la página pública de verificación
     await page.goto('/verificar-receta/DEMO-CODE-123');
-    await expect(page.locator('text=Verificación, text=Receta, input, .card').first()).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Receta Médica/i })).toBeVisible();
   });
 
 });

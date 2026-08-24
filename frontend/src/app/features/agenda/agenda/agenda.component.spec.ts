@@ -42,7 +42,7 @@ describe('AgendaComponent', () => {
     ]));
 
     const viewPreferenceSpy = jasmine.createSpyObj('ViewPreferenceService', ['getViewMode', 'setViewMode', 'isMobile']);
-    viewPreferenceSpy.getViewMode.and.returnValue('calendar');
+    viewPreferenceSpy.getViewMode.and.returnValue('list');
     viewPreferenceSpy.setViewMode.and.returnValue(undefined);
 
     await TestBed.configureTestingModule({
@@ -66,9 +66,10 @@ describe('AgendaComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create and default to calendar view', () => {
+  it('should use the compact list view returned by the preference service', () => {
     expect(component).toBeTruthy();
-    expect(component.currentView).toBe('calendar');
+    expect(viewPreferenceService.getViewMode).toHaveBeenCalledWith('agenda_view_mode', 'calendar', 'list');
+    expect(component.currentView).toBe('list');
     expect(component.professionals.length).toBe(1);
   });
 
@@ -94,6 +95,7 @@ describe('AgendaComponent', () => {
   }));
 
   it('should update calendar week when dateRange changes in calendar view', fakeAsync(() => {
+    component.toggleView('calendar');
     component.filterForm.patchValue({ dateRange: 'TODAY' });
     tick(350);
 

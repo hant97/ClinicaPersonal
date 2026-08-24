@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures/clinic-test';
 
 test.describe('Flujo E2E: Historia Clínica 360° y Registro S.O.A.P.', () => {
 
@@ -18,7 +18,7 @@ test.describe('Flujo E2E: Historia Clínica 360° y Registro S.O.A.P.', () => {
   });
 
   test('debe navegar al expediente 360° y visualizar las pestañas clínicas', async ({ page }) => {
-    const patientRow = page.locator('table tbody tr, .card a[href*="/patients/"]').first();
+    const patientRow = page.locator('table tbody tr, a[href*="/patients/patient-e2e-001"]').first();
     if (await patientRow.isVisible()) {
       await patientRow.click();
       await page.waitForURL(/\/patients\//, { timeout: 8000 });
@@ -32,7 +32,7 @@ test.describe('Flujo E2E: Historia Clínica 360° y Registro S.O.A.P.', () => {
   });
 
   test('debe abrir el formulario de sesión clínica SOAP', async ({ page }) => {
-    const patientRow = page.locator('table tbody tr, .card a[href*="/patients/"]').first();
+    const patientRow = page.locator('table tbody tr, a[href*="/patients/patient-e2e-001"]').first();
     if (await patientRow.isVisible()) {
       await patientRow.click();
       await page.waitForURL(/\/patients\//, { timeout: 8000 });

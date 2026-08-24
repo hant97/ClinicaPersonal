@@ -1,11 +1,12 @@
 import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, X } from 'lucide-angular';
+import { FocusTrapDirective } from '../../directives/focus-trap.directive';
 
 @Component({
   selector: 'app-drawer-sheet',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, FocusTrapDirective],
   template: `
     @if (isOpen) {
       <div
@@ -13,6 +14,8 @@ import { LucideAngularModule, X } from 'lucide-angular';
         role="dialog"
         [attr.aria-modal]="isOpen"
         [attr.aria-label]="title || 'Panel lateral'"
+        appFocusTrap
+        (trapClose)="close()"
       >
         <!-- Backdrop -->
         <div
@@ -38,7 +41,7 @@ import { LucideAngularModule, X } from 'lucide-angular';
                 <ng-content select="[drawer-header-actions]"></ng-content>
                 <button
                   type="button"
-                  class="btn-text !p-1.5"
+                  class="btn-text touch-icon-target !p-1.5"
                   aria-label="Cerrar panel"
                   (click)="close()"
                 >

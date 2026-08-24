@@ -1,13 +1,13 @@
-<div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex justify-center items-center p-4" appFocusTrap (escapePressed)="close()">
+<div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex justify-center items-center p-4" role="dialog" aria-modal="true" aria-label="Disponibilidad y bloqueos de agenda" appFocusTrap (trapClose)="close()">
   <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
     
     <!-- Modal Header -->
-    <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-      <div class="flex items-center gap-3">
+    <div class="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-4 sm:px-6">
+      <div class="flex min-w-0 items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
           <lucide-icon [img]="Clock" [size]="20"></lucide-icon>
         </div>
-        <div>
+        <div class="min-w-0">
           <h2 class="text-xl font-bold text-slate-800">Disponibilidad y Bloqueos de Agenda</h2>
           <p class="text-xs text-slate-500">Configura jornadas de atención por profesional y gestiona períodos de vacaciones o ausencias</p>
         </div>
@@ -18,14 +18,14 @@
     </div>
 
     <!-- Navigation Tabs -->
-    <div class="px-6 border-b border-slate-200 bg-white flex gap-6">
+    <div class="scroll-region scroll-touch flex gap-2 overflow-x-auto border-b border-slate-200 bg-white px-4 sm:gap-6 sm:px-6" tabindex="0" aria-label="Secciones de disponibilidad">
       <button
         (click)="activeTab = 'schedules'"
         [class.border-blue-600]="activeTab === 'schedules'"
         [class.text-blue-600]="activeTab === 'schedules'"
         [class.border-transparent]="activeTab !== 'schedules'"
         [class.text-slate-500]="activeTab !== 'schedules'"
-        class="py-3 px-2 border-b-2 font-semibold text-sm flex items-center gap-2 transition-colors hover:text-blue-600">
+        class="flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-2 py-3 text-sm font-semibold transition-colors hover:text-blue-600">
         <lucide-icon [img]="Clock" [size]="16"></lucide-icon>
         Horarios de Atención Semanales
       </button>
@@ -35,20 +35,20 @@
         [class.text-blue-600]="activeTab === 'blocks'"
         [class.border-transparent]="activeTab !== 'blocks'"
         [class.text-slate-500]="activeTab !== 'blocks'"
-        class="py-3 px-2 border-b-2 font-semibold text-sm flex items-center gap-2 transition-colors hover:text-blue-600">
+        class="flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-2 py-3 text-sm font-semibold transition-colors hover:text-blue-600">
         <lucide-icon [img]="CalendarOff" [size]="16"></lucide-icon>
         Bloqueos y Vacaciones ({{ blocks.length }})
       </button>
     </div>
 
     <!-- Content Area -->
-    <div class="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+    <div class="flex-1 overflow-y-auto bg-slate-50/50 p-4 sm:p-6">
 
       <!-- TAB 1: HORARIOS SEMANALES -->
       @if (activeTab === 'schedules') {
         <div class="space-y-6">
           <!-- Professional Selector -->
-          <div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between gap-4">
+          <div class="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex items-center gap-2">
               <lucide-icon [img]="User" [size]="18" class="text-slate-400"></lucide-icon>
               <label class="text-sm font-semibold text-slate-700">Profesional:</label>
@@ -56,7 +56,7 @@
             <select
               (change)="onProfessionalChange($event)"
               [value]="selectedProfessionalId"
-              class="px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm font-medium text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none min-w-[240px]">
+              class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:w-auto sm:min-w-[240px]">
               @for (prof of professionals; track prof.id) {
                 <option [value]="prof.id">{{ getProfessionalDisplayName(prof) }}</option>
               }
@@ -67,9 +67,9 @@
           <form [formGroup]="scheduleForm" class="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden shadow-sm">
             <div formArrayName="days" class="divide-y divide-slate-100">
               @for (dayGroup of daysArray.controls; track $index) {
-                <div [formGroupName]="$index" class="p-4 flex items-center justify-between gap-4 hover:bg-slate-50/70 transition-colors">
+                <div [formGroupName]="$index" class="flex flex-col gap-3 p-4 transition-colors hover:bg-slate-50/70 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                   <!-- Day Toggle -->
-                  <div class="flex items-center gap-3 w-44">
+                  <div class="flex w-full items-center gap-3 sm:w-44">
                     <input
                       type="checkbox"
                       formControlName="active"
@@ -296,7 +296,7 @@
     </div>
 
     <!-- Modal Footer -->
-    <div class="px-6 py-3 border-t border-slate-200 bg-slate-50 flex justify-end">
+    <div class="flex justify-end border-t border-slate-200 bg-slate-50 px-4 py-3 sm:px-6">
       <button
         (click)="close()"
         class="px-5 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200/70 rounded-xl transition-colors">

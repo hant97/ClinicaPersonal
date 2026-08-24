@@ -20,9 +20,9 @@
 
   <!-- Filters & Search Toolbar -->
   <div class="card p-5 bg-surface shadow-sm border border-slate-200">
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
+    <div class="audit-filter-grid">
       <!-- Search general query -->
-      <div class="lg:col-span-2">
+      <div class="audit-filter-search">
         <label class="block text-xs font-semibold uppercase tracking-wider text-muted mb-1">
           Búsqueda de detalle
         </label>
@@ -121,7 +121,7 @@
       </div>
 
       <!-- Action Buttons -->
-      <div class="lg:col-span-4 flex items-end justify-end gap-2.5">
+      <div class="audit-filter-actions flex items-end justify-end gap-2.5">
         <button
           type="button"
           class="btn-secondary flex items-center gap-1.5 text-xs py-2 px-3 shadow-sm hover:bg-slate-100"
@@ -165,7 +165,7 @@
         </button>
       </div>
     } @else {
-      <div class="overflow-x-auto">
+      <div class="scroll-region overflow-x-auto scroll-touch" tabindex="0" aria-label="Registros de auditoría">
         <table class="w-full text-left text-sm">
           <thead class="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-muted">
             <tr>
@@ -174,8 +174,8 @@
               <th scope="col" class="px-4 py-3.5">Acción</th>
               <th scope="col" class="px-4 py-3.5">Módulo / Entidad</th>
               <th scope="col" class="px-4 py-3.5">Especialidad</th>
-              <th scope="col" class="px-5 py-3.5">Detalle</th>
-              <th scope="col" class="px-4 py-3.5">IP</th>
+              <th scope="col" class="audit-secondary-column px-5 py-3.5">Detalle</th>
+              <th scope="col" class="audit-secondary-column px-4 py-3.5">IP</th>
               <th scope="col" class="px-4 py-3.5 text-right">Ver</th>
             </tr>
           </thead>
@@ -240,12 +240,12 @@
                 </td>
 
                 <!-- Detail / Description -->
-                <td class="px-5 py-3.5 text-xs text-slate-600 max-w-xs truncate" [title]="log.detail || ''">
+                <td class="audit-secondary-column max-w-xs truncate px-5 py-3.5 text-xs text-slate-600" [title]="log.detail || ''">
                   {{ log.detail || '—' }}
                 </td>
 
                 <!-- IP Address -->
-                <td class="whitespace-nowrap px-4 py-3.5 text-xs font-mono text-slate-500">
+                <td class="audit-secondary-column whitespace-nowrap px-4 py-3.5 text-xs font-mono text-slate-500">
                   <div class="flex items-center gap-1.5">
                     <lucide-icon [img]="Globe" [size]="13" class="text-slate-400"></lucide-icon>
                     <span>{{ log.ip || '—' }}</span>
@@ -286,7 +286,7 @@
 <!-- Modal: Event Detail -->
 @if (selectedLog) {
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-    <div class="card w-full max-w-xl p-6 bg-surface shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150">
+    <div class="card flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden p-4 bg-surface shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150 sm:p-6">
       <!-- Modal Header -->
       <div class="flex items-center justify-between pb-4 border-b border-slate-200">
         <div class="flex items-center gap-2.5">
@@ -308,7 +308,7 @@
       </div>
 
       <!-- Modal Body -->
-      <div class="space-y-4 py-4 text-sm">
+      <div class="scroll-touch space-y-4 overflow-y-auto py-4 pr-1 text-sm">
         <div class="grid grid-cols-2 gap-4">
           <!-- Action & Entity -->
           <div class="space-y-1">

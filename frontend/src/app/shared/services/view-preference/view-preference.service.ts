@@ -1,17 +1,31 @@
 import { Injectable } from '@angular/core';
 
+export const VIEWPORT_BREAKPOINTS = {
+  mobile: 768,
+  compact: 1024,
+  expandedSidebar: 1280
+} as const;
+
 @Injectable({
   providedIn: 'root'
 })
 export class ViewPreferenceService {
-  private readonly MOBILE_BREAKPOINT = 768;
-
   isMobile(): boolean {
     if (typeof window === 'undefined') return false;
-    return window.innerWidth < this.MOBILE_BREAKPOINT;
+    return window.innerWidth < VIEWPORT_BREAKPOINTS.mobile;
   }
 
-  getViewMode<T extends string>(storageKey: string, defaultDesktop: T, defaultMobile: T): T {
+  isCompact(): boolean {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth < VIEWPORT_BREAKPOINTS.compact;
+  }
+
+  canExpandSidebar(): boolean {
+    if (typeof window === 'undefined') return true;
+    return window.innerWidth >= VIEWPORT_BREAKPOINTS.expandedSidebar;
+  }
+
+  getViewMode<T extends string>(storageKey: string, defaultDesktop: T, defaultCompact: T): T {
     if (typeof window === 'undefined') return defaultDesktop;
     try {
       const saved = localStorage.getItem(storageKey) as T | null;
@@ -19,7 +33,7 @@ export class ViewPreferenceService {
     } catch {
       // Ignorar errores al acceder a localStorage
     }
-    return this.isMobile() ? defaultMobile : defaultDesktop;
+    return this.isCompact() ? defaultCompact : defaultDesktop;
   }
 
   setViewMode<T extends string>(storageKey: string, mode: T): void {

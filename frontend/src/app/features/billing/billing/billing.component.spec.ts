@@ -9,6 +9,7 @@ import { CatalogService } from '../../../core/services/catalog.service';
 import { Payment, PaymentSummary } from '../../../core/models/payment.model';
 import { CatalogItem } from '../../../core/models/catalog.model';
 import { PageResponse } from '../../../core/models/page.model';
+import { ViewPreferenceService } from '../../../shared/services/view-preference/view-preference.service';
 
 function emptySummary(): PaymentSummary {
   return {
@@ -33,18 +34,23 @@ describe('BillingComponent', () => {
   let fixture: ComponentFixture<BillingComponent>;
   let paymentService: PaymentService;
   let catalogService: CatalogService;
+  let viewPreferenceService: ViewPreferenceService;
 
   beforeEach(async () => {
+    localStorage.clear();
+
     await TestBed.configureTestingModule({
       imports: [BillingComponent, HttpClientTestingModule, RouterTestingModule]
     }).compileComponents();
 
     paymentService = TestBed.inject(PaymentService);
     catalogService = TestBed.inject(CatalogService);
+    viewPreferenceService = TestBed.inject(ViewPreferenceService);
 
     spyOn(catalogService, 'getActiveItemsByCatalogCode').and.returnValue(of<CatalogItem[]>([]));
     spyOn(paymentService, 'getSummary').and.returnValue(of(emptySummary()));
     spyOn(paymentService, 'getAll').and.returnValue(of(emptyPage()));
+    spyOn(viewPreferenceService, 'getViewMode').and.returnValue('cards');
 
     fixture = TestBed.createComponent(BillingComponent);
     component = fixture.componentInstance;
@@ -53,6 +59,8 @@ describe('BillingComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+    expect(viewPreferenceService.getViewMode).toHaveBeenCalledWith('billing_view_mode', 'table', 'cards');
+    expect(component.viewMode).toBe('cards');
   });
 
   it('applyFilters resets page to 0 and reloads', () => {

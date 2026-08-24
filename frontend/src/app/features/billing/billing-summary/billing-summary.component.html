@@ -133,7 +133,7 @@
     </div>
 
     <!-- Modern FlowGrid KPI Cards -->
-    <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+    <div class="responsive-kpi-grid" data-testid="kpi-grid">
       <!-- 1. Ingresos Hoy -->
       <div class="rounded-xl border border-emerald-100 bg-emerald-50/40 p-3.5 shadow-xs transition hover:shadow-sm">
         <div class="flex items-center justify-between">
@@ -142,7 +142,7 @@
             <lucide-icon [img]="Coins" [size]="15"></lucide-icon>
           </div>
         </div>
-        <p class="mt-2 text-xl sm:text-2xl font-bold text-emerald-950 truncate">
+        <p class="responsive-kpi-value mt-2 font-bold text-emerald-950">
           {{ summary.incomeToday | currency:'PEN':'S/ ':'1.2-2' }}
         </p>
         <p class="mt-1 text-[11px] text-emerald-700/80 font-medium">Recaudación diaria</p>
@@ -157,7 +157,7 @@
           </div>
         </div>
         <div class="mt-2 flex items-baseline gap-1.5">
-          <p class="text-xl sm:text-2xl font-bold text-blue-950 truncate">
+          <p class="responsive-kpi-value font-bold text-blue-950">
             {{ summary.incomeMonth | currency:'PEN':'S/ ':'1.2-2' }}
           </p>
         </div>
@@ -198,7 +198,7 @@
             <lucide-icon [img]="Wallet" [size]="15"></lucide-icon>
           </div>
         </div>
-        <p class="mt-2 text-xl sm:text-2xl font-bold text-indigo-950 truncate">
+        <p class="responsive-kpi-value mt-2 font-bold text-indigo-950">
           {{ summary.averageTicket | currency:'PEN':'S/ ':'1.2-2' }}
         </p>
         <p class="mt-1 text-[11px] text-indigo-700/80 font-medium">Por transacción</p>
@@ -221,7 +221,7 @@
           </div>
         </div>
         <p
-          class="mt-2 text-xl sm:text-2xl font-bold truncate"
+          class="responsive-kpi-value mt-2 font-bold"
           [ngClass]="summary.pendingBalance > 0 ? 'text-amber-950' : 'text-slate-800'"
         >
           {{ summary.pendingBalance | currency:'PEN':'S/ ':'1.2-2' }}

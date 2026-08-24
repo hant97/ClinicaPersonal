@@ -1,4 +1,4 @@
-<section class="card space-y-6" aria-labelledby="agenda-title">
+<section class="card responsive-shell space-y-6" aria-labelledby="agenda-title">
   <app-agenda-toolbar
     [filterForm]="filterForm"
     [currentView]="currentView"
@@ -32,10 +32,12 @@
           No hay citas ni bloqueos en esta semana. Haz clic en un horario libre para agendar.
         </p>
       }
-      <div class="overflow-x-auto rounded-lg border border-line bg-surface">
-        <div class="min-w-[800px]">
-          <!-- Week Navigation Header -->
-          <div class="flex items-center justify-between border-b border-line bg-slate-50/80 px-4 py-2.5">
+      <p class="horizontal-scroll-hint" id="agenda-scroll-hint">
+        Desliza horizontalmente para consultar los siete días de la semana.
+      </p>
+      <div class="rounded-lg border border-line bg-surface">
+        <!-- La navegación permanece visible aunque la cuadrícula necesite desplazamiento. -->
+        <div class="flex items-center justify-between border-b border-line bg-slate-50/80 px-3 py-2.5 sm:px-4">
             <button type="button" class="btn-text !p-1.5" aria-label="Semana anterior" (click)="prevWeek()">
               <lucide-icon [img]="ChevronLeft" [size]="18"></lucide-icon>
             </button>
@@ -50,11 +52,13 @@
                 <lucide-icon [img]="ChevronRight" [size]="18"></lucide-icon>
               </button>
             </div>
-          </div>
+        </div>
 
+        <div class="scroll-region overflow-x-auto scroll-touch" tabindex="0" aria-describedby="agenda-scroll-hint" aria-label="Calendario semanal desplazable">
+          <div class="min-w-[800px]">
           <!-- Grid Header: Days of the week + Schedule Blocks Banner -->
           <div class="grid grid-cols-[64px_repeat(7,minmax(115px,1fr))] border-b border-line bg-slate-50/50">
-            <div class="border-r border-line p-2 text-center text-[11px] font-semibold text-muted flex items-center justify-center">Hora</div>
+            <div class="sticky left-0 z-20 flex items-center justify-center border-r border-line bg-slate-50 p-2 text-center text-[11px] font-semibold text-muted shadow-[2px_0_4px_rgba(15,23,42,0.06)]">Hora</div>
             @for (day of weekDays; track day) {
               <div
                 class="border-r border-line p-2 text-center transition cursor-pointer hover:bg-slate-100/60"
@@ -80,7 +84,7 @@
           <div class="grid grid-cols-[64px_repeat(7,minmax(115px,1fr))]">
             @for (hour of hours; track hour) {
               <!-- Hour Label -->
-              <div class="h-16 border-b border-r border-line p-2 text-right text-[11px] font-mono text-muted select-none">
+              <div class="sticky left-0 z-10 h-16 select-none border-b border-r border-line bg-surface p-2 text-right font-mono text-[11px] text-muted shadow-[2px_0_4px_rgba(15,23,42,0.06)]">
                 {{ hour }}
               </div>
 
@@ -126,6 +130,7 @@
           </div>
         </div>
       </div>
+      </div>
     }
 
     <!-- VIEW 2: Lista de Citas -->
@@ -137,7 +142,7 @@
         </div>
       }
       @if (appointments.length > 0) {
-        <div class="table-responsive">
+        <div class="table-responsive scroll-region" tabindex="0" aria-label="Lista de citas">
           <table class="minimal-table">
             <thead>
               <tr>

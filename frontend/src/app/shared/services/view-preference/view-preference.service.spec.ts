@@ -18,14 +18,44 @@ describe('ViewPreferenceService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should return desktop default when viewport is desktop and no storage exists', () => {
+  it('should classify mobile boundaries at 767 and 768 pixels', () => {
+    const widthSpy = spyOnProperty(window, 'innerWidth', 'get');
+    widthSpy.and.returnValue(767);
+    expect(service.isMobile()).toBeTrue();
+
+    widthSpy.and.returnValue(768);
+    expect(service.isMobile()).toBeFalse();
+  });
+
+  it('should classify compact boundaries at 768, 1023 and 1024 pixels', () => {
+    const widthSpy = spyOnProperty(window, 'innerWidth', 'get');
+    widthSpy.and.returnValue(768);
+    expect(service.isCompact()).toBeTrue();
+
+    widthSpy.and.returnValue(1023);
+    expect(service.isCompact()).toBeTrue();
+
+    widthSpy.and.returnValue(1024);
+    expect(service.isCompact()).toBeFalse();
+  });
+
+  it('should allow an expanded sidebar from 1280 pixels', () => {
+    const widthSpy = spyOnProperty(window, 'innerWidth', 'get');
+    widthSpy.and.returnValue(1279);
+    expect(service.canExpandSidebar()).toBeFalse();
+
+    widthSpy.and.returnValue(1280);
+    expect(service.canExpandSidebar()).toBeTrue();
+  });
+
+  it('should return desktop default when viewport is not compact and no storage exists', () => {
     spyOnProperty(window, 'innerWidth', 'get').and.returnValue(1024);
     const mode = service.getViewMode('test_key', 'table', 'cards');
     expect(mode).toBe('table');
   });
 
-  it('should return mobile default when viewport is mobile (< 768) and no storage exists', () => {
-    spyOnProperty(window, 'innerWidth', 'get').and.returnValue(400);
+  it('should return compact default on tablet when no storage exists', () => {
+    spyOnProperty(window, 'innerWidth', 'get').and.returnValue(768);
     const mode = service.getViewMode('test_key', 'table', 'cards');
     expect(mode).toBe('cards');
   });
