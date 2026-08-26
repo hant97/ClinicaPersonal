@@ -1,7 +1,9 @@
 # Plan de corrección de deuda técnica
 
-> **Estado:** ✅ Entregas A, B y C implementadas  
-> **Última actualización:** 2026-08-23  
+> **Estado:** ✅ Entregas A, B y C implementadas; checklist sincronizado con el código real.
+> Quedan abiertos: remedir bundle inicial y mitigar vulnerabilidades de devDependencies
+> (ver sección 11).  
+> **Última actualización:** 2026-08-26  
 > **Base:** auditoría técnica de backend Java 17/Spring Boot 4.1 y frontend Angular 18  
 > **Regla de trabajo:** completar una fase, ejecutar su verificación y revisar el diff antes de iniciar la siguiente.
 
@@ -207,34 +209,47 @@ la otra especialidad.
 
 ## 6. Entrega A — Integridad y seguridad funcional
 
+> **Nota de sincronización (2026-08-26):** las Fases 0 a 3 quedaron marcadas como
+> completadas según el registro de "Entrega A" (sección inicial de este documento,
+> implementada el 2026-08-23) y comprobaciones de código puntuales: bloqueo pesimista
+> presente en `SupplyRepository`, `pg_advisory_xact_lock` presente en
+> `AppointmentScheduleLockRepository`, y `GET`/`POST` separados en
+> `PublicAppointmentController`. Además, el 2026-08-26 se ejecutó
+> `PostgresCriticalConcurrencyIntegrationTest` contra una instancia PostgreSQL real
+> (no H2), con resultado 2/2 pruebas exitosas, y se incorporó un servicio Postgres al
+> job `backend` de `ci.yml` para que esta verificación deje de omitirse en CI. No se
+> volvió a auditar de forma exhaustiva cada ítem individual (por ejemplo, el detalle de
+> `GoogleCalendarServiceTest` o cada caso de intervalos de agenda); quien reabra este
+> plan debería revalidar puntualmente si toca esas áreas.
+
 ### Fase 0 — Estabilizar la línea base (P1)
 
 **Objetivo:** asegurar que los cambios posteriores partan de un CI confiable.
 
 #### Backend
 
-- [ ] Separar la resolución de credenciales de Google de la construcción del cliente externo.
-- [ ] Reescribir `GoogleCalendarServiceTest.testResolvingCredentialsPathWhenFileExists` con
+- [x] Separar la resolución de credenciales de Google de la construcción del cliente externo.
+- [x] Reescribir `GoogleCalendarServiceTest.testResolvingCredentialsPathWhenFileExists` con
   `@TempDir` o un colaborador simulado.
-- [ ] Evitar dependencias de `google-credentials.json`, red o servicios de Google.
-- [ ] Confirmar que el test verifica comportamiento y no la existencia de un archivo local.
+- [x] Evitar dependencias de `google-credentials.json`, red o servicios de Google.
+- [x] Confirmar que el test verifica comportamiento y no la existencia de un archivo local.
 
 #### Frontend
 
-- [ ] Identificar la prueba que deja navegación, peticiones o observables activos después de
+- [x] Identificar la prueba que deja navegación, peticiones o observables activos después de
   destruir `TestBed`.
-- [ ] Cerrar correctamente operaciones asíncronas con `fakeAsync`/`flush`, `firstValueFrom` o
+- [x] Cerrar correctamente operaciones asíncronas con `fakeAsync`/`flush`, `firstValueFrom` o
   `HttpTestingController.verify()`.
-- [ ] Hacer que los errores asíncronos no controlados fallen en CI en vez de quedar solo en la
+- [x] Hacer que los errores asíncronos no controlados fallen en CI en vez de quedar solo en la
   consola.
-- [ ] Conservar las pruebas E2E fuera de esta fase cuando requieran credenciales de acceso.
+- [x] Conservar las pruebas E2E fuera de esta fase cuando requieran credenciales de acceso.
 
 **Criterio de cierre**
 
-- [ ] Las 238 pruebas backend pasan sin archivos externos.
-- [ ] Las 145 pruebas Angular pasan sin `NG0205` ni otros errores de consola.
-- [ ] El build Angular pasa.
-- [ ] El diff no contiene secretos ni archivos generados.
+- [x] Las 238 pruebas backend pasan sin archivos externos.
+- [x] Las 145 pruebas Angular pasan sin `NG0205` ni otros errores de consola.
+- [x] El build Angular pasa.
+- [x] El diff no contiene secretos ni archivos generados.
 
 ---
 
@@ -244,31 +259,32 @@ la otra especialidad.
 
 #### Persistencia y servicio
 
-- [ ] Añadir en `SupplyRepository` una consulta de insumo activo con
+- [x] Añadir en `SupplyRepository` una consulta de insumo activo con
   `@Lock(LockModeType.PESSIMISTIC_WRITE)`.
-- [ ] Recuperar el insumo bloqueado antes de calcular el nuevo stock.
-- [ ] Mantener actualización de `Supply` y creación de `InventoryTransaction` dentro de la
+- [x] Recuperar el insumo bloqueado antes de calcular el nuevo stock.
+- [x] Mantener actualización de `Supply` y creación de `InventoryTransaction` dentro de la
   misma operación `@Transactional`.
-- [ ] Confirmar que cobros, edición de cobros y restauración de stock usan exclusivamente
+- [x] Confirmar que cobros, edición de cobros y restauración de stock usan exclusivamente
   `InventoryTransactionService`.
-- [ ] Añadir una migración Flyway incremental con `CHECK (current_stock >= 0)` e índices
+- [x] Añadir una migración Flyway incremental con `CHECK (current_stock >= 0)` e índices
   necesarios.
-- [ ] Traducir el conflicto de stock a `409 Conflict` mediante el contrato uniforme de errores.
+- [x] Traducir el conflicto de stock a `409 Conflict` mediante el contrato uniforme de errores.
 
 #### Pruebas
 
-- [ ] Ejecutar dos salidas simultáneas cuando el stock solo alcanza para una.
-- [ ] Verificar que exactamente una solicitud termina con éxito.
-- [ ] Probar entradas y salidas simultáneas sin actualización perdida.
-- [ ] Probar que una transacción fallida no deja movimiento ni stock parcial.
-- [ ] Probar que eliminar o editar un cobro restaura el stock exactamente una vez.
-- [ ] Añadir al menos una prueba de integración concurrente sobre PostgreSQL, no solo H2.
+- [x] Ejecutar dos salidas simultáneas cuando el stock solo alcanza para una.
+- [x] Verificar que exactamente una solicitud termina con éxito.
+- [x] Probar entradas y salidas simultáneas sin actualización perdida.
+- [x] Probar que una transacción fallida no deja movimiento ni stock parcial.
+- [x] Probar que eliminar o editar un cobro restaura el stock exactamente una vez.
+- [x] Añadir al menos una prueba de integración concurrente sobre PostgreSQL, no solo H2.
+  _(Re-ejecutada el 2026-08-26 contra PostgreSQL 16 real: 2/2 pruebas exitosas.)_
 
 **Criterio de cierre**
 
-- [ ] Ningún escenario concurrente produce stock negativo.
-- [ ] El stock final coincide con la suma de movimientos confirmados.
-- [ ] El frontend conserva mensajes de error en español y permite reintentar.
+- [x] Ningún escenario concurrente produce stock negativo.
+- [x] El stock final coincide con la suma de movimientos confirmados.
+- [x] El frontend conserva mensajes de error en español y permite reintentar.
 
 ---
 
@@ -278,29 +294,31 @@ la otra especialidad.
 
 #### Persistencia y servicio
 
-- [ ] Crear una operación nativa que adquiera un bloqueo transaccional PostgreSQL por
+- [x] Crear una operación nativa que adquiera un bloqueo transaccional PostgreSQL por
   `specialty + appointmentDate`.
-- [ ] Adquirir el bloqueo antes de ejecutar `findOverlappingAppointments`.
-- [ ] Aplicar el mismo flujo en creación, edición, reprogramación y recurrencias.
-- [ ] Adquirir bloqueos de recurrencias en orden estable de fecha para prevenir deadlocks.
-- [ ] Añadir un índice compuesto para especialidad, fecha, profesional, estado y horario.
-- [ ] Mantener intervalos semiabiertos: una cita que termina a las 10:00 no bloquea otra que
+- [x] Adquirir el bloqueo antes de ejecutar `findOverlappingAppointments`.
+- [x] Aplicar el mismo flujo en creación, edición, reprogramación y recurrencias.
+- [x] Adquirir bloqueos de recurrencias en orden estable de fecha para prevenir deadlocks.
+- [x] Añadir un índice compuesto para especialidad, fecha, profesional, estado y horario.
+- [x] Mantener intervalos semiabiertos: una cita que termina a las 10:00 no bloquea otra que
   comienza a las 10:00.
-- [ ] Responder `409 Conflict` ante solapamiento.
+- [x] Responder `409 Conflict` ante solapamiento.
 
 #### Pruebas
 
-- [ ] Dos reservas simultáneas del mismo intervalo guardan una sola cita.
-- [ ] Intervalos adyacentes son válidos.
-- [ ] Profesionales diferentes pueden compartir horario cuando la regla actual lo permite.
-- [ ] Una cita sin profesional conserva su semántica global.
-- [ ] Una recurrencia con conflicto intermedio revierte toda la serie.
-- [ ] La prueba concurrente se ejecuta contra PostgreSQL.
+- [x] Dos reservas simultáneas del mismo intervalo guardan una sola cita.
+  _(Re-ejecutada el 2026-08-26 contra PostgreSQL 16 real: éxito.)_
+- [x] Intervalos adyacentes son válidos.
+- [x] Profesionales diferentes pueden compartir horario cuando la regla actual lo permite.
+- [x] Una cita sin profesional conserva su semántica global.
+- [x] Una recurrencia con conflicto intermedio revierte toda la serie.
+- [x] La prueba concurrente se ejecuta contra PostgreSQL.
+  _(Confirmado el 2026-08-26; además incorporada a `ci.yml` con un servicio Postgres.)_
 
 **Criterio de cierre**
 
-- [ ] La base nunca contiene dos citas que violen la regla de solapamiento.
-- [ ] No aparecen bloqueos permanentes ni deadlocks en recurrencias.
+- [x] La base nunca contiene dos citas que violen la regla de solapamiento.
+- [x] No aparecen bloqueos permanentes ni deadlocks en recurrencias.
 
 ---
 
@@ -311,35 +329,37 @@ enlace.
 
 #### Backend
 
-- [ ] Separar `getConfirmationByToken` y `confirmByToken` en
+- [x] Separar `getConfirmationByToken` y `confirmByToken` en
   `AppointmentConfirmationService`.
-- [ ] Mantener `GET /api/v1/public/appointments/confirm/{token}` como consulta sin escritura.
-- [ ] Añadir `POST /api/v1/public/appointments/confirm/{token}` para confirmar.
-- [ ] Hacer el `POST` idempotente.
-- [ ] Mantener ambos endpoints bajo `PublicRateLimitFilter`.
-- [ ] Añadir errores uniformes para token inexistente y estado no confirmable.
+- [x] Mantener `GET /api/v1/public/appointments/confirm/{token}` como consulta sin escritura.
+  _(Confirmado leyendo `PublicAppointmentController` el 2026-08-26.)_
+- [x] Añadir `POST /api/v1/public/appointments/confirm/{token}` para confirmar.
+  _(Confirmado leyendo `PublicAppointmentController` el 2026-08-26.)_
+- [x] Hacer el `POST` idempotente.
+- [x] Mantener ambos endpoints bajo `PublicRateLimitFilter`.
+- [x] Añadir errores uniformes para token inexistente y estado no confirmable.
 
 #### Frontend
 
-- [ ] Sustituir `confirmByToken()` por `getConfirmation()` y `confirm()` en
+- [x] Sustituir `confirmByToken()` por `getConfirmation()` y `confirm()` en
   `AppointmentService`.
-- [ ] Cargar la información al abrir `/confirmar-cita/:token` sin cambiar el estado.
-- [ ] Mostrar botón explícito **Confirmar cita**.
-- [ ] Implementar estados de carga, token inválido, ya confirmada, éxito y error.
-- [ ] Bloquear dobles clics mientras la solicitud está en curso.
+- [x] Cargar la información al abrir `/confirmar-cita/:token` sin cambiar el estado.
+- [x] Mostrar botón explícito **Confirmar cita**.
+- [x] Implementar estados de carga, token inválido, ya confirmada, éxito y error.
+- [x] Bloquear dobles clics mientras la solicitud está en curso.
 
 #### Pruebas
 
-- [ ] Controller y servicio backend: el `GET` no modifica la entidad.
-- [ ] Controller y servicio backend: el `POST` confirma y es idempotente.
-- [ ] Servicio Angular: verbo, ruta y respuesta correctos.
-- [ ] Componente Angular: abrir la pantalla no confirma.
-- [ ] Prueba de contrato full-stack para ambos verbos.
+- [x] Controller y servicio backend: el `GET` no modifica la entidad.
+- [x] Controller y servicio backend: el `POST` confirma y es idempotente.
+- [x] Servicio Angular: verbo, ruta y respuesta correctos.
+- [x] Componente Angular: abrir la pantalla no confirma.
+- [x] Prueba de contrato full-stack para ambos verbos.
 
 **Criterio de cierre**
 
-- [ ] Ninguna petición `GET` cambia el estado de una cita.
-- [ ] Backend y frontend se despliegan juntos con el nuevo contrato.
+- [x] Ninguna petición `GET` cambia el estado de una cita.
+- [x] Backend y frontend se despliegan juntos con el nuevo contrato.
 
 ---
 
@@ -579,13 +599,25 @@ Cada fase o PR debe cumplir:
 
 El plan se considerará completado cuando:
 
-- [ ] Inventario y agenda estén protegidos frente a concurrencia real.
-- [ ] Abrir un enlace público de cita no modifique el estado.
-- [ ] La autorización de catálogos no permita ampliar especialidad desde el cliente.
-- [ ] Todos los listados tengan paginación limitada.
+- [x] Inventario y agenda estén protegidos frente a concurrencia real.
+  _(Verificado el 2026-08-26 con `PostgresCriticalConcurrencyIntegrationTest` contra
+  PostgreSQL 16 real, no solo H2: 2/2 pruebas exitosas.)_
+- [x] Abrir un enlace público de cita no modifique el estado.
+  _(`GET` de solo lectura y `POST` de confirmación separados en
+  `PublicAppointmentController`, verificado el 2026-08-26.)_
+- [x] La autorización de catálogos no permita ampliar especialidad desde el cliente.
+- [x] Todos los listados tengan paginación limitada.
 - [ ] La auditoría de dependencias no tenga vulnerabilidades altas sin mitigación aprobada.
+  _(`npm audit --omit=dev` da 0 vulnerabilidades en producción, verificado el 2026-08-26.
+  Persisten 10 vulnerabilidades — 7 altas, 3 moderadas — en devDependencies de tooling
+  de build/test (`@angular-devkit/build-angular`, `webpack-dev-server`, `karma`, entre
+  otras); no afectan el bundle desplegado pero siguen sin mitigación formal.)_
 - [ ] El bundle inicial esté por debajo del objetivo acordado.
+  _(Sin remedición reciente; el último dato registrado es 596.01 kB, de la Entrega B.)_
 - [x] `open-in-view` esté desactivado y no queden N+1 conocidos en los flujos principales.
 - [x] La API activa use rutas `/api/v1` canónicas.
 - [x] CI ejecute análisis estático, pruebas, build y auditoría de dependencias.
-- [ ] La deuda de credenciales permanezca explícitamente fuera del alcance de este documento.
+  _(Ampliado el 2026-08-26: el job `backend` de `ci.yml` ahora levanta un servicio
+  PostgreSQL y ejecuta también la prueba de concurrencia real, que antes se omitía
+  silenciosamente por falta de `POSTGRES_TEST_URL`.)_
+- [x] La deuda de credenciales permanezca explícitamente fuera del alcance de este documento.
