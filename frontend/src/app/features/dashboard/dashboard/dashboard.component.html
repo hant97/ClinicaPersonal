@@ -40,6 +40,9 @@
       </div>
       <button type="button" class="btn-primary !text-xs" (click)="loadStats()">Reintentar</button>
     </div>
+  } @else if (isNewAccount) {
+    <!-- Guía de primeros pasos: cuenta nueva sin pacientes registrados -->
+    <app-getting-started-checklist [stats]="stats!" (dismissed)="onChecklistDismissed()"></app-getting-started-checklist>
   } @else if (stats) {
     <!-- 2. Next Patient Spotlight Banner (Clean Clinical Design) -->
     @if (nextAppointment) {

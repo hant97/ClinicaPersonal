@@ -4,7 +4,9 @@ import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { GeneralHistoryService } from '../../../core/services/general-history.service';
 import { GeneralHistory } from '../../../core/models/general-history.model';
 import { ToastService } from '../../../shared/services/toast/toast.service';
-import { LucideAngularModule, FileText } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
+import {
+  FileText } from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-general-history-section',

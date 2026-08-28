@@ -1,12 +1,14 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { COMMON_STANDALONE_IMPORTS } from '../../../shared/common-standalone-imports';
 import { ClinicalDocumentService } from '../../../core/services/clinical-document.service';
 import { ClinicalDocument } from '../../../core/models/clinical-document.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule, FileText, Image, Upload, Download, Eye, Trash2, X, FolderOpen } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
+import {
+  FileText, Image, Upload, Download, Eye, Trash2, X, FolderOpen } from '../../../shared/icons/lucide-icons';
 
 const CATEGORY_LABELS: Record<string, string> = {
   CONSENTIMIENTO: 'Consentimiento',
@@ -19,7 +21,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-documents-section',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PaginationComponent, LucideAngularModule],
+  imports: [...COMMON_STANDALONE_IMPORTS, PaginationComponent, LucideAngularModule],
   templateUrl: './documents-section.component.html',
 })
 export class DocumentsSectionComponent implements OnInit {

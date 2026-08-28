@@ -2,14 +2,14 @@ import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ToastService, ToastMessage } from '../../../services/toast/toast.service';
 import { Subscription } from 'rxjs';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule,
   CheckCircle2,
   AlertCircle,
   AlertTriangle,
   Info,
   X
-} from 'lucide-angular';
+} from '../../../icons/lucide-icons';
 
 @Component({
   selector: 'app-toast',

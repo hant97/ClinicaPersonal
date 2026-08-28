@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { PrescriptionService } from '../../../core/services/prescription.service';
 import { PublicPrescriptionVerification } from '../../../core/models/prescription.model';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule,
   ShieldCheck,
   AlertTriangle,
   FileText,
@@ -15,7 +15,7 @@ import {
   CheckCircle2,
   Clock,
   ArrowLeft
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-prescription-verify',

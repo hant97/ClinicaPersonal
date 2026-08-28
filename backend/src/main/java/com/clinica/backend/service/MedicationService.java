@@ -1,5 +1,7 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.mapper.MedicationMapper;
+
 import com.clinica.backend.dto.MedicationDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.Medication;
@@ -22,6 +24,7 @@ public class MedicationService {
     private final MedicationRepository repository;
     private final PatientRepository patientRepository;
     private final ClinicalAuthorizationService clinicalAuthorizationService;
+    private final MedicationMapper medicationMapper;
 
     @Transactional(readOnly = true)
     public Page<MedicationDto> getMedications(Long patientId, Pageable pageable) {
@@ -31,7 +34,7 @@ public class MedicationService {
         Page<Medication> medications = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
                 ? repository.findByPatientIdAndSpecialtyAndDeletedFalseOrderByCreatedAtDesc(patientId, user.getSpecialty(), pageable)
                 : repository.findByPatientIdAndSpecialtyAndProfessionalIdAndDeletedFalseOrderByCreatedAtDesc(patientId, user.getSpecialty(), user.getId(), pageable);
-        return medications.map(this::mapToDto);
+        return medications.map(medicationMapper::toDto);
     }
 
     @Transactional
@@ -45,7 +48,7 @@ public class MedicationService {
         medication.setSpecialty(user.getSpecialty());
         medication.setProfessionalId(user.getId());
         copyEditableFields(dto, medication);
-        return mapToDto(repository.save(medication));
+        return medicationMapper.toDto(repository.save(medication));
     }
 
     @Transactional
@@ -53,7 +56,7 @@ public class MedicationService {
         Medication medication = getActiveMedication(id);
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator(medication.getSpecialty(), medication.getProfessionalId());
         copyEditableFields(dto, medication);
-        return mapToDto(repository.save(medication));
+        return medicationMapper.toDto(repository.save(medication));
     }
 
     @Transactional
@@ -81,21 +84,4 @@ public class MedicationService {
         medication.setNotes(dto.getNotes());
     }
 
-    private MedicationDto mapToDto(Medication medication) {
-        MedicationDto dto = new MedicationDto();
-        dto.setId(medication.getId());
-        dto.setPatientId(medication.getPatient().getId());
-        dto.setSpecialty(medication.getSpecialty());
-        dto.setName(medication.getName());
-        dto.setDose(medication.getDose());
-        dto.setFrequency(medication.getFrequency());
-        dto.setStartDate(medication.getStartDate());
-        dto.setEndDate(medication.getEndDate());
-        dto.setActive(medication.isActive());
-        dto.setNotes(medication.getNotes());
-        dto.setProfessionalId(medication.getProfessionalId());
-        dto.setCreatedAt(medication.getCreatedAt());
-        dto.setUpdatedAt(medication.getUpdatedAt());
-        return dto;
-    }
 }

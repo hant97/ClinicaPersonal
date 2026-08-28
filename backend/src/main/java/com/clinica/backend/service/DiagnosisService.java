@@ -1,5 +1,7 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.mapper.DiagnosisMapper;
+
 import com.clinica.backend.dto.DiagnosisDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.Diagnosis;
@@ -22,6 +24,7 @@ public class DiagnosisService {
     private final DiagnosisRepository repository;
     private final PatientRepository patientRepository;
     private final ClinicalAuthorizationService clinicalAuthorizationService;
+    private final DiagnosisMapper diagnosisMapper;
 
     @Transactional(readOnly = true)
     public Page<DiagnosisDto> getDiagnoses(Long patientId, Pageable pageable) {
@@ -31,7 +34,7 @@ public class DiagnosisService {
         Page<Diagnosis> diagnoses = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
                 ? repository.findByPatientIdAndSpecialtyAndDeletedFalseOrderByCreatedAtDesc(patientId, user.getSpecialty(), pageable)
                 : repository.findByPatientIdAndSpecialtyAndProfessionalIdAndDeletedFalseOrderByCreatedAtDesc(patientId, user.getSpecialty(), user.getId(), pageable);
-        return diagnoses.map(this::mapToDto);
+        return diagnoses.map(diagnosisMapper::toDto);
     }
 
     @Transactional
@@ -45,7 +48,7 @@ public class DiagnosisService {
         diagnosis.setSpecialty(user.getSpecialty());
         diagnosis.setProfessionalId(user.getId());
         copyEditableFields(dto, diagnosis);
-        return mapToDto(repository.save(diagnosis));
+        return diagnosisMapper.toDto(repository.save(diagnosis));
     }
 
     @Transactional
@@ -53,7 +56,7 @@ public class DiagnosisService {
         Diagnosis diagnosis = getActiveDiagnosis(id);
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator(diagnosis.getSpecialty(), diagnosis.getProfessionalId());
         copyEditableFields(dto, diagnosis);
-        return mapToDto(repository.save(diagnosis));
+        return diagnosisMapper.toDto(repository.save(diagnosis));
     }
 
     @Transactional
@@ -79,19 +82,4 @@ public class DiagnosisService {
         diagnosis.setNotes(dto.getNotes());
     }
 
-    private DiagnosisDto mapToDto(Diagnosis diagnosis) {
-        DiagnosisDto dto = new DiagnosisDto();
-        dto.setId(diagnosis.getId());
-        dto.setPatientId(diagnosis.getPatient().getId());
-        dto.setSpecialty(diagnosis.getSpecialty());
-        dto.setCategory(diagnosis.getCategory());
-        dto.setDescription(diagnosis.getDescription());
-        dto.setStatus(diagnosis.getStatus());
-        dto.setDiagnosisDate(diagnosis.getDiagnosisDate());
-        dto.setNotes(diagnosis.getNotes());
-        dto.setProfessionalId(diagnosis.getProfessionalId());
-        dto.setCreatedAt(diagnosis.getCreatedAt());
-        dto.setUpdatedAt(diagnosis.getUpdatedAt());
-        return dto;
-    }
 }

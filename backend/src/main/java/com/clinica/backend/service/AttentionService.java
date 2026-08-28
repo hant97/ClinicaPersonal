@@ -2,7 +2,9 @@ package com.clinica.backend.service;
 
 import com.clinica.backend.dto.AttentionDto;
 import com.clinica.backend.dto.AttentionSummaryDto;
+import com.clinica.backend.dto.ProfessionalProductivityDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
+import com.clinica.backend.mapper.AttentionMapper;
 import com.clinica.backend.model.*;
 import com.clinica.backend.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +36,7 @@ public class AttentionService {
     private final ClinicalServiceRepository clinicalServiceRepository;
     private final ClinicalAuthorizationService clinicalAuthorizationService;
     private final AuditLogService auditLogService;
+    private final AttentionMapper attentionMapper;
 
     @Transactional(readOnly = true)
     public Page<AttentionDto> searchAttentions(
@@ -60,7 +65,7 @@ public class AttentionService {
                 pageable
         );
 
-        return page.map(this::mapToDto);
+        return page.map(attentionMapper::toDto);
     }
 
     @Transactional(readOnly = true)
@@ -68,7 +73,7 @@ public class AttentionService {
         User user = clinicalAuthorizationService.currentUser();
         Attention attention = attentionRepository.findByIdAndSpecialtyAndDeletedFalse(id, user.getSpecialty())
                 .orElseThrow(() -> new ResourceNotFoundException("Atención no encontrada con ID: " + id));
-        return mapToDto(attention);
+        return attentionMapper.toDto(attention);
     }
 
     @Transactional(readOnly = true)
@@ -182,7 +187,7 @@ public class AttentionService {
                 "Atención creada (Estado: " + saved.getStatus() + ", Fecha: " + saved.getAttentionDate() + ") para paciente ID: " + patient.getId()
         );
 
-        return mapToDto(saved);
+        return attentionMapper.toDto(saved);
     }
 
     @Transactional
@@ -204,7 +209,7 @@ public class AttentionService {
                 }
                 attentionRepository.save(att);
             }
-            return mapToDto(att);
+            return attentionMapper.toDto(att);
         }
 
         User professional = user;
@@ -240,7 +245,7 @@ public class AttentionService {
                 "Atención iniciada desde Cita ID: " + appointmentId + " para paciente ID: " + appointment.getPatient().getId()
         );
 
-        return mapToDto(saved);
+        return attentionMapper.toDto(saved);
     }
 
     @Transactional
@@ -283,7 +288,7 @@ public class AttentionService {
                 "Atención actualizada ID: " + updated.getId()
         );
 
-        return mapToDto(updated);
+        return attentionMapper.toDto(updated);
     }
 
     @Transactional
@@ -351,7 +356,7 @@ public class AttentionService {
                 "Estado de atención cambiado de " + oldStatus + " a " + newStatus + " (ID: " + updated.getId() + ")"
         );
 
-        return mapToDto(updated);
+        return attentionMapper.toDto(updated);
     }
 
     @Transactional
@@ -377,7 +382,7 @@ public class AttentionService {
                 "Sesión clínica ID: " + sessionId + " vinculada a Atención ID: " + attentionId
         );
 
-        return mapToDto(updated);
+        return attentionMapper.toDto(updated);
     }
 
     @Transactional
@@ -403,7 +408,7 @@ public class AttentionService {
                 "Receta ID: " + prescriptionId + " vinculada a Atención ID: " + attentionId
         );
 
-        return mapToDto(updated);
+        return attentionMapper.toDto(updated);
     }
 
     @Transactional
@@ -434,7 +439,7 @@ public class AttentionService {
                 "Pago ID: " + paymentId + " vinculado a Atención ID: " + attentionId
         );
 
-        return mapToDto(updated);
+        return attentionMapper.toDto(updated);
     }
 
     @Transactional
@@ -458,46 +463,69 @@ public class AttentionService {
         );
     }
 
-    private AttentionDto mapToDto(Attention a) {
-        AttentionDto dto = new AttentionDto();
-        dto.setId(a.getId());
-        if (a.getPatient() != null) {
-            dto.setPatientId(a.getPatient().getId());
-            dto.setPatientName(a.getPatient().getFullName());
-            dto.setPatientDocumentNumber(a.getPatient().getIdentificationDocument());
+    /**
+     * Reporte gerencial de productividad por profesional dentro de la especialidad del
+     * administrador autenticado. Agrupa las atenciones del período por profesional,
+     * calculando volumen, tasa de finalización y montos facturados/cobrados.
+     * Solo debe exponerse a usuarios con rol ADMIN (restricción aplicada en el controlador).
+     */
+    @Transactional(readOnly = true)
+    public List<ProfessionalProductivityDto> getProfessionalProductivity(LocalDate dateFrom, LocalDate dateTo) {
+        User admin = clinicalAuthorizationService.currentUser();
+        String specialty = admin.getSpecialty();
+
+        LocalDate today = LocalDate.now();
+        LocalDate from = dateFrom != null ? dateFrom : today.withDayOfMonth(1);
+        LocalDate to = dateTo != null ? dateTo : today;
+        if (to.isBefore(from)) {
+            throw new IllegalArgumentException("La fecha final no puede ser anterior a la fecha inicial");
         }
-        if (a.getProfessional() != null) {
-            dto.setProfessionalId(a.getProfessional().getId());
-            dto.setProfessionalName(a.getProfessional().getFullName());
+
+        List<Attention> attentions = attentionRepository
+                .findBySpecialtyAndAttentionDateBetweenAndDeletedFalse(specialty, from, to);
+
+        Map<Long, List<Attention>> byProfessional = attentions.stream()
+                .filter(a -> a.getProfessional() != null)
+                .collect(Collectors.groupingBy(a -> a.getProfessional().getId()));
+
+        List<ProfessionalProductivityDto> result = new java.util.ArrayList<>();
+        for (Map.Entry<Long, List<Attention>> entry : byProfessional.entrySet()) {
+            List<Attention> list = entry.getValue();
+            User professional = list.get(0).getProfessional();
+
+            long total = list.size();
+            long attended = list.stream().filter(a -> Attention.STATUS_ATENDIDA.equals(a.getStatus()) || Attention.STATUS_COBRADA.equals(a.getStatus())).count();
+            long cancelled = list.stream().filter(a -> Attention.STATUS_CANCELADA.equals(a.getStatus())).count();
+            long paid = list.stream().filter(a -> Attention.STATUS_COBRADA.equals(a.getStatus())).count();
+
+            BigDecimal billed = list.stream()
+                    .filter(a -> Attention.STATUS_ATENDIDA.equals(a.getStatus()) || Attention.STATUS_COBRADA.equals(a.getStatus()))
+                    .map(a -> a.getClinicalService() != null && a.getClinicalService().getPrice() != null
+                            ? a.getClinicalService().getPrice() : BigDecimal.ZERO)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal collected = list.stream()
+                    .filter(a -> a.getPayment() != null && Payment.STATUS_PAGADO.equals(a.getPayment().getStatus()))
+                    .map(a -> a.getPayment().getAmount() != null ? a.getPayment().getAmount() : BigDecimal.ZERO)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            long completionBase = total - cancelled;
+            int completionRate = completionBase > 0 ? (int) Math.round((attended * 100.0) / completionBase) : 0;
+
+            result.add(ProfessionalProductivityDto.builder()
+                    .professionalId(entry.getKey())
+                    .professionalName(professional.getFullName())
+                    .totalAttentions(total)
+                    .attendedAttentions(attended)
+                    .cancelledAttentions(cancelled)
+                    .paidAttentions(paid)
+                    .completionRate(completionRate)
+                    .billedAmount(billed)
+                    .collectedAmount(collected)
+                    .build());
         }
-        if (a.getAppointment() != null) {
-            dto.setAppointmentId(a.getAppointment().getId());
-        }
-        if (a.getClinicalSession() != null) {
-            dto.setClinicalSessionId(a.getClinicalSession().getId());
-        }
-        if (a.getPrescription() != null) {
-            dto.setPrescriptionId(a.getPrescription().getId());
-        }
-        if (a.getPayment() != null) {
-            dto.setPaymentId(a.getPayment().getId());
-            dto.setPaymentStatus(a.getPayment().getStatus());
-            dto.setPaymentAmount(a.getPayment().getAmount());
-        }
-        if (a.getClinicalService() != null) {
-            dto.setClinicalServiceId(a.getClinicalService().getId());
-            dto.setClinicalServiceName(a.getClinicalService().getName());
-        }
-        dto.setSpecialty(a.getSpecialty());
-        dto.setAttentionDate(a.getAttentionDate());
-        dto.setStartTime(a.getStartTime());
-        dto.setEndTime(a.getEndTime());
-        dto.setDurationMinutes(a.getDurationMinutes());
-        dto.setStatus(a.getStatus());
-        dto.setMotive(a.getMotive());
-        dto.setNotes(a.getNotes());
-        dto.setCreatedAt(a.getCreatedAt());
-        dto.setUpdatedAt(a.getUpdatedAt());
-        return dto;
+
+        result.sort((a, b) -> b.getBilledAmount().compareTo(a.getBilledAmount()));
+        return result;
     }
 }

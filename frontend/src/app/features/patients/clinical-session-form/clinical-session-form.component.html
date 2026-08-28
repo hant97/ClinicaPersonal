@@ -209,6 +209,86 @@
       </div>
     }
 
+    <!-- Evaluación de Riesgo Estructurada (solo Psicología, si hay alerta activa) -->
+    @if (requiresRiskAssessment) {
+      <div class="space-y-4 rounded-xl border border-red-200 bg-red-50/50 p-4" formGroupName="riskAssessment">
+        <div class="flex items-center justify-between border-b border-red-200 pb-2 flex-wrap gap-1">
+          <span class="text-xs font-bold uppercase tracking-wider text-red-900">Evaluación de Riesgo Estructurada</span>
+          <span class="text-[11px] text-red-700 font-semibold">Obligatorio: alerta de riesgo activa</span>
+        </div>
+
+        <div class="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label class="form-label text-xs font-semibold">¿Ideación suicida? *</label>
+            <select formControlName="suicidalIdeation" class="input-field !py-1.5 text-xs bg-white">
+              <option [ngValue]="null">Seleccionar...</option>
+              <option [ngValue]="true">Sí</option>
+              <option [ngValue]="false">No</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label text-xs font-semibold">Frecuencia de la ideación</label>
+            <input type="text" formControlName="ideationFrequency" class="input-field !py-1.5 text-xs bg-white" placeholder="Ej. Ocasional, diaria..." />
+          </div>
+          <div>
+            <label class="form-label text-xs font-semibold">¿Tiene un plan?</label>
+            <select formControlName="hasPlan" class="input-field !py-1.5 text-xs bg-white">
+              <option [ngValue]="null">Seleccionar...</option>
+              <option [ngValue]="true">Sí</option>
+              <option [ngValue]="false">No</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label text-xs font-semibold">¿Acceso a medios?</label>
+            <select formControlName="meansAccess" class="input-field !py-1.5 text-xs bg-white">
+              <option [ngValue]="null">Seleccionar...</option>
+              <option [ngValue]="true">Sí</option>
+              <option [ngValue]="false">No</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label class="form-label text-xs font-semibold">Detalle del plan</label>
+            <textarea formControlName="planDescription" rows="2" class="input-field text-xs bg-white resize-y" placeholder="Descripción del plan, si lo hubiera."></textarea>
+          </div>
+          <div>
+            <label class="form-label text-xs font-semibold">Detalle de los medios</label>
+            <textarea formControlName="meansDescription" rows="2" class="input-field text-xs bg-white resize-y" placeholder="Descripción de los medios accesibles, si los hubiera."></textarea>
+          </div>
+        </div>
+
+        <div>
+          <label class="form-label text-xs font-semibold">Factores protectores</label>
+          <textarea formControlName="protectiveFactors" rows="2" class="input-field text-xs bg-white resize-y" placeholder="Redes de apoyo, motivos para vivir, recursos de afrontamiento."></textarea>
+        </div>
+
+        <div class="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label class="form-label text-xs font-semibold">Nivel de riesgo resultante *</label>
+            <select formControlName="riskLevel" class="input-field !py-1.5 text-xs bg-white">
+              <option value="">Seleccionar...</option>
+              @for (level of riskLevels; track level.id) {
+                <option [value]="level.itemCode">{{ level.itemName }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="form-label text-xs font-semibold">Acción tomada</label>
+            <input type="text" formControlName="actionTaken" class="input-field !py-1.5 text-xs bg-white" placeholder="Ej. Plan de seguridad acordado, derivación..." />
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (sessionForm.hasError('riskAssessmentRequired') && sessionForm.touched) {
+      <div class="rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-medium text-danger flex items-center gap-2">
+        <lucide-icon [img]="AlertCircle" [size]="15"></lucide-icon>
+        <span>El paciente tiene una alerta de riesgo activa: completa la Evaluación de Riesgo Estructurada antes de guardar.</span>
+      </div>
+    }
+
     <!-- Confidential Toggle -->
     <div class="flex items-center justify-between rounded-lg border border-line p-3 bg-slate-50/50">
       <label class="flex cursor-pointer items-center gap-2 text-xs font-semibold text-slate-700 select-none">

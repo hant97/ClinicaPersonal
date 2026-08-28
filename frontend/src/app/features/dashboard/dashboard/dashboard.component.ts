@@ -5,8 +5,10 @@ import { DashboardService, DashboardStats } from '../../../core/services/dashboa
 import { SpecialtyService } from '../../../core/services/specialty.service';
 import { Appointment } from '../../../core/models/appointment.model';
 import { StatusPillComponent, StatusPillVariant } from '../../../shared/components/status-pill/status-pill.component';
+import { GettingStartedChecklistComponent } from '../../../shared/components/getting-started-checklist/getting-started-checklist.component';
+import { OnboardingService } from '../../../shared/services/onboarding/onboarding.service';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule,
   Users,
   Calendar,
   DollarSign,
@@ -20,12 +22,12 @@ import {
   UserPlus,
   Zap,
   Play
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule, StatusPillComponent],
+  imports: [CommonModule, RouterModule, LucideAngularModule, StatusPillComponent, GettingStartedChecklistComponent],
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit {
@@ -46,6 +48,9 @@ export class DashboardComponent implements OnInit {
   // Pestaña activa de la sección "Atención Requerida"
   activeAttentionTab: 'alertas' | 'insumos' | 'notas' = 'alertas';
 
+  // Se oculta manualmente sin esperar a que activePatients deje de ser 0
+  checklistDismissed = false;
+
   readonly Users = Users;
   readonly Calendar = Calendar;
   readonly DollarSign = DollarSign;
@@ -63,10 +68,12 @@ export class DashboardComponent implements OnInit {
   constructor(
     private dashboardService: DashboardService,
     private specialtyService: SpecialtyService,
+    private onboardingService: OnboardingService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
+    this.checklistDismissed = this.onboardingService.isChecklistDismissed();
     this.isPsychology = this.specialtyService.isPsychology();
     this.isDermatology = this.specialtyService.isDermatology();
     this.dashboardTitle = this.isPsychology
@@ -100,6 +107,20 @@ export class DashboardComponent implements OnInit {
       (a) => a.status !== 'Cancelada' && a.status !== 'CANCELADA' && a.status !== 'Completada' && a.status !== 'COMPLETADA'
     );
     this.nextAppointment = active.length > 0 ? active[0] : (appointments.length > 0 ? appointments[0] : null);
+  }
+
+  get isNewAccount(): boolean {
+    return (
+      !this.isLoading &&
+      !this.loadError &&
+      !!this.stats &&
+      this.stats.activePatients === 0 &&
+      !this.checklistDismissed
+    );
+  }
+
+  onChecklistDismissed(): void {
+    this.checklistDismissed = true;
   }
 
   get pendingAppointmentsCount(): number {
@@ -164,10 +185,17 @@ export class DashboardComponent implements OnInit {
   }
 
   startSessionForNextPatient(): void {
-    const target = this.nextAppointment?.patientUuid || this.nextAppointment?.patientId;
+    const appointment = this.nextAppointment;
+    const target = appointment?.patientUuid || appointment?.patientId;
     if (target) {
       this.router.navigate(['/patients', target], {
-        queryParams: { newSession: 'true' }
+        queryParams: {
+          newSession: 'true',
+          appointmentId: appointment?.id,
+          date: appointment?.appointmentDate,
+          startTime: appointment?.startTime,
+          endTime: appointment?.endTime
+        }
       });
     }
   }

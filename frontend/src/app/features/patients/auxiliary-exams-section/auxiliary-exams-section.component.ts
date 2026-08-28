@@ -1,17 +1,19 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { COMMON_STANDALONE_IMPORTS } from '../../../shared/common-standalone-imports';
 import { AuxiliaryExamService } from '../../../core/services/auxiliary-exam.service';
 import { AuxiliaryExam } from '../../../core/models/auxiliary-exam.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule, Microscope, Edit, Trash2 } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
+import {
+  Microscope, Edit, Trash2 } from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-auxiliary-exams-section',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PaginationComponent, LucideAngularModule],
+  imports: [...COMMON_STANDALONE_IMPORTS, PaginationComponent, LucideAngularModule],
   templateUrl: './auxiliary-exams-section.component.html',
 })
 export class AuxiliaryExamsSectionComponent implements OnInit {

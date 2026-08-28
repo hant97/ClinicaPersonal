@@ -1,17 +1,19 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { COMMON_STANDALONE_IMPORTS } from '../../../shared/common-standalone-imports';
 import { EvolutionService } from '../../../core/services/evolution.service';
 import { Evolution } from '../../../core/models/evolution.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule, Calendar, Edit, Trash2 } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
+import {
+  Calendar, Edit, Trash2 } from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-evolutions-section',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PaginationComponent, LucideAngularModule],
+  imports: [...COMMON_STANDALONE_IMPORTS, PaginationComponent, LucideAngularModule],
   templateUrl: './evolutions-section.component.html',
 })
 export class EvolutionsSectionComponent implements OnInit {

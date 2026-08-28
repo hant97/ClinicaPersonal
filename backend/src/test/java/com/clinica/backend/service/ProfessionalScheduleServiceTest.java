@@ -6,12 +6,14 @@ import com.clinica.backend.model.ProfessionalSchedule;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.ProfessionalScheduleRepository;
 import com.clinica.backend.repository.UserRepository;
+import com.clinica.backend.mapper.ProfessionalScheduleMapperImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,6 +38,8 @@ class ProfessionalScheduleServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Spy
+    private ProfessionalScheduleMapperImpl professionalScheduleMapper = new ProfessionalScheduleMapperImpl();
     @InjectMocks
     private ProfessionalScheduleService scheduleService;
 

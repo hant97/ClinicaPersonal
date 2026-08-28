@@ -1,19 +1,19 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { LucideAngularModule } from 'lucide-angular';
 import {
   ArrowRight,
   Brain,
   Check,
   ChevronDown,
   HeartHandshake,
-  LucideAngularModule,
   Menu,
   Microscope,
   ShieldCheck,
   Sparkles,
   Stethoscope,
   X
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 import { PublicLanding } from '../../../core/models/public-landing.model';
 import { LandingBlockRef, LandingBlockType } from '../../../core/models/website-editor.model';
 

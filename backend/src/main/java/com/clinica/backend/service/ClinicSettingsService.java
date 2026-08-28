@@ -1,5 +1,7 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.mapper.ClinicSettingsMapper;
+
 import com.clinica.backend.dto.ClinicSettingsDto;
 import com.clinica.backend.exception.BusinessRuleException;
 import com.clinica.backend.model.ClinicSettings;
@@ -24,12 +26,13 @@ public class ClinicSettingsService {
     private static final long MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
     private final ClinicSettingsRepository repository;
+    private final ClinicSettingsMapper clinicSettingsMapper;
     private final String UPLOAD_DIR = "uploads/logos/";
 
     public ClinicSettingsDto getSettings(String specialty) {
         ClinicSettings settings = repository.findTopBySpecialtyAndDeletedFalseOrderByIdAsc(specialty)
                 .orElseGet(() -> createDefaultSettings(specialty));
-        return mapToDto(settings);
+        return clinicSettingsMapper.toDto(settings);
     }
 
     public ClinicSettingsDto updateSettings(ClinicSettingsDto dto, String specialty) {
@@ -44,7 +47,7 @@ public class ClinicSettingsService {
         settings.setSpecialty(specialty);
         
         ClinicSettings saved = repository.save(settings);
-        return mapToDto(saved);
+        return clinicSettingsMapper.toDto(saved);
     }
 
     public ClinicSettingsDto uploadLogo(MultipartFile file, String specialty) {
@@ -89,7 +92,7 @@ public class ClinicSettingsService {
             settings.setLogoUrl(logoUrl);
             repository.save(settings);
             
-            return mapToDto(settings);
+            return clinicSettingsMapper.toDto(settings);
         } catch (IOException e) {
             throw new BusinessRuleException("No se pudo almacenar el archivo del logo");
         }
@@ -103,16 +106,4 @@ public class ClinicSettingsService {
         return repository.save(settings);
     }
 
-    private ClinicSettingsDto mapToDto(ClinicSettings entity) {
-        ClinicSettingsDto dto = new ClinicSettingsDto();
-        dto.setId(entity.getId());
-        dto.setClinicName(entity.getClinicName());
-        dto.setShortName(entity.getShortName());
-        dto.setLogoUrl(entity.getLogoUrl());
-        dto.setContactEmail(entity.getContactEmail());
-        dto.setContactPhone(entity.getContactPhone());
-        dto.setAddress(entity.getAddress());
-        dto.setSpecialty(entity.getSpecialty());
-        return dto;
-    }
 }

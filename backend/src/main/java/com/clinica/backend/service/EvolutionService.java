@@ -1,5 +1,7 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.mapper.EvolutionMapper;
+
 import com.clinica.backend.dto.EvolutionDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.Evolution;
@@ -23,6 +25,7 @@ public class EvolutionService {
     private final EvolutionRepository repository;
     private final PatientRepository patientRepository;
     private final ClinicalAuthorizationService clinicalAuthorizationService;
+    private final EvolutionMapper evolutionMapper;
 
     @Transactional(readOnly = true)
     public Page<EvolutionDto> getEvolutions(Long patientId, Pageable pageable) {
@@ -32,7 +35,7 @@ public class EvolutionService {
         Page<Evolution> evolutions = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
                 ? repository.findByPatientIdAndDeletedFalseOrderByControlDateDesc(patientId, pageable)
                 : repository.findByPatientIdAndProfessionalIdAndDeletedFalseOrderByControlDateDesc(patientId, user.getId(), pageable);
-        return evolutions.map(this::mapToDto);
+        return evolutions.map(evolutionMapper::toDto);
     }
 
     @Transactional
@@ -49,7 +52,7 @@ public class EvolutionService {
         if (evolution.getControlDate() == null) {
             evolution.setControlDate(LocalDate.now());
         }
-        return mapToDto(repository.save(evolution));
+        return evolutionMapper.toDto(repository.save(evolution));
     }
 
     @Transactional
@@ -57,7 +60,7 @@ public class EvolutionService {
         Evolution evolution = getActiveEvolution(id);
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator("DERMATOLOGIA", evolution.getProfessionalId());
         copyEditableFields(dto, evolution);
-        return mapToDto(repository.save(evolution));
+        return evolutionMapper.toDto(repository.save(evolution));
     }
 
     @Transactional
@@ -83,16 +86,4 @@ public class EvolutionService {
         evolution.setNextControlDate(dto.getNextControlDate());
     }
 
-    private EvolutionDto mapToDto(Evolution evolution) {
-        EvolutionDto dto = new EvolutionDto();
-        dto.setId(evolution.getId());
-        dto.setPatientId(evolution.getPatient().getId());
-        dto.setControlDate(evolution.getControlDate());
-        dto.setClinicalNotes(evolution.getClinicalNotes());
-        dto.setNextControlDate(evolution.getNextControlDate());
-        dto.setProfessionalId(evolution.getProfessionalId());
-        dto.setCreatedAt(evolution.getCreatedAt());
-        dto.setUpdatedAt(evolution.getUpdatedAt());
-        return dto;
-    }
 }

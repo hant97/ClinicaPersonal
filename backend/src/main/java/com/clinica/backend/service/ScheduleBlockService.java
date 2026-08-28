@@ -2,6 +2,7 @@ package com.clinica.backend.service;
 
 import com.clinica.backend.dto.ScheduleBlockDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
+import com.clinica.backend.mapper.ScheduleBlockMapper;
 import com.clinica.backend.model.ScheduleBlock;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.ScheduleBlockRepository;
@@ -27,6 +28,7 @@ public class ScheduleBlockService {
 
     private final ScheduleBlockRepository blockRepository;
     private final UserRepository userRepository;
+    private final ScheduleBlockMapper scheduleBlockMapper;
 
     private User getCurrentUser() {
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -144,21 +146,12 @@ public class ScheduleBlockService {
     }
 
     private ScheduleBlockDto mapToDto(ScheduleBlock block, User professional) {
-        ScheduleBlockDto dto = new ScheduleBlockDto();
-        dto.setId(block.getId());
-        dto.setProfessionalId(block.getProfessionalId());
+        ScheduleBlockDto dto = scheduleBlockMapper.toDto(block);
         if (block.getProfessionalId() != null) {
             dto.setProfessionalName(professional != null ? professional.getFullName() : null);
         } else {
             dto.setProfessionalName("Toda la especialidad");
         }
-        dto.setSpecialty(block.getSpecialty());
-        dto.setTitle(block.getTitle());
-        dto.setStartDate(block.getStartDate());
-        dto.setEndDate(block.getEndDate());
-        dto.setStartTime(block.getStartTime());
-        dto.setEndTime(block.getEndTime());
-        dto.setReason(block.getReason());
         return dto;
     }
 }

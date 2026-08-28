@@ -1,5 +1,7 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.mapper.InventoryTransactionMapper;
+
 import com.clinica.backend.dto.InventoryTransactionDto;
 import com.clinica.backend.exception.ConflictException;
 import com.clinica.backend.model.InventoryTransaction;
@@ -24,6 +26,7 @@ public class InventoryTransactionService {
 
     private final InventoryTransactionRepository transactionRepository;
     private final SupplyRepository supplyRepository;
+    private final InventoryTransactionMapper inventoryTransactionMapper;
 
     @Transactional
     public InventoryTransactionDto recordTransaction(InventoryTransactionDto dto) {
@@ -77,7 +80,7 @@ public class InventoryTransactionService {
         supplyRepository.save(supply);
 
         InventoryTransaction savedTransaction = transactionRepository.save(transaction);
-        return mapToDto(savedTransaction);
+        return inventoryTransactionMapper.toDto(savedTransaction);
     }
 
     public List<InventoryTransactionDto> getTransactionsBySupply(Long supplyId) {
@@ -89,7 +92,7 @@ public class InventoryTransactionService {
         }
         return transactionRepository.findBySupplyIdOrderByTransactionDateDesc(supplyId)
                 .stream()
-                .map(this::mapToDto)
+                .map(inventoryTransactionMapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -97,21 +100,8 @@ public class InventoryTransactionService {
         String specialty = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getSpecialty();
         return transactionRepository.findRecentBySpecialty(specialty, PageRequest.of(0, Math.max(1, limit)))
                 .stream()
-                .map(this::mapToDto)
+                .map(inventoryTransactionMapper::toDto)
                 .collect(Collectors.toList());
     }
 
-    private InventoryTransactionDto mapToDto(InventoryTransaction transaction) {
-        InventoryTransactionDto dto = new InventoryTransactionDto();
-        dto.setId(transaction.getId());
-        dto.setSupplyId(transaction.getSupply().getId());
-        dto.setSupplyName(transaction.getSupply().getName());
-        dto.setQuantity(transaction.getQuantity());
-        dto.setType(transaction.getType());
-        dto.setReason(transaction.getReason());
-        dto.setReferenceId(transaction.getReferenceId());
-        dto.setNotes(transaction.getNotes());
-        dto.setTransactionDate(transaction.getTransactionDate());
-        return dto;
-    }
 }

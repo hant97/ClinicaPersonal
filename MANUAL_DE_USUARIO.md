@@ -373,6 +373,22 @@ El módulo de Agenda (`/agenda`) coordina los turnos, citas y horarios de atenci
 ### 13.3 Flujo Rápido "Iniciar Consulta"
 Al hacer clic sobre una cita en estado *Confirmada* o *Programada*, el profesional puede pulsar **"Iniciar Atención"**. Esto cambiará automáticamente el estado de la cita a *En Consulta* y abrirá directamente la pantalla de consulta clínica del paciente, precargando el motivo y la información relevante.
 
+### 13.4 Recordatorios Automáticos de Cita por Correo Electrónico
+El sistema envía de forma automatizada un correo de recordatorio a los pacientes con citas próximas, sin intervención manual del personal:
+- **Programación**: Un proceso interno se ejecuta diariamente (por defecto a las 9:30 a.m.) y revisa las citas pendientes del día siguiente (el número de días de anticipación es configurable por la clínica).
+- **Condiciones de envío**: Solo se envía si el servicio de correo (SMTP) está configurado en el servidor y si el paciente cuenta con una dirección de correo electrónico registrada en su ficha.
+- **Contenido del correo**: Incluye el nombre de la clínica, el nombre del paciente, la fecha y hora de la cita, y un **botón de confirmación** que enlaza al portal público para que el paciente confirme su asistencia con un clic.
+- **Trazabilidad**: Cada cita registra la fecha y hora en que se envió su recordatorio, evitando el envío duplicado.
+
+> [!NOTE]
+> Si la clínica no tiene configurado un servidor de correo (SMTP), esta función queda inactiva automáticamente y no genera errores en el resto del sistema.
+
+### 13.5 Sincronización con Google Calendar
+Como apoyo adicional para la organización del profesional, la Agenda puede sincronizarse automáticamente con una cuenta de **Google Calendar** de la clínica:
+- Al crear, reprogramar o cancelar una cita, el sistema crea, actualiza o elimina automáticamente el evento correspondiente en el calendario de Google configurado.
+- El evento incluye el nombre del paciente, teléfono y correo (si están disponibles), la especialidad, el servicio clínico, la modalidad (presencial o virtual) y, en caso de teleconsulta, el enlace de videollamada como ubicación del evento.
+- Esta integración es opcional y debe ser habilitada y configurada por el administrador del sistema (credenciales de Google, calendario de destino y zona horaria). Si no está habilitada, la Agenda funciona con total normalidad sin sincronizar eventos externos.
+
 ---
 
 ## 14. Cobros, Caja y Facturación
@@ -396,6 +412,19 @@ El módulo de Cobros (`/billing`) gestiona el registro de ingresos económicos, 
 
 ### 14.2 Detalle de Pago y Comprobante de Recibo
 Cada cobro registrado genera un comprobante digital con número de recibo correlativo, desglose de ítems, fecha, método de pago e identificación del cajero/profesional que registró la transacción, listo para imprimir o enviar al paciente.
+
+### 14.3 Resumen Financiero y Reportes de Caja
+La sección de Cobros incluye un panel de reporte financiero con indicadores y gráficos, filtrable por período (Hoy, Últimos 7 días, Este mes, Mes anterior, Año o un rango de fechas personalizado, hasta un máximo de 366 días):
+- **Ingresos del Día y del Período**: Total efectivamente cobrado, con el número de pagos registrados y el ticket promedio por cobro.
+- **Variación respecto al Período Anterior**: Porcentaje de crecimiento o caída de ingresos comparado con el mes o rango anterior equivalente.
+- **Saldo Pendiente**: Diferencia entre el total facturado/cargado y el total efectivamente recibido de los pacientes.
+- **Gráfico de Ingresos Diarios**: Línea de tendencia de los ingresos día a día dentro del período seleccionado.
+- **Desglose por Método de Pago**: Gráfico circular con el monto y número de transacciones por cada método (Efectivo, Tarjeta, Transferencia, Yape/Plin).
+- **Top de Servicios más Facturados**: Ranking de los cinco servicios clínicos que más ingresos generaron en el período.
+- **Saldo por Paciente**: Consultando la ficha de un paciente específico, el sistema calcula su saldo individual (total cargado menos total pagado), útil para identificar pacientes con cuentas pendientes.
+
+> [!NOTE]
+> Los reportes financieros están segmentados por especialidad: un profesional de Psicología solo visualiza los ingresos y estadísticas correspondientes a su rama, y lo mismo aplica para Dermatología.
 
 ---
 
@@ -555,4 +584,5 @@ Cualquier farmacia, laboratorio o paciente puede verificar la validez de una rec
 ### 📞 Asistencia Técnica y Soporte
 Para soporte técnico interno, dudas operativas o solicitudes de mantenimiento, comuníquese con el Administrador del Sistema de la clínica o el equipo de soporte técnico designado.
 
-*Manual de Usuario — Clínica Personal · Versión de Documentación: 2026.1*
+*Manual de Usuario — Clínica Personal · Versión de Documentación: 2026.2*
+*Cambios en 2026.2: se documentan los recordatorios automáticos de citas por correo (13.4), la sincronización con Google Calendar (13.5) y el resumen financiero de Cobros (14.3), funcionalidades ya presentes en el sistema que no estaban descritas en la versión anterior del manual.*

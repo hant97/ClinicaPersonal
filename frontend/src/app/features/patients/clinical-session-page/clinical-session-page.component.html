@@ -300,6 +300,119 @@
             </div>
           </div>
 
+          <!-- SECCIÓN: Evaluación de Riesgo Estructurada (solo Psicología, si hay alerta activa) -->
+          @if (requiresRiskAssessment) {
+            <div class="space-y-4 rounded-xl border border-red-200 bg-red-50/50 p-4 sm:p-5" formGroupName="riskAssessment">
+              <div class="flex items-center justify-between border-b border-red-200 pb-2.5 flex-wrap gap-1">
+                <div class="flex items-center gap-2">
+                  <lucide-icon [img]="AlertTriangle" [size]="16" class="text-red-600"></lucide-icon>
+                  <span class="text-xs font-bold uppercase tracking-wider text-red-900">
+                    Evaluación de Riesgo Estructurada
+                  </span>
+                </div>
+                <span class="text-[11px] text-red-700 font-semibold">Obligatorio: el paciente tiene una alerta de riesgo activa</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label class="form-label text-xs font-semibold" for="suicidalIdeation">¿Ideación suicida? *</label>
+                  <select id="suicidalIdeation" formControlName="suicidalIdeation" class="input-field !py-2 text-xs bg-white">
+                    <option [ngValue]="null">Seleccionar...</option>
+                    <option [ngValue]="true">Sí</option>
+                    <option [ngValue]="false">No</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="form-label text-xs font-semibold" for="ideationFrequency">Frecuencia de la ideación</label>
+                  <input
+                    id="ideationFrequency"
+                    type="text"
+                    formControlName="ideationFrequency"
+                    class="input-field !py-2 text-xs bg-white"
+                    placeholder="Ej. Ocasional, diaria, constante..."
+                  />
+                </div>
+
+                <div>
+                  <label class="form-label text-xs font-semibold" for="hasPlan">¿Tiene un plan?</label>
+                  <select id="hasPlan" formControlName="hasPlan" class="input-field !py-2 text-xs bg-white">
+                    <option [ngValue]="null">Seleccionar...</option>
+                    <option [ngValue]="true">Sí</option>
+                    <option [ngValue]="false">No</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="form-label text-xs font-semibold" for="meansAccess">¿Acceso a medios?</label>
+                  <select id="meansAccess" formControlName="meansAccess" class="input-field !py-2 text-xs bg-white">
+                    <option [ngValue]="null">Seleccionar...</option>
+                    <option [ngValue]="true">Sí</option>
+                    <option [ngValue]="false">No</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label class="form-label text-xs font-semibold" for="planDescription">Detalle del plan</label>
+                  <textarea
+                    id="planDescription"
+                    formControlName="planDescription"
+                    rows="2"
+                    class="input-field text-xs bg-white resize-y"
+                    placeholder="Descripción del plan, si lo hubiera."
+                  ></textarea>
+                </div>
+
+                <div>
+                  <label class="form-label text-xs font-semibold" for="meansDescription">Detalle de los medios</label>
+                  <textarea
+                    id="meansDescription"
+                    formControlName="meansDescription"
+                    rows="2"
+                    class="input-field text-xs bg-white resize-y"
+                    placeholder="Descripción de los medios accesibles, si los hubiera."
+                  ></textarea>
+                </div>
+              </div>
+
+              <div>
+                <label class="form-label text-xs font-semibold" for="protectiveFactors">Factores protectores</label>
+                <textarea
+                  id="protectiveFactors"
+                  formControlName="protectiveFactors"
+                  rows="2"
+                  class="input-field text-xs bg-white resize-y"
+                  placeholder="Redes de apoyo, motivos para vivir, recursos de afrontamiento."
+                ></textarea>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label class="form-label text-xs font-semibold" for="riskLevel">Nivel de riesgo resultante *</label>
+                  <select id="riskLevel" formControlName="riskLevel" class="input-field !py-2 text-xs bg-white">
+                    <option value="">Seleccionar...</option>
+                    @for (level of riskLevels; track level.id) {
+                      <option [value]="level.itemCode">{{ level.itemName }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div>
+                  <label class="form-label text-xs font-semibold" for="actionTaken">Acción tomada</label>
+                  <input
+                    id="actionTaken"
+                    type="text"
+                    formControlName="actionTaken"
+                    class="input-field !py-2 text-xs bg-white"
+                    placeholder="Ej. Plan de seguridad acordado, derivación, contacto con familiar..."
+                  />
+                </div>
+              </div>
+            </div>
+          }
+
           <!-- Confidencialidad -->
           <div class="rounded-xl border border-amber-200/80 bg-amber-50/50 p-4">
             <label class="flex items-center gap-3 cursor-pointer select-none">

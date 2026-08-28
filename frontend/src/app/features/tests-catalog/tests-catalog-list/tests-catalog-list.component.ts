@@ -8,9 +8,10 @@ import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ViewPreferenceService } from '../../../shared/services/view-preference/view-preference.service';
 
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule, Plus, Edit, Trash2, Eye, Brain, ClipboardList, LayoutGrid, List, X, Activity, Clock
-} from 'lucide-angular';
+  Plus, Edit, Trash2, Eye, Brain, ClipboardList, LayoutGrid, List, X, Activity, Clock
+} from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-tests-catalog-list',

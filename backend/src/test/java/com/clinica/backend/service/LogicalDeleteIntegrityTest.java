@@ -1,11 +1,13 @@
 package com.clinica.backend.service;
 
 import com.clinica.backend.exception.ResourceNotFoundException;
+import com.clinica.backend.mapper.AllergyMapperImpl;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.AllergyRepository;
 import com.clinica.backend.repository.AppointmentRepository;
 import com.clinica.backend.repository.ClinicalSessionRepository;
 import com.clinica.backend.repository.PatientRepository;
+import com.clinica.backend.repository.RiskAlertRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,11 +36,13 @@ class LogicalDeleteIntegrityTest {
         allergyRepository = mock(AllergyRepository.class);
         sessionRepository = mock(ClinicalSessionRepository.class);
         AppointmentRepository appointmentRepository = mock(AppointmentRepository.class);
+        RiskAlertRepository riskAlertRepository = mock(RiskAlertRepository.class);
+        RiskAssessmentService riskAssessmentService = mock(RiskAssessmentService.class);
         authService = mock(ClinicalAuthorizationService.class);
         AuditLogService auditLogService = mock(AuditLogService.class);
 
-        allergyService = new AllergyService(allergyRepository, patientRepository, authService);
-        sessionService = new ClinicalSessionService(sessionRepository, patientRepository, appointmentRepository, authService, auditLogService);
+        allergyService = new AllergyService(allergyRepository, patientRepository, authService, new AllergyMapperImpl());
+        sessionService = new ClinicalSessionService(sessionRepository, patientRepository, appointmentRepository, riskAlertRepository, riskAssessmentService, authService, auditLogService, new com.clinica.backend.mapper.ClinicalSessionMapperImpl());
 
         User user = new User();
         user.setId(1L);

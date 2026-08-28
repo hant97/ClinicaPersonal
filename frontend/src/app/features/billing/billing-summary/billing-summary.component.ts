@@ -2,10 +2,11 @@ import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, View
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaymentSummary } from '../../../core/models/payment.model';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule, Banknote, Wallet, Receipt, Coins, TrendingUp, TrendingDown, CalendarRange, FilterX,
+  Banknote, Wallet, Receipt, Coins, TrendingUp, TrendingDown, CalendarRange, FilterX,
   CreditCard, AlertCircle, Sparkles, Check, Clock
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 import { Chart, registerables } from 'chart.js';
 
 Chart.register(...registerables);

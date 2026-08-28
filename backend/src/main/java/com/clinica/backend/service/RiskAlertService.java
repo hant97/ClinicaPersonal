@@ -1,5 +1,7 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.mapper.RiskAlertMapper;
+
 import com.clinica.backend.dto.RiskAlertDto;
 import com.clinica.backend.model.RiskAlert;
 import com.clinica.backend.model.User;
@@ -21,6 +23,7 @@ public class RiskAlertService {
 
     private final RiskAlertRepository riskAlertRepository;
     private final PatientRepository patientRepository;
+    private final RiskAlertMapper riskAlertMapper;
 
     @Transactional(readOnly = true)
     public Page<RiskAlertDto> getAlertsByPatientId(Long patientId, boolean onlyActive, Pageable pageable) {
@@ -28,13 +31,13 @@ public class RiskAlertService {
                 ? riskAlertRepository.findByPatientIdAndSpecialtyAndActiveTrueOrderByCreatedAtDesc(patientId, specialty(), pageable)
                 : riskAlertRepository.findByPatientIdAndSpecialtyOrderByCreatedAtDesc(patientId, specialty(), pageable);
 
-        return alerts.map(this::mapToDto);
+        return alerts.map(riskAlertMapper::toDto);
     }
 
     @Transactional(readOnly = true)
     public Page<RiskAlertDto> getAllActiveAlerts(Pageable pageable) {
         Page<RiskAlert> alerts = riskAlertRepository.findBySpecialtyAndActiveTrueOrderByCreatedAtDesc(specialty(), pageable);
-        return alerts.map(this::mapToDto);
+        return alerts.map(riskAlertMapper::toDto);
     }
 
     @Transactional
@@ -55,7 +58,7 @@ public class RiskAlertService {
         alert.setActive(true);
 
         RiskAlert saved = riskAlertRepository.save(alert);
-        return mapToDto(saved);
+        return riskAlertMapper.toDto(saved);
     }
 
     @Transactional
@@ -69,22 +72,9 @@ public class RiskAlertService {
         alert.setResolvedAt(LocalDateTime.now());
 
         RiskAlert saved = riskAlertRepository.save(alert);
-        return mapToDto(saved);
+        return riskAlertMapper.toDto(saved);
     }
 
-    private RiskAlertDto mapToDto(RiskAlert entity) {
-        RiskAlertDto dto = new RiskAlertDto();
-        dto.setId(entity.getId());
-        dto.setPatientId(entity.getPatientId());
-        dto.setSpecialty(entity.getSpecialty());
-        dto.setType(entity.getType());
-        dto.setLevel(entity.getLevel());
-        dto.setDescription(entity.getDescription());
-        dto.setActive(entity.isActive());
-        dto.setResolvedAt(entity.getResolvedAt());
-        dto.setCreatedAt(entity.getCreatedAt());
-        return dto;
-    }
 
     private String specialty() {
         return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getSpecialty();

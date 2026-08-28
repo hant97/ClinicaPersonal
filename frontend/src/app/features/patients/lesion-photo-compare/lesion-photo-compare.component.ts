@@ -4,8 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Lesion } from '../../../core/models/lesion.model';
 import { LesionPhoto } from '../../../core/models/lesion-photo.model';
 import { LesionPhotoService } from '../../../core/services/lesion-photo.service';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule,
   Calendar,
   Activity,
   X,
@@ -13,7 +13,7 @@ import {
   Layers,
   Clock,
   ArrowLeftRight
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 
 export interface PhotoWithUrl {
   photo: LesionPhoto;

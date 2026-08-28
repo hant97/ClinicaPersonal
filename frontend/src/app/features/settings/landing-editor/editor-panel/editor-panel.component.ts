@@ -2,18 +2,18 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { LucideAngularModule } from 'lucide-angular';
 import {
   ArrowDown,
   ArrowUp,
   Eye,
   EyeOff,
   ImagePlus,
-  LucideAngularModule,
   Plus,
   RotateCcw,
   Trash2,
   X
-} from 'lucide-angular';
+} from '../../../../shared/icons/lucide-icons';
 import { WebsiteDraft, LandingBlockRef } from '../../../../core/models/website-editor.model';
 import { IconPickerComponent } from '../../../../shared/components/icon-picker/icon-picker.component';
 import { FIELD_LIMITS, ICON_LABELS } from '../landing-editor.validation';

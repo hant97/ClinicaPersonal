@@ -6,6 +6,9 @@ import com.clinica.backend.dto.PaymentDto;
 import com.clinica.backend.dto.PaymentItemDto;
 import com.clinica.backend.dto.PaymentSummaryDto;
 import com.clinica.backend.dto.PaymentTransactionDto;
+import com.clinica.backend.mapper.PaymentItemMapperImpl;
+import com.clinica.backend.mapper.PaymentMapperImpl;
+import com.clinica.backend.mapper.PaymentTransactionMapperImpl;
 import com.clinica.backend.model.Appointment;
 import com.clinica.backend.model.ClinicalService;
 import com.clinica.backend.model.Patient;
@@ -74,7 +77,8 @@ class PaymentServiceTest {
         auditLogService = mock(AuditLogService.class);
         paymentService = new PaymentService(paymentRepository, patientRepository, supplyRepository,
                 clinicalServiceRepository, appointmentRepository, clinicalSessionRepository,
-                attentionRepository, inventoryTransactionService, auditLogService);
+                attentionRepository, inventoryTransactionService, auditLogService,
+                new PaymentMapperImpl(), new PaymentItemMapperImpl(), new PaymentTransactionMapperImpl());
         paymentReportService = new PaymentReportService(paymentRepository, paymentTransactionRepository, patientRepository);
 
         User user = new User();

@@ -55,4 +55,8 @@ public interface AttentionRepository extends JpaRepository<Attention, Long> {
     long countByAttentionDateAndSpecialtyAndDeletedFalse(LocalDate date, String specialty);
 
     long countByAttentionDateAndStatusAndSpecialtyAndDeletedFalse(LocalDate date, String status, String specialty);
+
+    @EntityGraph(attributePaths = {"professional", "payment", "clinicalService"})
+    List<Attention> findBySpecialtyAndAttentionDateBetweenAndDeletedFalse(
+            String specialty, LocalDate startDate, LocalDate endDate);
 }

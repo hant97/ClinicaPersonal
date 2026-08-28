@@ -1,5 +1,7 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.mapper.TreatmentMapper;
+
 import com.clinica.backend.dto.TreatmentDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.Patient;
@@ -22,6 +24,7 @@ public class TreatmentService {
     private final TreatmentRepository repository;
     private final PatientRepository patientRepository;
     private final ClinicalAuthorizationService clinicalAuthorizationService;
+    private final TreatmentMapper treatmentMapper;
 
     @Transactional(readOnly = true)
     public Page<TreatmentDto> getTreatments(Long patientId, Pageable pageable) {
@@ -31,7 +34,7 @@ public class TreatmentService {
         Page<Treatment> treatments = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
                 ? repository.findByPatientIdAndDeletedFalseOrderByCreatedAtDesc(patientId, pageable)
                 : repository.findByPatientIdAndProfessionalIdAndDeletedFalseOrderByCreatedAtDesc(patientId, user.getId(), pageable);
-        return treatments.map(this::mapToDto);
+        return treatments.map(treatmentMapper::toDto);
     }
 
     @Transactional
@@ -45,7 +48,7 @@ public class TreatmentService {
         treatment.setPatient(patient);
         treatment.setProfessionalId(user.getId());
         copyEditableFields(dto, treatment);
-        return mapToDto(repository.save(treatment));
+        return treatmentMapper.toDto(repository.save(treatment));
     }
 
     @Transactional
@@ -53,7 +56,7 @@ public class TreatmentService {
         Treatment treatment = getActiveTreatment(id);
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator("DERMATOLOGIA", treatment.getProfessionalId());
         copyEditableFields(dto, treatment);
-        return mapToDto(repository.save(treatment));
+        return treatmentMapper.toDto(repository.save(treatment));
     }
 
     @Transactional
@@ -82,21 +85,4 @@ public class TreatmentService {
         treatment.setNotes(dto.getNotes());
     }
 
-    private TreatmentDto mapToDto(Treatment treatment) {
-        TreatmentDto dto = new TreatmentDto();
-        dto.setId(treatment.getId());
-        dto.setPatientId(treatment.getPatient().getId());
-        dto.setName(treatment.getName());
-        dto.setDose(treatment.getDose());
-        dto.setRoute(treatment.getRoute());
-        dto.setFrequency(treatment.getFrequency());
-        dto.setStartDate(treatment.getStartDate());
-        dto.setEndDate(treatment.getEndDate());
-        dto.setStatus(treatment.getStatus());
-        dto.setNotes(treatment.getNotes());
-        dto.setProfessionalId(treatment.getProfessionalId());
-        dto.setCreatedAt(treatment.getCreatedAt());
-        dto.setUpdatedAt(treatment.getUpdatedAt());
-        return dto;
-    }
 }

@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Allergy } from '../../../core/models/allergy.model';
 import { RiskAlert } from '../../../core/models/risk-alert.model';
 import { Appointment } from '../../../core/models/appointment.model';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule,
   AlertTriangle,
   Pill,
   Stethoscope,
@@ -14,7 +14,7 @@ import {
   ChevronRight,
   Sparkles,
   Calendar
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-risk-alert-banner',
@@ -50,6 +50,8 @@ export class RiskAlertBannerComponent implements OnChanges {
   hasSevereAllergy = false;
   allergiesSummary = 'Sin alergias';
 
+  hasHighRiskAlert = false;
+
   activeMedicationsList: any[] = [];
   medicationsSummary = 'Sin medicación';
 
@@ -68,6 +70,10 @@ export class RiskAlertBannerComponent implements OnChanges {
         const items = this.activeAllergiesList.map(a => `${a.allergen}${a.severity ? ` (${a.severity})` : ''}`);
         this.allergiesSummary = items.length <= 2 ? items.join(' · ') : `${items.slice(0, 2).join(' · ')} +${items.length - 2} más`;
       }
+    }
+
+    if (changes['activeAlerts']) {
+      this.hasHighRiskAlert = (this.activeAlerts || []).some(a => (a.level || '').toLowerCase() === 'alto');
     }
 
     if (changes['medications']) {

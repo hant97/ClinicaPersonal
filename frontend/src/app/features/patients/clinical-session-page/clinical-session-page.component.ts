@@ -1,9 +1,9 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { COMMON_STANDALONE_IMPORTS } from '../../../shared/common-standalone-imports';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule,
   ArrowLeft,
   Calendar,
   Clock,
@@ -25,7 +25,7 @@ import {
   CalendarDays,
   ShieldCheck,
   Activity
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 import { PatientService } from '../../../core/services/patient/patient.service';
 import { ClinicalSessionService } from '../../../core/services/clinical-session.service';
 import { ClinicalHistoryService } from '../../../core/services/clinical-history.service';
@@ -45,7 +45,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-clinical-session-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, LucideAngularModule],
+  imports: [...COMMON_STANDALONE_IMPORTS, RouterModule, LucideAngularModule],
   templateUrl: './clinical-session-page.component.html',
 })
 export class ClinicalSessionPageComponent implements OnInit, OnDestroy {
@@ -85,6 +85,7 @@ export class ClinicalSessionPageComponent implements OnInit, OnDestroy {
 
   sessionForm!: FormGroup;
   appointmentModalities: CatalogItem[] = [];
+  riskLevels: CatalogItem[] = [];
   
   loadingPatient = true;
   loadingHistory = true;
@@ -114,6 +115,11 @@ export class ClinicalSessionPageComponent implements OnInit, OnDestroy {
 
   get isDermatology(): boolean {
     return this.specialtyService.isDermatology();
+  }
+
+  /** El paciente tiene una alerta de riesgo activa: se exige completar la evaluación de riesgo estructurada. */
+  get requiresRiskAssessment(): boolean {
+    return this.isPsychology && this.activeAlerts.length > 0;
   }
 
   get draftKey(): string {
@@ -172,6 +178,10 @@ export class ClinicalSessionPageComponent implements OnInit, OnDestroy {
     let initEnd = qParams['endTime'] || '';
     let initModality = qParams['modality'] || 'PRESENCIAL';
 
+    if (initDate.includes('T')) {
+      initDate = initDate.split('T')[0];
+    }
+
     if (!initDate || !initStart) {
       const now = new Date();
       const tzOffset = now.getTimezoneOffset() * 60000;
@@ -209,6 +219,17 @@ export class ClinicalSessionPageComponent implements OnInit, OnDestroy {
       analysis: [''],
       plan: [''],
       isConfidential: [false],
+      riskAssessment: this.fb.group({
+        suicidalIdeation: [null],
+        ideationFrequency: [''],
+        hasPlan: [null],
+        planDescription: [''],
+        meansAccess: [null],
+        meansDescription: [''],
+        protectiveFactors: [''],
+        riskLevel: [''],
+        actionTaken: ['']
+      })
     });
 
     // Escuchar cambios para guardar borrador en localStorage
@@ -232,6 +253,13 @@ export class ClinicalSessionPageComponent implements OnInit, OnDestroy {
           { itemCode: 'DOMICILIARIA', itemName: 'Atención Domiciliaria', isActive: true, orderIndex: 2 },
         ];
       }
+    });
+
+    this.catalogService.getActiveItemsByCatalogCode('RISK_ALERT_LEVEL').subscribe({
+      next: (items: CatalogItem[]) => {
+        this.riskLevels = (items || []).filter(i => i.isActive);
+      },
+      error: () => {}
     });
   }
 
@@ -322,6 +350,9 @@ export class ClinicalSessionPageComponent implements OnInit, OnDestroy {
           plan: sess.plan || '',
           isConfidential: !!(sess.isConfidential || sess.confidential)
         });
+        if (sess.riskAssessment) {
+          this.sessionForm.get('riskAssessment')?.patchValue(sess.riskAssessment);
+        }
         if (sess.appointmentId) {
           this.appointmentId = sess.appointmentId;
         }
@@ -395,11 +426,20 @@ export class ClinicalSessionPageComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.requiresRiskAssessment) {
+      const ra = val.riskAssessment;
+      if (!ra || ra.suicidalIdeation === null || ra.suicidalIdeation === undefined || !ra.riskLevel) {
+        this.toastService.warning('El paciente tiene una alerta de riesgo activa: completa la Evaluación de Riesgo Estructurada antes de guardar.');
+        return;
+      }
+    }
+
     const payload: ClinicalSession = {
       ...val,
       patientId: this.patient.id,
       appointmentId: this.appointmentId || undefined,
-      specialty: this.isPsychology ? 'PSICOLOGIA' : 'DERMATOLOGIA'
+      specialty: this.isPsychology ? 'PSICOLOGIA' : 'DERMATOLOGIA',
+      riskAssessment: this.isPsychology ? val.riskAssessment : undefined
     };
 
     this.savingSession = true;

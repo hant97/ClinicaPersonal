@@ -240,13 +240,23 @@
         </a>
 
         <!-- Category: Operación & Recursos -->
-        <p
-          class="mt-4 px-2.5 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted block md:hidden"
+        <button
+          type="button"
+          class="mt-4 flex w-full items-center justify-between px-2.5 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted block md:hidden hover:text-slate-600 transition"
           [class.xl:block]="isSidebarExpanded"
           [class.xl:hidden]="!isSidebarExpanded"
+          [attr.aria-expanded]="!operationsSectionCollapsed"
+          aria-controls="operations-section-items"
+          (click)="toggleOperationsSection()"
         >
-          Operación & Recursos
-        </p>
+          <span>Operación & Recursos</span>
+          <lucide-icon
+            [img]="ChevronDown"
+            [size]="12"
+            class="transition-transform duration-150"
+            [class.rotate-180]="!operationsSectionCollapsed"
+          ></lucide-icon>
+        </button>
         <div
           class="my-1.5 border-t border-line/60 hidden md:block"
           [class.xl:block]="!isSidebarExpanded"
@@ -254,6 +264,8 @@
           aria-hidden="true"
         ></div>
 
+        @if (!operationsSectionCollapsed) {
+        <div id="operations-section-items" class="flex flex-col gap-1">
         <a
           routerLink="/services"
           routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
@@ -379,6 +391,30 @@
               [class.xl:hidden]="!isSidebarExpanded"
             >Auditoría</span>
           </a>
+        }
+
+        @if (isAdmin) {
+          <a
+            routerLink="/settings/productivity"
+            routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
+            class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+            [class.xl:justify-center]="!isSidebarExpanded"
+            [class.xl:px-0]="!isSidebarExpanded"
+            [class.xl:justify-start]="isSidebarExpanded"
+            [class.xl:px-2.5]="isSidebarExpanded"
+            title="Reporte de Productividad"
+            aria-label="Reporte de Productividad"
+            (click)="closeSidebar()"
+          >
+            <lucide-icon [img]="BarChart3" [size]="18" class="shrink-0"></lucide-icon>
+            <span
+              class="truncate block md:hidden"
+              [class.xl:inline]="isSidebarExpanded"
+              [class.xl:hidden]="!isSidebarExpanded"
+            >Productividad</span>
+          </a>
+        }
+        </div>
         }
       }
 

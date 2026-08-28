@@ -4,8 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule,
   Stethoscope,
   CalendarCheck,
   Clock,
@@ -29,7 +29,7 @@ import {
   ArrowRight,
   MoreVertical,
   Activity
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 import { AttentionService } from '../../../core/services/attention.service';
 import { Attention, AttentionStatus, AttentionSummary } from '../../../core/models/attention.model';
 import { PatientService } from '../../../core/services/patient/patient.service';
@@ -308,7 +308,13 @@ export class AttentionListComponent implements OnInit, OnDestroy {
       this.router.navigate([`/patients/${attention.patientId}/sessions/${attention.clinicalSessionId}/edit`]);
     } else {
       this.router.navigate([`/patients/${attention.patientId}/sessions/new`], {
-        queryParams: { attentionId: attention.id, appointmentId: attention.appointmentId }
+        queryParams: {
+          attentionId: attention.id,
+          appointmentId: attention.appointmentId,
+          date: attention.attentionDate,
+          startTime: attention.startTime,
+          endTime: attention.endTime
+        }
       });
     }
   }

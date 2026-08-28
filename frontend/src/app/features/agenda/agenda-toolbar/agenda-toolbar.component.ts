@@ -1,6 +1,7 @@
-import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormGroup } from '@angular/forms';
+import { COMMON_STANDALONE_IMPORTS } from '../../../shared/common-standalone-imports';
+import { LucideAngularModule } from 'lucide-angular';
 import {
   Calendar,
   CalendarDays,
@@ -8,11 +9,10 @@ import {
   Download,
   Filter,
   LayoutList,
-  LucideAngularModule,
   Plus,
   Search,
   User
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 import { UserProfile } from '../../../core/models/user-profile.model';
 
 export type AgendaView = 'calendar' | 'list';
@@ -20,7 +20,7 @@ export type AgendaView = 'calendar' | 'list';
 @Component({
   selector: 'app-agenda-toolbar',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+  imports: [...COMMON_STANDALONE_IMPORTS, LucideAngularModule],
   templateUrl: './agenda-toolbar.component.html'
 })
 export class AgendaToolbarComponent {

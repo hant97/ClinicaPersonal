@@ -5,6 +5,9 @@ import com.clinica.backend.dto.PaymentDto;
 import com.clinica.backend.dto.PaymentItemDto;
 import com.clinica.backend.dto.PaymentTransactionDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
+import com.clinica.backend.mapper.PaymentItemMapper;
+import com.clinica.backend.mapper.PaymentMapper;
+import com.clinica.backend.mapper.PaymentTransactionMapper;
 import com.clinica.backend.model.*;
 import com.clinica.backend.repository.AppointmentRepository;
 import com.clinica.backend.repository.AttentionRepository;
@@ -40,6 +43,9 @@ public class PaymentService {
     private final AttentionRepository attentionRepository;
     private final InventoryTransactionService inventoryTransactionService;
     private final AuditLogService auditLogService;
+    private final PaymentMapper paymentMapper;
+    private final PaymentItemMapper paymentItemMapper;
+    private final PaymentTransactionMapper paymentTransactionMapper;
 
     private String getCurrentUserSpecialty() {
         return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getSpecialty();
@@ -53,14 +59,14 @@ public class PaymentService {
         if (!"TODAS".equals(getCurrentUserSpecialty()) && !payment.getSpecialty().equals(getCurrentUserSpecialty())) {
             throw new AccessDeniedException("No tiene permisos para acceder a este registro de otra especialidad");
         }
-        return mapToDto(payment);
+        return this.mapToDtoInternal(payment);
     }
 
     @Transactional(readOnly = true)
     public Page<PaymentDto> getByPatientId(Long patientId, Pageable pageable) {
         String specialty = getCurrentUserSpecialty();
         return paymentRepository.findByPatientIdAndSpecialtyAndDeletedFalseOrderByPaymentDateDesc(patientId, specialty, pageable)
-                .map(this::mapToDto);
+                .map(this::mapToDtoInternal);
     }
 
     @Transactional(readOnly = true)
@@ -69,7 +75,7 @@ public class PaymentService {
         LocalDateTime from = dateFrom != null ? dateFrom.atStartOfDay() : LocalDate.of(1970, 1, 1).atStartOfDay();
         LocalDateTime to = dateTo != null ? dateTo.plusDays(1).atStartOfDay() : LocalDate.now().plusYears(100).atStartOfDay();
         return paymentRepository.findAllWithFiltersBySpecialty(searchTerm, paymentMethod, status, from, to, specialty, pageable)
-                .map(this::mapToDto);
+                .map(this::mapToDtoInternal);
     }
 
     @Transactional
@@ -135,7 +141,7 @@ public class PaymentService {
                 "Cobro registrado por S/ " + result.getAmount() + " (" + result.getPaymentMethod() + ") para paciente ID: " + patient.getId()
         );
 
-        return mapToDto(result);
+        return this.mapToDtoInternal(result);
     }
 
     @Transactional
@@ -192,7 +198,7 @@ public class PaymentService {
                 "Cobro #" + updated.getId() + " actualizado con monto S/ " + updated.getAmount()
         );
 
-        return mapToDto(updated);
+        return this.mapToDtoInternal(updated);
     }
 
     @Transactional
@@ -213,7 +219,7 @@ public class PaymentService {
                 "Abono de S/ " + dto.getAmount() + " registrado al cobro #" + paymentId
         );
 
-        return mapToDto(saved);
+        return this.mapToDtoInternal(saved);
     }
 
     @Transactional
@@ -431,34 +437,15 @@ public class PaymentService {
         }
     }
 
-    private PaymentDto mapToDto(Payment payment) {
-        PaymentDto dto = new PaymentDto();
-        dto.setId(payment.getId());
-        dto.setPatientId(payment.getPatient().getId());
-        dto.setAmount(payment.getAmount());
-        dto.setPaymentDate(payment.getPaymentDate());
-        dto.setPaymentMethod(payment.getPaymentMethod());
-        dto.setDescription(payment.getDescription());
-        dto.setSpecialty(payment.getSpecialty());
-        dto.setStatus(payment.getStatus());
-        dto.setDueDate(payment.getDueDate());
-        if (payment.getPatient() != null) {
-            dto.setPatientName(payment.getPatient().getFullName());
-        }
-        if (payment.getAppointment() != null) {
-            dto.setAppointmentId(payment.getAppointment().getId());
-        }
-        if (payment.getClinicalSession() != null) {
-            dto.setClinicalSessionId(payment.getClinicalSession().getId());
-        }
-        dto.setAttentionId(payment.getAttentionId());
+    private PaymentDto mapToDtoInternal(Payment payment) {
+        PaymentDto dto = paymentMapper.toDto(payment);
 
         BigDecimal paid = paidAmount(payment);
         dto.setPaidAmount(paid);
         dto.setBalanceAmount(payment.getAmount().subtract(paid).max(BigDecimal.ZERO));
 
         if (payment.getItems() != null && !payment.getItems().isEmpty()) {
-            dto.setItems(payment.getItems().stream().map(this::mapItemToDto).collect(Collectors.toList()));
+            dto.setItems(payment.getItems().stream().map(paymentItemMapper::toDto).collect(Collectors.toList()));
         } else {
             dto.setItems(new ArrayList<>());
         }
@@ -466,40 +453,12 @@ public class PaymentService {
         if (payment.getTransactions() != null && !payment.getTransactions().isEmpty()) {
             dto.setTransactions(payment.getTransactions().stream()
                     .filter(t -> !t.isDeleted())
-                    .map(this::mapTransactionToDto)
+                    .map(paymentTransactionMapper::toDto)
                     .collect(Collectors.toList()));
         } else {
             dto.setTransactions(new ArrayList<>());
         }
 
-        return dto;
-    }
-
-    private PaymentItemDto mapItemToDto(PaymentItem item) {
-        PaymentItemDto dto = new PaymentItemDto();
-        dto.setId(item.getId());
-        dto.setPaymentId(item.getPayment().getId());
-        dto.setDescription(item.getDescription());
-        dto.setQuantity(item.getQuantity());
-        dto.setUnitPrice(item.getUnitPrice());
-        dto.setTotalPrice(item.getTotalPrice());
-        if (item.getSupply() != null) {
-            dto.setSupplyId(item.getSupply().getId());
-        }
-        if (item.getClinicalService() != null) {
-            dto.setClinicalServiceId(item.getClinicalService().getId());
-        }
-        return dto;
-    }
-
-    private PaymentTransactionDto mapTransactionToDto(PaymentTransaction transaction) {
-        PaymentTransactionDto dto = new PaymentTransactionDto();
-        dto.setId(transaction.getId());
-        dto.setPaymentId(transaction.getPayment().getId());
-        dto.setAmount(transaction.getAmount());
-        dto.setTransactionDate(transaction.getTransactionDate());
-        dto.setPaymentMethod(transaction.getPaymentMethod());
-        dto.setNotes(transaction.getNotes());
         return dto;
     }
 }

@@ -4,6 +4,7 @@ import com.clinica.backend.dto.InventoryTransactionDto;
 import com.clinica.backend.dto.SupplyDto;
 import com.clinica.backend.dto.SupplyStatsDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
+import com.clinica.backend.mapper.SupplyMapper;
 import com.clinica.backend.model.Supply;
 import com.clinica.backend.model.TransactionReason;
 import com.clinica.backend.model.TransactionType;
@@ -29,6 +30,7 @@ public class SupplyService {
     private final SupplyRepository supplyRepository;
     private final WebsiteFileStorage fileStorage;
     private final InventoryTransactionService inventoryTransactionService;
+    private final SupplyMapper supplyMapper;
 
     private String getCurrentUserSpecialty() {
         return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getSpecialty();
@@ -38,9 +40,9 @@ public class SupplyService {
     public Page<SupplyDto> getAllSupplies(String name, Pageable pageable) {
         String specialty = getCurrentUserSpecialty();
         if (name != null && !name.trim().isEmpty()) {
-            return supplyRepository.findBySpecialtyAndNameContainingIgnoreCaseAndDeletedFalse(specialty, name, pageable).map(this::mapToDto);
+            return supplyRepository.findBySpecialtyAndNameContainingIgnoreCaseAndDeletedFalse(specialty, name, pageable).map(supplyMapper::toDto);
         }
-        return supplyRepository.findBySpecialtyAndDeletedFalse(specialty, pageable).map(this::mapToDto);
+        return supplyRepository.findBySpecialtyAndDeletedFalse(specialty, pageable).map(supplyMapper::toDto);
     }
 
     @Transactional(readOnly = true)
@@ -48,14 +50,14 @@ public class SupplyService {
         String specialty = getCurrentUserSpecialty();
         Supply supply = supplyRepository.findByIdAndSpecialtyAndDeletedFalse(id, specialty)
                 .orElseThrow(() -> new ResourceNotFoundException("Suministro", "id", id));
-        return mapToDto(supply);
+        return supplyMapper.toDto(supply);
     }
     
     @Transactional(readOnly = true)
     public List<SupplyDto> getLowStockSupplies() {
         String specialty = getCurrentUserSpecialty();
         return supplyRepository.findLowStockSuppliesBySpecialty(specialty).stream()
-                .map(this::mapToDto)
+                .map(supplyMapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -83,7 +85,7 @@ public class SupplyService {
         Supply supply = mapToEntity(supplyDto);
         supply.setSpecialty(getCurrentUserSpecialty());
         Supply savedSupply = supplyRepository.save(supply);
-        return mapToDto(savedSupply);
+        return supplyMapper.toDto(savedSupply);
     }
 
     @Transactional
@@ -117,7 +119,7 @@ public class SupplyService {
             updatedSupply.setCurrentStock(newStock);
         }
 
-        return mapToDto(updatedSupply);
+        return supplyMapper.toDto(updatedSupply);
     }
 
     @Transactional
@@ -138,34 +140,11 @@ public class SupplyService {
         String key = fileStorage.store(file, "supplies", previousKey);
         supply.setImageUrl(fileStorage.publicUrl(key));
         supplyRepository.save(supply);
-        return mapToDto(supply);
-    }
-
-    private SupplyDto mapToDto(Supply supply) {
-        SupplyDto dto = new SupplyDto();
-        dto.setId(supply.getId());
-        dto.setName(supply.getName());
-        dto.setDescription(supply.getDescription());
-        dto.setCurrentStock(supply.getCurrentStock());
-        dto.setMinStockLevel(supply.getMinStockLevel());
-        dto.setUnit(supply.getUnit());
-        dto.setPrice(supply.getPrice());
-        dto.setExpirationDate(supply.getExpirationDate());
-        dto.setSpecialty(supply.getSpecialty());
-        dto.setImageUrl(supply.getImageUrl());
-        return dto;
+        return supplyMapper.toDto(supply);
     }
 
     private Supply mapToEntity(SupplyDto dto) {
-        Supply supply = new Supply();
-        supply.setId(dto.getId());
-        supply.setName(dto.getName());
-        supply.setDescription(dto.getDescription());
-        supply.setCurrentStock(dto.getCurrentStock());
-        supply.setMinStockLevel(dto.getMinStockLevel());
-        supply.setUnit(dto.getUnit());
-        supply.setPrice(dto.getPrice());
-        supply.setExpirationDate(dto.getExpirationDate());
+        Supply supply = supplyMapper.toEntity(dto);
         supply.setImageUrl(trimToNull(dto.getImageUrl()));
         if (dto.getSpecialty() != null) {
             supply.setSpecialty(dto.getSpecialty());

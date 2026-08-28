@@ -1,22 +1,26 @@
 import { Component, DestroyRef, EventEmitter, Output, OnInit, OnChanges, Input, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormArray } from '@angular/forms';
-import { PaymentService } from '../../../core/services/payment.service';
-import { PatientService } from '../../../core/services/patient/patient.service';
-import { AppointmentService } from '../../../core/services/appointment.service';
-import { CatalogService } from '../../../core/services/catalog.service';
-import { Payment, PaymentItem, PaymentTransaction } from '../../../core/models/payment.model';
+import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
+import { COMMON_STANDALONE_IMPORTS } from '../../../shared/common-standalone-imports';
+import { PaymentFormDataService } from './payment-form-data.service';
+import { Payment, PaymentItem } from '../../../core/models/payment.model';
 import { Appointment } from '../../../core/models/appointment.model';
 import { CatalogItem } from '../../../core/models/catalog.model';
-import { Supply, InventoryService } from '../../../core/services/inventory.service';
+import { Supply } from '../../../core/services/inventory.service';
 import { ClinicalService } from '../../../core/models/clinical-service.model';
-import { ClinicalServiceService } from '../../../core/services/clinical-service.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { PatientAutocompleteComponent } from '../../../shared/components/patient-autocomplete/patient-autocomplete.component';
 import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
 import {
-  LucideAngularModule,
+  PaymentLineValue,
+  PaymentMode,
+  sumLines,
+  mapPaymentItems,
+  buildInitialTransactions,
+  buildPaymentPayload
+} from './payment-form.utils';
+import { LucideAngularModule } from 'lucide-angular';
+import {
   Receipt,
   Plus,
   Trash2,
@@ -34,16 +38,7 @@ import {
   DollarSign,
   AlertCircle,
   CalendarCheck
-} from 'lucide-angular';
-
-interface PaymentLineFormValue {
-  description: string;
-  quantity: number;
-  unitPrice: number;
-  totalPrice: number;
-  clinicalServiceId?: number | null;
-  supplyId?: number | null;
-}
+} from '../../../shared/icons/lucide-icons';
 
 interface PaymentFormValue {
   patientId: number | string;
@@ -52,16 +47,16 @@ interface PaymentFormValue {
   paymentMethod: string;
   description?: string;
   dueDate?: string;
-  paymentMode?: 'FULL' | 'PARTIAL' | 'PENDING';
+  paymentMode?: PaymentMode;
   initialPayment?: number;
-  services: PaymentLineFormValue[];
-  supplies: PaymentLineFormValue[];
+  services: PaymentLineValue[];
+  supplies: PaymentLineValue[];
 }
 
 @Component({
   selector: 'app-payment-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PatientAutocompleteComponent, FocusTrapDirective, LucideAngularModule],
+  imports: [...COMMON_STANDALONE_IMPORTS, PatientAutocompleteComponent, FocusTrapDirective, LucideAngularModule],
   templateUrl: './payment-form.component.html'
 })
 export class PaymentFormComponent implements OnInit, OnChanges {
@@ -101,12 +96,7 @@ export class PaymentFormComponent implements OnInit, OnChanges {
 
   constructor(
     private fb: FormBuilder,
-    private paymentService: PaymentService,
-    private patientService: PatientService,
-    private appointmentService: AppointmentService,
-    private catalogService: CatalogService,
-    private inventoryService: InventoryService,
-    private clinicalServiceService: ClinicalServiceService,
+    private dataService: PaymentFormDataService,
     private toastService: ToastService
   ) {}
 
@@ -165,10 +155,10 @@ export class PaymentFormComponent implements OnInit, OnChanges {
     if (this.payment?.items && this.payment.items.length > 0) {
       const paymentServices = this.payment.items.filter(i => i.clinicalServiceId != null);
       const paymentSupplies = this.payment.items.filter(i => i.clinicalServiceId == null);
-      
+
       paymentServices.forEach(item => this.addService(item));
       paymentSupplies.forEach(item => this.addSupply(item));
-      
+
       if (paymentServices.length === 0) {
         this.addService();
       }
@@ -190,23 +180,17 @@ export class PaymentFormComponent implements OnInit, OnChanges {
   }
 
   get servicesTotal(): number {
-    let total = 0;
-    this.services.controls.forEach(control => {
-      const qty = Number(control.get('quantity')?.value || 0);
-      const price = Number(control.get('unitPrice')?.value || 0);
-      total += qty * price;
-    });
-    return total;
+    return sumLines(this.services.controls.map(control => ({
+      quantity: control.get('quantity')?.value,
+      unitPrice: control.get('unitPrice')?.value
+    })));
   }
 
   get suppliesTotal(): number {
-    let total = 0;
-    this.supplies.controls.forEach(control => {
-      const qty = Number(control.get('quantity')?.value || 0);
-      const price = Number(control.get('unitPrice')?.value || 0);
-      total += qty * price;
-    });
-    return total;
+    return sumLines(this.supplies.controls.map(control => ({
+      quantity: control.get('quantity')?.value,
+      unitPrice: control.get('unitPrice')?.value
+    })));
   }
 
   get grandTotal(): number {
@@ -301,7 +285,7 @@ export class PaymentFormComponent implements OnInit, OnChanges {
   }
 
   loadCatalogs(): void {
-    this.catalogService.getActiveItemsByCatalogCode('PAYMENT_METHOD').subscribe({
+    this.dataService.loadPaymentMethods().subscribe({
       next: (items) => {
         this.paymentMethods = items;
       },
@@ -310,18 +294,18 @@ export class PaymentFormComponent implements OnInit, OnChanges {
       }
     });
 
-    this.inventoryService.getAllSupplies('', 0, 100).subscribe({
-      next: (res) => {
-        this.suppliesList = res.content;
+    this.dataService.loadSupplies().subscribe({
+      next: (supplies) => {
+        this.suppliesList = supplies;
       },
       error: () => {
         this.toastService.show('Error al cargar insumos', 'error');
       }
     });
 
-    this.clinicalServiceService.getAllActiveServices().subscribe({
-      next: (res) => {
-        this.clinicalServices = res;
+    this.dataService.loadClinicalServices().subscribe({
+      next: (services) => {
+        this.clinicalServices = services;
         this.prefillInitialClinicalService();
       },
       error: () => {
@@ -337,9 +321,9 @@ export class PaymentFormComponent implements OnInit, OnChanges {
       return;
     }
     this.isLoadingAppointments = true;
-    this.appointmentService.getByPatientId(pid, 0, 50).subscribe({
-      next: (res) => {
-        this.patientAppointments = res.content || [];
+    this.dataService.loadPatientAppointments(pid).subscribe({
+      next: (appointments) => {
+        this.patientAppointments = appointments;
         this.isLoadingAppointments = false;
         // If an appointment was specified via initialData or payment, ensure it's selected
         if (this.initialData?.appointmentId) {
@@ -402,7 +386,7 @@ export class PaymentFormComponent implements OnInit, OnChanges {
 
     this.isSubmitting = true;
     const formValue = this.paymentForm.getRawValue() as PaymentFormValue;
-    
+
     // Validate we have at least one service
     if (formValue.services.length === 0) {
       this.toastService.show('Debe agregar al menos un servicio a la factura.', 'error');
@@ -410,67 +394,41 @@ export class PaymentFormComponent implements OnInit, OnChanges {
       return;
     }
 
-    // Map items from form arrays
-    const mappedServices: PaymentItem[] = formValue.services.map((item) => ({
-      description: item.description,
-      quantity: Number(item.quantity),
-      unitPrice: Number(item.unitPrice),
-      totalPrice: Number(item.quantity) * Number(item.unitPrice),
-      clinicalServiceId: Number(item.clinicalServiceId)
-    }));
-
-    const mappedSupplies: PaymentItem[] = formValue.supplies.map((item) => ({
-      description: item.description,
-      quantity: Number(item.quantity),
-      unitPrice: Number(item.unitPrice),
-      totalPrice: Number(item.quantity) * Number(item.unitPrice),
-      supplyId: Number(item.supplyId)
-    }));
-
-    const mappedItems = [...mappedServices, ...mappedSupplies];
+    const mappedItems = mapPaymentItems(formValue.services, formValue.supplies);
     const totalAmount = Number(formValue.amount);
 
     // Al crear, el abono inicial se traduce en una transacción (o ninguna = PENDIENTE)
-    let transactions: PaymentTransaction[] | undefined;
+    let transactions;
     if (!this.payment) {
-      const mode = formValue.paymentMode || 'FULL';
-      if (mode === 'FULL') {
-        transactions = [{ amount: totalAmount, transactionDate: formValue.paymentDate, paymentMethod: formValue.paymentMethod }];
-      } else if (mode === 'PARTIAL') {
-        const initial = Number(formValue.initialPayment || 0);
-        if (initial <= 0) {
-          this.toastService.show('Ingrese un monto de abono inicial mayor a 0.', 'error');
-          this.isSubmitting = false;
-          return;
-        }
-        if (initial >= totalAmount) {
-          this.toastService.show('El abono inicial debe ser menor al total del cobro.', 'error');
-          this.isSubmitting = false;
-          return;
-        }
-        transactions = [{ amount: initial, transactionDate: formValue.paymentDate, paymentMethod: formValue.paymentMethod }];
+      const result = buildInitialTransactions(
+        formValue.paymentMode || 'FULL',
+        totalAmount,
+        Number(formValue.initialPayment || 0),
+        formValue.paymentDate,
+        formValue.paymentMethod
+      );
+      if (result.error) {
+        this.toastService.show(result.error, 'error');
+        this.isSubmitting = false;
+        return;
       }
-      // mode === 'PENDING' => sin transacciones
+      transactions = result.transactions;
     }
 
-    const newPayment: Payment = {
+    const newPayment = buildPaymentPayload({
       patientId: Number(this.paymentForm.get('patientId')?.value || formValue.patientId),
       amount: totalAmount,
       paymentDate: formValue.paymentDate,
       paymentMethod: formValue.paymentMethod,
       description: formValue.description,
-      dueDate: formValue.dueDate || undefined,
+      dueDate: formValue.dueDate,
       appointmentId: this.selectedAppointmentId ?? (this.payment?.appointmentId ?? this.initialData?.appointmentId),
       attentionId: this.initialData?.attentionId ?? this.payment?.attentionId,
       items: mappedItems,
       transactions
-    };
-    
-    const request$ = this.payment ?
-      this.paymentService.update(this.payment.id!, newPayment) :
-      this.paymentService.create(newPayment);
+    });
 
-    request$.subscribe({
+    this.dataService.savePayment(newPayment, this.payment?.id).subscribe({
       next: () => {
         this.isSubmitting = false;
         this.toastService.show('Cobro registrado exitosamente', 'success');

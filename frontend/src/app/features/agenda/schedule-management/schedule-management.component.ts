@@ -12,8 +12,8 @@ import { ProfessionalSchedule, WeeklySchedule } from '../../../core/models/profe
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule,
   X,
   Clock,
   Calendar,
@@ -25,7 +25,7 @@ import {
   User,
   ShieldAlert,
   CalendarOff
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 
 interface DayConfig {
   dayOfWeek: number;

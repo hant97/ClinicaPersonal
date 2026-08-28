@@ -1,5 +1,7 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.mapper.PsychometricTestMapper;
+
 import com.clinica.backend.dto.PsychometricTestDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.PsychometricTest;
@@ -29,13 +31,14 @@ public class PsychometricTestService {
 
     private final PsychometricTestRepository psychometricTestRepository;
     private final AssessmentRepository assessmentRepository;
+    private final PsychometricTestMapper psychometricTestMapper;
 
     @Transactional(readOnly = true)
     public Page<PsychometricTestDto> getAllTests(Pageable pageable) {
         Map<Long, Object[]> usage = usageStatsByTestId();
         return psychometricTestRepository.findAll(pageable)
                 .map(test -> {
-                    PsychometricTestDto dto = mapToDto(test);
+                    PsychometricTestDto dto = psychometricTestMapper.toDto(test);
                     Object[] stats = usage.get(test.getId());
                     if (stats != null) {
                         dto.setUsageCount(((Number) stats[1]).longValue());
@@ -49,7 +52,7 @@ public class PsychometricTestService {
     public PsychometricTestDto getTestById(Long id) {
         PsychometricTest test = psychometricTestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Test psicométrico", "id", id));
-        return mapToDto(test);
+        return psychometricTestMapper.toDto(test);
     }
 
     @Transactional
@@ -62,7 +65,7 @@ public class PsychometricTestService {
         test.setInterpretationJson(dto.getInterpretationJson());
         
         PsychometricTest saved = psychometricTestRepository.save(test);
-        return mapToDto(saved);
+        return psychometricTestMapper.toDto(saved);
     }
 
     @Transactional
@@ -77,7 +80,7 @@ public class PsychometricTestService {
         test.setInterpretationJson(dto.getInterpretationJson());
         
         PsychometricTest updated = psychometricTestRepository.save(test);
-        return mapToDto(updated);
+        return psychometricTestMapper.toDto(updated);
     }
 
     @Transactional
@@ -140,13 +143,4 @@ public class PsychometricTestService {
 
     private record Band(int min, int max, String label) {}
 
-    private PsychometricTestDto mapToDto(PsychometricTest test) {
-        PsychometricTestDto dto = new PsychometricTestDto();
-        dto.setId(test.getId());
-        dto.setName(test.getName());
-        dto.setDescription(test.getDescription());
-        dto.setQuestionsJson(test.getQuestionsJson());
-        dto.setInterpretationJson(test.getInterpretationJson());
-        return dto;
-    }
 }

@@ -1,5 +1,7 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.mapper.LesionMapper;
+
 import com.clinica.backend.dto.LesionDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.Lesion;
@@ -22,6 +24,7 @@ public class LesionService {
     private final LesionRepository repository;
     private final PatientRepository patientRepository;
     private final ClinicalAuthorizationService clinicalAuthorizationService;
+    private final LesionMapper lesionMapper;
 
     @Transactional(readOnly = true)
     public Page<LesionDto> getLesions(Long patientId, Pageable pageable) {
@@ -31,7 +34,7 @@ public class LesionService {
         Page<Lesion> lesions = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
                 ? repository.findByPatientIdAndDeletedFalseOrderByCreatedAtDesc(patientId, pageable)
                 : repository.findByPatientIdAndProfessionalIdAndDeletedFalseOrderByCreatedAtDesc(patientId, user.getId(), pageable);
-        return lesions.map(this::mapToDto);
+        return lesions.map(lesionMapper::toDto);
     }
 
     @Transactional
@@ -45,7 +48,7 @@ public class LesionService {
         lesion.setPatient(patient);
         lesion.setProfessionalId(user.getId());
         copyEditableFields(dto, lesion);
-        return mapToDto(repository.save(lesion));
+        return lesionMapper.toDto(repository.save(lesion));
     }
 
     @Transactional
@@ -53,7 +56,7 @@ public class LesionService {
         Lesion lesion = getActiveLesion(id);
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator("DERMATOLOGIA", lesion.getProfessionalId());
         copyEditableFields(dto, lesion);
-        return mapToDto(repository.save(lesion));
+        return lesionMapper.toDto(repository.save(lesion));
     }
 
     @Transactional
@@ -82,21 +85,4 @@ public class LesionService {
         lesion.setNotes(dto.getNotes());
     }
 
-    private LesionDto mapToDto(Lesion lesion) {
-        LesionDto dto = new LesionDto();
-        dto.setId(lesion.getId());
-        dto.setPatientId(lesion.getPatient().getId());
-        dto.setBodyArea(lesion.getBodyArea());
-        dto.setLesionType(lesion.getLesionType());
-        dto.setSize(lesion.getSize());
-        dto.setMorphology(lesion.getMorphology());
-        dto.setColor(lesion.getColor());
-        dto.setSinceDate(lesion.getSinceDate());
-        dto.setEvolution(lesion.getEvolution());
-        dto.setNotes(lesion.getNotes());
-        dto.setProfessionalId(lesion.getProfessionalId());
-        dto.setCreatedAt(lesion.getCreatedAt());
-        dto.setUpdatedAt(lesion.getUpdatedAt());
-        return dto;
-    }
 }

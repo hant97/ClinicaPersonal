@@ -11,6 +11,11 @@
   gap: 1rem;
 }
 
+.catalog-list-scroll {
+  padding-inline-end: 0.625rem;
+  scrollbar-gutter: stable;
+}
+
 @container (min-width: 62rem) {
   .catalog-master-detail {
     grid-template-columns: 20rem minmax(0, 1fr);

@@ -3,6 +3,7 @@ package com.clinica.backend.service;
 import com.clinica.backend.dto.PatientDto;
 import com.clinica.backend.dto.PatientStatsDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
+import com.clinica.backend.mapper.PatientMapper;
 import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.PatientRepository;
@@ -31,6 +32,7 @@ public class PatientService {
     private final RiskAlertRepository riskAlertRepository;
     private final WebsiteFileStorage fileStorage;
     private final AuditLogService auditLogService;
+    private final PatientMapper patientMapper;
 
     @Transactional(readOnly = true)
     public Page<PatientDto> getAllPatients(Boolean active, String gender, Pageable pageable) {
@@ -215,56 +217,18 @@ public class PatientService {
     }
 
     private PatientDto mapToDto(Patient patient, boolean hasActiveAlerts) {
-        PatientDto dto = new PatientDto();
-        dto.setId(patient.getId());
-        dto.setUuid(patient.getUuid());
-        dto.setFirstName(patient.getFirstName());
-        dto.setLastName(patient.getLastName());
-        dto.setIdentificationDocument(patient.getIdentificationDocument());
-        dto.setDateOfBirth(patient.getDateOfBirth());
-        dto.setContactNumber(patient.getContactNumber());
-        dto.setEmail(patient.getEmail());
-        dto.setOccupation(patient.getOccupation());
-        dto.setMaritalStatus(patient.getMaritalStatus());
-        dto.setEmergencyContact(patient.getEmergencyContact());
-        dto.setReasonForConsultation(patient.getReasonForConsultation());
-        dto.setGender(patient.getGender());
-        dto.setAddress(patient.getAddress());
-        dto.setGuardianName(patient.getGuardianName());
-        dto.setGuardianContact(patient.getGuardianContact());
-        dto.setHasLegalGuardian(patient.isHasLegalGuardian());
-        dto.setPhotoUrl(patient.getPhotoUrl());
-        dto.setActive(patient.isActive());
-        dto.setSpecialty(patient.getSpecialty());
-        dto.setDeleted(patient.isDeleted());
+        PatientDto dto = patientMapper.toDto(patient);
         dto.setHasActiveAlerts(hasActiveAlerts);
-        dto.setCreatedAt(patient.getCreatedAt());
         return dto;
     }
 
     private Patient mapToEntity(PatientDto dto) {
-        Patient patient = new Patient();
+        Patient patient = patientMapper.toEntity(dto);
         if (dto.getUuid() != null) {
             patient.setUuid(dto.getUuid());
         }
-        patient.setFirstName(dto.getFirstName());
-        patient.setLastName(dto.getLastName());
-        patient.setIdentificationDocument(dto.getIdentificationDocument());
-        patient.setDateOfBirth(dto.getDateOfBirth());
-        patient.setContactNumber(dto.getContactNumber());
-        patient.setEmail(dto.getEmail());
-        patient.setOccupation(dto.getOccupation());
-        patient.setMaritalStatus(dto.getMaritalStatus());
-        patient.setEmergencyContact(dto.getEmergencyContact());
-        patient.setReasonForConsultation(dto.getReasonForConsultation());
-        patient.setGender(dto.getGender());
-        patient.setAddress(dto.getAddress());
-        patient.setGuardianName(dto.getGuardianName());
-        patient.setGuardianContact(dto.getGuardianContact());
-        patient.setHasLegalGuardian(dto.isHasLegalGuardian());
         patient.setPhotoUrl(trimToNull(dto.getPhotoUrl()));
         patient.setActive(dto.getActive() == null || dto.getActive());
-        patient.setDeleted(dto.isDeleted());
         return patient;
     }
 

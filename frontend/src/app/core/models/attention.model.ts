@@ -37,6 +37,18 @@ export interface AttentionSummary {
   pendingBillingAmount: number;
 }
 
+export interface ProfessionalProductivity {
+  professionalId: number;
+  professionalName: string;
+  totalAttentions: number;
+  attendedAttentions: number;
+  cancelledAttentions: number;
+  paidAttentions: number;
+  completionRate: number;
+  billedAmount: number;
+  collectedAmount: number;
+}
+
 export interface UpdateAttentionStatusRequest {
   status: AttentionStatus;
   notes?: string;

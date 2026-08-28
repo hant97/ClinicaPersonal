@@ -42,6 +42,16 @@
 
       <button
         type="button"
+        class="btn-secondary !text-xs !py-1.5"
+        (click)="exportSupplies()"
+        title="Exportar a Excel"
+      >
+        <lucide-icon [img]="Download" [size]="14"></lucide-icon>
+        <span>Exportar</span>
+      </button>
+
+      <button
+        type="button"
         class="btn-primary !text-xs !py-1.5"
         (click)="openModal()"
       >

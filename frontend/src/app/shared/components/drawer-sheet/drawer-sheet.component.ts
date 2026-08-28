@@ -1,6 +1,8 @@
 import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, X } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
+import {
+  X } from '../../icons/lucide-icons';
 import { FocusTrapDirective } from '../../directives/focus-trap.directive';
 
 @Component({

@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ArrowLeft, Calendar, Edit, ImagePlus, LucideAngularModule, Mail, Phone, Plus, Printer } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
+import { ArrowLeft, Calendar, Edit, ImagePlus,
+ Mail, Phone, Plus, Printer } from '../../../shared/icons/lucide-icons';
 import { Patient } from '../../../core/models/patient.model';
 
 @Component({

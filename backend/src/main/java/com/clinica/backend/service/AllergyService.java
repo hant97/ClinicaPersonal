@@ -2,6 +2,7 @@ package com.clinica.backend.service;
 
 import com.clinica.backend.dto.AllergyDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
+import com.clinica.backend.mapper.AllergyMapper;
 import com.clinica.backend.model.Allergy;
 import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.User;
@@ -22,6 +23,7 @@ public class AllergyService {
     private final AllergyRepository repository;
     private final PatientRepository patientRepository;
     private final ClinicalAuthorizationService clinicalAuthorizationService;
+    private final AllergyMapper allergyMapper;
 
     @Transactional(readOnly = true)
     public Page<AllergyDto> getAllergies(Long patientId, Pageable pageable) {
@@ -31,7 +33,7 @@ public class AllergyService {
         Page<Allergy> allergies = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
                 ? repository.findByPatientIdAndSpecialtyAndDeletedFalseOrderByCreatedAtDesc(patientId, user.getSpecialty(), pageable)
                 : repository.findByPatientIdAndSpecialtyAndProfessionalIdAndDeletedFalseOrderByCreatedAtDesc(patientId, user.getSpecialty(), user.getId(), pageable);
-        return allergies.map(this::mapToDto);
+        return allergies.map(allergyMapper::toDto);
     }
 
     @Transactional
@@ -45,7 +47,7 @@ public class AllergyService {
         allergy.setSpecialty(user.getSpecialty());
         allergy.setProfessionalId(user.getId());
         copyEditableFields(dto, allergy);
-        return mapToDto(repository.save(allergy));
+        return allergyMapper.toDto(repository.save(allergy));
     }
 
     @Transactional
@@ -53,7 +55,7 @@ public class AllergyService {
         Allergy allergy = getActiveAllergy(id);
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator(allergy.getSpecialty(), allergy.getProfessionalId());
         copyEditableFields(dto, allergy);
-        return mapToDto(repository.save(allergy));
+        return allergyMapper.toDto(repository.save(allergy));
     }
 
     @Transactional
@@ -78,22 +80,5 @@ public class AllergyService {
         allergy.setReaction(dto.getReaction());
         allergy.setActive(dto.isActive());
         allergy.setNotes(dto.getNotes());
-    }
-
-    private AllergyDto mapToDto(Allergy allergy) {
-        AllergyDto dto = new AllergyDto();
-        dto.setId(allergy.getId());
-        dto.setPatientId(allergy.getPatient().getId());
-        dto.setSpecialty(allergy.getSpecialty());
-        dto.setAllergen(allergy.getAllergen());
-        dto.setType(allergy.getType());
-        dto.setSeverity(allergy.getSeverity());
-        dto.setReaction(allergy.getReaction());
-        dto.setActive(allergy.isActive());
-        dto.setNotes(allergy.getNotes());
-        dto.setProfessionalId(allergy.getProfessionalId());
-        dto.setCreatedAt(allergy.getCreatedAt());
-        dto.setUpdatedAt(allergy.getUpdatedAt());
-        return dto;
     }
 }

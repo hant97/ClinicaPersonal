@@ -5,8 +5,8 @@ import { InventoryService } from '../../../core/services/inventory.service';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { CatalogItem } from '../../../core/models/catalog.model';
 import { ToastService } from '../../../shared/services/toast/toast.service';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule,
   X,
   Package,
   Upload,
@@ -18,7 +18,7 @@ import {
   Save,
   Trash2,
   Plus
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
 
 @Component({

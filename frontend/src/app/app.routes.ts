@@ -59,6 +59,7 @@ export const routes: Routes = [
       { path: 'settings/catalogs', loadComponent: () => import('./features/settings/catalog-management/catalog-management.component').then(m => m.CatalogManagementComponent), canActivate: [adminGuard], title: 'Catálogos' },
       { path: 'settings/users', loadComponent: () => import('./features/settings/user-management/user-management.component').then(m => m.UserManagementComponent), canActivate: [adminGuard], title: 'Gestión de Personal y Cuentas' },
       { path: 'settings/audit', loadComponent: () => import('./features/settings/audit-log/audit-log.component').then(m => m.AuditLogComponent), canActivate: [adminGuard], title: 'Registro de Auditoría' },
+      { path: 'settings/productivity', loadComponent: () => import('./features/settings/productivity-report/productivity-report.component').then(m => m.ProductivityReportComponent), canActivate: [adminGuard], title: 'Reporte de Productividad' },
       { path: 'settings/website', redirectTo: '/editar-sitio', pathMatch: 'full' },
       { path: 'profile', loadComponent: () => import('./features/profile/user-profile/user-profile.component').then(m => m.UserProfileComponent), title: 'Mi perfil' }
     ]

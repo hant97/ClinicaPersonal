@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Output, OnInit, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { COMMON_STANDALONE_IMPORTS } from '../../../shared/common-standalone-imports';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AppointmentService } from '../../../core/services/appointment.service';
@@ -14,7 +14,9 @@ import { UserProfile } from '../../../core/models/user-profile.model';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { PatientAutocompleteComponent } from '../../../shared/components/patient-autocomplete/patient-autocomplete.component';
-import { LucideAngularModule, Clock, AlertTriangle, X, Calendar, User, Save, Video, Repeat, CheckCircle2 } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
+import {
+  Clock, AlertTriangle, X, Calendar, User, Save, Video, Repeat, CheckCircle2 } from '../../../shared/icons/lucide-icons';
 import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
 
 export function futureDateValidator(): ValidatorFn {
@@ -38,7 +40,7 @@ export function timeOrderValidator(): ValidatorFn {
 @Component({
   selector: 'app-appointment-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PatientAutocompleteComponent, LucideAngularModule, FocusTrapDirective],
+  imports: [...COMMON_STANDALONE_IMPORTS, PatientAutocompleteComponent, LucideAngularModule, FocusTrapDirective],
   templateUrl: './appointment-form.component.html',
 })
 export class AppointmentFormComponent implements OnInit {

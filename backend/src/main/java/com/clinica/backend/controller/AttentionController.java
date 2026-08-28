@@ -2,6 +2,7 @@ package com.clinica.backend.controller;
 
 import com.clinica.backend.dto.AttentionDto;
 import com.clinica.backend.dto.AttentionSummaryDto;
+import com.clinica.backend.dto.ProfessionalProductivityDto;
 import com.clinica.backend.dto.UpdateAttentionStatusRequest;
 import com.clinica.backend.service.AttentionService;
 import jakarta.validation.Valid;
@@ -10,9 +11,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/attentions")
@@ -39,6 +42,18 @@ public class AttentionController {
     @GetMapping("/today-summary")
     public ResponseEntity<AttentionSummaryDto> getTodaySummary() {
         return ResponseEntity.ok(service.getTodaySummary());
+    }
+
+    /**
+     * Reporte gerencial de productividad por profesional. Restringido a administradores:
+     * expone el desempeño individual de cada profesional de la especialidad, no solo el propio.
+     */
+    @GetMapping("/reports/productivity")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<ProfessionalProductivityDto>> getProductivityReport(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
+        return ResponseEntity.ok(service.getProfessionalProductivity(dateFrom, dateTo));
     }
 
     @GetMapping("/{id}")

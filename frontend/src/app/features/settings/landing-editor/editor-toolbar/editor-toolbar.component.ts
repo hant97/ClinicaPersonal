@@ -1,8 +1,8 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideAngularModule } from 'lucide-angular';
 import {
   Eye,
-  LucideAngularModule,
   Monitor,
   RotateCcw,
   Save,
@@ -10,7 +10,7 @@ import {
   Tablet,
   Upload,
   X
-} from 'lucide-angular';
+} from '../../../../shared/icons/lucide-icons';
 
 export type EditorViewport = 'desktop' | 'tablet' | 'mobile';
 

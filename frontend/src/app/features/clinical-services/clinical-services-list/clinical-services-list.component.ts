@@ -7,10 +7,11 @@ import { ClinicalServiceService, ClinicalServiceFilters } from '../../../core/se
 import { ClinicalService, ClinicalServiceStats } from '../../../core/models/clinical-service.model';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule, Plus, Edit, Trash2, Search, Activity, Clock, Eye,
+  Plus, Edit, Trash2, Search, Activity, Clock, Eye,
   LayoutGrid, List, TrendingUp, Package, Wallet, X
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ClinicalServicesFormComponent } from '../clinical-services-form/clinical-services-form.component';
 

@@ -1,5 +1,7 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.mapper.AuxiliaryExamMapper;
+
 import com.clinica.backend.dto.AuxiliaryExamDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.AuxiliaryExam;
@@ -22,6 +24,7 @@ public class AuxiliaryExamService {
     private final AuxiliaryExamRepository repository;
     private final PatientRepository patientRepository;
     private final ClinicalAuthorizationService clinicalAuthorizationService;
+    private final AuxiliaryExamMapper auxiliaryExamMapper;
 
     @Transactional(readOnly = true)
     public Page<AuxiliaryExamDto> getExams(Long patientId, Pageable pageable) {
@@ -31,7 +34,7 @@ public class AuxiliaryExamService {
         Page<AuxiliaryExam> exams = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
                 ? repository.findByPatientIdAndDeletedFalseOrderByCreatedAtDesc(patientId, pageable)
                 : repository.findByPatientIdAndProfessionalIdAndDeletedFalseOrderByCreatedAtDesc(patientId, user.getId(), pageable);
-        return exams.map(this::mapToDto);
+        return exams.map(auxiliaryExamMapper::toDto);
     }
 
     @Transactional
@@ -45,7 +48,7 @@ public class AuxiliaryExamService {
         exam.setPatient(patient);
         exam.setProfessionalId(user.getId());
         copyEditableFields(dto, exam);
-        return mapToDto(repository.save(exam));
+        return auxiliaryExamMapper.toDto(repository.save(exam));
     }
 
     @Transactional
@@ -53,7 +56,7 @@ public class AuxiliaryExamService {
         AuxiliaryExam exam = getActiveExam(id);
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator("DERMATOLOGIA", exam.getProfessionalId());
         copyEditableFields(dto, exam);
-        return mapToDto(repository.save(exam));
+        return auxiliaryExamMapper.toDto(repository.save(exam));
     }
 
     @Transactional
@@ -79,18 +82,4 @@ public class AuxiliaryExamService {
         exam.setNotes(dto.getNotes());
     }
 
-    private AuxiliaryExamDto mapToDto(AuxiliaryExam exam) {
-        AuxiliaryExamDto dto = new AuxiliaryExamDto();
-        dto.setId(exam.getId());
-        dto.setPatientId(exam.getPatient().getId());
-        dto.setExamType(exam.getExamType());
-        dto.setDescription(exam.getDescription());
-        dto.setResult(exam.getResult());
-        dto.setExamDate(exam.getExamDate());
-        dto.setNotes(exam.getNotes());
-        dto.setProfessionalId(exam.getProfessionalId());
-        dto.setCreatedAt(exam.getCreatedAt());
-        dto.setUpdatedAt(exam.getUpdatedAt());
-        return dto;
-    }
 }

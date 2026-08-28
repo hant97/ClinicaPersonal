@@ -36,4 +36,5 @@ public class ClinicalSessionDto {
     private Long professionalId;
     private Long appointmentId;
     private Long attentionId;
+    private RiskAssessmentDto riskAssessment;
 }

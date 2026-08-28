@@ -29,12 +29,13 @@ class ClinicalAuditMigrationTest {
                 .locations("classpath:db/migration")
                 .load();
 
-        assertEquals(11, flyway.migrate().migrationsExecuted);
+        assertEquals(12, flyway.migrate().migrationsExecuted);
         assertAuditColumns("clinical_sessions");
         assertAuditColumns("dermatological_evaluations");
         assertAuditColumns("general_history");
         assertAuditColumns("psychology_evaluations");
         assertAuditColumns("prescriptions");
+        assertAuditColumns("risk_assessments");
         assertSpecialtiesTable();
         assertPatientUuidColumn();
         assertAppointmentGoogleColumns();
@@ -44,6 +45,7 @@ class ClinicalAuditMigrationTest {
         assertAgendaAdvancedPhase3();
         assertAttentionsPhase4();
         assertConcurrencyProtections();
+        assertRiskAssessmentsTable();
         assertEquals(0, flyway.migrate().migrationsExecuted);
     }
 
@@ -212,6 +214,27 @@ class ClinicalAuditMigrationTest {
                 hasUuid |= "uuid".equalsIgnoreCase(column);
             }
             assertTrue(hasUuid, "Column 'uuid' missing in patients table");
+        }
+    }
+
+    private void assertRiskAssessmentsTable() throws Exception {
+        try (Connection connection = DriverManager.getConnection(URL, "sa", "");
+             ResultSet columns = connection.getMetaData().getColumns(null, null, "risk_assessments", null)) {
+            boolean hasPatientId = false;
+            boolean hasClinicalSessionId = false;
+            boolean hasRiskLevel = false;
+            boolean hasSuicidalIdeation = false;
+            while (columns.next()) {
+                String column = columns.getString("COLUMN_NAME");
+                hasPatientId |= "patient_id".equalsIgnoreCase(column);
+                hasClinicalSessionId |= "clinical_session_id".equalsIgnoreCase(column);
+                hasRiskLevel |= "risk_level".equalsIgnoreCase(column);
+                hasSuicidalIdeation |= "suicidal_ideation".equalsIgnoreCase(column);
+            }
+            assertTrue(hasPatientId, "Column 'patient_id' missing in risk_assessments table");
+            assertTrue(hasClinicalSessionId, "Column 'clinical_session_id' missing in risk_assessments table");
+            assertTrue(hasRiskLevel, "Column 'risk_level' missing in risk_assessments table");
+            assertTrue(hasSuicidalIdeation, "Column 'suicidal_ideation' missing in risk_assessments table");
         }
     }
 

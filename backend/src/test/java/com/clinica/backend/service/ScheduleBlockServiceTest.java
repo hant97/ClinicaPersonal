@@ -5,12 +5,14 @@ import com.clinica.backend.model.ScheduleBlock;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.ScheduleBlockRepository;
 import com.clinica.backend.repository.UserRepository;
+import com.clinica.backend.mapper.ScheduleBlockMapperImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,6 +36,8 @@ class ScheduleBlockServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Spy
+    private ScheduleBlockMapperImpl scheduleBlockMapper = new ScheduleBlockMapperImpl();
     @InjectMocks
     private ScheduleBlockService blockService;
 

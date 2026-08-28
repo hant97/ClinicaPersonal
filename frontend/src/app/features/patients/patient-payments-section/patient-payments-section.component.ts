@@ -1,7 +1,9 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { LucideAngularModule, Plus, Receipt, Banknote, Wallet, CreditCard, Landmark, Smartphone } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
+import {
+  Plus, Receipt, Banknote, Wallet, CreditCard, Landmark, Smartphone } from '../../../shared/icons/lucide-icons';
 import { PaymentService } from '../../../core/services/payment.service';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { Payment, PatientBalance } from '../../../core/models/payment.model';

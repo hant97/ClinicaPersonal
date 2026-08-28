@@ -6,8 +6,8 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ClinicSettingsService } from '../../../core/services/clinic-settings.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { UserProfile } from '../../../core/models/user-profile.model';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule,
   User,
   KeyRound,
   Save,
@@ -30,7 +30,7 @@ import {
   Stethoscope,
   ChevronRight,
   Info
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-user-profile',

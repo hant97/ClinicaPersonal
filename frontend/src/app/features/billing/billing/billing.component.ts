@@ -9,10 +9,11 @@ import { PaymentDetailComponent } from '../payment-detail/payment-detail.compone
 import { BillingSummaryComponent } from '../billing-summary/billing-summary.component';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule, Plus, Edit, Trash2, Download, Eye, Search, FilterX, CalendarCheck,
+  Plus, Edit, Trash2, Download, Eye, Search, FilterX, CalendarCheck,
   LayoutGrid, List, Banknote, Wallet, CreditCard, Landmark, Smartphone, MoreHorizontal, BarChart3
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ExportService } from '../../../shared/services/export/export.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';

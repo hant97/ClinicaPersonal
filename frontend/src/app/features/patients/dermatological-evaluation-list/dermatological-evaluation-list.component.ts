@@ -6,7 +6,9 @@ import { DermatologicalEvaluationFormComponent } from '../dermatological-evaluat
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule, Activity, Stethoscope, Edit, Trash2 } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
+import {
+  Activity, Stethoscope, Edit, Trash2 } from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-dermatological-evaluation-list',

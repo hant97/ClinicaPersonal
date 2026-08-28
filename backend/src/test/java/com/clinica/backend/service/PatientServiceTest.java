@@ -1,6 +1,7 @@
 package com.clinica.backend.service;
 
 import com.clinica.backend.dto.PatientStatsDto;
+import com.clinica.backend.mapper.PatientMapperImpl;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.PatientRepository;
 import com.clinica.backend.repository.RiskAlertRepository;
@@ -42,7 +43,7 @@ class PatientServiceTest {
         riskAlertRepository = mock(RiskAlertRepository.class);
         websiteFileStorage = mock(WebsiteFileStorage.class);
         auditLogService = mock(AuditLogService.class);
-        patientService = new PatientService(patientRepository, riskAlertRepository, websiteFileStorage, auditLogService);
+        patientService = new PatientService(patientRepository, riskAlertRepository, websiteFileStorage, auditLogService, new PatientMapperImpl());
 
         User user = new User();
         user.setId(1L);

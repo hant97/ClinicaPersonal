@@ -1,5 +1,7 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.mapper.ProfessionalScheduleMapper;
+
 import com.clinica.backend.dto.ProfessionalScheduleDto;
 import com.clinica.backend.dto.WeeklyScheduleDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
@@ -24,6 +26,7 @@ public class ProfessionalScheduleService {
 
     private final ProfessionalScheduleRepository scheduleRepository;
     private final UserRepository userRepository;
+    private final ProfessionalScheduleMapper professionalScheduleMapper;
 
     private User getCurrentUser() {
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -43,7 +46,7 @@ public class ProfessionalScheduleService {
                 .findByProfessionalIdAndSpecialtyOrderByDayOfWeekAscStartTimeAsc(professionalId, specialty);
 
         List<ProfessionalScheduleDto> dtos = entities.stream()
-                .map(this::mapToDto)
+                .map(professionalScheduleMapper::toDto)
                 .collect(Collectors.toList());
 
         String name = (professional.getFirstName() + " " + professional.getLastName()).trim();
@@ -91,7 +94,7 @@ public class ProfessionalScheduleService {
 
         List<ProfessionalSchedule> saved = scheduleRepository.saveAll(toSave);
         List<ProfessionalScheduleDto> resultDtos = saved.stream()
-                .map(this::mapToDto)
+                .map(professionalScheduleMapper::toDto)
                 .collect(Collectors.toList());
 
         String name = (professional.getFirstName() + " " + professional.getLastName()).trim();
@@ -130,15 +133,4 @@ public class ProfessionalScheduleService {
         }
     }
 
-    private ProfessionalScheduleDto mapToDto(ProfessionalSchedule entity) {
-        ProfessionalScheduleDto dto = new ProfessionalScheduleDto();
-        dto.setId(entity.getId());
-        dto.setProfessionalId(entity.getProfessionalId());
-        dto.setDayOfWeek(entity.getDayOfWeek());
-        dto.setStartTime(entity.getStartTime());
-        dto.setEndTime(entity.getEndTime());
-        dto.setActive(entity.isActive());
-        dto.setSpecialty(entity.getSpecialty());
-        return dto;
-    }
 }

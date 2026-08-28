@@ -1,6 +1,6 @@
 package com.clinica.backend.controller;
 
-import com.clinica.backend.service.WebsiteSettingsService;
+import com.clinica.backend.service.PublicLandingService;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -14,7 +14,7 @@ class PublicLandingControllerTest {
 
     @Test
     void assetPathCaptureDoesNotPassLeadingSlashToStorage() {
-        WebsiteSettingsService service = mock(WebsiteSettingsService.class);
+        PublicLandingService service = mock(PublicLandingService.class);
         Resource resource = new ByteArrayResource(new byte[0]);
         when(service.loadAsset("hero/image.png")).thenReturn(resource);
 

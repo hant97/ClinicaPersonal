@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule,
   FolderTree,
   BookOpen,
   Plus,
@@ -24,13 +24,19 @@ import {
   SlidersHorizontal,
   RefreshCw,
   AlertCircle
-} from 'lucide-angular';
-import { CatalogService } from '../../../core/services/catalog.service';
-import { SpecialtyService } from '../../../core/services/specialty.service';
+} from '../../../shared/icons/lucide-icons';
+import { CatalogManagementDataService } from './catalog-management-data.service';
 import { Catalog, CatalogItem } from '../../../core/models/catalog.model';
 import { SpecialtyItem } from '../../../core/models/specialty.model';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { AuthService } from '../../../core/services/auth.service';
+import {
+  slugify as slugifyUtil,
+  getSpecialtyBadgeClass as getSpecialtyBadgeClassUtil,
+  getSpecialtyLabel as getSpecialtyLabelUtil,
+  filterCatalogs,
+  filterItems
+} from './catalog-management.utils';
 
 @Component({
   selector: 'app-catalog-management',
@@ -107,8 +113,7 @@ export class CatalogManagementComponent implements OnInit {
   isDeletingItem: boolean = false;
 
   constructor(
-    private catalogService: CatalogService,
-    private specialtyService: SpecialtyService,
+    private dataService: CatalogManagementDataService,
     private toastService: ToastService,
     private authService: AuthService
   ) {}
@@ -119,27 +124,21 @@ export class CatalogManagementComponent implements OnInit {
   }
 
   loadSpecialties(): void {
-    this.specialtyService.getActiveSpecialties().subscribe({
+    this.dataService.loadSpecialties().subscribe({
       next: (list) => {
         this.specialties = list || [];
-      },
-      error: () => {
-        this.specialties = [
-          { id: 1, code: 'PSICOLOGIA', name: 'Psicología', active: true, displayOrder: 1 },
-          { id: 2, code: 'DERMATOLOGIA', name: 'Dermatología', active: true, displayOrder: 2 }
-        ];
       }
     });
   }
 
   loadCatalogs(selectedCodeToKeep?: string): void {
     this.loadingCatalogs = true;
-    const requestedSpecialty = this.authService.hasRole('ROLE_SITE_ADMIN') ? 'ALL' : undefined;
-    this.catalogService.getAllAccessibleCatalogs(requestedSpecialty).subscribe({
+    const isGlobalAdmin = this.authService.hasRole('ROLE_SITE_ADMIN');
+    this.dataService.loadCatalogs(isGlobalAdmin).subscribe({
       next: (catalogs) => {
         this.catalogs = catalogs || [];
         this.loadingCatalogs = false;
-        
+
         if (selectedCodeToKeep) {
           const found = this.catalogs.find(c => c.code === selectedCodeToKeep);
           if (found) {
@@ -174,38 +173,11 @@ export class CatalogManagementComponent implements OnInit {
   }
 
   get filteredCatalogs(): Catalog[] {
-    return this.catalogs.filter((catalog) => {
-      const matchSpecialty =
-        this.specialtyFilter === 'ALL' ||
-        (this.specialtyFilter === 'GENERAL' && (catalog.specialty === 'GENERAL' || !catalog.specialty)) ||
-        catalog.specialty === this.specialtyFilter;
-
-      const query = this.catalogSearchQuery.toLowerCase().trim();
-      const matchQuery =
-        !query ||
-        catalog.name.toLowerCase().includes(query) ||
-        catalog.code.toLowerCase().includes(query) ||
-        (catalog.description && catalog.description.toLowerCase().includes(query));
-
-      return matchSpecialty && matchQuery;
-    });
+    return filterCatalogs(this.catalogs, this.specialtyFilter, this.catalogSearchQuery);
   }
 
   get filteredItems(): CatalogItem[] {
-    return this.items.filter((item) => {
-      const matchStatus =
-        this.itemStatusFilter === 'ALL' ||
-        (this.itemStatusFilter === 'ACTIVE' && item.isActive) ||
-        (this.itemStatusFilter === 'INACTIVE' && !item.isActive);
-
-      const query = this.itemSearchQuery.toLowerCase().trim();
-      const matchQuery =
-        !query ||
-        item.itemName.toLowerCase().includes(query) ||
-        item.itemCode.toLowerCase().includes(query);
-
-      return matchStatus && matchQuery;
-    });
+    return filterItems(this.items, this.itemStatusFilter, this.itemSearchQuery);
   }
 
   get activeItemsCount(): number {
@@ -235,14 +207,14 @@ export class CatalogManagementComponent implements OnInit {
 
   onNewItemNameChange(): void {
     if (!this.isCustomItemCodeExpanded) {
-      this.newItemCode = this.slugify(this.newItemName);
+      this.newItemCode = slugifyUtil(this.newItemName);
     }
   }
 
   toggleCustomItemCode(): void {
     this.isCustomItemCodeExpanded = !this.isCustomItemCodeExpanded;
     if (!this.isCustomItemCodeExpanded) {
-      this.newItemCode = this.slugify(this.newItemName);
+      this.newItemCode = slugifyUtil(this.newItemName);
     }
   }
 
@@ -251,8 +223,8 @@ export class CatalogManagementComponent implements OnInit {
       return;
     }
 
-    const code = this.newItemCode.trim() ? this.newItemCode.trim().toUpperCase() : this.slugify(this.newItemName);
-    
+    const code = this.newItemCode.trim() ? this.newItemCode.trim().toUpperCase() : slugifyUtil(this.newItemName);
+
     // Validar duplicado local
     const exists = this.items.some(i => i.itemCode.toUpperCase() === code.toUpperCase());
     if (exists) {
@@ -268,7 +240,7 @@ export class CatalogManagementComponent implements OnInit {
     };
 
     this.savingItem = true;
-    this.catalogService.addCatalogItem(this.selectedCatalog.code, newItem).subscribe({
+    this.dataService.addCatalogItem(this.selectedCatalog.code, newItem).subscribe({
       next: (savedItem) => {
         this.items.push(savedItem);
         if (this.selectedCatalog && this.selectedCatalog.items) {
@@ -313,7 +285,7 @@ export class CatalogManagementComponent implements OnInit {
       itemName: this.editingItemName.trim()
     };
 
-    this.catalogService.updateCatalogItem(item.id, updatedItem, this.selectedCatalog?.code).subscribe({
+    this.dataService.updateCatalogItem(item.id, updatedItem, this.selectedCatalog?.code).subscribe({
       next: (saved) => {
         item.itemName = saved.itemName;
         this.cancelEditItem();
@@ -333,7 +305,7 @@ export class CatalogManagementComponent implements OnInit {
       isActive: item.isActive
     };
 
-    this.catalogService.updateCatalogItem(item.id, updatedItem, this.selectedCatalog?.code).subscribe({
+    this.dataService.updateCatalogItem(item.id, updatedItem, this.selectedCatalog?.code).subscribe({
       next: (saved) => {
         item.isActive = saved.isActive;
         this.toastService.success(`Opción ${item.isActive ? 'activada' : 'desactivada'} correctamente`);
@@ -371,7 +343,7 @@ export class CatalogManagementComponent implements OnInit {
     this.items = orderedItems;
     const ids = orderedItems.map(i => i.id!).filter(id => !!id);
 
-    this.catalogService.reorderCatalogItems(this.selectedCatalog.code, ids).subscribe({
+    this.dataService.reorderCatalogItems(this.selectedCatalog.code, ids).subscribe({
       next: (savedItems) => {
         this.items = savedItems;
         if (this.selectedCatalog) {
@@ -401,7 +373,7 @@ export class CatalogManagementComponent implements OnInit {
 
     this.isDeletingItem = true;
     const id = this.itemToDelete.id;
-    this.catalogService.deleteCatalogItem(id, this.selectedCatalog.code).subscribe({
+    this.dataService.deleteCatalogItem(id, this.selectedCatalog.code).subscribe({
       next: () => {
         this.items = this.items.filter(i => i.id !== id);
         if (this.selectedCatalog && this.selectedCatalog.items) {
@@ -449,14 +421,14 @@ export class CatalogManagementComponent implements OnInit {
 
   onCatalogFormNameChange(): void {
     if (!this.isEditingCatalog && !this.isCustomCatalogCodeExpanded) {
-      this.catalogFormCode = this.slugify(this.catalogFormName);
+      this.catalogFormCode = slugifyUtil(this.catalogFormName);
     }
   }
 
   toggleCustomCatalogCode(): void {
     this.isCustomCatalogCodeExpanded = !this.isCustomCatalogCodeExpanded;
     if (!this.isCustomCatalogCodeExpanded && !this.isEditingCatalog) {
-      this.catalogFormCode = this.slugify(this.catalogFormName);
+      this.catalogFormCode = slugifyUtil(this.catalogFormName);
     }
   }
 
@@ -466,7 +438,7 @@ export class CatalogManagementComponent implements OnInit {
     }
 
     this.savingCatalog = true;
-    const code = this.catalogFormCode.trim() ? this.catalogFormCode.trim().toUpperCase() : this.slugify(this.catalogFormName);
+    const code = this.catalogFormCode.trim() ? this.catalogFormCode.trim().toUpperCase() : slugifyUtil(this.catalogFormName);
 
     if (this.isEditingCatalog && this.catalogFormId) {
       const updatePayload: Partial<Catalog> = {
@@ -475,7 +447,7 @@ export class CatalogManagementComponent implements OnInit {
         specialty: this.catalogFormSpecialty
       };
 
-      this.catalogService.updateCatalog(this.catalogFormId, updatePayload).subscribe({
+      this.dataService.updateCatalog(this.catalogFormId, updatePayload).subscribe({
         next: (updated) => {
           this.savingCatalog = false;
           this.closeCatalogModal();
@@ -496,7 +468,7 @@ export class CatalogManagementComponent implements OnInit {
         specialty: this.catalogFormSpecialty
       };
 
-      this.catalogService.createCatalog(newCatalog).subscribe({
+      this.dataService.createCatalog(newCatalog).subscribe({
         next: (created) => {
           this.savingCatalog = false;
           this.closeCatalogModal();
@@ -525,37 +497,14 @@ export class CatalogManagementComponent implements OnInit {
   }
 
   slugify(text: string): string {
-    if (!text) return '';
-    return text
-      .trim()
-      .toUpperCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^A-Z0-9_]/g, '_')
-      .replace(/_+/g, '_')
-      .replace(/^_|_$/g, '');
+    return slugifyUtil(text);
   }
 
   getSpecialtyBadgeClass(specialty?: string): string {
-    switch (specialty?.toUpperCase()) {
-      case 'DERMATOLOGIA':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      case 'PSICOLOGIA':
-        return 'bg-purple-50 text-purple-700 border-purple-200';
-      case 'GENERAL':
-      case undefined:
-        return 'bg-blue-50 text-blue-700 border-blue-200';
-      default:
-        return 'bg-indigo-50 text-indigo-700 border-indigo-200';
-    }
+    return getSpecialtyBadgeClassUtil(specialty);
   }
 
   getSpecialtyLabel(specialty?: string): string {
-    if (!specialty || specialty.toUpperCase() === 'GENERAL') return 'General';
-    const found = this.specialties.find(s => s.code.toUpperCase() === specialty.toUpperCase());
-    if (found) return found.name;
-    if (specialty === 'DERMATOLOGIA') return 'Dermatología';
-    if (specialty === 'PSICOLOGIA') return 'Psicología';
-    return specialty.charAt(0) + specialty.slice(1).toLowerCase();
+    return getSpecialtyLabelUtil(specialty, this.specialties);
   }
 }

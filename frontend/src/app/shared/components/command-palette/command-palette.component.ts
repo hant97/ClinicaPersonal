@@ -4,8 +4,8 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, takeUntil } from 'rxjs/operators';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule,
   Search,
   Users,
   Calendar,
@@ -19,7 +19,7 @@ import {
   User,
   PlusCircle,
   FileText
-} from 'lucide-angular';
+} from '../../icons/lucide-icons';
 import { PatientService } from '../../../core/services/patient/patient.service';
 import { SpecialtyService } from '../../../core/services/specialty.service';
 import { Patient } from '../../../core/models/patient.model';

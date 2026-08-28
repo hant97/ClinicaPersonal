@@ -1,6 +1,7 @@
 package com.clinica.backend.service;
 
 import com.clinica.backend.dto.SupplyStatsDto;
+import com.clinica.backend.mapper.SupplyMapperImpl;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.SupplyRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -30,7 +31,7 @@ class SupplyServiceTest {
         supplyRepository = mock(SupplyRepository.class);
         websiteFileStorage = mock(WebsiteFileStorage.class);
         inventoryTransactionService = mock(InventoryTransactionService.class);
-        supplyService = new SupplyService(supplyRepository, websiteFileStorage, inventoryTransactionService);
+        supplyService = new SupplyService(supplyRepository, websiteFileStorage, inventoryTransactionService, new SupplyMapperImpl());
 
         User user = new User();
         user.setId(1L);

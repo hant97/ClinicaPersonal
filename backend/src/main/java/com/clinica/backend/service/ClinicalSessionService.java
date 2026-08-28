@@ -1,6 +1,9 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.mapper.ClinicalSessionMapper;
+
 import com.clinica.backend.dto.ClinicalSessionDto;
+import com.clinica.backend.exception.BusinessRuleException;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.ClinicalSession;
 import com.clinica.backend.model.Patient;
@@ -8,6 +11,7 @@ import com.clinica.backend.model.User;
 import com.clinica.backend.repository.AppointmentRepository;
 import com.clinica.backend.repository.ClinicalSessionRepository;
 import com.clinica.backend.repository.PatientRepository;
+import com.clinica.backend.repository.RiskAlertRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,8 +27,11 @@ public class ClinicalSessionService {
     private final ClinicalSessionRepository sessionRepository;
     private final PatientRepository patientRepository;
     private final AppointmentRepository appointmentRepository;
+    private final RiskAlertRepository riskAlertRepository;
+    private final RiskAssessmentService riskAssessmentService;
     private final ClinicalAuthorizationService clinicalAuthorizationService;
     private final AuditLogService auditLogService;
+    private final ClinicalSessionMapper clinicalSessionMapper;
 
     @Transactional(readOnly = true)
     public Page<ClinicalSessionDto> getSessionsByPatientId(Long patientId, Pageable pageable) {
@@ -35,7 +42,7 @@ public class ClinicalSessionService {
                 ? sessionRepository.findByPatientIdAndSpecialtyAndDeletedFalseOrderBySessionDateDescStartTimeDesc(
                         patientId, user.getSpecialty(), pageable)
                 : sessionRepository.findVisibleByPatientAndSpecialty(patientId, user.getSpecialty(), user.getId(), pageable);
-        return sessions.map(this::mapToDto);
+        return sessions.map(clinicalSessionMapper::toDto);
     }
 
     @Transactional(readOnly = true)
@@ -45,7 +52,7 @@ public class ClinicalSessionService {
         if (session.isConfidential()) {
             clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator(session.getSpecialty(), session.getProfessionalId());
         }
-        return mapToDto(session);
+        return withRiskAssessment(clinicalSessionMapper.toDto(session), session.getId());
     }
 
     @Transactional
@@ -53,6 +60,8 @@ public class ClinicalSessionService {
         User user = clinicalAuthorizationService.currentUser();
         Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(dto.getPatientId(), user.getSpecialty())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
+
+        ensureRiskAssessmentIfRequired(dto, patient.getId(), user.getSpecialty());
 
         ClinicalSession session = new ClinicalSession();
         session.setPatient(patient);
@@ -70,6 +79,10 @@ public class ClinicalSessionService {
                     });
         }
 
+        if (hasMeaningfulRiskAssessment(dto, user.getSpecialty())) {
+            riskAssessmentService.createOrUpdateForSession(saved.getId(), patient.getId(), dto.getRiskAssessment(), user);
+        }
+
         auditLogService.record(
                 "CREATE",
                 "CLINICAL_SESSION",
@@ -77,15 +90,23 @@ public class ClinicalSessionService {
                 "Sesión clínica creada (Fecha: " + saved.getSessionDate() + ", Tipo: " + saved.getSessionType() + ") para paciente ID: " + patient.getId()
         );
 
-        return mapToDto(saved);
+        return withRiskAssessment(clinicalSessionMapper.toDto(saved), saved.getId());
     }
 
     @Transactional
     public ClinicalSessionDto updateSession(Long id, ClinicalSessionDto dto) {
         ClinicalSession session = getActiveSession(id);
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator(session.getSpecialty(), session.getProfessionalId());
+
+        ensureRiskAssessmentIfRequired(dto, session.getPatient().getId(), session.getSpecialty());
+
         copyEditableFields(dto, session);
         ClinicalSession updated = sessionRepository.save(session);
+
+        if (hasMeaningfulRiskAssessment(dto, session.getSpecialty())) {
+            User user = clinicalAuthorizationService.currentUser();
+            riskAssessmentService.createOrUpdateForSession(updated.getId(), updated.getPatient().getId(), dto.getRiskAssessment(), user);
+        }
 
         auditLogService.record(
                 "UPDATE",
@@ -94,7 +115,49 @@ public class ClinicalSessionService {
                 "Sesión clínica actualizada ID: " + updated.getId()
         );
 
-        return mapToDto(updated);
+        return withRiskAssessment(clinicalSessionMapper.toDto(updated), updated.getId());
+    }
+
+    /**
+     * Cuando el paciente tiene una alerta de riesgo activa y la sesión es de
+     * Psicología, exige que se envíe una evaluación de riesgo completa
+     * (nivel + ideación suicida informados) antes de permitir guardar la
+     * atención. Es una defensa adicional a la validación del formulario.
+     */
+    private void ensureRiskAssessmentIfRequired(ClinicalSessionDto dto, Long patientId, String specialty) {
+        if (!"PSICOLOGIA".equals(specialty)) {
+            return;
+        }
+        boolean hasActiveAlert = riskAlertRepository.existsByPatientIdAndSpecialtyAndActiveTrue(patientId, specialty);
+        if (!hasActiveAlert) {
+            return;
+        }
+        boolean incomplete = dto.getRiskAssessment() == null
+                || dto.getRiskAssessment().getSuicidalIdeation() == null
+                || dto.getRiskAssessment().getRiskLevel() == null
+                || dto.getRiskAssessment().getRiskLevel().isBlank();
+        if (incomplete) {
+            throw new BusinessRuleException(
+                    "El paciente tiene una alerta de riesgo activa: debe completarse la evaluación de riesgo estructurada antes de guardar la atención");
+        }
+    }
+
+    /**
+     * Solo persiste la evaluación de riesgo si la sesión es de Psicología y
+     * el bloque trae contenido real (nivel de riesgo informado); evita crear
+     * filas vacías cuando el formulario simplemente incluye el grupo sin
+     * completar (p. ej. en Dermatología, donde el bloque no aplica).
+     */
+    private boolean hasMeaningfulRiskAssessment(ClinicalSessionDto dto, String specialty) {
+        return "PSICOLOGIA".equals(specialty)
+                && dto.getRiskAssessment() != null
+                && dto.getRiskAssessment().getRiskLevel() != null
+                && !dto.getRiskAssessment().getRiskLevel().isBlank();
+    }
+
+    private ClinicalSessionDto withRiskAssessment(ClinicalSessionDto dto, Long sessionId) {
+        riskAssessmentService.findByClinicalSessionId(sessionId).ifPresent(dto::setRiskAssessment);
+        return dto;
     }
 
     @Transactional
@@ -135,27 +198,4 @@ public class ClinicalSessionService {
         session.setAttentionId(dto.getAttentionId());
     }
 
-    private ClinicalSessionDto mapToDto(ClinicalSession entity) {
-        ClinicalSessionDto dto = new ClinicalSessionDto();
-        dto.setId(entity.getId());
-        dto.setPatientId(entity.getPatient().getId());
-        dto.setSessionDate(entity.getSessionDate());
-        dto.setStartTime(entity.getStartTime());
-        dto.setEndTime(entity.getEndTime());
-        dto.setSessionType(entity.getSessionType());
-        dto.setModality(entity.getModality());
-        dto.setStatus(entity.getStatus());
-        dto.setSubjective(entity.getSubjective());
-        dto.setObjective(entity.getObjective());
-        dto.setAnalysis(entity.getAnalysis());
-        dto.setPlan(entity.getPlan());
-        dto.setConfidential(entity.isConfidential());
-        dto.setSpecialty(entity.getSpecialty());
-        dto.setCreatedAt(entity.getCreatedAt());
-        dto.setUpdatedAt(entity.getUpdatedAt());
-        dto.setProfessionalId(entity.getProfessionalId());
-        dto.setAppointmentId(entity.getAppointmentId());
-        dto.setAttentionId(entity.getAttentionId());
-        return dto;
-    }
 }

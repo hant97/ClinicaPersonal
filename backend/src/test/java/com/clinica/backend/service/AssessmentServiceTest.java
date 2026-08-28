@@ -9,12 +9,14 @@ import com.clinica.backend.model.User;
 import com.clinica.backend.repository.AssessmentRepository;
 import com.clinica.backend.repository.PatientRepository;
 import com.clinica.backend.repository.PsychometricTestRepository;
+import com.clinica.backend.mapper.AssessmentMapperImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -44,6 +46,8 @@ class AssessmentServiceTest {
     @Mock
     private ClinicalAuthorizationService clinicalAuthorizationService;
 
+    @Spy
+    private AssessmentMapperImpl assessmentMapper = new AssessmentMapperImpl();
     @InjectMocks
     private AssessmentService assessmentService;
 

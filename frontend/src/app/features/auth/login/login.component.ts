@@ -3,7 +3,9 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
-import { Eye, EyeOff, HeartHandshake, LucideAngularModule, ShieldCheck } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
+import { Eye, EyeOff, HeartHandshake,
+ ShieldCheck } from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-login',

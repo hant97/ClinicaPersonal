@@ -6,12 +6,14 @@ import com.clinica.backend.model.PsychologyEvaluation;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.PatientRepository;
 import com.clinica.backend.repository.PsychologyEvaluationRepository;
+import com.clinica.backend.mapper.PsychologyEvaluationMapperImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -31,6 +33,8 @@ class PsychologyEvaluationServiceTest {
     private PatientRepository patientRepository;
     @Mock
     private ClinicalAuthorizationService clinicalAuthorizationService;
+    @Spy
+    private PsychologyEvaluationMapperImpl psychologyEvaluationMapper = new PsychologyEvaluationMapperImpl();
     @InjectMocks
     private PsychologyEvaluationService service;
 

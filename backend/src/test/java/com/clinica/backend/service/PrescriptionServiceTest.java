@@ -11,12 +11,15 @@ import com.clinica.backend.repository.ClinicSettingsRepository;
 import com.clinica.backend.repository.PatientRepository;
 import com.clinica.backend.repository.PrescriptionRepository;
 import com.clinica.backend.repository.UserRepository;
+import com.clinica.backend.mapper.PrescriptionMapperImpl;
+import com.clinica.backend.mapper.PrescriptionItemMapperImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -46,6 +49,10 @@ class PrescriptionServiceTest {
     private ClinicSettingsRepository clinicSettingsRepository;
     @Mock
     private AuditLogService auditLogService;
+    @Spy
+    private PrescriptionMapperImpl prescriptionMapper = new PrescriptionMapperImpl();
+    @Spy
+    private PrescriptionItemMapperImpl prescriptionItemMapper = new PrescriptionItemMapperImpl();
     @InjectMocks
     private PrescriptionService service;
 

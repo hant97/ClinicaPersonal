@@ -6,12 +6,14 @@ import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.ClinicalDocumentRepository;
 import com.clinica.backend.repository.PatientRepository;
+import com.clinica.backend.mapper.ClinicalDocumentMapperImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -40,6 +42,8 @@ class ClinicalDocumentServiceTest {
     private ClinicalDocumentStorage fileStorage;
     @Mock
     private AuditLogService auditLogService;
+    @Spy
+    private ClinicalDocumentMapperImpl clinicalDocumentMapper = new ClinicalDocumentMapperImpl();
     @InjectMocks
     private ClinicalDocumentService service;
 

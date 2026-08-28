@@ -1,0 +1,135 @@
+<section class="card responsive-shell space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col gap-3.5 sm:gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-line pb-4">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="h-2 w-2 rounded-full bg-indigo-500"></span>
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-700">Reporte Gerencial</p>
+      </div>
+      <div class="flex items-center gap-2 mt-0.5">
+        <lucide-icon [img]="BarChart3" [size]="20" class="text-indigo-600"></lucide-icon>
+        <h1 class="text-xl sm:text-2xl font-bold text-ink">Productividad por Profesional</h1>
+      </div>
+      <p class="text-xs text-muted mt-1">Volumen de atenciones, cumplimiento y facturación de cada profesional de tu especialidad en el período seleccionado.</p>
+    </div>
+
+    <button
+      type="button"
+      class="btn-secondary !text-xs !py-1.5 shrink-0"
+      (click)="exportReport()"
+      title="Exportar a Excel"
+    >
+      <lucide-icon [img]="Download" [size]="14"></lucide-icon>
+      <span>Exportar</span>
+    </button>
+  </div>
+
+  <!-- Filtros de período -->
+  <div class="flex flex-wrap items-center gap-2">
+    <div class="flex items-center rounded-lg border border-line p-0.5 bg-canvas">
+      <button
+        type="button"
+        class="rounded-md px-2.5 py-1.5 text-xs font-semibold transition"
+        [class]="selectedPreset === 'MONTH' ? 'bg-surface text-ink shadow-sm' : 'text-muted hover:text-ink'"
+        (click)="setPreset('MONTH')"
+      >Este mes</button>
+      <button
+        type="button"
+        class="rounded-md px-2.5 py-1.5 text-xs font-semibold transition"
+        [class]="selectedPreset === 'LAST_MONTH' ? 'bg-surface text-ink shadow-sm' : 'text-muted hover:text-ink'"
+        (click)="setPreset('LAST_MONTH')"
+      >Mes anterior</button>
+      <button
+        type="button"
+        class="rounded-md px-2.5 py-1.5 text-xs font-semibold transition"
+        [class]="selectedPreset === 'YEAR' ? 'bg-surface text-ink shadow-sm' : 'text-muted hover:text-ink'"
+        (click)="setPreset('YEAR')"
+      >Este año</button>
+    </div>
+
+    <div class="flex items-center gap-1.5 text-xs">
+      <lucide-icon [img]="CalendarRange" [size]="14" class="text-muted"></lucide-icon>
+      <input type="date" class="form-input !text-xs !py-1.5" [(ngModel)]="dateFrom" (change)="onCustomDateChange()">
+      <span class="text-muted">–</span>
+      <input type="date" class="form-input !text-xs !py-1.5" [(ngModel)]="dateTo" (change)="onCustomDateChange()">
+    </div>
+  </div>
+
+  <!-- KPIs resumen -->
+  @if (!loading && rows.length > 0) {
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div class="rounded-lg border border-line p-3.5 flex items-center gap-3">
+        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 shrink-0">
+          <lucide-icon [img]="Users" [size]="18"></lucide-icon>
+        </div>
+        <div>
+          <p class="text-[11px] text-muted uppercase tracking-wide">Profesionales activos</p>
+          <p class="text-lg font-bold text-ink">{{ rows.length }}</p>
+        </div>
+      </div>
+      <div class="rounded-lg border border-line p-3.5 flex items-center gap-3">
+        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 shrink-0">
+          <lucide-icon [img]="CheckCircle2" [size]="18"></lucide-icon>
+        </div>
+        <div>
+          <p class="text-[11px] text-muted uppercase tracking-wide">Atenciones totales</p>
+          <p class="text-lg font-bold text-ink">{{ totals.totalAttentions }}</p>
+        </div>
+      </div>
+      <div class="rounded-lg border border-line p-3.5 flex items-center gap-3">
+        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 text-amber-600 shrink-0">
+          <lucide-icon [img]="Wallet" [size]="18"></lucide-icon>
+        </div>
+        <div>
+          <p class="text-[11px] text-muted uppercase tracking-wide">Facturado en el período</p>
+          <p class="text-lg font-bold text-ink">S/ {{ totals.billedAmount.toFixed(2) }}</p>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Tabla -->
+  @if (loading) {
+    <div class="flex items-center justify-center py-16">
+      <span class="spinner !h-6 !w-6 !border-2" role="status"></span>
+    </div>
+  } @else if (loadError) {
+    <div class="text-center py-16 text-sm text-muted">No se pudo cargar el reporte. Intenta nuevamente.</div>
+  } @else if (rows.length === 0) {
+    <div class="text-center py-16 text-sm text-muted">No hay atenciones registradas en el período seleccionado.</div>
+  } @else {
+    <div class="overflow-x-auto rounded-lg border border-line">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-xs uppercase tracking-wide text-muted">
+          <tr>
+            <th class="text-left px-3.5 py-2.5">Profesional</th>
+            <th class="text-right px-3.5 py-2.5">Atenciones</th>
+            <th class="text-right px-3.5 py-2.5">Atendidas</th>
+            <th class="text-right px-3.5 py-2.5">Canceladas</th>
+            <th class="text-right px-3.5 py-2.5">% Finalización</th>
+            <th class="text-right px-3.5 py-2.5">Facturado</th>
+            <th class="text-right px-3.5 py-2.5">Cobrado</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-line">
+          @for (row of rows; track row.professionalId) {
+            <tr class="hover:bg-slate-50/60">
+              <td class="px-3.5 py-2.5 font-semibold text-ink">{{ row.professionalName }}</td>
+              <td class="px-3.5 py-2.5 text-right text-ink">{{ row.totalAttentions }}</td>
+              <td class="px-3.5 py-2.5 text-right text-ink">{{ row.attendedAttentions }}</td>
+              <td class="px-3.5 py-2.5 text-right" [class]="row.cancelledAttentions > 0 ? 'text-rose-600 font-semibold' : 'text-muted'">{{ row.cancelledAttentions }}</td>
+              <td class="px-3.5 py-2.5 text-right">
+                <span
+                  class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+                  [class]="row.completionRate >= 80 ? 'bg-emerald-50 text-emerald-700' : row.completionRate >= 50 ? 'bg-amber-50 text-amber-700' : 'bg-rose-50 text-rose-700'"
+                >{{ row.completionRate }}%</span>
+              </td>
+              <td class="px-3.5 py-2.5 text-right font-semibold text-ink">S/ {{ row.billedAmount.toFixed(2) }}</td>
+              <td class="px-3.5 py-2.5 text-right text-emerald-700 font-semibold">S/ {{ row.collectedAmount.toFixed(2) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

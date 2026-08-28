@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import './landing-global.css';
 
 @tailwind base;
@@ -80,16 +80,22 @@
     @apply w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink outline-none transition placeholder:text-muted focus:border-primary-500 focus:ring-2 focus:ring-primary-100;
   }
   .input-leading-icon {
-    @apply pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted flex items-center justify-center;
+    @apply pointer-events-none absolute left-2.5 top-1/2 flex h-4 w-4 -translate-y-1/2 items-center justify-center text-slate-400;
     z-index: 2;
   }
   .input-leading-icon svg {
     display: block;
+    width: 1rem;
+    height: 1rem;
+    stroke-width: 1.8;
   }
   .input-with-leading-icon,
   input.input-with-leading-icon,
   select.input-with-leading-icon {
-    padding-left: 2.75rem !important;
+    padding-left: 2.5rem !important;
+  }
+  .relative:focus-within > .input-leading-icon {
+    @apply text-primary-600;
   }
   .form-group {
     @apply mb-4;

@@ -1,5 +1,7 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.mapper.LesionPhotoMapper;
+
 import com.clinica.backend.dto.LesionPhotoDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.Lesion;
@@ -23,6 +25,7 @@ public class LesionPhotoService {
     private final LesionRepository lesionRepository;
     private final ClinicalAuthorizationService clinicalAuthorizationService;
     private final ClinicalFileStorage fileStorage;
+    private final LesionPhotoMapper lesionPhotoMapper;
 
     @Transactional(readOnly = true)
     public List<LesionPhotoDto> getPhotos(Long lesionId) {
@@ -30,7 +33,7 @@ public class LesionPhotoService {
         Lesion lesion = getActiveLesion(lesionId);
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator("DERMATOLOGIA", lesion.getProfessionalId());
         return repository.findByLesionIdOrderByCreatedAtDesc(lesionId).stream()
-                .map(this::mapToDto)
+                .map(lesionPhotoMapper::toDto)
                 .toList();
     }
 
@@ -46,7 +49,7 @@ public class LesionPhotoService {
         photo.setFileUrl(key);
         photo.setDescription(description);
         photo.setTakenDate(takenDate);
-        return mapToDto(repository.save(photo));
+        return lesionPhotoMapper.toDto(repository.save(photo));
     }
 
     @Transactional
@@ -73,14 +76,4 @@ public class LesionPhotoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Lesión no encontrada"));
     }
 
-    private LesionPhotoDto mapToDto(LesionPhoto photo) {
-        LesionPhotoDto dto = new LesionPhotoDto();
-        dto.setId(photo.getId());
-        dto.setLesionId(photo.getLesion().getId());
-        dto.setFileUrl(photo.getFileUrl());
-        dto.setDescription(photo.getDescription());
-        dto.setTakenDate(photo.getTakenDate());
-        dto.setCreatedAt(photo.getCreatedAt());
-        return dto;
-    }
 }

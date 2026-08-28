@@ -2,6 +2,7 @@ package com.clinica.backend.service;
 
 import com.clinica.backend.dto.SupplyDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
+import com.clinica.backend.mapper.SupplyMapperImpl;
 import com.clinica.backend.model.Supply;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.SupplyRepository;
@@ -31,7 +32,7 @@ class SupplyServiceSecurityTest {
         supplyRepository = mock(SupplyRepository.class);
         websiteFileStorage = mock(WebsiteFileStorage.class);
         inventoryTransactionService = mock(InventoryTransactionService.class);
-        supplyService = new SupplyService(supplyRepository, websiteFileStorage, inventoryTransactionService);
+        supplyService = new SupplyService(supplyRepository, websiteFileStorage, inventoryTransactionService, new SupplyMapperImpl());
 
         User user = new User();
         user.setId(1L);

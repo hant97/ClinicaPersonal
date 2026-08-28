@@ -1,7 +1,7 @@
 package com.clinica.backend.controller;
 
 import com.clinica.backend.dto.PublicLandingDto;
-import com.clinica.backend.service.WebsiteSettingsService;
+import com.clinica.backend.service.PublicLandingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/public")
 @RequiredArgsConstructor
 public class PublicLandingController {
-    private final WebsiteSettingsService service;
+    private final PublicLandingService service;
 
     @GetMapping("/landing")
     public ResponseEntity<PublicLandingDto> getLanding() {

@@ -4,6 +4,8 @@ import com.clinica.backend.dto.PrescriptionDto;
 import com.clinica.backend.dto.PrescriptionItemDto;
 import com.clinica.backend.dto.PublicPrescriptionVerificationDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
+import com.clinica.backend.mapper.PrescriptionItemMapper;
+import com.clinica.backend.mapper.PrescriptionMapper;
 import com.clinica.backend.model.ClinicSettings;
 import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.Prescription;
@@ -35,6 +37,8 @@ public class PrescriptionService {
     private final UserRepository userRepository;
     private final ClinicSettingsRepository clinicSettingsRepository;
     private final AuditLogService auditLogService;
+    private final PrescriptionMapper prescriptionMapper;
+    private final PrescriptionItemMapper prescriptionItemMapper;
 
     @Transactional(readOnly = true)
     public Page<PrescriptionDto> getPrescriptions(Long patientId, Pageable pageable) {
@@ -42,7 +46,7 @@ public class PrescriptionService {
         Page<Prescription> prescriptions = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
                 ? repository.findByPatientIdAndSpecialtyAndDeletedFalseOrderByCreatedAtDesc(patientId, user.getSpecialty(), pageable)
                 : repository.findByPatientIdAndSpecialtyAndProfessionalIdAndDeletedFalseOrderByCreatedAtDesc(patientId, user.getSpecialty(), user.getId(), pageable);
-        return prescriptions.map(this::mapToDto);
+        return prescriptions.map(this::mapToDtoWithItems);
     }
 
     @Transactional
@@ -66,7 +70,7 @@ public class PrescriptionService {
                 "Receta médica creada con código " + saved.getVerificationCode() + " para paciente ID: " + patientId
         );
 
-        return mapToDto(saved);
+        return mapToDtoWithItems(saved);
     }
 
     @Transactional
@@ -86,7 +90,7 @@ public class PrescriptionService {
                 "Receta médica actualizada ID: " + updated.getId()
         );
 
-        return mapToDto(updated);
+        return mapToDtoWithItems(updated);
     }
 
     @Transactional
@@ -190,19 +194,8 @@ public class PrescriptionService {
         }
     }
 
-    private PrescriptionDto mapToDto(Prescription prescription) {
-        PrescriptionDto dto = new PrescriptionDto();
-        dto.setId(prescription.getId());
-        dto.setPatientId(prescription.getPatient().getId());
-        dto.setSpecialty(prescription.getSpecialty());
-        dto.setPrescriptionDate(prescription.getPrescriptionDate());
-        dto.setValidUntil(prescription.getValidUntil());
-        dto.setNotes(prescription.getNotes());
-        dto.setProfessionalId(prescription.getProfessionalId());
-        dto.setVerificationCode(prescription.getVerificationCode());
-        dto.setAttentionId(prescription.getAttentionId());
-        dto.setCreatedAt(prescription.getCreatedAt());
-        dto.setUpdatedAt(prescription.getUpdatedAt());
+    private PrescriptionDto mapToDtoWithItems(Prescription prescription) {
+        PrescriptionDto dto = prescriptionMapper.toDto(prescription);
         dto.setItems(mapItems(prescription));
         return dto;
     }
@@ -211,15 +204,7 @@ public class PrescriptionService {
         List<PrescriptionItemDto> items = new ArrayList<>();
         if (prescription.getItems() != null) {
             for (PrescriptionItem item : prescription.getItems()) {
-                PrescriptionItemDto itemDto = new PrescriptionItemDto();
-                itemDto.setId(item.getId());
-                itemDto.setName(item.getName());
-                itemDto.setDose(item.getDose());
-                itemDto.setFrequency(item.getFrequency());
-                itemDto.setDuration(item.getDuration());
-                itemDto.setRoute(item.getRoute());
-                itemDto.setInstructions(item.getInstructions());
-                items.add(itemDto);
+                items.add(prescriptionItemMapper.toDto(item));
             }
         }
         return items;

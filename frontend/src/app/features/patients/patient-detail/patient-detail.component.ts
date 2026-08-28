@@ -2,9 +2,7 @@ import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { PatientService } from '../../../core/services/patient/patient.service';
-import { ClinicalSessionService } from '../../../core/services/clinical-session.service';
-import { AppointmentService } from '../../../core/services/appointment.service';
+import { PatientDetailDataService } from './patient-detail-data.service';
 import { Patient } from '../../../core/models/patient.model';
 import { ClinicalSession } from '../../../core/models/clinical-session.model';
 import { Appointment } from '../../../core/models/appointment.model';
@@ -12,12 +10,8 @@ import { NotificationService } from '../../../shared/services/notification/notif
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { AssessmentListComponent } from '../assessment-list/assessment-list.component';
 import { RiskAlertFormComponent } from '../risk-alert-form/risk-alert-form.component';
-import { RiskAlertService } from '../../../core/services/risk-alert.service';
 import { RiskAlert } from '../../../core/models/risk-alert.model';
-import { CatalogService } from '../../../core/services/catalog.service';
 import { SpecialtyService } from '../../../core/services/specialty.service';
-import { ClinicalHistoryService } from '../../../core/services/clinical-history.service';
-import { ClinicalHistory } from '../../../core/models/clinical-history.model';
 import { Allergy } from '../../../core/models/allergy.model';
 import { Medication } from '../../../core/models/medication.model';
 import { Diagnosis } from '../../../core/models/diagnosis.model';
@@ -40,8 +34,17 @@ import { DermatologicalEvaluationListComponent } from '../dermatological-evaluat
 import { ClinicalHistoryPrintComponent } from '../clinical-history-print/clinical-history-print.component';
 import { PatientPaymentsSectionComponent } from '../patient-payments-section/patient-payments-section.component';
 import { PatientSummaryHeaderComponent } from '../patient-summary-header/patient-summary-header.component';
+import { OnboardingService } from '../../../shared/services/onboarding/onboarding.service';
 import {
-  LucideAngularModule,
+  calculatePatientAge,
+  sessionStatusBadgeClass,
+  sessionStatusDotClass,
+  getPatientInitials,
+  computeSpecialtyElementsCount,
+  computeExpedienteElementsCount
+} from './patient-detail.utils';
+import { LucideAngularModule } from 'lucide-angular';
+import {
   FileText,
   Pill,
   ClipboardList,
@@ -71,7 +74,7 @@ import {
   ImagePlus,
   Layers,
   HeartPulse
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 
 export type MainTabType = 'timeline' | 'expediente' | 'especialidad' | 'cobros';
 
@@ -143,6 +146,8 @@ export class PatientDetailComponent implements OnInit {
   recentAppointments: Appointment[] = [];
   selectedSession?: ClinicalSession;
   showForm = false;
+  /** Datos de la cita de origen (agenda/dashboard) pendientes de aplicar a la próxima sesión nueva que se abra. */
+  pendingAppointmentContext: { appointmentId?: number; date?: string; startTime?: string; endTime?: string } | null = null;
   showAlertForm = false;
   showPrint = false;
   expandedSessionId: number | null = null;
@@ -158,6 +163,7 @@ export class PatientDetailComponent implements OnInit {
   activeSpecialtySubTab = 'evaluacion-inicial';
   activeExpedienteSubTab = 'todo';
   collapsedSections: Record<string, boolean> = {};
+  showFirstVisitBanner = false;
 
   counts: Record<string, number> = {};
   allergies: Allergy[] = [];
@@ -179,15 +185,11 @@ export class PatientDetailComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private patientService: PatientService,
-    private sessionService: ClinicalSessionService,
-    private appointmentService: AppointmentService,
-    private riskAlertService: RiskAlertService,
-    private catalogService: CatalogService,
+    private dataService: PatientDetailDataService,
     private notificationService: NotificationService,
     private toastService: ToastService,
     private specialtyService: SpecialtyService,
-    private clinicalHistoryService: ClinicalHistoryService
+    private onboardingService: OnboardingService
   ) {}
 
   ngOnInit(): void {
@@ -200,6 +202,19 @@ export class PatientDetailComponent implements OnInit {
       this.activeSpecialtySubTab = 'evaluacion-inicial';
     }
 
+    // Primera vez que el médico abre una ficha de paciente: arranca solo
+    // "Datos Personales" expandido, con un banner que explica el patrón.
+    if (!this.onboardingService.isFirstPatientVisitSeen()) {
+      this.showFirstVisitBanner = true;
+      this.collapsedSections = {
+        'antecedentes': true,
+        'alergias': true,
+        'medicamentos': true,
+        'recetas': true,
+        'documentos': true
+      };
+    }
+
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       const id = params.get('id');
       if (id) {
@@ -210,6 +225,12 @@ export class PatientDetailComponent implements OnInit {
     this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       if (params['newSession'] === 'true') {
         this.activeTab = 'timeline';
+        this.pendingAppointmentContext = {
+          appointmentId: params['appointmentId'] ? Number(params['appointmentId']) : undefined,
+          date: params['date'] || undefined,
+          startTime: params['startTime'] || undefined,
+          endTime: params['endTime'] || undefined
+        };
         this.openForm();
       }
       if (params['tab'] === 'prescriptions') {
@@ -267,6 +288,11 @@ export class PatientDetailComponent implements OnInit {
     this.showContact = !this.showContact;
   }
 
+  dismissFirstVisitBanner(): void {
+    this.showFirstVisitBanner = false;
+    this.onboardingService.markFirstPatientVisitSeen();
+  }
+
   isSectionCollapsed(section: string): boolean {
     return !!this.collapsedSections[section];
   }
@@ -290,115 +316,32 @@ export class PatientDetailComponent implements OnInit {
     };
   }
 
-  private updateComputedCounts(): void {
-    if (this.isPsychology) {
-      this.specialtyElementsCount = (this.counts['evaluacion-psicologica'] || 0) +
-                                    (this.counts['diagnosticos'] || 0) +
-                                    (this.counts['plan-terapeutico'] || 0);
-    } else if (this.isDermatology) {
-      this.specialtyElementsCount = (this.counts['lesiones'] || 0) +
-                                    (this.counts['examenes-auxiliares'] || 0) +
-                                    (this.counts['tratamientos'] || 0) +
-                                    (this.counts['procedimientos'] || 0) +
-                                    (this.counts['controles'] || 0) +
-                                    (this.counts['diagnosticos'] || 0);
-    } else {
-      this.specialtyElementsCount = 0;
-    }
-
-    this.expedienteElementsCount = (this.counts['alergias'] || 0) +
-                                   (this.counts['medicamentos'] || 0) +
-                                   (this.counts['antecedentes-generales'] || 0);
-  }
-
-  private readonly badgeMap: Record<string, string> = {
-    COMPLETADA: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    CANCELADA: 'bg-slate-100 text-slate-500 border-slate-200',
-    NO_ASISTIO: 'bg-red-50 text-red-700 border-red-200'
-  };
-
-  private readonly dotMap: Record<string, string> = {
-    COMPLETADA: 'bg-emerald-500',
-    CANCELADA: 'bg-slate-400',
-    NO_ASISTIO: 'bg-red-500'
-  };
-
   sessionStatusBadge(status?: string): string {
-    return this.badgeMap[(status || '').toUpperCase()] || 'bg-amber-50 text-amber-700 border-amber-200';
+    return sessionStatusBadgeClass(status);
   }
 
   sessionStatusDot(status?: string): string {
-    return this.dotMap[(status || '').toUpperCase()] || 'bg-amber-500';
+    return sessionStatusDotClass(status);
   }
 
   loadCounts(patientId: number): void {
-    this.clinicalHistoryService.get(patientId).subscribe({
-      next: (history: ClinicalHistory) => {
+    this.dataService.loadHistorySummary(patientId).subscribe({
+      next: ({ history, counts }) => {
         this.allergies = history.allergies || [];
         this.medications = history.medications || [];
         this.diagnoses = history.diagnoses || [];
-        this.counts = {
-          'antecedentes-generales': history.generalHistory?.id ? 1 : 0,
-          'alergias': history.allergies?.length ?? 0,
-          'medicamentos': history.medications?.length ?? 0,
-          'diagnosticos': history.diagnoses?.length ?? 0,
-          'evaluacion-psicologica': history.psychologyEvaluations?.length ?? 0,
-          'plan-terapeutico': history.therapeuticPlans?.length ?? 0,
-          'antecedentes-dermatologicos': history.dermatologicalHistory?.id ? 1 : 0,
-          'lesiones': history.lesions?.length ?? 0,
-          'examenes-auxiliares': history.auxiliaryExams?.length ?? 0,
-          'tratamientos': history.treatments?.length ?? 0,
-          'procedimientos': history.procedures?.length ?? 0,
-          'controles': history.evolutions?.length ?? 0
-        };
-        this.updateComputedCounts();
+        this.counts = counts;
+        this.specialtyElementsCount = computeSpecialtyElementsCount(counts, this.isPsychology, this.isDermatology);
+        this.expedienteElementsCount = computeExpedienteElementsCount(counts);
       },
       error: () => this.toastService.show('No se pudo cargar la historia clínica', 'error')
     });
   }
 
   loadAlerts(patientId: number): void {
-    this.riskAlertService.getAlertsByPatientId(patientId, true).subscribe({
-      next: (data) => {
-        this.activeAlerts = data.content;
-        this.resolveAlertLabels();
-      },
-      error: () => this.toastService.show('No se pudieron cargar las alertas del paciente', 'error')
-    });
-  }
-
-  resolveAlertLabels(): void {
-    const catalogCode = this.isPsychology ? 'RISK_ALERT_TYPE' : 'RISK_ALERT_TYPE_DERM';
-    this.catalogService.getActiveItemsByCatalogCode(catalogCode).subscribe({
-      next: (types) => {
-        this.catalogService.getActiveItemsByCatalogCode('RISK_ALERT_LEVEL').subscribe({
-          next: (levels) => {
-            const validTypes = new Set(types.map(t => t.itemCode));
-            const filteredAlerts: RiskAlert[] = [];
-
-            this.activeAlerts.forEach(alert => {
-              const typeItem = types.find(t => t.itemCode === alert.type || t.itemName === alert.type);
-
-              if (typeItem) {
-                const levelItem = levels.find(l => l.itemCode === alert.level || l.itemName === alert.level);
-                alert.type = typeItem.itemName;
-                alert.level = levelItem ? levelItem.itemName : alert.level;
-                filteredAlerts.push(alert);
-              }
-            });
-
-            this.activeAlerts = filteredAlerts;
-          },
-          error: (err) => {
-            console.error('Error fetching RISK_ALERT_LEVEL', err);
-            this.toastService.show('No se pudieron resolver los niveles de alerta', 'error');
-          }
-        });
-      },
-      error: (err) => {
-        console.error('Error fetching ' + catalogCode, err);
-        this.toastService.show('No se pudieron resolver los tipos de alerta', 'error');
-      }
+    this.dataService.loadActiveAlertsWithLabels(patientId, this.isPsychology).subscribe({
+      next: (alerts) => this.activeAlerts = alerts,
+      error: () => this.toastService.show('No se pudieron resolver las alertas del paciente', 'error')
     });
   }
 
@@ -426,7 +369,7 @@ export class PatientDetailComponent implements OnInit {
       'Cancelar'
     );
     if (confirmed && this.patient?.id) {
-      this.riskAlertService.resolveAlert(this.patient.id, alertId).subscribe({
+      this.dataService.resolveAlert(this.patient.id, alertId).subscribe({
         next: () => {
           this.toastService.show('Alerta resuelta', 'success');
           this.loadAlerts(this.patient!.id!);
@@ -440,7 +383,7 @@ export class PatientDetailComponent implements OnInit {
     this.isLoading = true;
     this.loadError = false;
     this.errorMessage = '';
-    this.patientService.getById(identifier).subscribe({
+    this.dataService.loadPatient(identifier).subscribe({
       next: (data) => {
         this.patient = data;
         this.patientId = data.id || null;
@@ -466,42 +409,24 @@ export class PatientDetailComponent implements OnInit {
   }
 
   calculateEsMenorEdad(): void {
-    if (this.patient?.dateOfBirth) {
-      const birthDate = new Date(this.patient.dateOfBirth);
-      const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const m = today.getMonth() - birthDate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
-      this.age = age;
-      this.esMenorEdad = age < 18;
-    } else {
-      this.age = null;
-      this.esMenorEdad = false;
-    }
+    const { age, esMenorEdad } = calculatePatientAge(this.patient?.dateOfBirth);
+    this.age = age;
+    this.esMenorEdad = esMenorEdad;
   }
 
   loadSessions(patientId: number): void {
-    this.sessionService.getSessionsByPatientId(patientId).subscribe({
-      next: (data) => this.sessions = data.content,
+    this.dataService.loadSessions(patientId).subscribe({
+      next: (sessions) => this.sessions = sessions,
       error: () => this.toastService.show('No se pudieron cargar las sesiones clínicas', 'error')
     });
   }
 
   loadAppointments(patientId: number): void {
-    this.appointmentService.getByPatientId(patientId, 0, 10).subscribe({
-      next: (page) => {
-        const today = new Date().toISOString().split('T')[0];
-        const all = page.content;
-        this.upcomingAppointments = all
-          .filter(a => a.appointmentDate >= today && a.status !== 'CANCELADA' && a.status !== 'NO_ASISTIO' && a.status !== 'COMPLETADA')
-          .sort((a, b) => a.appointmentDate.localeCompare(b.appointmentDate));
-        this.recentAppointments = all
-          .filter(a => a.appointmentDate < today || a.status === 'COMPLETADA')
-          .sort((a, b) => b.appointmentDate.localeCompare(a.appointmentDate))
-          .slice(0, 3);
-        this.nextUpcomingAppointment = this.upcomingAppointments.length > 0 ? this.upcomingAppointments[0] : undefined;
+    this.dataService.loadAppointmentsSummary(patientId).subscribe({
+      next: ({ upcoming, recent, next }) => {
+        this.upcomingAppointments = upcoming;
+        this.recentAppointments = recent;
+        this.nextUpcomingAppointment = next;
       },
       error: () => this.toastService.show('No se pudieron cargar las citas del paciente', 'error')
     });
@@ -510,7 +435,7 @@ export class PatientDetailComponent implements OnInit {
   onPhotoSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0 && this.patient?.id) {
-      this.patientService.uploadPhoto(this.patient.id, input.files[0]).subscribe({
+      this.dataService.uploadPatientPhoto(this.patient.id, input.files[0]).subscribe({
         next: (updated) => {
           this.patient = updated;
           this.toastService.show('Foto actualizada', 'success');
@@ -526,7 +451,9 @@ export class PatientDetailComponent implements OnInit {
     if (session?.id) {
       this.router.navigate(['/patients', key, 'sessions', session.id, 'edit']);
     } else {
-      this.router.navigate(['/patients', key, 'sessions', 'new']);
+      const queryParams = this.pendingAppointmentContext || undefined;
+      this.pendingAppointmentContext = null;
+      this.router.navigate(['/patients', key, 'sessions', 'new'], queryParams ? { queryParams } : undefined);
     }
   }
 
@@ -559,7 +486,7 @@ export class PatientDetailComponent implements OnInit {
       'Cancelar'
     );
     if (confirmed) {
-      this.sessionService.deleteSession(id).subscribe({
+      this.dataService.deleteSession(id).subscribe({
         next: () => {
           this.toastService.show('Sesión eliminada exitosamente', 'success');
           if (this.patient?.id) {
@@ -597,8 +524,6 @@ export class PatientDetailComponent implements OnInit {
   }
 
   getInitials(firstName?: string, lastName?: string): string {
-    const f = (firstName || '').charAt(0).toUpperCase();
-    const l = (lastName || '').charAt(0).toUpperCase();
-    return `${f}${l}` || 'P';
+    return getPatientInitials(firstName, lastName);
   }
 }

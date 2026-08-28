@@ -11,8 +11,8 @@ import { ExportService } from '../../../shared/services/export/export.service';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { ViewPreferenceService } from '../../../shared/services/view-preference/view-preference.service';
 import { fetchAllPages } from '../../../core/utils/pagination.util';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule,
   Search,
   Eye,
   Edit,
@@ -36,7 +36,7 @@ import {
   Mail,
   CheckCircle2,
   XCircle
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 

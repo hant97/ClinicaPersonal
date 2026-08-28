@@ -6,12 +6,14 @@ import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.GeneralHistoryRepository;
 import com.clinica.backend.repository.PatientRepository;
+import com.clinica.backend.mapper.GeneralHistoryMapperImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -32,6 +34,8 @@ class GeneralHistoryServiceTest {
     private PatientRepository patientRepository;
     @Mock
     private ClinicalAuthorizationService clinicalAuthorizationService;
+    @Spy
+    private GeneralHistoryMapperImpl generalHistoryMapper = new GeneralHistoryMapperImpl();
     @InjectMocks
     private GeneralHistoryService service;
 

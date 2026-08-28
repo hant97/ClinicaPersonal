@@ -1,5 +1,7 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.mapper.ClinicalServiceMapper;
+
 import com.clinica.backend.dto.ClinicalServiceDto;
 import com.clinica.backend.dto.ClinicalServiceStatsDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
@@ -26,6 +28,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class ClinicalServiceService {
 
     private final ClinicalServiceRepository clinicalServiceRepository;
+    private final ClinicalServiceMapper clinicalServiceEntityMapper;
 
     private String getCurrentUserSpecialty() {
         return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getSpecialty();
@@ -36,13 +39,13 @@ public class ClinicalServiceService {
         String specialty = getCurrentUserSpecialty();
         return clinicalServiceRepository
                 .findAllWithFilters(name, category, active, minPrice, maxPrice, specialty, pageable)
-                .map(this::mapToDto);
+                .map(clinicalServiceEntityMapper::toDto);
     }
 
     public List<ClinicalServiceDto> getAllActiveServices() {
         String specialty = getCurrentUserSpecialty();
         return clinicalServiceRepository.findBySpecialtyAndActiveTrueAndDeletedFalse(specialty)
-                .stream().map(this::mapToDto).collect(Collectors.toList());
+                .stream().map(clinicalServiceEntityMapper::toDto).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -87,7 +90,7 @@ public class ClinicalServiceService {
         String specialty = getCurrentUserSpecialty();
         ClinicalService service = clinicalServiceRepository.findByIdAndSpecialtyAndDeletedFalse(id, specialty)
                 .orElseThrow(() -> new ResourceNotFoundException("Servicio clínico no encontrado"));
-        return mapToDto(service);
+        return clinicalServiceEntityMapper.toDto(service);
     }
 
     public ClinicalServiceDto createService(ClinicalServiceDto dto) {
@@ -95,7 +98,7 @@ public class ClinicalServiceService {
         applyDtoToEntity(service, dto);
         service.setSpecialty(getCurrentUserSpecialty());
         ClinicalService saved = clinicalServiceRepository.save(service);
-        return mapToDto(saved);
+        return clinicalServiceEntityMapper.toDto(saved);
     }
 
     public ClinicalServiceDto updateService(Long id, ClinicalServiceDto dto) {
@@ -104,7 +107,7 @@ public class ClinicalServiceService {
                 .orElseThrow(() -> new ResourceNotFoundException("Servicio clínico no encontrado"));
         applyDtoToEntity(service, dto);
         ClinicalService updated = clinicalServiceRepository.save(service);
-        return mapToDto(updated);
+        return clinicalServiceEntityMapper.toDto(updated);
     }
 
     public void deleteService(Long id) {
@@ -125,17 +128,4 @@ public class ClinicalServiceService {
         service.setActive(dto.getActive() == null || dto.getActive());
     }
 
-    private ClinicalServiceDto mapToDto(ClinicalService service) {
-        ClinicalServiceDto dto = new ClinicalServiceDto();
-        dto.setId(service.getId());
-        dto.setName(service.getName());
-        dto.setDescription(service.getDescription());
-        dto.setPrice(service.getPrice());
-        dto.setCategory(service.getCategory());
-        dto.setDurationMinutes(service.getDurationMinutes());
-        dto.setImageUrl(service.getImageUrl());
-        dto.setActive(service.isActive());
-        dto.setSpecialty(service.getSpecialty());
-        return dto;
-    }
 }

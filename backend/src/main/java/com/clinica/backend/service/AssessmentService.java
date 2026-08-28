@@ -1,5 +1,7 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.mapper.AssessmentMapper;
+
 import com.clinica.backend.dto.AssessmentDto;
 import com.clinica.backend.dto.PsychometricTestDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
@@ -31,6 +33,7 @@ public class AssessmentService {
     private final PatientRepository patientRepository;
 
     private final ClinicalAuthorizationService clinicalAuthorizationService;
+    private final AssessmentMapper assessmentMapper;
 
     @Transactional(readOnly = true)
     public Page<AssessmentDto> getAssessmentsByPatientId(Long patientId, Pageable pageable) {
@@ -38,7 +41,7 @@ public class AssessmentService {
         if (!patientRepository.existsByIdAndSpecialtyAndDeletedFalse(patientId, specialty)) {
             throw new ResourceNotFoundException("Paciente no encontrado");
         }
-        return assessmentRepository.findByPatientIdOrderByAssessmentDateDesc(patientId, pageable).map(this::mapToDto);
+        return assessmentRepository.findByPatientIdOrderByAssessmentDateDesc(patientId, pageable).map(assessmentMapper::toDto);
     }
 
     @Transactional(readOnly = true)
@@ -48,7 +51,7 @@ public class AssessmentService {
             throw new ResourceNotFoundException("Paciente no encontrado");
         }
         return assessmentRepository.findByPatientIdOrderByAssessmentDateAsc(patientId).stream()
-                .map(this::mapToDto)
+                .map(assessmentMapper::toDto)
                 .toList();
     }
 
@@ -79,20 +82,7 @@ public class AssessmentService {
         assessment.setNotes(dto.getNotes());
 
         Assessment saved = assessmentRepository.save(assessment);
-        return mapToDto(saved);
+        return assessmentMapper.toDto(saved);
     }
 
-    private AssessmentDto mapToDto(Assessment assessment) {
-        AssessmentDto dto = new AssessmentDto();
-        dto.setId(assessment.getId());
-        dto.setPatientId(assessment.getPatient().getId());
-        dto.setPsychometricTestId(assessment.getPsychometricTest().getId());
-        dto.setTestName(assessment.getPsychometricTest().getName());
-        dto.setAssessmentDate(assessment.getAssessmentDate());
-        dto.setTotalScore(assessment.getTotalScore());
-        dto.setAnswersJson(assessment.getAnswersJson());
-        dto.setNotes(assessment.getNotes());
-        dto.setInterpretationJson(assessment.getPsychometricTest().getInterpretationJson());
-        return dto;
-    }
 }

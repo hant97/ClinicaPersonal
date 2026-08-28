@@ -1,5 +1,7 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.mapper.DermatologicalHistoryMapper;
+
 import com.clinica.backend.dto.DermatologicalHistoryDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.DermatologicalHistory;
@@ -18,6 +20,7 @@ public class DermatologicalHistoryService {
     private final DermatologicalHistoryRepository repository;
     private final PatientRepository patientRepository;
     private final ClinicalAuthorizationService clinicalAuthorizationService;
+    private final DermatologicalHistoryMapper dermatologicalHistoryMapper;
 
     @Transactional(readOnly = true)
     public DermatologicalHistoryDto getHistory(Long patientId) {
@@ -31,7 +34,7 @@ public class DermatologicalHistoryService {
             return empty;
         }
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator("DERMATOLOGIA", history.getProfessionalId());
-        return mapToDto(history);
+        return dermatologicalHistoryMapper.toDto(history);
     }
 
     @Transactional
@@ -55,7 +58,7 @@ public class DermatologicalHistoryService {
             history.setProfessionalId(user.getId());
         }
         copyEditableFields(dto, history);
-        return mapToDto(repository.save(history));
+        return dermatologicalHistoryMapper.toDto(repository.save(history));
     }
 
     private void copyEditableFields(DermatologicalHistoryDto dto, DermatologicalHistory history) {
@@ -68,20 +71,4 @@ public class DermatologicalHistoryService {
         history.setNotes(dto.getNotes());
     }
 
-    private DermatologicalHistoryDto mapToDto(DermatologicalHistory history) {
-        DermatologicalHistoryDto dto = new DermatologicalHistoryDto();
-        dto.setId(history.getId());
-        dto.setPatientId(history.getPatient().getId());
-        dto.setSkinType(history.getSkinType());
-        dto.setSunExposureHabits(history.getSunExposureHabits());
-        dto.setPersonalSkinHistory(history.getPersonalSkinHistory());
-        dto.setFamilySkinHistory(history.getFamilySkinHistory());
-        dto.setChronicConditions(history.getChronicConditions());
-        dto.setExamFindings(history.getExamFindings());
-        dto.setNotes(history.getNotes());
-        dto.setProfessionalId(history.getProfessionalId());
-        dto.setCreatedAt(history.getCreatedAt());
-        dto.setUpdatedAt(history.getUpdatedAt());
-        return dto;
-    }
 }

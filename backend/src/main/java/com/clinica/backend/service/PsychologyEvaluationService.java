@@ -1,5 +1,7 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.mapper.PsychologyEvaluationMapper;
+
 import com.clinica.backend.dto.PsychologyEvaluationDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.Patient;
@@ -23,6 +25,7 @@ public class PsychologyEvaluationService {
     private final PsychologyEvaluationRepository repository;
     private final PatientRepository patientRepository;
     private final ClinicalAuthorizationService clinicalAuthorizationService;
+    private final PsychologyEvaluationMapper psychologyEvaluationMapper;
 
     @Transactional(readOnly = true)
     public Page<PsychologyEvaluationDto> getEvaluationsByPatientId(Long patientId, Pageable pageable) {
@@ -32,7 +35,7 @@ public class PsychologyEvaluationService {
         Page<PsychologyEvaluation> evaluations = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
                 ? repository.findByPatientIdAndDeletedFalse(patientId, pageable)
                 : repository.findByPatientIdAndProfessionalIdAndDeletedFalse(patientId, user.getId(), pageable);
-        return evaluations.map(this::mapToDto);
+        return evaluations.map(psychologyEvaluationMapper::toDto);
     }
 
     @Transactional(readOnly = true)
@@ -40,7 +43,7 @@ public class PsychologyEvaluationService {
         PsychologyEvaluation evaluation = getActiveEvaluation(id);
         clinicalAuthorizationService.ensureSameSpecialty("PSICOLOGIA");
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator("PSICOLOGIA", evaluation.getProfessionalId());
-        return mapToDto(evaluation);
+        return psychologyEvaluationMapper.toDto(evaluation);
     }
 
     @Transactional
@@ -57,7 +60,7 @@ public class PsychologyEvaluationService {
         if (evaluation.getEvaluationDate() == null) {
             evaluation.setEvaluationDate(LocalDate.now());
         }
-        return mapToDto(repository.save(evaluation));
+        return psychologyEvaluationMapper.toDto(repository.save(evaluation));
     }
 
     @Transactional
@@ -66,7 +69,7 @@ public class PsychologyEvaluationService {
         clinicalAuthorizationService.ensureSameSpecialty("PSICOLOGIA");
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator("PSICOLOGIA", evaluation.getProfessionalId());
         copyEditableFields(dto, evaluation);
-        return mapToDto(repository.save(evaluation));
+        return psychologyEvaluationMapper.toDto(repository.save(evaluation));
     }
 
     @Transactional
@@ -95,18 +98,4 @@ public class PsychologyEvaluationService {
         evaluation.setNotes(dto.getNotes());
     }
 
-    private PsychologyEvaluationDto mapToDto(PsychologyEvaluation evaluation) {
-        PsychologyEvaluationDto dto = new PsychologyEvaluationDto();
-        dto.setId(evaluation.getId());
-        dto.setPatientId(evaluation.getPatient().getId());
-        dto.setEvaluationDate(evaluation.getEvaluationDate());
-        dto.setInitialEvaluation(evaluation.getInitialEvaluation());
-        dto.setPsychologicalHistory(evaluation.getPsychologicalHistory());
-        dto.setMentalExam(evaluation.getMentalExam());
-        dto.setNotes(evaluation.getNotes());
-        dto.setProfessionalId(evaluation.getProfessionalId());
-        dto.setCreatedAt(evaluation.getCreatedAt());
-        dto.setUpdatedAt(evaluation.getUpdatedAt());
-        return dto;
-    }
 }

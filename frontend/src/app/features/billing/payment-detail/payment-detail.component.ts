@@ -2,7 +2,9 @@ import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angu
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Payment, PaymentTransaction } from '../../../core/models/payment.model';
-import { LucideAngularModule, Printer, X, Plus, Trash2 } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
+import {
+  Printer, X, Plus, Trash2 } from '../../../shared/icons/lucide-icons';
 import { ClinicSettingsService, ClinicSettings } from '../../../core/services/clinic-settings.service';
 import { PaymentService } from '../../../core/services/payment.service';
 import { CatalogService } from '../../../core/services/catalog.service';

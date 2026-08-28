@@ -2,6 +2,7 @@ package com.clinica.backend.service;
 
 import com.clinica.backend.dto.AllergyDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
+import com.clinica.backend.mapper.AllergyMapperImpl;
 import com.clinica.backend.model.Allergy;
 import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.User;
@@ -11,7 +12,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -33,7 +33,6 @@ class AllergyServiceTest {
     private PatientRepository patientRepository;
     @Mock
     private ClinicalAuthorizationService clinicalAuthorizationService;
-    @InjectMocks
     private AllergyService service;
 
     private User user;
@@ -41,6 +40,7 @@ class AllergyServiceTest {
     @BeforeEach
     void setUp() {
         user = user(10L, "PSICOLOGIA", "ROLE_STAFF");
+        service = new AllergyService(repository, patientRepository, clinicalAuthorizationService, new AllergyMapperImpl());
     }
 
     @AfterEach

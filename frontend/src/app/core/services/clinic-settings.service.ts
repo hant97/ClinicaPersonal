@@ -49,6 +49,15 @@ export class ClinicSettingsService {
     return this.http.get<ClinicSettings>(this.apiUrl);
   }
 
+  /**
+   * Nombre de la clínica ya cargado en memoria, sin disparar una nueva petición HTTP.
+   * Devuelve cadena vacía mientras la configuración real todavía no ha llegado del servidor.
+   */
+  getSnapshotClinicName(): string {
+    const name = this.settingsSubject.value.clinicName;
+    return name && name !== 'Cargando...' ? name : '';
+  }
+
   updateSettings(settings: ClinicSettings): Observable<ClinicSettings> {
     return this.http.put<ClinicSettings>(this.apiUrl, settings).pipe(
       tap(updated => this.settingsSubject.next(updated))

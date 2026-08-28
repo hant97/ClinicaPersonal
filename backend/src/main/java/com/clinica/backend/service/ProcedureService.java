@@ -1,5 +1,7 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.mapper.ProcedureMapper;
+
 import com.clinica.backend.dto.ProcedureDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.Patient;
@@ -22,6 +24,7 @@ public class ProcedureService {
     private final ProcedureRepository repository;
     private final PatientRepository patientRepository;
     private final ClinicalAuthorizationService clinicalAuthorizationService;
+    private final ProcedureMapper procedureMapper;
 
     @Transactional(readOnly = true)
     public Page<ProcedureDto> getProcedures(Long patientId, Pageable pageable) {
@@ -31,7 +34,7 @@ public class ProcedureService {
         Page<Procedure> procedures = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
                 ? repository.findByPatientIdAndDeletedFalseOrderByCreatedAtDesc(patientId, pageable)
                 : repository.findByPatientIdAndProfessionalIdAndDeletedFalseOrderByCreatedAtDesc(patientId, user.getId(), pageable);
-        return procedures.map(this::mapToDto);
+        return procedures.map(procedureMapper::toDto);
     }
 
     @Transactional
@@ -45,7 +48,7 @@ public class ProcedureService {
         procedure.setPatient(patient);
         procedure.setProfessionalId(user.getId());
         copyEditableFields(dto, procedure);
-        return mapToDto(repository.save(procedure));
+        return procedureMapper.toDto(repository.save(procedure));
     }
 
     @Transactional
@@ -53,7 +56,7 @@ public class ProcedureService {
         Procedure procedure = getActiveProcedure(id);
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator("DERMATOLOGIA", procedure.getProfessionalId());
         copyEditableFields(dto, procedure);
-        return mapToDto(repository.save(procedure));
+        return procedureMapper.toDto(repository.save(procedure));
     }
 
     @Transactional
@@ -78,17 +81,4 @@ public class ProcedureService {
         procedure.setNotes(dto.getNotes());
     }
 
-    private ProcedureDto mapToDto(Procedure procedure) {
-        ProcedureDto dto = new ProcedureDto();
-        dto.setId(procedure.getId());
-        dto.setPatientId(procedure.getPatient().getId());
-        dto.setName(procedure.getName());
-        dto.setDescription(procedure.getDescription());
-        dto.setProcedureDate(procedure.getProcedureDate());
-        dto.setNotes(procedure.getNotes());
-        dto.setProfessionalId(procedure.getProfessionalId());
-        dto.setCreatedAt(procedure.getCreatedAt());
-        dto.setUpdatedAt(procedure.getUpdatedAt());
-        return dto;
-    }
 }

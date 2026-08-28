@@ -1,6 +1,7 @@
 package com.clinica.backend.service;
 
 import com.clinica.backend.dto.PsychometricTestDto;
+import com.clinica.backend.mapper.PsychometricTestMapperImpl;
 import com.clinica.backend.model.PsychometricTest;
 import com.clinica.backend.repository.AssessmentRepository;
 import com.clinica.backend.repository.PsychometricTestRepository;
@@ -21,7 +22,7 @@ class PsychometricTestServiceTest {
 
     private PsychometricTestService buildService(
             PsychometricTestRepository testRepository, AssessmentRepository assessmentRepository) {
-        return new PsychometricTestService(testRepository, assessmentRepository);
+        return new PsychometricTestService(testRepository, assessmentRepository, new PsychometricTestMapperImpl());
     }
 
     @Test

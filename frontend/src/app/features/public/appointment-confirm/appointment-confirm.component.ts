@@ -4,15 +4,15 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AppointmentService } from '../../../core/services/appointment.service';
 import { PublicAppointmentConfirmation } from '../../../core/models/appointment.model';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule,
   ShieldCheck,
   AlertTriangle,
   Calendar,
   Clock,
   CheckCircle2,
   ArrowLeft
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-appointment-confirm',

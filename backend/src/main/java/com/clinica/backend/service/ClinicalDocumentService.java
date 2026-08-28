@@ -1,5 +1,7 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.mapper.ClinicalDocumentMapper;
+
 import com.clinica.backend.dto.ClinicalDocumentDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.ClinicalDocument;
@@ -27,6 +29,7 @@ public class ClinicalDocumentService {
     private final ClinicalAuthorizationService clinicalAuthorizationService;
     private final ClinicalDocumentStorage fileStorage;
     private final AuditLogService auditLogService;
+    private final ClinicalDocumentMapper clinicalDocumentMapper;
 
     @Transactional(readOnly = true)
     public Page<ClinicalDocumentDto> getDocuments(Long patientId, Pageable pageable) {
@@ -34,7 +37,7 @@ public class ClinicalDocumentService {
         Page<ClinicalDocument> documents = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
                 ? repository.findByPatientIdAndSpecialtyAndDeletedFalseOrderByCreatedAtDesc(patientId, user.getSpecialty(), pageable)
                 : repository.findByPatientIdAndSpecialtyAndProfessionalIdAndDeletedFalseOrderByCreatedAtDesc(patientId, user.getSpecialty(), user.getId(), pageable);
-        return documents.map(this::mapToDto);
+        return documents.map(clinicalDocumentMapper::toDto);
     }
 
     @Transactional
@@ -63,14 +66,14 @@ public class ClinicalDocumentService {
                 "Documento subido: " + saved.getName() + " (" + saved.getCategory() + ") para paciente ID: " + patientId
         );
 
-        return mapToDto(saved);
+        return clinicalDocumentMapper.toDto(saved);
     }
 
     @Transactional(readOnly = true)
     public ClinicalDocumentDto getDocument(Long id) {
         ClinicalDocument document = getActiveDocument(id);
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator(document.getSpecialty(), document.getProfessionalId());
-        return mapToDto(document);
+        return clinicalDocumentMapper.toDto(document);
     }
 
     @Transactional(readOnly = true)
@@ -119,19 +122,4 @@ public class ClinicalDocumentService {
         return dot > 0 ? original.substring(0, dot) : original;
     }
 
-    private ClinicalDocumentDto mapToDto(ClinicalDocument document) {
-        ClinicalDocumentDto dto = new ClinicalDocumentDto();
-        dto.setId(document.getId());
-        dto.setPatientId(document.getPatient().getId());
-        dto.setSpecialty(document.getSpecialty());
-        dto.setCategory(document.getCategory());
-        dto.setName(document.getName());
-        dto.setMimeType(document.getMimeType());
-        dto.setSizeBytes(document.getSizeBytes());
-        dto.setDocumentDate(document.getDocumentDate());
-        dto.setProfessionalId(document.getProfessionalId());
-        dto.setCreatedAt(document.getCreatedAt());
-        dto.setUpdatedAt(document.getUpdatedAt());
-        return dto;
-    }
 }

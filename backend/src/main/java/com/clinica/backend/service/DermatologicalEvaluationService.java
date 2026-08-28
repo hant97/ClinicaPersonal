@@ -1,5 +1,7 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.mapper.DermatologicalEvaluationMapper;
+
 import com.clinica.backend.dto.DermatologicalEvaluationDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.DermatologicalEvaluation;
@@ -23,6 +25,7 @@ public class DermatologicalEvaluationService {
     private final DermatologicalEvaluationRepository repository;
     private final PatientRepository patientRepository;
     private final ClinicalAuthorizationService clinicalAuthorizationService;
+    private final DermatologicalEvaluationMapper dermatologicalEvaluationMapper;
 
     @Transactional(readOnly = true)
     public Page<DermatologicalEvaluationDto> getEvaluationsByPatientId(Long patientId, Pageable pageable) {
@@ -30,7 +33,7 @@ public class DermatologicalEvaluationService {
         Page<DermatologicalEvaluation> evaluations = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
                 ? repository.findByPatientIdAndDeletedFalse(patientId, pageable)
                 : repository.findByPatientIdAndProfessionalIdAndDeletedFalse(patientId, user.getId(), pageable);
-        return evaluations.map(this::mapToDto);
+        return evaluations.map(dermatologicalEvaluationMapper::toDto);
     }
 
     @Transactional(readOnly = true)
@@ -38,7 +41,7 @@ public class DermatologicalEvaluationService {
         DermatologicalEvaluation evaluation = getActiveEvaluation(id);
         clinicalAuthorizationService.ensureSameSpecialty("DERMATOLOGIA");
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator("DERMATOLOGIA", evaluation.getProfessionalId());
-        return mapToDto(evaluation);
+        return dermatologicalEvaluationMapper.toDto(evaluation);
     }
 
     @Transactional
@@ -55,7 +58,7 @@ public class DermatologicalEvaluationService {
         if (evaluation.getEvaluationDate() == null) {
             evaluation.setEvaluationDate(LocalDate.now());
         }
-        return mapToDto(repository.save(evaluation));
+        return dermatologicalEvaluationMapper.toDto(repository.save(evaluation));
     }
 
     @Transactional
@@ -64,7 +67,7 @@ public class DermatologicalEvaluationService {
         clinicalAuthorizationService.ensureSameSpecialty("DERMATOLOGIA");
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator("DERMATOLOGIA", evaluation.getProfessionalId());
         copyEditableFields(dto, evaluation);
-        return mapToDto(repository.save(evaluation));
+        return dermatologicalEvaluationMapper.toDto(repository.save(evaluation));
     }
 
     @Transactional
@@ -98,23 +101,4 @@ public class DermatologicalEvaluationService {
         evaluation.setNextReviewDate(dto.getNextReviewDate());
     }
 
-    private DermatologicalEvaluationDto mapToDto(DermatologicalEvaluation evaluation) {
-        DermatologicalEvaluationDto dto = new DermatologicalEvaluationDto();
-        dto.setId(evaluation.getId());
-        dto.setPatientId(evaluation.getPatient().getId());
-        dto.setEvaluationDate(evaluation.getEvaluationDate());
-        dto.setSkinType(evaluation.getSkinType());
-        dto.setAffectedArea(evaluation.getAffectedArea());
-        dto.setLesionType(evaluation.getLesionType());
-        dto.setLesionSize(evaluation.getLesionSize());
-        dto.setDermatologicalDiagnosis(evaluation.getDermatologicalDiagnosis());
-        dto.setTreatmentIndicated(evaluation.getTreatmentIndicated());
-        dto.setProcedurePerformed(evaluation.getProcedurePerformed());
-        dto.setEvolutionNotes(evaluation.getEvolutionNotes());
-        dto.setNextReviewDate(evaluation.getNextReviewDate());
-        dto.setProfessionalId(evaluation.getProfessionalId());
-        dto.setCreatedAt(evaluation.getCreatedAt());
-        dto.setUpdatedAt(evaluation.getUpdatedAt());
-        return dto;
-    }
 }

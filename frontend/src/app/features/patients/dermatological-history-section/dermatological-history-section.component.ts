@@ -4,7 +4,9 @@ import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { DermatologicalHistoryService } from '../../../core/services/dermatological-history.service';
 import { DermatologicalHistory } from '../../../core/models/dermatological-history.model';
 import { ToastService } from '../../../shared/services/toast/toast.service';
-import { LucideAngularModule, FileText } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
+import {
+  FileText } from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-dermatological-history-section',

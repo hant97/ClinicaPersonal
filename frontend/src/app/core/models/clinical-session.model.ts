@@ -1,3 +1,5 @@
+import { RiskAssessment } from './risk-assessment.model';
+
 export interface ClinicalSession {
   id?: number;
   patientId: number;
@@ -18,4 +20,6 @@ export interface ClinicalSession {
   updatedAt?: string;
   professionalId?: number;
   appointmentId?: number;
+  attentionId?: number;
+  riskAssessment?: RiskAssessment;
 }

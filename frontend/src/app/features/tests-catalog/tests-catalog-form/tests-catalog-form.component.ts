@@ -6,7 +6,9 @@ import { AssessmentService } from '../../../core/services/assessment.service';
 import { PsychometricTest, Question, Option, InterpretationBand, BAND_COLOR_PALETTE } from '../../../core/models/assessment.model';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule, Plus, Eye, ChevronUp, ChevronDown, ClipboardList, X } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
+import {
+  Plus, Eye, ChevronUp, ChevronDown, ClipboardList, X } from '../../../shared/icons/lucide-icons';
 
 interface TestCatalogFormValue {
   name: string;

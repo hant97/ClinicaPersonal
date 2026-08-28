@@ -17,8 +17,8 @@ import { UserService } from '../../../core/services/user.service';
 import { UserProfile } from '../../../core/models/user-profile.model';
 import { SpecialtyService } from '../../../core/services/specialty.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule,
   Printer,
   X,
   FileText,
@@ -39,7 +39,7 @@ import {
   Building2,
   Stethoscope,
   RotateCw
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 
 export type PrintMode = 'completa' | 'resumen' | 'ultima' | 'personalizada';
 export type SessionFilterType = 'all' | 'last1' | 'last3' | 'last5' | 'custom';

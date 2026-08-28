@@ -1,14 +1,15 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { COMMON_STANDALONE_IMPORTS } from '../../../shared/common-standalone-imports';
 import { ClinicalSessionService } from '../../../core/services/clinical-session.service';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { SpecialtyService } from '../../../core/services/specialty.service';
 import { ClinicalSession } from '../../../core/models/clinical-session.model';
+import { RiskAlert } from '../../../core/models/risk-alert.model';
 import { CatalogItem } from '../../../core/models/catalog.model';
 import { ToastService } from '../../../shared/services/toast/toast.service';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule,
   Clock,
   Calendar,
   FileText,
@@ -17,15 +18,15 @@ import {
   Check,
   X,
   AlertCircle
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-clinical-session-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+  imports: [...COMMON_STANDALONE_IMPORTS, LucideAngularModule],
   templateUrl: './clinical-session-form.component.html',
 })
-export class ClinicalSessionFormComponent implements OnInit {
+export class ClinicalSessionFormComponent implements OnInit, OnChanges {
   readonly Clock = Clock;
   readonly Calendar = Calendar;
   readonly FileText = FileText;
@@ -37,11 +38,13 @@ export class ClinicalSessionFormComponent implements OnInit {
 
   @Input() patientId!: number;
   @Input() session?: ClinicalSession;
+  @Input() activeAlerts: RiskAlert[] = [];
   @Output() saved = new EventEmitter<void>();
   @Output() cancelled = new EventEmitter<void>();
 
   sessionForm!: FormGroup;
   appointmentModalities: CatalogItem[] = [];
+  riskLevels: CatalogItem[] = [];
   draftSaved = false;
 
   constructor(
@@ -58,6 +61,11 @@ export class ClinicalSessionFormComponent implements OnInit {
 
   get isDermatology(): boolean {
     return this.specialtyService.isDermatology();
+  }
+
+  /** El paciente tiene una alerta de riesgo activa: se exige completar la evaluación de riesgo estructurada. */
+  get requiresRiskAssessment(): boolean {
+    return this.isPsychology && this.activeAlerts.length > 0;
   }
 
   private get draftKey(): string {
@@ -120,8 +128,19 @@ export class ClinicalSessionFormComponent implements OnInit {
       objective: [this.session?.objective || savedDraft?.objective || ''],
       analysis: [this.session?.analysis || savedDraft?.analysis || ''],
       plan: [this.session?.plan || savedDraft?.plan || ''],
-      isConfidential: [this.session?.isConfidential || this.session?.confidential || savedDraft?.isConfidential || false]
-    }, { validators: this.soapValidator });
+      isConfidential: [this.session?.isConfidential || this.session?.confidential || savedDraft?.isConfidential || false],
+      riskAssessment: this.fb.group({
+        suicidalIdeation: [this.session?.riskAssessment?.suicidalIdeation ?? null],
+        ideationFrequency: [this.session?.riskAssessment?.ideationFrequency || ''],
+        hasPlan: [this.session?.riskAssessment?.hasPlan ?? null],
+        planDescription: [this.session?.riskAssessment?.planDescription || ''],
+        meansAccess: [this.session?.riskAssessment?.meansAccess ?? null],
+        meansDescription: [this.session?.riskAssessment?.meansDescription || ''],
+        protectiveFactors: [this.session?.riskAssessment?.protectiveFactors || ''],
+        riskLevel: [this.session?.riskAssessment?.riskLevel || ''],
+        actionTaken: [this.session?.riskAssessment?.actionTaken || '']
+      })
+    }, { validators: [this.soapValidator, this.riskAssessmentValidator.bind(this)] });
 
     // Auto-save draft on value changes
     if (!this.session) {
@@ -155,6 +174,13 @@ export class ClinicalSessionFormComponent implements OnInit {
         this.toastService.show('Error al cargar modalidades', 'error');
       }
     });
+
+    this.catalogService.getActiveItemsByCatalogCode('RISK_ALERT_LEVEL').subscribe({
+      next: (items) => {
+        this.riskLevels = items;
+      },
+      error: () => {}
+    });
   }
 
   // Quick insertion helpers for SOAP blocks
@@ -176,6 +202,20 @@ export class ClinicalSessionFormComponent implements OnInit {
       return { 'soapRequired': true };
     }
     return null;
+  }
+
+  riskAssessmentValidator(group: FormGroup): { [key: string]: boolean } | null {
+    if (!this.requiresRiskAssessment) {
+      return null;
+    }
+    const ra = group.get('riskAssessment')?.value;
+    const incomplete = !ra || ra.suicidalIdeation === null || ra.suicidalIdeation === undefined || !ra.riskLevel;
+    return incomplete ? { 'riskAssessmentRequired': true } : null;
+  }
+
+  ngOnChanges(): void {
+    // Re-evaluar cuando llegan las alertas activas del paciente (input asíncrono)
+    this.sessionForm?.updateValueAndValidity();
   }
 
 

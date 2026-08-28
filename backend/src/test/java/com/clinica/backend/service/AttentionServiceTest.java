@@ -3,6 +3,7 @@ package com.clinica.backend.service;
 import com.clinica.backend.dto.AttentionDto;
 import com.clinica.backend.dto.AttentionSummaryDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
+import com.clinica.backend.mapper.AttentionMapperImpl;
 import com.clinica.backend.model.*;
 import com.clinica.backend.repository.*;
 import org.junit.jupiter.api.AfterEach;
@@ -67,7 +68,8 @@ class AttentionServiceTest {
                 paymentRepository,
                 clinicalServiceRepository,
                 clinicalAuthorizationService,
-                auditLogService
+                auditLogService,
+                new AttentionMapperImpl()
         );
 
         currentUser = new User();

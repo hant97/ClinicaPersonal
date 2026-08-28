@@ -24,7 +24,7 @@ class FileStorageSecurityTest {
     void setUp() {
         websiteFileStorage = new LocalWebsiteFileStorage(tempDir.toString());
         clinicSettingsRepository = mock(ClinicSettingsRepository.class);
-        clinicSettingsService = new ClinicSettingsService(clinicSettingsRepository);
+        clinicSettingsService = new ClinicSettingsService(clinicSettingsRepository, new com.clinica.backend.mapper.ClinicSettingsMapperImpl());
     }
 
     @Test

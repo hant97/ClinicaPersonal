@@ -10,10 +10,13 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ViewPreferenceService } from '../../../shared/services/view-preference/view-preference.service';
+import { ExportService } from '../../../shared/services/export/export.service';
+import { fetchAllPages } from '../../../core/utils/pagination.util';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule, Search, Edit, Trash2, Plus, AlertTriangle, Package, Eye, X,
-  History, LayoutGrid, List, CalendarClock, Wallet, TrendingUp, SlidersHorizontal
-} from 'lucide-angular';
+  Search, Edit, Trash2, Plus, AlertTriangle, Package, Eye, X,
+  History, LayoutGrid, List, CalendarClock, Wallet, TrendingUp, SlidersHorizontal, Download
+} from '../../../shared/icons/lucide-icons';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 
 @Component({
@@ -38,6 +41,7 @@ export class InventoryListComponent implements OnInit, OnDestroy {
   readonly Wallet = Wallet;
   readonly TrendingUp = TrendingUp;
   readonly SlidersHorizontal = SlidersHorizontal;
+  readonly Download = Download;
 
   filteredSupplies: Supply[] = [];
   specialties: SpecialtyItem[] = [];
@@ -79,7 +83,8 @@ export class InventoryListComponent implements OnInit, OnDestroy {
     private specialtyService: SpecialtyService,
     private toastService: ToastService,
     private notificationService: NotificationService,
-    private viewPreferenceService: ViewPreferenceService
+    private viewPreferenceService: ViewPreferenceService,
+    private exportService: ExportService
   ) {}
 
   ngOnInit(): void {
@@ -150,6 +155,30 @@ export class InventoryListComponent implements OnInit, OnDestroy {
   onPageChange(page: number): void {
     this.currentPage = page;
     this.loadSupplies();
+  }
+
+  exportSupplies(): void {
+    const requestPage = (page: number, size: number) => this.inventoryService.getAllSupplies(this.searchTerm, page, size);
+
+    fetchAllPages(requestPage).subscribe({
+      next: (supplies) => {
+        const dataToExport = supplies.map(supply => ({
+          'Nombre': supply.name,
+          'Descripción': supply.description || '',
+          'Especialidad': this.getSpecialtyLabel(supply.specialty),
+          'Unidad de Medida': supply.unit,
+          'Stock Actual': supply.currentStock,
+          'Stock Mínimo': supply.minStockLevel,
+          'Nivel de Stock': this.getStockLevelLabel(supply),
+          'Precio Unitario': supply.price ?? '',
+          'Fecha de Vencimiento': supply.expirationDate || ''
+        }));
+
+        this.exportService.exportToCsv(dataToExport, 'Inventario_Insumos');
+        this.toastService.show(`${supplies.length} insumos exportados`, 'success');
+      },
+      error: () => this.toastService.show('Error al exportar el inventario', 'error')
+    });
   }
 
   openModal(id?: number): void {

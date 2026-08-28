@@ -28,12 +28,18 @@
       @if (activeAlerts.length > 0) {
         <button
           type="button"
-          class="inline-flex items-center gap-1.5 rounded-lg border border-red-300 bg-red-50 px-2.5 py-1 font-medium text-danger transition hover:bg-red-100 hover:border-red-400 cursor-pointer"
+          class="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 font-medium text-danger transition cursor-pointer"
+          [ngClass]="hasHighRiskAlert
+            ? 'bg-red-50 border-red-300 hover:bg-red-100 hover:border-red-400 animate-pulse'
+            : 'bg-amber-50 border-amber-300 hover:bg-amber-100 hover:border-amber-400'"
           (click)="openAlerts.emit()"
-          title="Ver alertas de riesgo activas"
+          [title]="hasHighRiskAlert ? 'Riesgo ALTO: requiere evaluación de riesgo estructurada' : 'Ver alertas de riesgo activas'"
         >
           <lucide-icon [img]="ShieldAlert" [size]="14" class="text-danger"></lucide-icon>
           <span class="font-bold">Alertas de Riesgo ({{ activeAlerts.length }})</span>
+          @if (hasHighRiskAlert) {
+            <span class="rounded bg-red-600 text-white text-[10px] font-bold uppercase px-1.5 py-0.2">Alto</span>
+          }
         </button>
       } @else {
         <span class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-600">

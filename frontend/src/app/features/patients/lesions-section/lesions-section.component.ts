@@ -1,6 +1,6 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { COMMON_STANDALONE_IMPORTS } from '../../../shared/common-standalone-imports';
 import { LesionService } from '../../../core/services/lesion.service';
 import { LesionPhotoService } from '../../../core/services/lesion-photo.service';
 import { Lesion } from '../../../core/models/lesion.model';
@@ -9,15 +9,15 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { LesionPhotoCompareComponent } from '../lesion-photo-compare/lesion-photo-compare.component';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule,
   Activity,
   ImagePlus,
   Edit,
   Trash2,
   Sparkles,
   Layers
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 
 interface PhotoView {
   photo: LesionPhoto;
@@ -28,8 +28,7 @@ interface PhotoView {
   selector: 'app-lesions-section',
   standalone: true,
   imports: [
-    CommonModule,
-    ReactiveFormsModule,
+    ...COMMON_STANDALONE_IMPORTS,
     PaginationComponent,
     LucideAngularModule,
     LesionPhotoCompareComponent

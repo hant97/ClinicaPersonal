@@ -1,12 +1,16 @@
 package com.clinica.backend.service;
 
 import com.clinica.backend.dto.ClinicalSessionDto;
+import com.clinica.backend.dto.RiskAssessmentDto;
+import com.clinica.backend.exception.BusinessRuleException;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.ClinicalSession;
 import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.ClinicalSessionRepository;
 import com.clinica.backend.repository.PatientRepository;
+import com.clinica.backend.repository.RiskAlertRepository;
+import com.clinica.backend.mapper.ClinicalSessionMapperImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,9 +41,15 @@ class ClinicalSessionServiceTest {
     @Mock
     private PatientRepository patientRepository;
     @Mock
+    private RiskAlertRepository riskAlertRepository;
+    @Mock
+    private RiskAssessmentService riskAssessmentService;
+    @Mock
     private ClinicalAuthorizationService clinicalAuthorizationService;
     @Mock
     private AuditLogService auditLogService;
+    @Spy
+    private ClinicalSessionMapperImpl clinicalSessionMapper = new ClinicalSessionMapperImpl();
     @InjectMocks
     private ClinicalSessionService clinicalSessionService;
 
@@ -127,6 +138,67 @@ class ClinicalSessionServiceTest {
         verify(sessionRepository).save(sessionCaptor.capture());
         assertEquals(10L, sessionCaptor.getValue().getProfessionalId());
         assertNotNull(result.getId());
+    }
+
+    @Test
+    void createSessionForPsychologyWithoutActiveAlertDoesNotRequireRiskAssessment() {
+        Patient patient = new Patient();
+        patient.setId(7L);
+        ClinicalSessionDto request = new ClinicalSessionDto();
+        request.setPatientId(7L);
+        when(clinicalAuthorizationService.currentUser()).thenReturn(owner);
+        when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(7L, "PSICOLOGIA")).thenReturn(Optional.of(patient));
+        when(riskAlertRepository.existsByPatientIdAndSpecialtyAndActiveTrue(7L, "PSICOLOGIA")).thenReturn(false);
+        when(sessionRepository.save(any(ClinicalSession.class))).thenAnswer(invocation -> {
+            ClinicalSession session = invocation.getArgument(0);
+            session.setId(11L);
+            return session;
+        });
+
+        ClinicalSessionDto result = clinicalSessionService.createSession(request);
+
+        assertNotNull(result.getId());
+        verify(riskAssessmentService, org.mockito.Mockito.never())
+                .createOrUpdateForSession(any(), any(), any(), any());
+    }
+
+    @Test
+    void createSessionForPsychologyWithActiveAlertAndNoRiskAssessmentIsRejected() {
+        Patient patient = new Patient();
+        patient.setId(7L);
+        ClinicalSessionDto request = new ClinicalSessionDto();
+        request.setPatientId(7L);
+        when(clinicalAuthorizationService.currentUser()).thenReturn(owner);
+        when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(7L, "PSICOLOGIA")).thenReturn(Optional.of(patient));
+        when(riskAlertRepository.existsByPatientIdAndSpecialtyAndActiveTrue(7L, "PSICOLOGIA")).thenReturn(true);
+
+        assertThrows(BusinessRuleException.class, () -> clinicalSessionService.createSession(request));
+        org.mockito.Mockito.verifyNoInteractions(sessionRepository);
+    }
+
+    @Test
+    void createSessionForPsychologyWithActiveAlertAndCompleteRiskAssessmentSucceeds() {
+        Patient patient = new Patient();
+        patient.setId(7L);
+        RiskAssessmentDto riskAssessment = new RiskAssessmentDto();
+        riskAssessment.setSuicidalIdeation(false);
+        riskAssessment.setRiskLevel("MODERADO");
+        ClinicalSessionDto request = new ClinicalSessionDto();
+        request.setPatientId(7L);
+        request.setRiskAssessment(riskAssessment);
+        when(clinicalAuthorizationService.currentUser()).thenReturn(owner);
+        when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(7L, "PSICOLOGIA")).thenReturn(Optional.of(patient));
+        when(riskAlertRepository.existsByPatientIdAndSpecialtyAndActiveTrue(7L, "PSICOLOGIA")).thenReturn(true);
+        when(sessionRepository.save(any(ClinicalSession.class))).thenAnswer(invocation -> {
+            ClinicalSession session = invocation.getArgument(0);
+            session.setId(11L);
+            return session;
+        });
+
+        ClinicalSessionDto result = clinicalSessionService.createSession(request);
+
+        assertNotNull(result.getId());
+        verify(riskAssessmentService).createOrUpdateForSession(11L, 7L, riskAssessment, owner);
     }
 
     @Test

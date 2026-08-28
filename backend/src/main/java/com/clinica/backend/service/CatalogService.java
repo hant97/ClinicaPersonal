@@ -4,6 +4,8 @@ import com.clinica.backend.dto.CatalogDto;
 import com.clinica.backend.dto.CatalogItemDto;
 import com.clinica.backend.exception.ConflictException;
 import com.clinica.backend.exception.ResourceNotFoundException;
+import com.clinica.backend.mapper.CatalogItemMapper;
+import com.clinica.backend.mapper.CatalogMapper;
 import com.clinica.backend.model.Catalog;
 import com.clinica.backend.model.CatalogItem;
 import com.clinica.backend.repository.CatalogItemRepository;
@@ -26,6 +28,8 @@ public class CatalogService {
     private final CatalogRepository catalogRepository;
     private final CatalogItemRepository catalogItemRepository;
     private final CatalogAuthorizationService catalogAuthorizationService;
+    private final CatalogMapper catalogMapper;
+    private final CatalogItemMapper catalogItemMapper;
 
     public Page<CatalogDto> getAllCatalogs(String specialty, Pageable pageable) {
         return getAllCatalogs(specialty, null, pageable);
@@ -60,7 +64,7 @@ public class CatalogService {
         catalogAuthorizationService.ensureCatalogAccessible(catalog.getSpecialty(), effectiveSpecialty);
         return catalogItemRepository.findByCatalogCodeAndActiveTrueOrderByOrderIndexAsc(code)
                 .stream()
-                .map(this::mapItemToDto)
+                .map(catalogItemMapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -137,7 +141,7 @@ public class CatalogService {
         }
 
         CatalogItem saved = catalogItemRepository.save(item);
-        return mapItemToDto(saved);
+        return catalogItemMapper.toDto(saved);
     }
 
     @Transactional
@@ -156,7 +160,7 @@ public class CatalogService {
         }
 
         CatalogItem saved = catalogItemRepository.save(item);
-        return mapItemToDto(saved);
+        return catalogItemMapper.toDto(saved);
     }
 
     @Transactional
@@ -193,7 +197,7 @@ public class CatalogService {
                 .sorted((a, b) -> Integer.compare(
                         a.getOrderIndex() != null ? a.getOrderIndex() : 0,
                         b.getOrderIndex() != null ? b.getOrderIndex() : 0))
-                .map(this::mapItemToDto)
+                .map(catalogItemMapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -212,31 +216,15 @@ public class CatalogService {
     }
 
     private CatalogDto mapToDto(Catalog catalog) {
-        CatalogDto dto = new CatalogDto();
-        dto.setId(catalog.getId());
-        dto.setCode(catalog.getCode());
-        dto.setName(catalog.getName());
-        dto.setDescription(catalog.getDescription());
-        dto.setSpecialty(catalog.getSpecialty());
+        CatalogDto dto = catalogMapper.toDto(catalog);
         if (catalog.getItems() != null) {
             dto.setItems(catalog.getItems().stream()
                     .sorted((a, b) -> Integer.compare(
                             a.getOrderIndex() != null ? a.getOrderIndex() : 0,
                             b.getOrderIndex() != null ? b.getOrderIndex() : 0))
-                    .map(this::mapItemToDto)
+                    .map(catalogItemMapper::toDto)
                     .collect(Collectors.toList()));
         }
-        return dto;
-    }
-
-    private CatalogItemDto mapItemToDto(CatalogItem item) {
-        CatalogItemDto dto = new CatalogItemDto();
-        dto.setId(item.getId());
-        dto.setCatalogId(item.getCatalog().getId());
-        dto.setItemCode(item.getItemCode());
-        dto.setItemName(item.getItemName());
-        dto.setActive(item.isActive());
-        dto.setOrderIndex(item.getOrderIndex());
         return dto;
     }
 }

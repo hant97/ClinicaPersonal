@@ -1,12 +1,9 @@
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { COMMON_STANDALONE_IMPORTS } from '../../../shared/common-standalone-imports';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
-import { AppointmentService } from '../../../core/services/appointment.service';
-import { AttentionService } from '../../../core/services/attention.service';
-import { ScheduleBlockService } from '../../../core/services/schedule-block.service';
-import { UserService } from '../../../core/services/user.service';
+import { AgendaDataService } from './agenda-data.service';
 import { Appointment } from '../../../core/models/appointment.model';
 import { ScheduleBlock } from '../../../core/models/schedule-block.model';
 import { UserProfile } from '../../../core/models/user-profile.model';
@@ -18,9 +15,25 @@ import { ExportService } from '../../../shared/services/export/export.service';
 import { StatusPillComponent } from '../../../shared/components/status-pill/status-pill.component';
 import { DrawerSheetComponent } from '../../../shared/components/drawer-sheet/drawer-sheet.component';
 import { ViewPreferenceService } from '../../../shared/services/view-preference/view-preference.service';
+import { ClinicSettingsService } from '../../../core/services/clinic-settings.service';
 import { AgendaToolbarComponent } from '../agenda-toolbar/agenda-toolbar.component';
 import {
-  LucideAngularModule,
+  toDateKey,
+  getStartOfWeek,
+  isToday as isTodayUtil,
+  computeAppointmentsDateRange,
+  computeSlotTimeRange,
+  getPatientInitials as getPatientInitialsUtil,
+  getStatusPillVariant as getStatusPillVariantUtil,
+  getStatusLabel as getStatusLabelUtil,
+  getStatusDotClass as getStatusDotClassUtil,
+  formatTimeRange as formatTimeRangeUtil,
+  whatsAppLink as whatsAppLinkUtil,
+  mapAppointmentsForExport,
+  StatusPillVariant
+} from './agenda.utils';
+import { LucideAngularModule } from 'lucide-angular';
+import {
   Plus,
   Calendar,
   Check,
@@ -49,18 +62,17 @@ import {
   Repeat,
   CalendarOff,
   Settings
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-agenda',
   standalone: true,
   imports: [
-    CommonModule,
+    ...COMMON_STANDALONE_IMPORTS,
     RouterModule,
     AppointmentFormComponent,
     ScheduleManagementComponent,
     LucideAngularModule,
-    ReactiveFormsModule,
     StatusPillComponent,
     DrawerSheetComponent,
     AgendaToolbarComponent
@@ -130,16 +142,14 @@ export class AgendaComponent implements OnInit, OnDestroy {
 
   constructor(
     private fb: FormBuilder,
-    private appointmentService: AppointmentService,
-    private attentionService: AttentionService,
-    private blockService: ScheduleBlockService,
-    private userService: UserService,
+    private dataService: AgendaDataService,
     private route: ActivatedRoute,
     private router: Router,
     private notificationService: NotificationService,
     private toastService: ToastService,
     private exportService: ExportService,
-    private viewPreferenceService: ViewPreferenceService
+    private viewPreferenceService: ViewPreferenceService,
+    private clinicSettingsService: ClinicSettingsService
   ) {}
 
   ngOnInit(): void {
@@ -185,7 +195,7 @@ export class AgendaComponent implements OnInit, OnDestroy {
   }
 
   loadProfessionals(): void {
-    this.userService.getProfessionals().subscribe({
+    this.dataService.loadProfessionals().subscribe({
       next: (profs) => {
         this.professionals = profs;
       },
@@ -211,18 +221,11 @@ export class AgendaComponent implements OnInit, OnDestroy {
   }
 
   getStartOfWeek(date: Date): Date {
-    const d = new Date(date);
-    d.setHours(0, 0, 0, 0);
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Lunes
-    return new Date(d.setDate(diff));
+    return getStartOfWeek(date);
   }
 
   isToday(day: Date): boolean {
-    const today = new Date();
-    return day.getDate() === today.getDate() &&
-           day.getMonth() === today.getMonth() &&
-           day.getFullYear() === today.getFullYear();
+    return isTodayUtil(day);
   }
 
   updateWeekDays(reload = true): void {
@@ -248,12 +251,12 @@ export class AgendaComponent implements OnInit, OnDestroy {
   }
 
   todayWeek(): void {
-    this.currentWeekStart = this.getStartOfWeek(new Date());
+    this.currentWeekStart = getStartOfWeek(new Date());
     this.updateWeekDays(true);
   }
 
   showDayInList(day: Date): void {
-    this.listSpecificDate = this.toDateKey(day);
+    this.listSpecificDate = toDateKey(day);
     this.currentView = 'list';
     this.loadAppointments();
   }
@@ -263,14 +266,10 @@ export class AgendaComponent implements OnInit, OnDestroy {
     this.loadAppointments();
   }
 
-  private toDateKey(date: Date): string {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-  }
-
   private loadTodayCount(): void {
-    const key = this.toDateKey(new Date());
-    this.appointmentService.search(undefined, 'ALL', key, key).subscribe({
-      next: (page) => { this.todayCount = page.content.length; },
+    const key = toDateKey(new Date());
+    this.dataService.countAppointmentsOnDate(key).subscribe({
+      next: (count) => { this.todayCount = count; },
       error: () => {
         this.todayCount = 0;
       }
@@ -285,7 +284,7 @@ export class AgendaComponent implements OnInit, OnDestroy {
   }
 
   getAppointmentsForDayAndHour(day: Date, hourString: string): Appointment[] {
-    const dateStr = this.toDateKey(day);
+    const dateStr = toDateKey(day);
     const hourPrefix = hourString.substring(0, 2);
     return this.appointments.filter(app => {
       return app.appointmentDate === dateStr && app.startTime.startsWith(hourPrefix);
@@ -293,56 +292,29 @@ export class AgendaComponent implements OnInit, OnDestroy {
   }
 
   getBlocksForDay(day: Date): ScheduleBlock[] {
-    const dateStr = this.toDateKey(day);
+    const dateStr = toDateKey(day);
     return this.scheduleBlocks.filter(b => b.startDate <= dateStr && b.endDate >= dateStr);
   }
 
   loadAppointments(): void {
     const filters = this.filterForm.getRawValue();
-    const professionalId = filters.professionalId && filters.professionalId !== 'ALL' 
-      ? Number(filters.professionalId) 
+    const professionalId = filters.professionalId && filters.professionalId !== 'ALL'
+      ? Number(filters.professionalId)
       : undefined;
 
-    let startDate: string | undefined = undefined;
-    let endDate: string | undefined = undefined;
-
-    if (this.currentView === 'calendar') {
-      const s = this.weekDays[0] || this.currentWeekStart;
-      startDate = this.toDateKey(s);
-      const e = this.weekDays[6] || s;
-      endDate = this.toDateKey(e);
-    } else {
-      if (this.listSpecificDate) {
-        startDate = this.listSpecificDate;
-        endDate = this.listSpecificDate;
-      } else if (filters.dateRange !== 'ALL') {
-        const today = new Date();
-        const ty = today.getFullYear();
-        const tm = String(today.getMonth()+1).padStart(2, '0');
-        const td = String(today.getDate()).padStart(2, '0');
-        
-        if (filters.dateRange === 'TODAY') {
-          startDate = `${ty}-${tm}-${td}`;
-          endDate = startDate;
-        } else if (filters.dateRange === 'WEEK') {
-          const firstDay = this.getStartOfWeek(new Date());
-          const lastDay = new Date(firstDay);
-          lastDay.setDate(firstDay.getDate() + 6);
-          startDate = `${firstDay.getFullYear()}-${String(firstDay.getMonth()+1).padStart(2, '0')}-${String(firstDay.getDate()).padStart(2, '0')}`;
-          endDate = `${lastDay.getFullYear()}-${String(lastDay.getMonth()+1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`;
-        } else if (filters.dateRange === 'MONTH') {
-          startDate = `${ty}-${tm}-01`;
-          const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-          endDate = `${ty}-${tm}-${String(lastDay.getDate()).padStart(2, '0')}`;
-        }
-      }
-    }
+    const { startDate, endDate } = computeAppointmentsDateRange({
+      currentView: this.currentView,
+      weekDays: this.weekDays,
+      currentWeekStart: this.currentWeekStart,
+      listSpecificDate: this.listSpecificDate,
+      dateRangeFilter: filters.dateRange
+    });
 
     this.isLoading = true;
     this.loadError = false;
-    this.appointmentService.search(filters.searchTerm, filters.status, startDate, endDate, professionalId).subscribe({
-      next: (data) => {
-        this.appointments = data.content;
+    this.dataService.searchAppointments(filters.searchTerm, filters.status, startDate, endDate, professionalId).subscribe({
+      next: (appointments) => {
+        this.appointments = appointments;
         this.isLoading = false;
       },
       error: (err) => {
@@ -353,7 +325,7 @@ export class AgendaComponent implements OnInit, OnDestroy {
     });
 
     // Load blocks in range
-    this.blockService.getBlocks(startDate, endDate, professionalId).subscribe({
+    this.dataService.loadBlocks(startDate, endDate, professionalId).subscribe({
       next: (blocks) => {
         this.scheduleBlocks = blocks;
       },
@@ -398,14 +370,8 @@ export class AgendaComponent implements OnInit, OnDestroy {
   }
 
   onSlotClick(day: Date, hourString: string): void {
-    const dateStr = this.toDateKey(day);
-
-    const startTime = hourString.length === 5 ? hourString : hourString.substring(0, 5);
-    const [h, min] = startTime.split(':').map(Number);
-    const endMinutes = h * 60 + min + 30;
-    const endH = Math.floor(endMinutes / 60);
-    const endM = endMinutes % 60;
-    const endTime = `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+    const dateStr = toDateKey(day);
+    const { startTime, endTime } = computeSlotTimeRange(hourString);
 
     const filters = this.filterForm.getRawValue();
     const profId = filters.professionalId && filters.professionalId !== 'ALL' ? Number(filters.professionalId) : undefined;
@@ -442,8 +408,8 @@ export class AgendaComponent implements OnInit, OnDestroy {
   startAttention(appointment: Appointment): void {
     if (!appointment.id || this.isStartingAttention || this.isUpdatingStatus) return;
     this.isStartingAttention = true;
-    this.attentionService.createFromAppointment(appointment.id).subscribe({
-      next: (attention) => {
+    this.dataService.startAttentionFromAppointment(appointment.id).subscribe({
+      next: () => {
         this.isStartingAttention = false;
         this.toastService.show('Atención iniciada desde la cita', 'success');
         this.closePreview();
@@ -550,7 +516,7 @@ export class AgendaComponent implements OnInit, OnDestroy {
       this.updatingStatusId = appointment.id;
       this.activeStatusAction = status;
 
-      this.appointmentService.updateStatus(appointment.id, status, updateSeries).subscribe({
+      this.dataService.updateAppointmentStatus(appointment.id, status, updateSeries).subscribe({
         next: (updated) => {
           this.isUpdatingStatus = false;
           this.updatingStatusId = null;
@@ -575,32 +541,15 @@ export class AgendaComponent implements OnInit, OnDestroy {
   }
 
   getPatientInitials(name?: string): string {
-    if (!name) return 'P';
-    const parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase();
-    }
-    return parts[0].substring(0, 2).toUpperCase();
+    return getPatientInitialsUtil(name);
   }
 
-  getStatusPillVariant(status: string): 'critical' | 'urgent' | 'priority' | 'stable' | 'neutral' {
-    const s = (status || '').toUpperCase();
-    if (s === 'CONFIRMADA') return 'priority';
-    if (s === 'PROGRAMADA') return 'urgent';
-    if (s === 'COMPLETADA') return 'stable';
-    if (s === 'NO_ASISTIO' || s === 'CANCELADA') return 'critical';
-    return 'neutral';
+  getStatusPillVariant(status: string): StatusPillVariant {
+    return getStatusPillVariantUtil(status);
   }
 
   getStatusLabel(status: string): string {
-    switch ((status || '').toUpperCase()) {
-      case 'PROGRAMADA': return 'Programada';
-      case 'CONFIRMADA': return 'Confirmada';
-      case 'COMPLETADA': return 'Completada';
-      case 'NO_ASISTIO': return 'No asistió';
-      case 'CANCELADA': return 'Cancelada';
-      default: return status || '';
-    }
+    return getStatusLabelUtil(status);
   }
 
   @HostListener('document:click')
@@ -621,46 +570,18 @@ export class AgendaComponent implements OnInit, OnDestroy {
   }
 
   formatTimeRange(start?: string, end?: string): string {
-    if (!start) return '';
-    const s = start.length >= 5 ? start.substring(0, 5) : start;
-    const e = end ? (end.length >= 5 ? end.substring(0, 5) : end) : '';
-    return e ? `${s} – ${e}` : s;
+    return formatTimeRangeUtil(start, end);
   }
 
   whatsAppLink(app: Appointment): string | null {
-    const phone = app.patientPhone;
-    if (!phone) return null;
-    const digits = phone.replace(/\D/g, '');
-    if (!digits) return null;
-    const text = encodeURIComponent(`Hola, le recordamos su cita del ${app.appointmentDate} a las ${app.startTime}.`);
-    return `https://wa.me/${digits}?text=${text}`;
+    return whatsAppLinkUtil(app, this.clinicSettingsService.getSnapshotClinicName());
   }
 
   getStatusDotClass(status: string): string {
-    const s = (status || '').toUpperCase();
-    switch (s) {
-      case 'PROGRAMADA': return 'bg-amber-500';
-      case 'CONFIRMADA': return 'bg-blue-500';
-      case 'COMPLETADA': return 'bg-emerald-500';
-      case 'CANCELADA': return 'bg-red-500';
-      case 'NO_ASISTIO': return 'bg-rose-400';
-      default: return 'bg-slate-400';
-    }
+    return getStatusDotClassUtil(status);
   }
 
   exportAppointments(): void {
-    const dataToExport = this.appointments.map(app => ({
-      'Paciente': app.patientName,
-      'Profesional': app.professionalName || '',
-      'Fecha': (app.appointmentDate || '').replace('T', ' '),
-      'Hora Inicio': app.startTime,
-      'Hora Fin': app.endTime,
-      'Recurrente': app.recurrenceGroupId ? 'Sí' : 'No',
-      'Motivo': app.notes || '',
-      'Estado': this.getStatusLabel(app.status),
-      'Tipo': app.modality === 'VIRTUAL' ? 'Virtual' : 'Presencial'
-    }));
-
-    this.exportService.exportToCsv(dataToExport, 'Citas_Agenda');
+    this.exportService.exportToCsv(mapAppointmentsForExport(this.appointments), 'Citas_Agenda');
   }
 }

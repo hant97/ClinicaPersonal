@@ -1,7 +1,7 @@
 import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { COMMON_STANDALONE_IMPORTS } from '../../../shared/common-standalone-imports';
 import { PrescriptionService } from '../../../core/services/prescription.service';
 import { Prescription, PrescriptionItem } from '../../../core/models/prescription.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
@@ -13,12 +13,14 @@ import { Patient } from '../../../core/models/patient.model';
 import { ClinicSettingsService, ClinicSettings } from '../../../core/services/clinic-settings.service';
 import { UserService } from '../../../core/services/user.service';
 import { UserProfile } from '../../../core/models/user-profile.model';
-import { LucideAngularModule, FileText, Printer, Plus, Trash2, X, Edit, QrCode, ShieldCheck } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
+import {
+  FileText, Printer, Plus, Trash2, X, Edit, QrCode, ShieldCheck } from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-prescriptions-section',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PaginationComponent, QrCodeComponent, LucideAngularModule],
+  imports: [...COMMON_STANDALONE_IMPORTS, PaginationComponent, QrCodeComponent, LucideAngularModule],
   templateUrl: './prescriptions-section.component.html',
   styleUrls: ['./prescriptions-section.component.css'],
 })

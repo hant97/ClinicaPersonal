@@ -6,7 +6,9 @@ import { Medication } from '../../../core/models/medication.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule, Pill, Edit, Trash2 } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
+import {
+  Pill, Edit, Trash2 } from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-medications-section',

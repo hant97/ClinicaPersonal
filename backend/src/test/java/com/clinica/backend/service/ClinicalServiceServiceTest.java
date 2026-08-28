@@ -30,7 +30,7 @@ class ClinicalServiceServiceTest {
     @BeforeEach
     void setUp() {
         clinicalServiceRepository = mock(ClinicalServiceRepository.class);
-        clinicalServiceService = new ClinicalServiceService(clinicalServiceRepository);
+        clinicalServiceService = new ClinicalServiceService(clinicalServiceRepository, new com.clinica.backend.mapper.ClinicalServiceMapperImpl());
 
         User user = new User();
         user.setId(1L);

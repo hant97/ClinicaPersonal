@@ -1,8 +1,8 @@
 import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule,
   LayoutDashboard,
   Users,
   CalendarDays,
@@ -25,8 +25,9 @@ import {
   X,
   Plus,
   UserCog,
-  User
-} from 'lucide-angular';
+  User,
+  BarChart3
+} from '../../shared/icons/lucide-icons';
 import { UserService } from '../../core/services/user.service';
 import { ClinicSettingsService, ClinicSettings } from '../../core/services/clinic-settings.service';
 import { SpecialtyService } from '../../core/services/specialty.service';
@@ -35,6 +36,7 @@ import { UserProfile } from '../../core/models/user-profile.model';
 import { Subscription, filter } from 'rxjs';
 import { CommandPaletteComponent } from '../../shared/components/command-palette/command-palette.component';
 import { VIEWPORT_BREAKPOINTS } from '../../shared/services/view-preference/view-preference.service';
+import { OnboardingService } from '../../shared/services/onboarding/onboarding.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -66,6 +68,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   readonly Plus = Plus;
   readonly UserCog = UserCog;
   readonly User = User;
+  readonly BarChart3 = BarChart3;
 
   isSidebarOpen = false;
   isSidebarExpanded = false;
@@ -82,6 +85,20 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   isAdmin = false;
   isSiteAdmin = false;
   currentRouteTitle = 'Dashboard';
+
+  // Sección "Operación & Recursos" del sidebar: colapsada por defecto la
+  // primera vez para que un usuario nuevo vea primero solo lo operativo
+  // diario (Dashboard, Agenda, Atenciones, Pacientes, Cobros).
+  operationsSectionCollapsed = true;
+  private static readonly OPERATIONS_ROUTE_PREFIXES = [
+    '/services',
+    '/tests-catalog',
+    '/inventory',
+    '/settings/catalogs',
+    '/settings/users',
+    '/settings/audit',
+    '/settings/productivity',
+  ];
 
   isMobile = false;
   private mobileQuery = window.matchMedia(
@@ -130,6 +147,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     private clinicSettingsService: ClinicSettingsService,
     private specialtyService: SpecialtyService,
     private authService: AuthService,
+    private onboardingService: OnboardingService,
     private router: Router
   ) {}
 
@@ -155,10 +173,14 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     this.loadProfile();
     this.updateRouteTitle(this.router.url);
 
+    this.operationsSectionCollapsed = this.onboardingService.isSidebarSectionCollapsed('operations', true);
+    this.autoExpandOperationsSection(this.router.url);
+
     this.routerSubscription = this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
       .subscribe((event) => {
         this.updateRouteTitle(event.urlAfterRedirects);
+        this.autoExpandOperationsSection(event.urlAfterRedirects);
         this.closeProfileMenu();
         if (this.isMobile) {
           this.closeSidebar();
@@ -195,6 +217,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     else if (url.includes('/inventory')) this.currentRouteTitle = 'Inventario';
     else if (url.includes('/tests-catalog')) this.currentRouteTitle = 'Pruebas Psicométricas';
     else if (url.includes('/settings/users')) this.currentRouteTitle = 'Personal y Cuentas';
+    else if (url.includes('/settings/productivity')) this.currentRouteTitle = 'Reporte de Productividad';
     else if (url.includes('/settings')) this.currentRouteTitle = 'Configuración';
     else if (url.includes('/profile')) this.currentRouteTitle = 'Mi Perfil';
     else this.currentRouteTitle = 'FlowGrid OS';
@@ -242,6 +265,20 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
       localStorage.setItem('sidebar_expanded', JSON.stringify(this.isSidebarExpanded));
     } catch {
       // ignore
+    }
+  }
+
+  toggleOperationsSection(): void {
+    this.operationsSectionCollapsed = !this.operationsSectionCollapsed;
+    this.onboardingService.setSidebarSectionCollapsed('operations', this.operationsSectionCollapsed);
+  }
+
+  private autoExpandOperationsSection(url: string): void {
+    if (!this.operationsSectionCollapsed) return;
+    const isOperationsRoute = MainLayoutComponent.OPERATIONS_ROUTE_PREFIXES.some((prefix) => url.startsWith(prefix));
+    if (isOperationsRoute) {
+      this.operationsSectionCollapsed = false;
+      this.onboardingService.setSidebarSectionCollapsed('operations', false);
     }
   }
 

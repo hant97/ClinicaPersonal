@@ -6,8 +6,8 @@ import { UserProfile, CreateUserRequest, AdminUpdateUserRequest } from '../../..
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule,
   Users,
   UserPlus,
   Edit2,
@@ -22,7 +22,7 @@ import {
   UserX,
   Stethoscope,
   Brain
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 
 import { SpecialtyService } from '../../../core/services/specialty.service';
 import { SpecialtyItem } from '../../../core/models/specialty.model';

@@ -1,5 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { LucideAngularModule, Brain, HeartHandshake, Microscope, ShieldCheck, Sparkles, Stethoscope } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
+import {
+  Brain, HeartHandshake, Microscope, ShieldCheck, Sparkles, Stethoscope } from '../../icons/lucide-icons';
 
 interface IconOption {
   code: string;

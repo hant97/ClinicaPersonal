@@ -8,8 +8,8 @@ import { CatalogService } from '../../../core/services/catalog.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { SpecialtyService } from '../../../core/services/specialty.service';
 import { CatalogItem } from '../../../core/models/catalog.model';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule,
   User,
   Phone,
   Mail,
@@ -27,7 +27,7 @@ import {
   Briefcase,
   Heart,
   UserPlus
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-patient-form',

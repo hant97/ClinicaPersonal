@@ -5,8 +5,8 @@ import { AssessmentService } from '../../../core/services/assessment.service';
 import { Assessment, InterpretationBand, interpretScore, bandColorClasses } from '../../../core/models/assessment.model';
 import { AssessmentFormComponent } from '../assessment-form/assessment-form.component';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule,
   Brain,
   TrendingDown,
   TrendingUp,
@@ -17,7 +17,7 @@ import {
   Plus,
   CheckCircle2,
   Calendar
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 
 Chart.register(...registerables);

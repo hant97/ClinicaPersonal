@@ -1,5 +1,7 @@
 package com.clinica.backend.service;
 
+import com.clinica.backend.mapper.GeneralHistoryMapper;
+
 import com.clinica.backend.dto.GeneralHistoryDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.GeneralHistory;
@@ -18,6 +20,7 @@ public class GeneralHistoryService {
     private final GeneralHistoryRepository repository;
     private final PatientRepository patientRepository;
     private final ClinicalAuthorizationService clinicalAuthorizationService;
+    private final GeneralHistoryMapper generalHistoryMapper;
 
     @Transactional(readOnly = true)
     public GeneralHistoryDto getGeneralHistory(Long patientId) {
@@ -33,7 +36,7 @@ public class GeneralHistoryService {
             return empty;
         }
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator(history.getSpecialty(), history.getProfessionalId());
-        return mapToDto(history);
+        return generalHistoryMapper.toDto(history);
     }
 
     @Transactional
@@ -57,7 +60,7 @@ public class GeneralHistoryService {
             history.setProfessionalId(user.getId());
         }
         copyEditableFields(dto, history);
-        return mapToDto(repository.save(history));
+        return generalHistoryMapper.toDto(repository.save(history));
     }
 
     private void copyEditableFields(GeneralHistoryDto dto, GeneralHistory history) {
@@ -68,19 +71,4 @@ public class GeneralHistoryService {
         history.setNotes(dto.getNotes());
     }
 
-    private GeneralHistoryDto mapToDto(GeneralHistory history) {
-        GeneralHistoryDto dto = new GeneralHistoryDto();
-        dto.setId(history.getId());
-        dto.setPatientId(history.getPatient().getId());
-        dto.setSpecialty(history.getSpecialty());
-        dto.setPathologicalHistory(history.getPathologicalHistory());
-        dto.setSurgicalHistory(history.getSurgicalHistory());
-        dto.setFamilyHistory(history.getFamilyHistory());
-        dto.setHabits(history.getHabits());
-        dto.setNotes(history.getNotes());
-        dto.setProfessionalId(history.getProfessionalId());
-        dto.setCreatedAt(history.getCreatedAt());
-        dto.setUpdatedAt(history.getUpdatedAt());
-        return dto;
-    }
 }

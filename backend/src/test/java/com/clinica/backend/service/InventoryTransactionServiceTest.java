@@ -2,6 +2,7 @@ package com.clinica.backend.service;
 
 import com.clinica.backend.dto.InventoryTransactionDto;
 import com.clinica.backend.exception.ConflictException;
+import com.clinica.backend.mapper.InventoryTransactionMapperImpl;
 import com.clinica.backend.model.InventoryTransaction;
 import com.clinica.backend.model.Supply;
 import com.clinica.backend.model.TransactionReason;
@@ -42,7 +43,7 @@ class InventoryTransactionServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new InventoryTransactionService(transactionRepository, supplyRepository);
+        service = new InventoryTransactionService(transactionRepository, supplyRepository, new InventoryTransactionMapperImpl());
 
         User user = new User();
         user.setSpecialty("PSICOLOGIA");

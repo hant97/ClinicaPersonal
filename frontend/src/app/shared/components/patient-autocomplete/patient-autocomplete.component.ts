@@ -6,7 +6,9 @@ import { Patient } from '../../../core/models/patient.model';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { CatalogItem } from '../../../core/models/catalog.model';
 import { ToastService } from '../../../shared/services/toast/toast.service';
-import { LucideAngularModule, UserPlus, X, User, Phone, Mail, FileText } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
+import {
+  UserPlus, X, User, Phone, Mail, FileText } from '../../icons/lucide-icons';
 import { debounceTime, distinctUntilChanged, Subject, switchMap, takeUntil, tap, of, map } from 'rxjs';
 
 @Component({

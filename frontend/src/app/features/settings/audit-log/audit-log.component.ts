@@ -6,8 +6,8 @@ import { SpecialtyService } from '../../../core/services/specialty.service';
 import { AuditLog, AuditLogFilter } from '../../../core/models/audit-log.model';
 import { SpecialtyItem } from '../../../core/models/specialty.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { LucideAngularModule } from 'lucide-angular';
 import {
-  LucideAngularModule,
   ClipboardList,
   Search,
   Filter,
@@ -25,7 +25,7 @@ import {
   Key,
   Stethoscope,
   Brain
-} from 'lucide-angular';
+} from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-audit-log',

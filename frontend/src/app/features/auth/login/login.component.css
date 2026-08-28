@@ -7,17 +7,21 @@
   display: grid;
   min-height: 100vh;
   grid-template-columns: 1.1fr 1fr;
-  font-family: 'Inter', sans-serif;
-  background: #f8fafc;
+  font-family: 'Manrope', 'Inter', sans-serif;
+  background: #f5f7fb;
 }
 
 .login-intro {
   position: relative;
   display: flex;
   min-height: 100vh;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-  border-right: 1px solid #334155;
+  background:
+    radial-gradient(560px 560px at 100% 0%, rgba(201, 162, 75, 0.16), transparent 60%),
+    radial-gradient(480px 480px at 0% 100%, rgba(239, 106, 76, 0.14), transparent 60%),
+    #0b1f3a;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
   padding: 48px;
+  overflow: hidden;
 }
 
 .login-intro-content {
@@ -41,10 +45,10 @@
   place-items: center;
   width: 38px;
   height: 38px;
-  color: #fff;
-  background: #2563eb;
+  color: #c9a24b;
+  background: #0b1f3a;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+  box-shadow: 0 2px 8px rgba(11, 31, 58, 0.35);
 }
 
 .login-main {
@@ -59,9 +63,42 @@
   max-width: 520px;
   padding: 56px 48px;
   background: #ffffff;
-  border-radius: 20px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.07);
+  border-radius: 12px;
+  border: 1px solid #e6eaf2;
+  box-shadow: 0 1px 2px rgba(11, 31, 58, 0.04), 0 20px 40px -15px rgba(11, 31, 58, 0.1);
+}
+
+/* Scoped to this component: brand accent (coral/gold) on top of the app's
+   shared .btn-primary / .input-field / primary-* utility classes, which
+   stay blue everywhere else in the system. */
+.login-card .text-primary-600 { color: #ef6a4c; }
+.login-card .bg-primary-600 { background: #ef6a4c; }
+
+.login-card .btn-primary {
+  background: #ef6a4c;
+  box-shadow: 0 2px 6px rgba(239, 106, 76, 0.35);
+}
+
+.login-card .btn-primary:hover:not(:disabled) {
+  background: #d85a3d;
+}
+
+.login-card .input-field:focus {
+  border-color: #ef6a4c;
+  box-shadow: 0 0 0 3px rgba(239, 106, 76, 0.15);
+}
+
+.login-card input[type='checkbox'] {
+  accent-color: #ef6a4c;
+}
+
+.login-card .password-toggle-btn:hover,
+.login-card .password-toggle-btn:focus-visible {
+  color: #ef6a4c;
+}
+
+.login-card .password-toggle-btn:focus-visible {
+  outline-color: #ef6a4c;
 }
 
 .login-brand-mobile {

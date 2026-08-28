@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Attention, AttentionSummary, AttentionStatus, UpdateAttentionStatusRequest } from '../models/attention.model';
+import { Attention, AttentionSummary, AttentionStatus, ProfessionalProductivity, UpdateAttentionStatusRequest } from '../models/attention.model';
 import { PageResponse } from '../models/page.model';
 import { environment } from '../../../environments/environment';
 
@@ -51,6 +51,17 @@ export class AttentionService {
 
   getTodaySummary(): Observable<AttentionSummary> {
     return this.http.get<AttentionSummary>(`${this.apiUrl}/today-summary`);
+  }
+
+  getProductivityReport(dateFrom?: string, dateTo?: string): Observable<ProfessionalProductivity[]> {
+    let params = new HttpParams();
+    if (dateFrom) {
+      params = params.set('dateFrom', dateFrom);
+    }
+    if (dateTo) {
+      params = params.set('dateTo', dateTo);
+    }
+    return this.http.get<ProfessionalProductivity[]>(`${this.apiUrl}/reports/productivity`, { params });
   }
 
   getById(id: number): Observable<Attention> {
