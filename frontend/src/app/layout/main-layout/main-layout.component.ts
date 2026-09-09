@@ -15,7 +15,6 @@ import {
   Activity,
   Stethoscope,
   HeartHandshake,
-  Search,
   ChevronRight,
   ChevronLeft,
   ChevronDown,
@@ -34,14 +33,13 @@ import { SpecialtyService } from '../../core/services/specialty.service';
 import { AuthService } from '../../core/services/auth.service';
 import { UserProfile } from '../../core/models/user-profile.model';
 import { Subscription, filter } from 'rxjs';
-import { CommandPaletteComponent } from '../../shared/components/command-palette/command-palette.component';
 import { VIEWPORT_BREAKPOINTS } from '../../shared/services/view-preference/view-preference.service';
 import { OnboardingService } from '../../shared/services/onboarding/onboarding.service';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [RouterModule, LucideAngularModule, CommandPaletteComponent],
+  imports: [RouterModule, LucideAngularModule],
   templateUrl: './main-layout.component.html',
 })
 export class MainLayoutComponent implements OnInit, OnDestroy {
@@ -57,7 +55,6 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   readonly Activity = Activity;
   readonly Stethoscope = Stethoscope;
   readonly HeartHandshake = HeartHandshake;
-  readonly Search = Search;
   readonly ChevronRight = ChevronRight;
   readonly ChevronLeft = ChevronLeft;
   readonly ChevronDown = ChevronDown;
@@ -73,7 +70,6 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   isSidebarOpen = false;
   isSidebarExpanded = false;
   isDesktopSidebar = false;
-  isCommandPaletteOpen = false;
   isProfileMenuOpen = false;
   
   userProfile: UserProfile | null = null;
@@ -298,10 +294,6 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     this.isProfileMenuOpen = false;
   }
 
-  openCommandPalette(): void {
-    this.isCommandPaletteOpen = true;
-  }
-
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     if (
@@ -322,14 +314,6 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     if (this.isSidebarOpen) {
       this.closeSidebar();
       this.menuToggle?.nativeElement.focus();
-    }
-  }
-
-  @HostListener('document:keydown', ['$event'])
-  onGlobalKeydown(event: KeyboardEvent): void {
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
-      event.preventDefault();
-      this.isCommandPaletteOpen = !this.isCommandPaletteOpen;
     }
   }
 

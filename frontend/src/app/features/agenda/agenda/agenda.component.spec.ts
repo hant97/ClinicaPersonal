@@ -8,6 +8,7 @@ import { AppointmentService } from '../../../core/services/appointment.service';
 import { ScheduleBlockService } from '../../../core/services/schedule-block.service';
 import { UserService } from '../../../core/services/user.service';
 import { ViewPreferenceService } from '../../../shared/services/view-preference/view-preference.service';
+import { Appointment } from '../../../core/models/appointment.model';
 
 describe('AgendaComponent', () => {
   let component: AgendaComponent;
@@ -140,5 +141,61 @@ describe('AgendaComponent', () => {
     component.toggleMenu(9);
     component.closeMenu();
     expect(component.openMenuAppointmentId).toBeNull();
+  });
+
+  it('should create a new appointment from a cancelled slot without retaining the patient', () => {
+    const cancelledAppointment: Appointment = {
+      id: 12,
+      patientId: 44,
+      appointmentDate: '2026-09-09',
+      startTime: '10:00:00',
+      endTime: '10:30:00',
+      professionalId: 7,
+      status: 'CANCELADA'
+    };
+    component.selectedAppointmentPreview = cancelledAppointment;
+    component.isDrawerOpen = true;
+
+    component.scheduleNewAppointmentInSameSlot(cancelledAppointment);
+
+    expect(component.showForm).toBeTrue();
+    expect(component.appointmentToEdit).toBeNull();
+    expect(component.initialAppointmentData).toEqual({
+      appointmentDate: '2026-09-09',
+      startTime: '10:00:00',
+      endTime: '10:30:00',
+      professionalId: 7
+    });
+    expect(component.initialAppointmentData?.patientId).toBeUndefined();
+    expect(component.isDrawerOpen).toBeFalse();
+    expect(component.selectedAppointmentPreview).toBeNull();
+  });
+
+  it('should hide cancelled appointments from calendar slots without removing active appointments', () => {
+    component.appointments = [
+      {
+        id: 12,
+        patientId: 44,
+        appointmentDate: '2026-09-09',
+        startTime: '10:00:00',
+        endTime: '10:30:00',
+        status: 'CANCELADA'
+      },
+      {
+        id: 13,
+        patientId: 45,
+        appointmentDate: '2026-09-09',
+        startTime: '10:00:00',
+        endTime: '10:30:00',
+        status: 'PROGRAMADA'
+      }
+    ];
+
+    const visibleAppointments = component.getAppointmentsForDayAndHour(
+      new Date(2026, 8, 9),
+      '10:00'
+    );
+
+    expect(visibleAppointments.map(appointment => appointment.id)).toEqual([13]);
   });
 });

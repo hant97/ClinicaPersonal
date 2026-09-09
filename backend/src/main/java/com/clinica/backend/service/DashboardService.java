@@ -63,8 +63,6 @@ public class DashboardService {
         long activePatients = patientRepository.countBySpecialtyAndDeletedFalse(specialty);
 
         // 2. Citas hoy
-        long appointmentsToday = appointmentRepository.countByAppointmentDateAndSpecialty(today, specialty);
-
         // 3. Ingresos del mes actual y mes anterior (abonos realmente recibidos)
         BigDecimal monthlyIncome = paymentTransactionRepository.sumIncomeBetweenBySpecialty(startOfCurrentMonth, endOfCurrentMonth, specialty);
         BigDecimal previousMonthlyIncome = paymentTransactionRepository.sumIncomeBetweenBySpecialty(startOfPreviousMonth, startOfCurrentMonth, specialty);
@@ -110,7 +108,10 @@ public class DashboardService {
 
         // 6b. Citas del día (agenda completa, con estado real)
         List<Appointment> todaysList = appointmentRepository
-                .findTodayAppointmentsBySpecialty(today, specialty);
+                .findTodayAppointmentsBySpecialty(today, specialty).stream()
+                .filter(appointment -> !"CANCELADA".equalsIgnoreCase(appointment.getStatus()))
+                .toList();
+        long appointmentsToday = todaysList.size();
 
         List<Long> dashboardAppIds = new ArrayList<>();
         upcomingList.forEach(a -> { if (a.getId() != null) dashboardAppIds.add(a.getId()); });

@@ -71,87 +71,115 @@
     </div>
   </div>
 
-  <app-billing-summary
-    [summary]="summary"
-    [paymentMethodMap]="paymentMethodMap"
-    [showCharts]="showCharts"
-    [dateFrom]="summaryDateFrom"
-    [dateTo]="summaryDateTo"
-    (rangeChange)="onSummaryRangeChange($event)"
-  ></app-billing-summary>
-
-  <!-- Filters -->
-  <div class="space-y-3">
-    <div class="w-full max-w-xl">
-      <div class="relative">
-        <lucide-icon [img]="Search" [size]="16" class="input-leading-icon"></lucide-icon>
-        <input
-          type="search"
-          class="input-field input-with-leading-icon !py-1.5 text-xs"
-          placeholder="Buscar por paciente o concepto..."
-          (input)="onSearch($event)"
-        />
+  <!-- Unified period and transaction filters -->
+  <div class="rounded-xl border border-line bg-surface p-3 shadow-xs space-y-3">
+    <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+      <div class="flex flex-wrap items-center gap-1.5">
+        <div class="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-600 mr-1.5">
+          <lucide-icon [img]="CalendarRange" [size]="15" class="text-primary-600"></lucide-icon>
+          <span>Período:</span>
+        </div>
+        @for (preset of datePresets; track preset.code) {
+          <button
+            type="button"
+            class="px-2.5 py-1 rounded-md text-xs font-semibold transition cursor-pointer"
+            [class.bg-primary-50]="selectedPreset === preset.code"
+            [class.text-primary-700]="selectedPreset === preset.code"
+            [class.border]="selectedPreset === preset.code"
+            [class.border-primary-200]="selectedPreset === preset.code"
+            [class.text-slate-600]="selectedPreset !== preset.code"
+            [class.hover:bg-slate-100]="selectedPreset !== preset.code"
+            (click)="setPreset(preset.code)"
+          >
+            {{ preset.label }}
+          </button>
+        }
       </div>
+
+      <p class="text-xs font-medium text-slate-600">{{ appliedPeriodLabel }}</p>
     </div>
 
-    <div class="responsive-filter-grid items-end">
-      <div>
+    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-12 items-end pt-3 border-t border-line/60">
+      <div class="sm:col-span-2 xl:col-span-4">
+        <label class="form-label !mb-1 !text-[10px]">Buscar</label>
+        <div class="relative">
+          <lucide-icon [img]="Search" [size]="16" class="input-leading-icon"></lucide-icon>
+          <input
+            type="search"
+            class="input-field input-with-leading-icon !py-1.5 text-xs"
+            placeholder="Paciente o concepto..."
+            [(ngModel)]="searchTerm"
+            (input)="onSearch($event)"
+          />
+        </div>
+      </div>
+
+      <div class="xl:col-span-2">
         <label class="form-label !mb-1 !text-[10px]">Desde</label>
         <input
           type="date"
           class="input-field !py-1.5 text-xs"
           [(ngModel)]="filterDateFrom"
-          (change)="applyFilters()"
+          [max]="filterDateTo || null"
+          (change)="applyDateRange()"
         />
       </div>
-      <div>
+
+      <div class="xl:col-span-2">
         <label class="form-label !mb-1 !text-[10px]">Hasta</label>
         <input
           type="date"
           class="input-field !py-1.5 text-xs"
           [(ngModel)]="filterDateTo"
-          (change)="applyFilters()"
+          [min]="filterDateFrom || null"
+          (change)="applyDateRange()"
         />
       </div>
-      <div>
-        <label class="form-label !mb-1 !text-[10px]">Método de Pago</label>
-        <select
-          class="input-field !py-1.5 text-xs"
-          [(ngModel)]="filterMethod"
-          (change)="applyFilters()"
-        >
+
+      <div class="xl:col-span-2">
+        <label class="form-label !mb-1 !text-[10px]">Método de pago</label>
+        <select class="input-field !py-1.5 text-xs" [(ngModel)]="filterMethod" (change)="applyFilters()">
           <option value="">Todos</option>
           @for (method of paymentMethodOptions; track method.code) {
             <option [value]="method.code">{{ method.name }}</option>
           }
         </select>
       </div>
-      <div>
+
+      <div class="xl:col-span-2">
         <label class="form-label !mb-1 !text-[10px]">Estado</label>
-        <select
-          class="input-field !py-1.5 text-xs"
-          [(ngModel)]="filterStatus"
-          (change)="applyFilters()"
-        >
+        <select class="input-field !py-1.5 text-xs" [(ngModel)]="filterStatus" (change)="applyFilters()">
           <option value="">Todos</option>
           @for (status of statusOptions; track status.code) {
             <option [value]="status.code">{{ status.name }}</option>
           }
         </select>
       </div>
-      @if (hasActiveFilters) {
-        <button
-          type="button"
-          class="btn-text !text-xs !py-1.5 text-muted"
-          (click)="clearFilters()"
-          title="Limpiar filtros"
-        >
+    </div>
+
+    <div class="flex min-h-6 flex-wrap items-center justify-between gap-2">
+      <p class="text-[11px] text-muted">
+        Las métricas y transacciones usan el mismo período. “Ingresos de hoy” siempre muestra el día actual.
+      </p>
+      @if (dateRangeIncomplete || dateRangeInvalid) {
+        <p class="text-xs font-medium text-danger">
+          {{ dateRangeInvalid ? 'La fecha final no puede ser anterior a la inicial.' : 'Selecciona ambas fechas para aplicar el período.' }}
+        </p>
+      } @else if (hasActiveFilters) {
+        <button type="button" class="btn-text !text-xs !py-1 text-muted" (click)="clearFilters()" title="Restablecer filtros">
           <lucide-icon [img]="FilterX" [size]="14"></lucide-icon>
-          <span>Limpiar</span>
+          <span>Limpiar filtros</span>
         </button>
       }
     </div>
   </div>
+
+  <app-billing-summary
+    [summary]="summary"
+    [paymentMethodMap]="paymentMethodMap"
+    [showCharts]="showCharts"
+    [periodLabel]="periodLabel"
+  ></app-billing-summary>
 
   <!-- View States -->
   @if (isLoading) {

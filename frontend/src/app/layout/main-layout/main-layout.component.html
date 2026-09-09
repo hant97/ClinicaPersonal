@@ -485,7 +485,7 @@
 
   <!-- Main Content Wrapper -->
   <div class="flex min-w-0 flex-1 flex-col">
-    <!-- Top Pipeline & Command Header -->
+    <!-- Top Header -->
     <header class="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-line bg-surface px-4 shadow-xs md:px-6">
       <!-- Left: Mobile Menu + Breadcrumb -->
       <div class="flex items-center gap-3 min-w-0">
@@ -508,20 +508,8 @@
         </div>
       </div>
 
-      <!-- Center / Right: Quick Search Omnibox & Actions -->
+      <!-- Right: User profile -->
       <div class="flex items-center gap-3">
-        <!-- Quick Search Bar (Triggers Command Palette) -->
-        <button
-          type="button"
-          class="touch-target flex items-center gap-2.5 rounded-md border border-line bg-slate-50 px-3 py-1.5 text-xs text-muted transition hover:border-slate-300 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
-          (click)="openCommandPalette()"
-          title="Buscar paciente o comando (Ctrl+K)"
-        >
-          <lucide-icon [img]="Search" [size]="14"></lucide-icon>
-          <span class="hidden lg:inline">Buscar o comando...</span>
-          <kbd class="hidden xl:inline-flex rounded border border-line bg-surface px-1.5 py-0.5 text-[10px] font-mono font-medium text-slate-500">Ctrl K</kbd>
-        </button>
-
         <!-- User Profile Avatar & Dropdown Menu -->
         <div class="relative" #profileDropdownContainer>
           <button
@@ -627,10 +615,4 @@
       </div>
     </main>
   </div>
-
-  <!-- Global Command Palette Modal -->
-  <app-command-palette
-    [isOpen]="isCommandPaletteOpen"
-    (closed)="isCommandPaletteOpen = false"
-  ></app-command-palette>
 </div>

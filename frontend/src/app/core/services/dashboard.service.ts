@@ -50,11 +50,17 @@ export class DashboardService {
 
   getDashboardStats(): Observable<DashboardStats> {
     return this.http.get<DashboardStats>(`${this.apiUrl}/stats`).pipe(
-      map(stats => ({
-        ...stats,
-        upcomingAppointments: this.translateStatuses(stats.upcomingAppointments),
-        todaysAppointments: this.translateStatuses(stats.todaysAppointments)
-      }))
+      map(stats => {
+        const todaysAppointments = this.translateStatuses(stats.todaysAppointments)
+          .filter(appointment => appointment.status.toUpperCase() !== 'CANCELADA');
+
+        return {
+          ...stats,
+          appointmentsToday: todaysAppointments.length,
+          upcomingAppointments: this.translateStatuses(stats.upcomingAppointments),
+          todaysAppointments
+        };
+      })
     );
   }
 

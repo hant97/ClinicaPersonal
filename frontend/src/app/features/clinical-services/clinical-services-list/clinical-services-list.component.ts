@@ -5,6 +5,8 @@ import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { ClinicalServiceService, ClinicalServiceFilters } from '../../../core/services/clinical-service.service';
 import { ClinicalService, ClinicalServiceStats } from '../../../core/models/clinical-service.model';
+import { CatalogItem } from '../../../core/models/catalog.model';
+import { CatalogService } from '../../../core/services/catalog.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { LucideAngularModule } from 'lucide-angular';
@@ -18,8 +20,7 @@ import { ClinicalServicesFormComponent } from '../clinical-services-form/clinica
 import { SpecialtyService } from '../../../core/services/specialty.service';
 import { SpecialtyItem } from '../../../core/models/specialty.model';
 import { ViewPreferenceService } from '../../../shared/services/view-preference/view-preference.service';
-
-const SERVICE_CATEGORIES = ['Evaluación', 'Terapia', 'Procedimiento', 'Control', 'Diagnóstico', 'Otro'];
+import { CLINICAL_SERVICE_CATEGORY_CATALOG_CODE } from '../clinical-service-catalog.constants';
 
 @Component({
   selector: 'app-clinical-services-list',
@@ -31,7 +32,7 @@ export class ClinicalServicesListComponent implements OnInit, OnDestroy {
   services: ClinicalService[] = [];
   stats: ClinicalServiceStats | null = null;
   specialties: SpecialtyItem[] = [];
-  categories = SERVICE_CATEGORIES;
+  categories: CatalogItem[] = [];
 
   // Icons
   readonly Plus = Plus;
@@ -74,6 +75,7 @@ export class ClinicalServicesListComponent implements OnInit, OnDestroy {
 
   constructor(
     private serviceService: ClinicalServiceService,
+    private catalogService: CatalogService,
     private specialtyService: SpecialtyService,
     private toastService: ToastService,
     private notificationService: NotificationService,
@@ -88,6 +90,8 @@ export class ClinicalServicesListComponent implements OnInit, OnDestroy {
       error: () => {}
     });
 
+    this.loadCategories();
+
     this.searchSubject.pipe(
       debounceTime(300),
       distinctUntilChanged(),
@@ -100,6 +104,13 @@ export class ClinicalServicesListComponent implements OnInit, OnDestroy {
 
     this.loadServices();
     this.loadStats();
+  }
+
+  loadCategories(): void {
+    this.catalogService.getActiveItemsByCatalogCode(CLINICAL_SERVICE_CATEGORY_CATALOG_CODE).subscribe({
+      next: (items) => this.categories = items || [],
+      error: () => this.toastService.show('Error al cargar las categorías de servicios', 'error')
+    });
   }
 
   ngOnDestroy(): void {
@@ -226,6 +237,11 @@ export class ClinicalServicesListComponent implements OnInit, OnDestroy {
     if (specialty === 'PSICOLOGIA') return 'Psicología';
     if (specialty === 'DERMATOLOGIA') return 'Dermatología';
     return specialty.charAt(0) + specialty.slice(1).toLowerCase();
+  }
+
+  getCategoryLabel(category?: string): string {
+    if (!category) return '';
+    return this.categories.find(item => item.itemCode.toUpperCase() === category.toUpperCase())?.itemName || category;
   }
 
   setViewMode(mode: 'cards' | 'table'): void {

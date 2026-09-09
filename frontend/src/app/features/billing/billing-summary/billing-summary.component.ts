@@ -1,10 +1,9 @@
-import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild, Output, EventEmitter } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { PaymentSummary } from '../../../core/models/payment.model';
 import { LucideAngularModule } from 'lucide-angular';
 import {
-  Banknote, Wallet, Receipt, Coins, TrendingUp, TrendingDown, CalendarRange, FilterX,
+  Banknote, Wallet, Receipt, Coins, TrendingUp, TrendingDown,
   CreditCard, AlertCircle, Sparkles, Check, Clock
 } from '../../../shared/icons/lucide-icons';
 import { Chart, registerables } from 'chart.js';
@@ -16,7 +15,7 @@ const METHOD_CHART_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#64748
 @Component({
   selector: 'app-billing-summary',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule],
   templateUrl: './billing-summary.component.html',
   host: {
     class: 'block'
@@ -29,8 +28,6 @@ export class BillingSummaryComponent implements OnChanges, OnDestroy {
   readonly Coins = Coins;
   readonly TrendingUp = TrendingUp;
   readonly TrendingDown = TrendingDown;
-  readonly CalendarRange = CalendarRange;
-  readonly FilterX = FilterX;
   readonly CreditCard = CreditCard;
   readonly AlertCircle = AlertCircle;
   readonly Sparkles = Sparkles;
@@ -40,30 +37,13 @@ export class BillingSummaryComponent implements OnChanges, OnDestroy {
   @Input() summary: PaymentSummary | null = null;
   @Input() paymentMethodMap: Map<string, string> = new Map();
   @Input() showCharts: boolean = false;
-  @Input() dateFrom: string = '';
-  @Input() dateTo: string = '';
-  @Output() rangeChange = new EventEmitter<{ dateFrom: string; dateTo: string }>();
+  @Input() periodLabel: string = 'de este mes';
 
   @ViewChild('incomeCanvas') incomeCanvas?: ElementRef<HTMLCanvasElement>;
   @ViewChild('methodCanvas') methodCanvas?: ElementRef<HTMLCanvasElement>;
 
-  selectedPreset: 'TODAY' | 'WEEK' | 'MONTH' | 'LAST_MONTH' | 'YEAR' | 'CUSTOM' = 'MONTH';
-
   private incomeChart: any = null;
   private methodChart: any = null;
-
-  get isCustomRange(): boolean {
-    return !!(this.dateFrom || this.dateTo);
-  }
-
-  get periodLabel(): string {
-    if (this.selectedPreset === 'TODAY') return 'de hoy';
-    if (this.selectedPreset === 'WEEK') return 'últimos 7 días';
-    if (this.selectedPreset === 'LAST_MONTH') return 'mes anterior';
-    if (this.selectedPreset === 'YEAR') return 'del año';
-    if (this.isCustomRange) return 'del período';
-    return 'este mes';
-  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['summary'] || changes['paymentMethodMap'] || changes['showCharts']) {
@@ -80,57 +60,6 @@ export class BillingSummaryComponent implements OnChanges, OnDestroy {
     if (this.methodChart) {
       this.methodChart.destroy();
     }
-  }
-
-  setPreset(preset: 'TODAY' | 'WEEK' | 'MONTH' | 'LAST_MONTH' | 'YEAR' | 'CUSTOM'): void {
-    this.selectedPreset = preset;
-    const now = new Date();
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    const format = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-
-    if (preset === 'TODAY') {
-      const todayStr = format(now);
-      this.dateFrom = todayStr;
-      this.dateTo = todayStr;
-    } else if (preset === 'WEEK') {
-      const d = new Date(now);
-      d.setDate(d.getDate() - 6);
-      this.dateFrom = format(d);
-      this.dateTo = format(now);
-    } else if (preset === 'MONTH') {
-      const start = new Date(now.getFullYear(), now.getMonth(), 1);
-      this.dateFrom = format(start);
-      this.dateTo = format(now);
-    } else if (preset === 'LAST_MONTH') {
-      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const end = new Date(now.getFullYear(), now.getMonth(), 0);
-      this.dateFrom = format(start);
-      this.dateTo = format(end);
-    } else if (preset === 'YEAR') {
-      const start = new Date(now.getFullYear(), 0, 1);
-      this.dateFrom = format(start);
-      this.dateTo = format(now);
-    }
-
-    if (preset !== 'CUSTOM') {
-      this.onRangeChange();
-    }
-  }
-
-  onCustomDateChange(): void {
-    this.selectedPreset = 'CUSTOM';
-    this.onRangeChange();
-  }
-
-  onRangeChange(): void {
-    this.rangeChange.emit({ dateFrom: this.dateFrom, dateTo: this.dateTo });
-  }
-
-  clearRange(): void {
-    this.dateFrom = '';
-    this.dateTo = '';
-    this.selectedPreset = 'MONTH';
-    this.rangeChange.emit({ dateFrom: '', dateTo: '' });
   }
 
   getPaymentMethodText(method: string): string {

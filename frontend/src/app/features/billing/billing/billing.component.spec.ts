@@ -74,27 +74,64 @@ describe('BillingComponent', () => {
     expect(paymentService.getAll).toHaveBeenCalled();
   });
 
-  it('clearFilters clears filters and reloads', () => {
+  it('clearFilters resets optional filters and restores the current month', () => {
     component.filterDateFrom = '2026-01-01';
     component.filterDateTo = '2026-01-31';
     component.filterMethod = 'EFECTIVO';
+    component.filterStatus = 'PAGADO';
+    component.searchTerm = 'Ana';
+    component.selectedPreset = 'CUSTOM';
 
     component.clearFilters();
 
-    expect(component.filterDateFrom).toBe('');
-    expect(component.filterDateTo).toBe('');
+    expect(component.filterDateFrom).toMatch(/^\d{4}-\d{2}-01$/);
+    expect(component.filterDateTo).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(component.filterMethod).toBe('');
+    expect(component.filterStatus).toBe('');
+    expect(component.searchTerm).toBe('');
+    expect(component.selectedPreset).toBe('MONTH');
     expect(component.hasActiveFilters).toBeFalse();
   });
 
-  it('hasActiveFilters reflects date/method filters only', () => {
-    component.filterDateFrom = '';
-    component.filterDateTo = '';
+  it('hasActiveFilters reflects optional filters or a non-default period', () => {
+    component.selectedPreset = 'MONTH';
     component.filterMethod = '';
     expect(component.hasActiveFilters).toBeFalse();
 
     component.filterMethod = 'YAPE';
     expect(component.hasActiveFilters).toBeTrue();
+
+    component.filterMethod = '';
+    component.selectedPreset = 'WEEK';
+    expect(component.hasActiveFilters).toBeTrue();
+  });
+
+  it('a period preset updates the list and summary with the same dates', () => {
+    (paymentService.getAll as jasmine.Spy).calls.reset();
+    (paymentService.getSummary as jasmine.Spy).calls.reset();
+
+    component.setPreset('TODAY');
+
+    expect(component.filterDateFrom).toBe(component.filterDateTo);
+    expect(paymentService.getAll).toHaveBeenCalledWith(
+      0,
+      component.pageSize,
+      jasmine.objectContaining({ dateFrom: component.filterDateFrom, dateTo: component.filterDateTo })
+    );
+    expect(paymentService.getSummary).toHaveBeenCalledWith(component.filterDateFrom, component.filterDateTo);
+  });
+
+  it('does not query an invalid custom date range', () => {
+    (paymentService.getAll as jasmine.Spy).calls.reset();
+    (paymentService.getSummary as jasmine.Spy).calls.reset();
+    component.filterDateFrom = '2026-02-10';
+    component.filterDateTo = '2026-02-01';
+
+    component.applyDateRange();
+
+    expect(component.dateRangeInvalid).toBeTrue();
+    expect(paymentService.getAll).not.toHaveBeenCalled();
+    expect(paymentService.getSummary).not.toHaveBeenCalled();
   });
 
   it('formatPaymentDate formats dates properly in Spanish style', () => {

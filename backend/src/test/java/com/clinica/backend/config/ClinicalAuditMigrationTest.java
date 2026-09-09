@@ -29,7 +29,7 @@ class ClinicalAuditMigrationTest {
                 .locations("classpath:db/migration")
                 .load();
 
-        assertEquals(12, flyway.migrate().migrationsExecuted);
+        assertEquals(13, flyway.migrate().migrationsExecuted);
         assertAuditColumns("clinical_sessions");
         assertAuditColumns("dermatological_evaluations");
         assertAuditColumns("general_history");
@@ -46,7 +46,21 @@ class ClinicalAuditMigrationTest {
         assertAttentionsPhase4();
         assertConcurrencyProtections();
         assertRiskAssessmentsTable();
+        assertClinicalServiceCategoryCatalog();
         assertEquals(0, flyway.migrate().migrationsExecuted);
+    }
+
+    private void assertClinicalServiceCategoryCatalog() throws Exception {
+        try (Connection connection = DriverManager.getConnection(URL, "sa", "");
+             Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery(
+                     "SELECT COUNT(*) FROM catalog_items item " +
+                             "JOIN catalogs catalog ON catalog.id = item.catalog_id " +
+                             "WHERE catalog.code = 'CLINICAL_SERVICE_CATEGORY' " +
+                             "AND catalog.specialty = 'GENERAL'")) {
+            assertTrue(rs.next());
+            assertEquals(6, rs.getInt(1));
+        }
     }
 
     private void assertConcurrencyProtections() throws Exception {

@@ -53,7 +53,6 @@ import {
   Receipt,
   AlertTriangle,
   UserX,
-  RotateCcw,
   CheckCircle2,
   MoreHorizontal,
   ExternalLink,
@@ -99,7 +98,6 @@ export class AgendaComponent implements OnInit, OnDestroy {
   readonly Receipt = Receipt;
   readonly AlertTriangle = AlertTriangle;
   readonly UserX = UserX;
-  readonly RotateCcw = RotateCcw;
   readonly CheckCircle2 = CheckCircle2;
   readonly MoreHorizontal = MoreHorizontal;
   readonly ExternalLink = ExternalLink;
@@ -287,7 +285,9 @@ export class AgendaComponent implements OnInit, OnDestroy {
     const dateStr = toDateKey(day);
     const hourPrefix = hourString.substring(0, 2);
     return this.appointments.filter(app => {
-      return app.appointmentDate === dateStr && app.startTime.startsWith(hourPrefix);
+      return app.status !== 'CANCELADA'
+        && app.appointmentDate === dateStr
+        && app.startTime.startsWith(hourPrefix);
     });
   }
 
@@ -445,8 +445,13 @@ export class AgendaComponent implements OnInit, OnDestroy {
     }
   }
 
-  reopenAppointment(appointment: Appointment): void {
-    this.updateStatus(appointment, 'CONFIRMADA');
+  scheduleNewAppointmentInSameSlot(appointment: Appointment): void {
+    this.openForm(undefined, {
+      appointmentDate: appointment.appointmentDate,
+      startTime: appointment.startTime,
+      endTime: appointment.endTime,
+      professionalId: appointment.professionalId
+    });
   }
 
   markNoShow(appointment: Appointment): void {

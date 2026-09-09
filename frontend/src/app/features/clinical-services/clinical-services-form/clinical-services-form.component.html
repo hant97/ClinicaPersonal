@@ -28,15 +28,19 @@
 
         <div>
           <label for="category" class="form-label">Categoría</label>
-          <select id="category" formControlName="category" class="input-field">
+          <select id="category" formControlName="category" class="input-field" [attr.aria-busy]="categoriesLoading">
             <option value="">Sin categoría</option>
-            <option value="Evaluación">Evaluación</option>
-            <option value="Terapia">Terapia</option>
-            <option value="Procedimiento">Procedimiento</option>
-            <option value="Control">Control</option>
-            <option value="Diagnóstico">Diagnóstico</option>
-            <option value="Otro">Otro</option>
+            @for (category of categories; track category.id ?? category.itemCode) {
+              <option [value]="category.itemCode">{{ category.itemName }}</option>
+            }
           </select>
+          @if (categoriesLoading) {
+            <small class="mt-1 block text-xs text-muted">Cargando categorías...</small>
+          } @else if (categoriesLoadError) {
+            <button type="button" class="mt-1 text-xs font-semibold text-primary-700 hover:underline" (click)="loadCategories()">
+              Reintentar carga
+            </button>
+          }
         </div>
 
         <div>

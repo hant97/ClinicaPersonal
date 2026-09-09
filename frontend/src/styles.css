@@ -292,8 +292,7 @@ select.input-field { cursor: pointer; }
   .btn-danger,
   .btn-danger-solid,
   .input-field,
-  [role='menuitem'],
-  .command-palette-item {
+  [role='menuitem'] {
     min-height: 44px;
   }
 
@@ -443,7 +442,6 @@ canvas {
   /* Ocultar elementos de navegación, menús, cabeceras del layout y utilidades no imprimibles */
   aside,
   app-sidebar,
-  app-command-palette,
   .app-header,
   header.sticky,
   header.app-header,

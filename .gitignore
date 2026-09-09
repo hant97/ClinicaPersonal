@@ -12,3 +12,6 @@
 
 **/uploads/
 *.log
+
+# Artefactos temporales del MCP de Playwright (logs/snapshots de sesión, no código fuente)
+.playwright-mcp/

@@ -30,23 +30,6 @@ async function expectDialogUsable(
 }
 
 test.describe('Modales responsive y gestión de foco', () => {
-  test('command palette conserva foco, semántica y límites del viewport', async ({ page }) => {
-    await page.goto('/dashboard');
-    const trigger = page.locator('button[title^="Buscar paciente"]');
-    await trigger.click();
-
-    const dialog = page.getByRole('dialog', { name: 'Paleta de comandos' });
-    await expect(dialog).toBeVisible();
-    const searchInput = dialog.getByPlaceholder('Escribe un comando o busca un paciente...');
-    await expect(searchInput).toBeFocused();
-    await expect(dialog.locator('button.command-palette-item').first()).toBeVisible();
-    await expectNoGlobalOverflow(page);
-
-    await page.keyboard.press('Escape');
-    await expect(dialog).toBeHidden();
-    await expect(trigger).toBeFocused();
-  });
-
   test('panel de cita mantiene cabecera, acciones y foco al rotar tablet', async ({ page }, testInfo) => {
     await page.goto('/agenda');
     const trigger = page.getByRole('button', { name: 'Agendar Cita', exact: true });
@@ -91,4 +74,3 @@ test.describe('Modales responsive y gestión de foco', () => {
     await expect(trigger).toBeFocused();
   });
 });
-

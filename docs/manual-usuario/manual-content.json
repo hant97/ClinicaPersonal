@@ -1,0 +1,760 @@
+{
+  "titulo": "Clínica Personal",
+  "subtitulo": "Manual de Usuario",
+  "tagline": "Sistema de gestión clínica para consultorios de Dermatología y Psicología",
+  "introduccion": {
+    "parrafos": [
+      "Clínica Personal es un sistema web de gestión clínica y administrativa pensado para consultorios que combinan las especialidades de Dermatología y Psicología. Unifica en una sola plataforma la agenda de citas, el expediente clínico electrónico de cada paciente, el flujo de atención del día, la facturación y cobros, el control de inventario de insumos, y la edición del sitio web público de la clínica.",
+      "El sistema reconoce la especialidad de cada profesional (Dermatología o Psicología) y adapta la interfaz, los formularios clínicos y algunos módulos de menú según corresponda: por ejemplo, los dermatólogos cuentan con un módulo de registro de lesiones anatómicas y comparación fotográfica evolutiva, mientras que los psicólogos cuentan con un módulo de pruebas psicométricas y planes terapéuticos. El resto de los módulos (Agenda, Atenciones, Pacientes, Cobros, Servicios, Inventario, Catálogos, Personal y Auditoría) son compartidos por ambas especialidades.",
+      "Este manual está dirigido al personal de la clínica (profesionales titulares, asistentes/recepción y administradores) y describe, módulo por módulo, qué hace cada pantalla y los pasos concretos para utilizarla, acompañado de capturas de pantalla reales del sistema."
+    ]
+  },
+  "requisitos": {
+    "parrafos": [
+      "Para utilizar Clínica Personal solo se necesita un navegador web moderno (Google Chrome, Mozilla Firefox, Microsoft Edge o similar) con conexión a Internet; no requiere instalar ningún programa adicional.",
+      "El acceso al sistema es exclusivamente mediante cuenta de usuario, la cual es creada por un administrador desde el módulo \"Personal & Cuentas\". Cada cuenta tiene asociada una especialidad (Dermatología o Psicología) y un rol de sistema (Profesional Titular/Administrador, Asistente/Recepción, o Administrador de Sitio Web), que determinan qué módulos y funciones están disponibles para ese usuario.",
+      "La sesión se protege mediante un token de acceso cifrado con expiración automática, y el sistema bloquea temporalmente la cuenta ante varios intentos fallidos de inicio de sesión consecutivos, como medida de seguridad."
+    ],
+    "descripcion": "La pantalla de inicio de sesión solicita el \"Usuario del Sistema\" y la contraseña asignados por el administrador. Incluye un botón para mostrar/ocultar la contraseña mientras se escribe y la opción de recordar el nombre de usuario para próximos ingresos. Tras validar las credenciales, el sistema redirige automáticamente al Panel Operativo (Dashboard) correspondiente a la especialidad del usuario, o al editor del sitio web si la cuenta tiene rol de Administrador de Sitio.",
+    "imagenes": [
+      {
+        "file": "00-login.png",
+        "caption": "Pantalla de inicio de sesión de Clínica Personal."
+      }
+    ],
+    "pasos": [
+      "Abra la dirección web de Clínica Personal en su navegador.",
+      "Escriba su \"Usuario del Sistema\" (por ejemplo, doctor.ana).",
+      "Escriba su contraseña; use el ícono del ojo para verificar que la escribió correctamente.",
+      "Opcionalmente, marque \"Recordar nombre de usuario\" para no tener que escribirlo la próxima vez.",
+      "Haga clic en \"Ingresar al Sistema\".",
+      "Si las credenciales son correctas, el sistema lo llevará automáticamente al Panel Operativo (Dashboard) o al editor del sitio, según su rol.",
+      "Si olvidó su contraseña o su cuenta fue bloqueada por intentos fallidos, comuníquese con el administrador del sistema para que la restablezca desde \"Personal & Cuentas\"."
+    ]
+  },
+  "capitulos": [
+    {
+      "titulo": "Dashboard (Panel Operativo)",
+      "secciones": [
+        {
+          "descripcion": "Es el panel operativo principal que resume en una sola pantalla el estado del día: citas de hoy, cobros del mes, pacientes activos y alertas pendientes. El título y las métricas se adaptan según la especialidad del profesional (Dermatología o Psicología). Si la cuenta es nueva y no tiene pacientes registrados, se muestra una guía de primeros pasos en lugar de las métricas.",
+          "funcionalidades": [
+            "Accesos rápidos: \"Agendar Cita\" (va a Agenda), \"Cobro\" (va a Cobros) y \"Nuevo Paciente\".",
+            "Banner \"Próxima Atención\" con los datos del siguiente paciente citado, botón \"Iniciar Consulta S.O.A.P.\" (abre la ficha del paciente para registrar la sesión) y botón \"Ver Ficha\".",
+            "Tarjetas KPI: Citas de Hoy (con % de asistencia del mes), En Espera/Confirmadas, Cobros del Mes (con variación % vs. mes anterior) y Pacientes Activos (con nuevos pacientes del mes).",
+            "Lista \"Agenda de Hoy\" con hora, paciente, modalidad, si está pagada y estado de la cita; clic en una fila abre la ficha del paciente.",
+            "Panel \"Atención Requerida\" con tres pestañas: Alertas (riesgo clínico), Insumos (stock bajo) y Notas S.O.A.P. pendientes; cada elemento es clicable para ir al paciente o a inventario.",
+            "Botón \"Reintentar\" si falla la carga del panel."
+          ],
+          "imagenes": [
+            {
+              "file": "01-dashboard.png",
+              "caption": "Panel Operativo — vista para la especialidad de Psicología."
+            },
+            {
+              "file": "07-dashboard-dermatologia.png",
+              "caption": "Panel Operativo — vista para la especialidad de Dermatología (mismas secciones, datos propios de la especialidad)."
+            }
+          ],
+          "pasos": [
+            "Ingrese al sistema; el Dashboard se carga automáticamente.",
+            "Revise las tarjetas KPI para conocer el estado general del día/mes.",
+            "Si hay una \"Próxima Atención\" en pantalla, haga clic en \"Iniciar Consulta S.O.A.P.\" para atender directamente al siguiente paciente.",
+            "Revise la sección \"Agenda de Hoy\" y haga clic en cualquier cita para ver la ficha del paciente.",
+            "Consulte la sección \"Atención Requerida\", cambiando entre las pestañas Alertas, Insumos y Notas S.O.A.P. para atender pendientes críticos.",
+            "Use los botones superiores \"Agendar Cita\", \"Cobro\" o \"Nuevo Paciente\" para acciones rápidas sin salir del panel."
+          ]
+        }
+      ]
+    },
+    {
+      "titulo": "Agenda y Citas",
+      "secciones": [
+        {
+          "descripcion": "Módulo de gestión de citas médicas: permite ver la disponibilidad en formato semanal (calendario) o en lista, crear/editar/cancelar citas, gestionar los horarios de atención de cada profesional y registrar bloqueos de agenda (vacaciones, feriados, indisponibilidad). El formulario de cita calcula automáticamente la hora de fin según la duración seleccionada o el servicio clínico elegido, detecta colisiones de horario con otras citas del mismo día y no permite agendar en fechas pasadas. Además soporta citas recurrentes (semanales, por varias semanas) y sincronización con Google Calendar al confirmar.",
+          "funcionalidades": [
+            "Alternar vista \"Semana\" (calendario por horas) y \"Lista\".",
+            "Filtros: búsqueda por paciente, profesional, estado (Programada, Confirmada, Completada, No asistió, Cancelada) y rango de fecha (en vista lista).",
+            "Botón \"Agendar Cita\" para crear una nueva cita; clic directo en una franja horaria del calendario también abre el formulario prellenado con fecha/hora/profesional.",
+            "Botón \"Disponibilidad y Bloqueos\" abre la gestión de horarios semanales por profesional y de bloqueos de agenda (día completo o rango de horas, con motivo).",
+            "Botón \"Exportar\" descarga las citas visibles en CSV.",
+            "En el formulario de cita: selección de paciente (autocompletar), fecha, hora de inicio/fin, chips de duración rápida (15/30/45/60/90 min), selección de servicio clínico (ajusta duración automáticamente), modalidad (Presencial/Virtual, con link de videollamada), profesional, primera vez, notas, y opción de repetir la cita en serie (2 a 12 semanas) indicando cuántas sesiones.",
+            "Validación de conflicto de horario: si la nueva cita se cruza con otra cita ya existente del mismo día, se muestra advertencia y no se permite guardar.",
+            "Acciones rápidas sobre cada cita (según su estado): Confirmar, Iniciar Atención, Registrar/Ver Consulta, Reprogramar, Reagendar en el mismo horario, Marcar No Asistió, Cancelar (con opción de cancelar solo la sesión o toda la serie recurrente), enviar mensaje por WhatsApp, ir a Cobro.",
+            "Vista previa rápida (drawer) al hacer clic en una cita, con acceso directo a ficha del paciente y facturación.",
+            "En \"Disponibilidad y Bloqueos\": configurar por día de la semana si el profesional atiende (activo/inactivo) y su horario (hora inicio/fin); crear, listar y eliminar bloqueos de agenda con título, fechas, franja horaria u \"todo el día\", y motivo."
+          ],
+          "imagenes": [
+            {
+              "file": "02-agenda.png",
+              "caption": "Agenda — vista \"Lista\" de citas."
+            },
+            {
+              "file": "02a-agenda-semana.png",
+              "caption": "Agenda — vista \"Semana\" (calendario por horas)."
+            },
+            {
+              "file": "02b-agenda-modal-nueva-cita.png",
+              "caption": "Formulario \"Agendar Nueva Cita\"."
+            },
+            {
+              "file": "08-agenda-dermatologia.png",
+              "caption": "Agenda vista por un profesional de Dermatología (misma pantalla, filtrada a su especialidad)."
+            }
+          ],
+          "pasos": [
+            "Abra \"Agenda\" y elija la vista Semana o Lista.",
+            "Para crear una cita, haga clic en \"Agendar Cita\" (o directamente en una casilla vacía del calendario).",
+            "Busque y seleccione al paciente, indique fecha y hora de inicio (la hora de fin se calcula sola según la duración elegida o el servicio clínico seleccionado).",
+            "Elija modalidad (Presencial o Virtual) y, si aplica, agregue el link de videollamada.",
+            "Si desea repetir la cita, active \"Cita recurrente\" y elija cuántas semanas/sesiones.",
+            "Revise que no aparezca una advertencia de conflicto de horario y haga clic en \"Confirmar Cita\" (o \"Guardar Cambios\" si está editando).",
+            "Desde la lista/calendario, use el menú de acciones de cada cita para confirmarla, iniciar la atención, marcar inasistencia, cancelarla o ir a registrar su cobro.",
+            "Para configurar horarios, haga clic en \"Disponibilidad y Bloqueos\", seleccione el profesional, active/desactive los días y ajuste sus horas, luego haga clic en \"Guardar\".",
+            "Para bloquear fechas (vacaciones, feriados), en la pestaña de bloqueos complete título, fechas y motivo, y guarde el bloqueo."
+          ]
+        }
+      ]
+    },
+    {
+      "titulo": "Atenciones",
+      "secciones": [
+        {
+          "descripcion": "Registra y da seguimiento al flujo clínico del día: cada \"atención\" representa el paso de un paciente por consulta, con un ciclo de estados (Agendada → En Proceso → Atendida → Cobrada, o Cancelada). Las atenciones pueden originarse automáticamente desde una cita de la Agenda o registrarse manualmente mediante captura rápida. Desde cada atención se puede navegar a la nota clínica (S.O.A.P.), a la receta y al cobro asociado.",
+          "funcionalidades": [
+            "Resumen del día (atenciones de hoy) con contadores por estado.",
+            "Filtros: búsqueda por paciente, estado, profesional y rango de fecha (Hoy, Ayer, Semana, Todo, Personalizado).",
+            "Botón \"Nueva Atención Rápida\": busca/selecciona paciente, servicio clínico, motivo, notas y estado inicial (Iniciar Ahora o Agendada).",
+            "Acción \"Iniciar\" atención (pasa a estado En Proceso).",
+            "Cambio de estado con modal de confirmación y notas opcionales (por ejemplo, marcar como Atendida o Cancelada).",
+            "Acceso directo a \"Registrar/Ver Nota Clínica\" (sesión S.O.A.P.), a \"Prescripción/Receta\" y a \"Cobro\" (crea un cobro prellenado con los datos de la atención o abre el cobro ya vinculado si existe).",
+            "Eliminar una atención (con confirmación).",
+            "Reporte de productividad por profesional, restringido a administradores."
+          ],
+          "imagenes": [
+            {
+              "file": "03-atenciones.png",
+              "caption": "Listado de Atenciones Clínicas del día."
+            },
+            {
+              "file": "09a-atenciones-nueva-rapida-dermatologia.png",
+              "caption": "Formulario \"Nueva Atención Rápida\", con servicios propios de la especialidad (aquí, Dermatología)."
+            },
+            {
+              "file": "09-atenciones-dermatologia.png",
+              "caption": "Atenciones Clínicas vista por un profesional de Dermatología."
+            }
+          ],
+          "pasos": [
+            "Abra \"Atenciones\" para ver el resumen y la lista del día.",
+            "Para registrar una atención rápida sin pasar por Agenda, haga clic en \"Nueva Atención Rápida\", busque al paciente, elija el servicio clínico, escriba el motivo y guarde.",
+            "Alternativamente, inicie una atención directamente desde una cita en la Agenda (\"Iniciar Atención\"), lo que la crea automáticamente en estado En Proceso.",
+            "Use los filtros (fecha, estado, profesional, búsqueda) para ubicar atenciones específicas.",
+            "Haga clic en \"Iniciar\" para pasar la atención a En Proceso cuando el paciente entra a consulta.",
+            "Al finalizar, cambie el estado a \"Atendida\" (agregando notas si corresponde) en el modal de confirmación.",
+            "Desde la atención, haga clic en el acceso a nota clínica para registrar el S.O.A.P., o en el acceso a cobro para facturar la consulta.",
+            "Si es necesario, elimine la atención desde el menú de acciones, confirmando la eliminación."
+          ]
+        }
+      ]
+    },
+    {
+      "titulo": "Pacientes",
+      "secciones": [
+        {
+          "subtitulo": "Directorio de Pacientes",
+          "descripcion": "Es la pantalla principal de entrada al módulo, mostrando el listado de todos los pacientes de la clínica con indicadores rápidos (KPIs: Pacientes Activos, Nuevos este mes, Con Alertas Activas, Menores de Edad). Permite alternar entre vista de \"Tarjetas\" y vista de \"Tabla\", buscar por nombre, documento o correo, y filtrar por Género y Estado (Activos/Inactivos/Todos). Cada paciente muestra un punto rojo si tiene alertas médicas activas.",
+          "funcionalidades": [
+            "Buscar pacientes por nombre, documento o correo (con debounce de 300ms).",
+            "Filtrar por Género y Estado (Todos/Activos/Inactivos), con botón \"Limpiar\" filtros.",
+            "Alternar vista \"Tarjetas\" / \"Tabla\" (se recuerda como preferencia).",
+            "Botón \"Exportar\" a Excel/CSV del listado completo filtrado.",
+            "Botón \"Nuevo Paciente\" para ir al formulario de alta.",
+            "Por cada paciente (menú \"···\"): Agendar Cita, Editar Datos, Reactivar/Dar de Baja, Eliminar.",
+            "Acceso directo a \"Ficha\" (ficha clínica) desde tarjeta o tabla.",
+            "Paginación en vista de tabla."
+          ],
+          "imagenes": [
+            {
+              "file": "04-pacientes.png",
+              "caption": "Directorio de Pacientes (vista Psicología)."
+            },
+            {
+              "file": "10-pacientes-dermatologia.png",
+              "caption": "Directorio de Pacientes (vista Dermatología)."
+            },
+            {
+              "file": "04a-pacientes-nuevo-formulario-vacio.png",
+              "caption": "Formulario \"Nuevo Paciente\"."
+            }
+          ],
+          "pasos": [
+            "Ingresar al módulo \"Pacientes\" desde el menú principal.",
+            "Usar el buscador o los filtros de Género/Estado para localizar al paciente.",
+            "Hacer clic en \"Ficha\" o sobre la tarjeta/fila para abrir el expediente clínico.",
+            "Para registrar uno nuevo, hacer clic en \"Nuevo Paciente\" y completar el formulario.",
+            "Para acciones rápidas (agendar, editar, dar de baja, eliminar), usar el botón \"···\" de la tarjeta o los íconos de la fila en la tabla."
+          ]
+        },
+        {
+          "subtitulo": "Ficha Clínica del Paciente — Vista General",
+          "descripcion": "Es la vista central del expediente de un paciente, con un encabezado (foto, nombre, documento, edad, género, contacto) y acciones rápidas: \"Editar Datos\", \"Imprimir Historia\", \"Agendar Cita\" y \"Nueva Sesión Clínica\". Debajo se despliega el \"Cintillo de Seguridad\" (banner de riesgo) siempre visible con alergias, alertas, medicación y diagnóstico principal. El área de trabajo se organiza en 4 pestañas principales y una columna lateral fija (\"cockpit\") con identidad del paciente, próxima cita, alertas activas, diagnósticos CIE y medicación actual.",
+          "funcionalidades": [
+            "Cambiar foto del paciente (clic sobre el avatar).",
+            "Ver/ocultar datos de contacto en la columna lateral.",
+            "Ver próximas citas y últimas visitas en el panel lateral.",
+            "Abrir modal de \"Alertas de Riesgo Clínico\" con botón \"Nueva Alerta\" y \"Resolver\" por cada alerta.",
+            "Navegar entre las 4 pestañas: \"1. Historial & Timeline\", \"2. Expediente Médico Base\", \"3. Módulo Dermatología/Psicología\", \"4. Cobros\".",
+            "Cada pestaña muestra un contador con la cantidad de elementos registrados."
+          ],
+          "imagenes": [
+            {
+              "file": "04b-pacientes-ficha-detalle.png",
+              "caption": "Ficha Clínica de Paciente — encabezado, cintillo de seguridad y pestañas."
+            }
+          ],
+          "pasos": [
+            "Buscar y abrir la ficha de un paciente desde el Directorio.",
+            "Revisar el Cintillo de Seguridad para identificar alergias, alertas de riesgo, medicación y diagnóstico activo antes de atender.",
+            "Navegar por las pestañas numeradas (1 a 4) según la información que se necesite consultar o registrar.",
+            "Usar los botones del encabezado para Editar Datos, Agendar Cita, Nueva Sesión Clínica o Imprimir Historia."
+          ]
+        },
+        {
+          "subtitulo": "Pestaña 1: Historial & Timeline",
+          "descripcion": "Presenta el historial cronológico de sesiones clínicas del paciente en formato de línea de tiempo. Cada sesión resume fecha, horario, estado (Completada/Cancelada/No Asistió), tipo de consulta, modalidad y si es confidencial. Al hacer clic en una sesión se expande el detalle estructurado en formato S.O.A.P. (Subjetivo, Objetivo, Análisis, Plan). Cada nueva sesión se crea desde una página dedicada con campos según especialidad (Dermatología o Psicología).",
+          "funcionalidades": [
+            "Ver línea de tiempo de sesiones con estado, tipo de consulta, modalidad y marca de confidencialidad.",
+            "Expandir/colapsar cada sesión para ver el detalle S.O.A.P. completo.",
+            "Editar o eliminar una sesión existente.",
+            "Botón \"Nueva Sesión Clínica\" (desde encabezado) o \"Registrar Sesión\" (si no hay sesiones aún).",
+            "Autoguardado de borrador en el navegador mientras se redacta una sesión nueva (evita pérdida de datos).",
+            "Botones de plantillas rápidas (+Motivo, +Estado de ánimo, +Topografía, etc.) para insertar texto predefinido en cada bloque S.O.A.P., adaptados a la especialidad activa.",
+            "Selector de duración rápida (+30m, +45m, +60m) para calcular la Hora Fin automáticamente.",
+            "Marcar sesión como \"Confidencial\" (solo visible para el profesional a cargo).",
+            "Bloque de \"Evaluación de Riesgo Estructurada\" (ideación suicida, plan, acceso a medios, factores protectores, nivel de riesgo) que se activa obligatoriamente en Psicología cuando el paciente tiene una alerta de riesgo activa."
+          ],
+          "imagenes": [
+            {
+              "file": "11-ficha-derm-tab1-historial.png",
+              "caption": "Pestaña \"1. Historial & Timeline\" con la línea de tiempo de sesiones clínicas."
+            },
+            {
+              "file": "26-nueva-sesion-clinica-soap.png",
+              "caption": "Formulario de \"Nueva Sesión Clínica\" con estructura S.O.A.P."
+            }
+          ],
+          "pasos": [
+            "Hacer clic en \"Nueva Sesión Clínica\" desde el encabezado del paciente.",
+            "Completar Fecha de Atención, Hora Inicio/Fin, Tipo de Consulta y Modalidad.",
+            "Redactar al menos uno de los bloques S.O.A.P. (Subjetivo, Objetivo, Análisis, Plan) — es obligatorio llenar al menos uno.",
+            "Si el paciente tiene una alerta de riesgo activa (solo Psicología), completar obligatoriamente la Evaluación de Riesgo Estructurada (ideación suicida y nivel de riesgo son requeridos).",
+            "Marcar como confidencial si aplica y hacer clic en \"Guardar Sesión\".",
+            "Para revisar el historial, hacer clic sobre cualquier sesión de la línea de tiempo para expandir su detalle S.O.A.P."
+          ]
+        },
+        {
+          "subtitulo": "Pestaña 2: Expediente Médico Base",
+          "descripcion": "Agrupa la información clínica base común a toda especialidad, organizada en una subnavegación vertical con 6 secciones: Ficha Completa (vista integral en acordeones), Datos Personales, Antecedentes, Alergias, Medicamentos, Recetas y Documentos. En la vista \"Ficha Completa\" se pueden expandir/colapsar todas las secciones a la vez.",
+          "funcionalidades": [
+            "Datos Personales: visualización de documento, fecha de nacimiento, género, estado civil, ocupación, teléfono, correo, dirección y contacto de emergencia.",
+            "Antecedentes generales: registro/edición de Antecedentes patológicos, quirúrgicos, familiares, Hábitos y Notas (registro único por paciente).",
+            "Alergias: botón \"Nueva alergia\"; campos Alérgeno* (obligatorio), Tipo (Medicamento/Alimento/Contacto/Ambiental), Severidad (Leve/Moderada/Grave), Reacción, Notas y estado Activa/Inactiva.",
+            "Medicamentos: botón \"Nuevo medicamento\"; campos Nombre* (obligatorio), Dosis, Frecuencia, Fecha de inicio/fin, Notas y estado Activo/Inactivo.",
+            "Recetas: botón \"Nueva receta\"; ítems múltiples (Nombre*, Dosis, Frecuencia, Duración, Vía, Instrucciones), Fecha de emisión y Vigencia; incluye vista previa e \"Imprimir\" con código de verificación y código QR de validación pública.",
+            "Documentos: botón \"Subir documento\" (PDF o imagen, máx. 5MB), categorías (Consentimiento, Resultado, Derivación, Receta, Otro), Fecha del documento; permite Ver, Descargar y Eliminar cada archivo."
+          ],
+          "imagenes": [
+            {
+              "file": "12-ficha-derm-tab2-expediente-base.png",
+              "caption": "Pestaña \"2. Expediente Médico Base\" — Ficha Completa."
+            }
+          ],
+          "pasos": [
+            "En \"2. Expediente Médico Base\", seleccionar la subsección deseada en el menú lateral (o usar \"Ficha Completa\" para verlas todas).",
+            "Para Antecedentes: clic en \"Registrar\"/\"Editar\", completar los campos de texto libre y \"Guardar\".",
+            "Para Alergias/Medicamentos: clic en \"Nueva alergia\"/\"Nuevo medicamento\", completar campos obligatorios y \"Guardar\".",
+            "Para Recetas: clic en \"Nueva receta\", agregar uno o más ítems con \"Agregar\", completar Nombre* de cada uno y \"Guardar\"; luego usar \"Imprimir\" para generar el documento con QR de verificación.",
+            "Para Documentos: clic en \"Subir documento\", seleccionar archivo, elegir categoría y fecha, y confirmar."
+          ]
+        },
+        {
+          "subtitulo": "Pestaña 3 (Dermatología): Módulo Dermatología",
+          "descripcion": "Módulo especializado visible solo cuando la especialidad activa es Dermatología, con 7 subpestañas: Evaluación Inicial, Antecedentes Dermato, Lesiones y Fotos, Diagnósticos, Exámenes Auxiliares, Tratamientos, Procedimientos y Controles.",
+          "funcionalidades": [
+            "Evaluación Inicial (\"Registrar Evaluación\"): Fecha de Evaluación* y Próxima Revisión; Examen Físico (Tipo de Piel, Zona Afectada, Tipo de Lesión, Tamaño de Lesión desde catálogos); Diagnóstico Dermatológico* (obligatorio); Procedimiento Realizado y Tratamiento Indicado; Notas de Evolución.",
+            "Antecedentes Dermato (registro único): Tipo de piel, Hábitos de exposición solar, Antecedentes personales/familiares de piel, Condiciones crónicas, Examen dermatológico, Notas.",
+            "Lesiones y Fotos (\"Nueva Lesión\"): Zona Anatómica* y Tipo de Lesión* (obligatorios), Tamaño Estimado, Coloración, Fecha de Aparición, Morfología y Bordes, Evolución y Sintomatología, Observaciones. Permite subir fotografías por lesión y eliminarlas.",
+            "Comparador fotográfico evolutivo (\"Comparar\"), en modo \"Lado a Lado\" o \"Split Slider\" (requiere mínimo 2 fotos), con selección de Foto A (Antes)/Foto B (Después), botón para intercambiar y cálculo automático de días transcurridos entre tomas.",
+            "Diagnósticos: Categoría, Descripción* (obligatorio), Estado (Activo/Resuelto), Fecha, Notas.",
+            "Exámenes Auxiliares (\"Nuevo examen\"): Tipo de examen (biopsia, laboratorio, etc.), Fecha, Descripción, Resultado, Notas.",
+            "Tratamientos (\"Nuevo tratamiento\"): Nombre* (obligatorio), Dosis, Vía, Frecuencia, Estado (Activo/Completado/Suspendido), Fecha inicio/fin, Notas.",
+            "Procedimientos (\"Nuevo procedimiento\"): Nombre* (obligatorio), Fecha, Descripción, Notas.",
+            "Controles (\"Nuevo control\"): Fecha de control* (obligatorio), Próximo control, Notas clínicas."
+          ],
+          "imagenes": [
+            {
+              "file": "13a-modulo-derm-evaluacion-inicial.png",
+              "caption": "Módulo Dermatología — Evaluación Inicial."
+            },
+            {
+              "file": "13b-modulo-derm-antecedentes.png",
+              "caption": "Módulo Dermatología — Antecedentes Dermato."
+            },
+            {
+              "file": "13c-modulo-derm-lesiones-fotos.png",
+              "caption": "Módulo Dermatología — Registro Anatómico de Lesiones y Fotos."
+            },
+            {
+              "file": "13c1-modulo-derm-nueva-lesion-formulario.png",
+              "caption": "Formulario \"Nueva Lesión Anatómica\"."
+            },
+            {
+              "file": "13d-modulo-derm-diagnosticos.png",
+              "caption": "Módulo Dermatología — Diagnósticos."
+            },
+            {
+              "file": "13e-modulo-derm-examenes-auxiliares.png",
+              "caption": "Módulo Dermatología — Exámenes Auxiliares."
+            },
+            {
+              "file": "13f-modulo-derm-tratamientos.png",
+              "caption": "Módulo Dermatología — Tratamientos."
+            },
+            {
+              "file": "13g-modulo-derm-procedimientos.png",
+              "caption": "Módulo Dermatología — Procedimientos."
+            },
+            {
+              "file": "13h-modulo-derm-controles.png",
+              "caption": "Módulo Dermatología — Controles."
+            }
+          ],
+          "pasos": [
+            "Ir a \"3. Módulo Dermatología\" en la ficha del paciente y elegir la subpestaña.",
+            "Para registrar una lesión: clic en \"Nueva Lesión\", completar Zona Anatómica y Tipo de Lesión, agregar Morfología/Evolución y \"Guardar Lesión\".",
+            "Subir fotos con \"Fotos\" > \"Añadir Fotografía\" para dejar evidencia visual de la lesión.",
+            "Cuando existan 2 o más fotos, usar \"Comparar\" para abrir el comparador evolutivo, seleccionar Foto A y Foto B, y alternar entre modo Lado a Lado o Split Slider.",
+            "Para diagnósticos, exámenes, tratamientos, procedimientos y controles, usar el botón \"Nuevo...\" correspondiente, completar el formulario y \"Guardar\"."
+          ]
+        },
+        {
+          "subtitulo": "Pestaña 3 (Psicología): Módulo Psicología",
+          "descripcion": "Módulo especializado visible solo cuando la especialidad activa es Psicología, con 4 subpestañas: Evaluación Inicial, Pruebas Psicométricas, Diagnósticos y Plan Terapéutico.",
+          "funcionalidades": [
+            "Evaluación Inicial (\"Nueva evaluación\"): Fecha de evaluación* (obligatorio), Evaluación inicial (motivo de consulta), Antecedentes psicológicos, Evaluación mental, Notas.",
+            "Pruebas Psicométricas (\"Nueva Evaluación\"): selector de test del catálogo (con descripción), cuestionario de preguntas con opciones de puntaje, cálculo automático del Puntaje Total y de la Interpretación clínica (banda de severidad según puntaje), Notas/Conclusiones.",
+            "Panel de \"Reporte de Evolución Psicométrica\": filtro por nombre de prueba, KPIs (Prueba Activa, Línea Base/Puntaje Inicial, Puntaje Actual con interpretación, Tendencia clínica marcada como Evolución Favorable/Alerta de Variación/Respuesta Estable), gráfico de evolución y tabla histórica con Fecha, Test, Puntaje, Interpretación y Observaciones.",
+            "Diagnósticos: mismo componente compartido que en Dermatología (Categoría, Descripción*, Estado Activo/Resuelto, Fecha, Notas).",
+            "Plan Terapéutico (\"Nuevo plan\"): Objetivos, Intervenciones, Estado (Activo/Completado/Suspendido), Fecha inicio/fin, Notas."
+          ],
+          "imagenes": [
+            {
+              "file": "23-ficha-psico-tab3-modulo-psicologia.png",
+              "caption": "Módulo Psicología — Evaluación Inicial."
+            },
+            {
+              "file": "23a-modulo-psico-pruebas-psicometricas.png",
+              "caption": "Módulo Psicología — Pruebas Psicométricas aplicadas al paciente."
+            },
+            {
+              "file": "23b-modulo-psico-plan-terapeutico.png",
+              "caption": "Módulo Psicología — Plan Terapéutico."
+            }
+          ],
+          "pasos": [
+            "Ir a \"3. Módulo Psicología\" y elegir la subpestaña deseada.",
+            "Para Evaluación Inicial: clic en \"Nueva evaluación\", completar Fecha* y los campos de texto libre, y \"Guardar\".",
+            "Para aplicar una prueba psicométrica: clic en \"Nueva Evaluación\" (dentro de Pruebas Psicométricas), seleccionar la prueba del catálogo, responder cada ítem, revisar el Puntaje Total e Interpretación calculados automáticamente, y \"Guardar Evaluación\".",
+            "Revisar el gráfico de evolución y la tabla histórica para dar seguimiento longitudinal a la respuesta terapéutica.",
+            "Para el Plan Terapéutico: clic en \"Nuevo plan\", completar Objetivos e Intervenciones, definir Estado y fechas, y \"Guardar\"."
+          ]
+        },
+        {
+          "subtitulo": "Pestaña 4: Cobros del Paciente",
+          "descripcion": "Muestra el historial de pagos y facturación asociados exclusivamente a ese paciente, con un resumen financiero (Total Facturado, Abonado, Saldo Pendiente) y el detalle de cada cobro registrado, incluyendo si está vinculado a una cita.",
+          "funcionalidades": [
+            "Botón \"Registrar Cobro\".",
+            "Tarjetas resumen: Total Facturado, Abonado y Saldo Pendiente (con color de alerta si hay saldo pendiente).",
+            "Tabla de pagos con Fecha, Concepto, Estado, Método de pago y Monto."
+          ],
+          "imagenes": [
+            {
+              "file": "24-ficha-tab4-cobros.png",
+              "caption": "Pestaña \"4. Cobros\" del paciente — historial de pagos."
+            }
+          ],
+          "pasos": [
+            "Ir a \"4. Cobros\" en la ficha del paciente.",
+            "Revisar el resumen de Total Facturado, Abonado y Saldo Pendiente.",
+            "Hacer clic en \"Registrar Cobro\" para añadir un nuevo pago.",
+            "Consultar la tabla de historial para verificar fecha, método y estado de cada cobro."
+          ]
+        },
+        {
+          "subtitulo": "Alertas Médicas y Riesgo del Paciente",
+          "descripcion": "Sistema transversal de seguridad clínica compuesto por el \"Cintillo de Seguridad\" (banner persistente en la parte superior de la ficha, visible en las capturas anteriores) y el modal de \"Alertas de Riesgo Clínico\". El cintillo resume en insignias: Alergias, Alertas de Riesgo, Medicación Activa, Diagnóstico principal y Próxima Cita, con colores diferenciados (rojo para alergia grave o riesgo alto, ámbar para riesgo moderado, verde si no hay alertas). Las alertas activas de riesgo alto en pacientes de Psicología condicionan que la siguiente sesión clínica exija completar una Evaluación de Riesgo Estructurada.",
+          "funcionalidades": [
+            "Insignia de \"Alergias\" clicable que abre la sección de Alergias.",
+            "Insignia de \"Alertas de Riesgo\" clicable que abre el modal de gestión; se resalta si hay una alerta de nivel \"Alto\".",
+            "Insignias de \"Medicación\" y \"Dx\" (diagnóstico) clicables que llevan a sus secciones respectivas.",
+            "Botón \"Nueva Alerta\" dentro del modal: formulario con Tipo de Riesgo (catálogo), Nivel de Riesgo (catálogo) y Descripción (obligatoria, máx. 1000 caracteres).",
+            "Botón \"Resolver\" por cada alerta activa dentro del modal.",
+            "Widget de \"Alertas Activas\" en el panel lateral derecho de la ficha."
+          ],
+          "imagenes": [],
+          "pasos": [
+            "Observar el Cintillo de Seguridad al abrir la ficha del paciente para detectar riesgos antes de atender.",
+            "Hacer clic en la insignia \"Alertas de Riesgo\" para abrir el modal detallado.",
+            "Para registrar una nueva alerta: clic en \"Nueva Alerta\", seleccionar Tipo y Nivel de Riesgo, redactar la Descripción y \"Guardar Alerta\".",
+            "Para dar de baja una alerta atendida: clic en \"Resolver\" sobre la tarjeta de la alerta correspondiente.",
+            "Si el paciente de Psicología tiene una alerta activa, al registrar la próxima Sesión Clínica se deberá completar obligatoriamente la Evaluación de Riesgo Estructurada."
+          ]
+        },
+        {
+          "subtitulo": "Imprimir Historia Clínica",
+          "descripcion": "Genera una vista previa imprimible/exportable a PDF de la historia clínica completa del paciente, con encabezado institucional (logo, nombre de clínica), datos de identificación, cintillo de alertas de seguridad, y todas las secciones clínicas registradas (antecedentes, alergias, medicamentos, diagnósticos, módulo de especialidad y sesiones clínicas), cerrando con un bloque de firma del profesional.",
+          "funcionalidades": [
+            "Botón \"Personalizar\" para mostrar/ocultar el panel de configuración de secciones a incluir.",
+            "Modos rápidos predefinidos: \"Historia Completa\", \"Resumen / Epicrisis\", \"Última Consulta\" y \"Personalizada\".",
+            "Selección granular por casillas de las secciones a imprimir: Datos del Paciente, Alertas & Alergias, Antecedentes, Alergias, Medicación, Diagnósticos, Módulo Especialidad, Sesiones Clínicas, Bloque de Firma.",
+            "Filtro de Sesiones a incluir: Todas, Solo la última, Últimas 3, Últimas 5, o Rango de fechas específico.",
+            "Opción \"Excluir sesiones confidenciales\" del documento impreso.",
+            "Botón \"Imprimir / Guardar PDF\"."
+          ],
+          "imagenes": [
+            {
+              "file": "25-imprimir-historia-clinica.png",
+              "caption": "Vista previa de impresión de la Historia Clínica."
+            }
+          ],
+          "pasos": [
+            "Desde la ficha del paciente, hacer clic en \"Imprimir Historia\" en el encabezado.",
+            "Elegir un modo rápido (Historia Completa, Resumen, Última Consulta) o \"Personalizada\" para configurar manualmente.",
+            "Si es Personalizada, hacer clic en \"Personalizar\" y marcar/desmarcar las secciones deseadas.",
+            "Configurar el filtro de sesiones (todas, últimas N, o rango de fechas) y decidir si excluir sesiones confidenciales.",
+            "Revisar la vista previa y hacer clic en \"Imprimir / Guardar PDF\" para emitir el documento."
+          ]
+        }
+      ]
+    },
+    {
+      "titulo": "Cobros y Facturación",
+      "secciones": [
+        {
+          "descripcion": "Gestiona el cobro de servicios y productos (insumos) a los pacientes, con seguimiento de saldo por cobro. Cada cobro puede tener uno o más ítems (servicios clínicos y/o insumos) cuyo importe total se calcula automáticamente (cantidad × precio unitario), y admite pago completo, abono parcial o dejarlo pendiente. Los cobros muestran un estado (Pendiente, Parcial, Pagado) calculado según los abonos registrados; no se puede abonar más del saldo pendiente ni seguir agregando abonos una vez que el cobro está marcado como Pagado.",
+          "funcionalidades": [
+            "Panel resumen del período (filtros rápidos: Hoy, Últimos 7 días, Este mes, Mes anterior, Este año, Personalizado) con totales de cobros.",
+            "Listado de cobros en vista tabla o tarjetas, con filtros por búsqueda, método de pago y estado (Pendiente, Parcial, Pagado).",
+            "Botón \"Registrar Cobro\": selección de paciente y, opcionalmente, de una cita asociada (que precarga el servicio clínico); agregar líneas de \"Servicios Clínicos\" y de \"Insumos y Materiales\" (cada una con descripción, cantidad y precio, con subtotal calculado automáticamente).",
+            "Selección de la \"Forma de Cobro\" al crear: Cobro completo, Abono parcial (requiere ingresar un monto mayor a 0 y menor al total) o Pendiente (sin abono por ahora).",
+            "Selección de método de pago (Efectivo, Tarjeta, Transferencia, Yape/Plin, etc.) y de la fecha/hora de pago.",
+            "Vista \"Ver Gráficos\": visualización de la evolución de ingresos del período en formato de gráfico.",
+            "Ver detalle de un cobro: muestra monto total, abonado y saldo pendiente; permite \"Agregar abono\" (transacción adicional) mientras el cobro no esté Pagado, validando que el monto no exceda el saldo; permite eliminar una transacción.",
+            "Impresión/comprobante del cobro con datos de la clínica.",
+            "Editar o eliminar un cobro existente.",
+            "Exportar el listado de cobros a CSV/Excel.",
+            "Acceso directo a \"Registrar Cobro\" desde Agenda, Atenciones o el Dashboard, que prellena paciente, cita/atención y servicio clínico relacionado."
+          ],
+          "imagenes": [
+            {
+              "file": "05-cobros.png",
+              "caption": "Cobros y Facturación — listado en vista tarjetas."
+            },
+            {
+              "file": "27-nuevo-cobro-formulario.png",
+              "caption": "Formulario \"Registrar Cobro de Atención\"."
+            },
+            {
+              "file": "05a-cobros-graficos.png",
+              "caption": "Cobros — vista \"Ver Gráficos\"."
+            }
+          ],
+          "pasos": [
+            "Abra \"Cobros\" y, si busca un período específico, use los filtros rápidos de fecha o el rango personalizado.",
+            "Haga clic en \"Registrar Cobro\" (o en \"Cobro\" desde una cita/atención, que prellena los datos).",
+            "Seleccione el paciente y, si aplica, la cita relacionada (el servicio clínico se autocompleta).",
+            "Agregue una o más líneas de \"Servicios Clínicos\" y, de ser necesario, de \"Insumos\", indicando cantidad y precio unitario; el total se calcula automáticamente.",
+            "Elija la Forma de Cobro: Cobro completo, Abono parcial (indicando el monto inicial) o Pendiente.",
+            "Seleccione el método de pago y haga clic en \"Confirmar\" para registrar el cobro.",
+            "Para un cobro con saldo pendiente, abra su detalle y use \"Agregar abono\" para registrar pagos adicionales hasta saldarlo (no se puede exceder el saldo restante).",
+            "Use el botón de impresión para generar el comprobante, o el menú de acciones para editar/eliminar el cobro."
+          ]
+        }
+      ]
+    },
+    {
+      "titulo": "Editar Sitio Web",
+      "secciones": [
+        {
+          "descripcion": "Editor visual (solo para usuarios con rol Administrador de Sitio o Administrador) que permite modificar el contenido de la página web pública de la clínica (landing page) antes de publicarlo. El sistema trabaja con un borrador (draft) separado de la versión publicada: los cambios se guardan en el borrador y solo se hacen visibles al público al presionar \"Publicar\". Incluye control de concurrencia (si otro dispositivo modificó el borrador, el sistema avisa y recarga) y validación de campos obligatorios, límites de caracteres y URLs válidas antes de permitir publicar.",
+          "funcionalidades": [
+            "Vista previa en vivo del sitio dentro del editor, con selector de tamaño de pantalla (Escritorio, Tableta, Móvil).",
+            "Edición por bloques de contenido, seleccionables haciendo clic sobre la vista previa: datos generales (nombre comercial, tagline, descripción, logo), sección Hero (título, texto destacado, descripción, botones, imagen), sección Enfoque, Contacto (teléfono, WhatsApp, correo, dirección, horario, mapa), Redes sociales (Facebook, Instagram, TikTok, LinkedIn), SEO (título, descripción, imagen), Especialidades, Beneficios, Pasos del proceso y Profesionales (con foto).",
+            "Subida y eliminación de imágenes por categoría (logo, hero, approach, SEO) y de fotos de cada profesional.",
+            "Botón \"Restaurar\" para descartar cambios del borrador y volver a la última versión publicada.",
+            "Botón \"Guardar borrador\" para persistir cambios sin publicarlos.",
+            "Botón \"Publicar\" (deshabilitado si hay errores de validación) que aplica el borrador como versión pública, previa confirmación.",
+            "Botón \"Vista pública\" para abrir el sitio real en una pestaña nueva.",
+            "Indicador de estado (guardando, publicando, cambios sin guardar) y fecha/usuario de la última publicación.",
+            "Aviso al intentar salir o cerrar la pestaña si hay cambios sin guardar."
+          ],
+          "imagenes": [
+            {
+              "file": "06-editar-sitio-web.png",
+              "caption": "Editor visual del Sitio Web — vista previa Hero."
+            }
+          ],
+          "pasos": [
+            "Ingrese a \"Editar Sitio Web\" (disponible solo para administradores del sitio).",
+            "Haga clic sobre el bloque que desea modificar en la vista previa (por ejemplo, Hero, Contacto, Especialidades).",
+            "Edite los campos correspondientes en el panel lateral (textos, imágenes, enlaces).",
+            "Si sube una imagen, use el control de carga del bloque correspondiente; puede eliminarla si ya no la necesita.",
+            "Use los botones de tamaño de pantalla para verificar cómo se ve el cambio en Escritorio, Tableta y Móvil.",
+            "Haga clic en \"Guardar borrador\" para conservar el avance sin publicarlo.",
+            "Cuando esté conforme, haga clic en \"Publicar\"; confirme la acción en el diálogo. Si existen errores de validación, corríjalos primero.",
+            "Use \"Vista pública\" para revisar el sitio publicado, o \"Restaurar\" si desea descartar los cambios del borrador."
+          ]
+        }
+      ]
+    },
+    {
+      "titulo": "Operación & Recursos",
+      "intro": "Es el grupo de módulos administrativos del menú lateral, colapsable bajo \"Operación & Recursos\". La mayoría son compartidos por ambas especialidades, pero algunos elementos varían: el enlace \"Pruebas\" (catálogo de pruebas psicométricas) solo aparece para usuarios de Psicología, y algunos módulos requieren rol de administrador.",
+      "secciones": [
+        {
+          "subtitulo": "Servicios Clínicos",
+          "descripcion": "Es el catálogo de procedimientos y tarifas que ofrece la clínica (por ejemplo, terapias psicológicas o tratamientos dermatológicos). Permite ver de un vistazo cuántos servicios están activos, su precio promedio y cuáles generan más ingresos o son más solicitados en el mes. Sirve como base para la agenda y la facturación, ya que cada cita o cobro se asocia a uno de estos servicios.",
+          "funcionalidades": [
+            "Ver KPIs: \"Servicios Activos\", \"Precio Promedio\", \"Top en Ingresos (mes)\" y \"Más Vendido (mes)\".",
+            "Alternar entre vista de \"Tarjetas\" y \"Tabla\".",
+            "Buscar servicios por nombre y filtrar por Categoría, Estado (Activos/Inactivos) y rango de Precio mín./máx.",
+            "Crear un servicio nuevo con \"Nuevo Servicio\" (nombre, descripción, precio base, categoría, duración en minutos, imagen y casilla \"Servicio activo\").",
+            "Editar, ver el detalle y eliminar un servicio desde las tarjetas o la tabla.",
+            "Consultar el ranking \"Top Servicios por Ingresos\" y \"Top Servicios por Cantidad\"."
+          ],
+          "imagenes": [
+            {
+              "file": "15-servicios-dermatologia.png",
+              "caption": "Servicios Clínicos — catálogo con tarifas (vista Dermatología)."
+            }
+          ],
+          "pasos": [
+            "Ingresar a \"Servicios\" desde \"Operación & Recursos\".",
+            "Pulsar \"Nuevo Servicio\" y completar nombre, precio base y demás campos del formulario.",
+            "Guardar el servicio (queda visible para agenda y facturación si está marcado como activo).",
+            "Usar los filtros (categoría, estado, precio) o el buscador para localizar un servicio existente.",
+            "Pulsar el ícono de edición para modificarlo, el de \"Ver detalle\" para revisarlo, o el de eliminar para darlo de baja."
+          ]
+        },
+        {
+          "subtitulo": "Pruebas Psicométricas (exclusivo de Psicología)",
+          "descripcion": "Módulo exclusivo del rol de Psicología que permite construir y administrar el catálogo de pruebas o cuestionarios psicométricos (por ejemplo, escalas de ansiedad o depresión) que luego se aplican a los pacientes. Cada prueba incluye sus preguntas, opciones de respuesta con puntaje y bandas de interpretación clínica del resultado.",
+          "funcionalidades": [
+            "Ver cuántas pruebas existen, cuántas preguntas y opciones tiene cada una, y su uso histórico (\"En uso\", aplicaciones, última aplicación).",
+            "Alternar vista de \"Tarjetas\" y \"Tabla\".",
+            "Crear una prueba con \"Nueva prueba\": nombre, descripción, preguntas con \"Añadir pregunta\", opciones de respuesta con puntaje mediante \"Añadir opción\", reordenar preguntas/opciones y eliminarlas.",
+            "Definir \"Bandas de interpretación\" (mínimo, máximo, etiqueta, color y descripción) con \"Añadir banda\"; el sistema avisa si las bandas se solapan.",
+            "Ver el \"Puntaje máximo posible\" calculado automáticamente.",
+            "Previsualizar la prueba completa con \"Vista previa\" antes de guardar o desde el listado.",
+            "Editar y eliminar pruebas existentes."
+          ],
+          "imagenes": [
+            {
+              "file": "22-pruebas-psicometricas.png",
+              "caption": "Catálogo de Pruebas Psicométricas (solo visible para el rol Psicología)."
+            }
+          ],
+          "pasos": [
+            "Entrar a \"Pruebas\" (visible solo si el usuario es de especialidad Psicología).",
+            "Pulsar \"Nueva prueba\", escribir nombre y descripción.",
+            "Agregar preguntas con \"Añadir pregunta\" y, para cada una, al menos 2 opciones de respuesta con su puntaje mediante \"Añadir opción\".",
+            "Definir bandas de interpretación con \"Añadir banda\" para traducir el puntaje total en un nivel clínico.",
+            "Revisar con \"Vista previa\" y guardar con \"Guardar prueba\".",
+            "Desde el listado, usar \"Vista previa\", \"Editar\" o \"Eliminar\" sobre pruebas existentes."
+          ]
+        },
+        {
+          "subtitulo": "Inventario",
+          "descripcion": "Controla el stock de insumos y medicamentos de la clínica (por ejemplo, gasas, material de consultorio o fármacos), mostrando alertas de stock bajo, agotado o próximo a vencer, así como el valor económico total del inventario. Registra cada entrada y salida de material con su motivo, dejando un historial de movimientos por insumo.",
+          "funcionalidades": [
+            "KPIs: \"Total Insumos\", \"Valor de Inventario\", \"Stock Bajo\", \"Agotados\" y \"Por Vencer (30d)\".",
+            "Ver \"Últimos Movimientos\" recientes (entradas/salidas) directamente en el listado.",
+            "Alternar vista \"Tarjetas\"/\"Tabla\", buscar por nombre y \"Exportar\" el inventario a Excel.",
+            "Crear un insumo con \"Nuevo Insumo\": nombre, descripción, unidad de medida, fecha de caducidad, stock actual, stock mínimo, precio y fotografía; el sistema advierte si el stock queda en o por debajo del mínimo.",
+            "\"Ajustar\" stock manualmente eligiendo Entrada (+) o Salida (−), cantidad, motivo (Reposición, Uso clínico, Caducado, Dañado/merma) y nota opcional, mostrando el \"Stock resultante\" antes de confirmar.",
+            "Ver el \"Historial de movimientos\" de cada insumo con tipo, motivo, cantidad, nota y fecha.",
+            "Ver la imagen del insumo, editar o eliminar el registro."
+          ],
+          "imagenes": [
+            {
+              "file": "16-inventario-dermatologia.png",
+              "caption": "Inventario de insumos y medicamentos."
+            }
+          ],
+          "pasos": [
+            "Entrar a \"Inventario\".",
+            "Pulsar \"Nuevo Insumo\" y registrar nombre, unidad, stock inicial, stock mínimo y (opcional) precio, caducidad e imagen.",
+            "Cuando entra o sale mercadería, usar \"Ajustar\" sobre el insumo correspondiente, elegir tipo (Entrada/Salida), cantidad y motivo, y confirmar.",
+            "Revisar \"Historial de movimientos\" para auditar los cambios de stock de un insumo.",
+            "Monitorear los KPIs de \"Stock Bajo\", \"Agotados\" y \"Por Vencer\" para reponer a tiempo.",
+            "Exportar el inventario a Excel cuando se necesite un reporte externo."
+          ]
+        },
+        {
+          "subtitulo": "Catálogos (Administración de Catálogos)",
+          "descripcion": "Es el panel de configuración maestro donde se administran las listas de opciones (\"catálogos\") que alimentan los formularios de todo el sistema (historias clínicas, agenda, caja, inventario), como tipos de consulta o modalidades de pago. Cada catálogo pertenece a un ámbito: \"General\" (toda la clínica) o a una especialidad concreta (Dermatología o Psicología); un mismo administrador puede ver y filtrar catálogos de ambas especialidades.",
+          "funcionalidades": [
+            "Explorar catálogos existentes en un panel maestro-detalle, filtrando por pestañas (\"Todos\", \"General\" y cada especialidad) y buscando por nombre.",
+            "Crear un catálogo nuevo con \"Nuevo Catálogo\": nombre, código interno (auto-generado o personalizable), ámbito/especialidad y descripción.",
+            "Editar un catálogo existente con \"Editar Catálogo\" (el código interno no se puede modificar).",
+            "Agregar opciones a un catálogo seleccionado con \"Agregar Opción\" (nombre visible y código interno opcional).",
+            "Editar el nombre de una opción con doble clic o el ícono de edición, reordenar opciones con flechas arriba/abajo, activar/desactivar con un interruptor, y eliminar con confirmación (se recomienda desactivar en vez de eliminar si la opción ya se usó en registros históricos).",
+            "Filtrar las opciones de un catálogo por estado (Todas/Activas/Inactivas) y buscarlas por texto.",
+            "\"Refrescar\" la lista de catálogos y copiar el código de un catálogo al portapapeles."
+          ],
+          "imagenes": [
+            {
+              "file": "17-catalogos-dermatologia.png",
+              "caption": "Administración de Catálogos — catálogo \"Categorías de servicios clínicos\"."
+            },
+            {
+              "file": "17a-catalogos-filtro-dermatologia.png",
+              "caption": "Catálogos filtrados por especialidad Dermatología."
+            }
+          ],
+          "pasos": [
+            "Entrar a \"Catálogos\" y seleccionar un catálogo del panel izquierdo (o crear uno con \"Nuevo Catálogo\").",
+            "En el panel derecho, escribir el nombre de la nueva opción y pulsar \"Agregar Opción\".",
+            "Reordenar las opciones con las flechas si el orden de aparición importa.",
+            "Desactivar (interruptor) en vez de eliminar las opciones que ya se usaron en registros existentes.",
+            "Usar \"Editar Catálogo\" para actualizar nombre, ámbito o descripción del catálogo maestro."
+          ]
+        },
+        {
+          "subtitulo": "Personal & Cuentas",
+          "descripcion": "Es el módulo de administración de usuarios del sistema: permite registrar y gestionar tanto a los profesionales titulares (administradores) como al personal de asistencia/recepción que tiene acceso a la aplicación, asignándoles especialidad, rol y estado de la cuenta. Solo lo ven los usuarios con rol de administrador.",
+          "funcionalidades": [
+            "Buscar usuarios por nombre, usuario o email, y filtrar por Especialidad y Estado (Todos/Solo Activos/Solo Inactivos).",
+            "Crear un usuario con \"Nuevo Usuario\": Nombre, Apellido, Usuario, Contraseña inicial, Especialidad, Rol de Sistema (\"Profesional Titular (Admin)\" o \"Asistente / Recepción\"), correo y teléfono.",
+            "Editar un usuario existente (mismo formulario, sin campo de contraseña) y activar/desactivar la casilla \"Usuario Activo\".",
+            "\"Cambiar contraseña\" de un usuario mediante un modal dedicado (nueva contraseña con requisitos de mayúsculas, minúsculas, número y símbolo, más confirmación).",
+            "Activar o desactivar la cuenta de un usuario directamente desde la tabla.",
+            "Ver en la tabla la especialidad, el rol de sistema y el estado (Activo/Inactivo) de cada usuario."
+          ],
+          "imagenes": [
+            {
+              "file": "18-personal-cuentas.png",
+              "caption": "Gestión de Personal y Cuentas de usuario."
+            }
+          ],
+          "pasos": [
+            "Entrar a \"Personal & Cuentas\" (solo visible para administradores).",
+            "Pulsar \"Nuevo Usuario\" y completar datos personales, usuario/contraseña, especialidad y rol de sistema.",
+            "Guardar para crear la cuenta.",
+            "Para modificar datos, usar el ícono de edición; para restablecer el acceso, usar \"Cambiar contraseña\".",
+            "Para dar de baja temporalmente a alguien, usar el ícono de desactivar cuenta en vez de eliminar el registro."
+          ]
+        },
+        {
+          "subtitulo": "Auditoría (Registro de Auditoría)",
+          "descripcion": "Ofrece un historial de trazabilidad y seguridad sobre las operaciones sensibles realizadas en el sistema (quién hizo qué, cuándo y desde dónde), útil para revisar accesos y cambios críticos. Solo es accesible para administradores.",
+          "funcionalidades": [
+            "Buscar eventos por texto libre en el detalle o ID, por usuario, por Acción, por Módulo/Entidad, por Especialidad y por rango de fechas (\"Desde\"/\"Hasta\").",
+            "Botones \"Filtrar\" para aplicar los criterios y \"Limpiar\" para restablecer filtros.",
+            "Ver la tabla de eventos con fecha y hora, usuario ejecutor, acción (con insignia de color), módulo/entidad afectada, especialidad, detalle resumido e IP de origen.",
+            "Abrir el detalle completo de un evento con el ícono \"Ver\", que muestra acción, entidad/módulo, usuario ejecutor, especialidad, IP, ID de entidad afectada y la descripción completa del evento.",
+            "Paginación de resultados."
+          ],
+          "imagenes": [
+            {
+              "file": "19-auditoria.png",
+              "caption": "Registro de Auditoría del sistema."
+            }
+          ],
+          "pasos": [
+            "Entrar a \"Auditoría\" (solo administradores).",
+            "Definir un rango de fechas y, opcionalmente, usuario, acción, módulo o especialidad.",
+            "Pulsar \"Filtrar\" para aplicar la búsqueda.",
+            "Pulsar el ícono de detalle sobre un evento para ver la información completa.",
+            "Usar \"Limpiar\" para volver a ver todos los eventos."
+          ]
+        },
+        {
+          "subtitulo": "Reporte de Productividad",
+          "descripcion": "Es un reporte gerencial que muestra el volumen de atenciones, el cumplimiento de citas y la facturación de cada profesional de la especialidad del administrador, en un período de tiempo seleccionable. Solo lo ven los usuarios con rol de administrador.",
+          "funcionalidades": [
+            "Filtrar el período con accesos rápidos \"Este mes\", \"Mes anterior\", \"Este año\", o con un rango de fechas personalizado.",
+            "Ver KPIs resumen: \"Profesionales activos\", \"Atenciones totales\" y \"Facturado en el período\".",
+            "Consultar por cada profesional: Atenciones totales, Atendidas, Canceladas, % de Finalización, monto Facturado y monto Cobrado.",
+            "\"Exportar\" el reporte a Excel."
+          ],
+          "imagenes": [
+            {
+              "file": "20-reporte-productividad.png",
+              "caption": "Reporte de Productividad por profesional."
+            }
+          ],
+          "pasos": [
+            "Entrar a \"Reporte de Productividad\" (solo administradores).",
+            "Elegir un período predefinido (\"Este mes\", \"Mes anterior\", \"Este año\") o definir fechas personalizadas.",
+            "Revisar los KPIs resumen y la tabla por profesional.",
+            "Pulsar \"Exportar\" si se necesita el reporte en Excel."
+          ]
+        }
+      ]
+    }
+  ],
+  "anexo": {
+    "titulo": "Anexo: Diferencias entre Especialidades y Control de Acceso",
+    "parrafos": [
+      "El frontend obtiene la especialidad y los roles del usuario a partir del token de sesión (JWT): el sistema identifica si el usuario pertenece a Dermatología o a Psicología, y si tiene rol de Administrador o de Administrador de Sitio Web. Con esa información, el menú lateral muestra u oculta dinámicamente ciertos enlaces: \"Pruebas Psicométricas\" solo aparece si la especialidad es Psicología, mientras que \"Personal & Cuentas\", \"Auditoría\" y \"Reporte de Productividad\" requieren rol de Administrador. Los módulos \"Servicios Clínicos\", \"Inventario\" y \"Catálogos\" están disponibles para cualquier usuario autenticado, independientemente de su especialidad o rol.",
+      "Esta ocultación de menú es solo una capa de comodidad visual: la protección real de cada operación ocurre en el servidor (backend), donde cada solicitud se valida nuevamente contra los roles y la especialidad del usuario autenticado, de modo que un usuario de Dermatología no podría operar el catálogo de pruebas psicométricas ni un usuario sin rol de administrador acceder a Personal & Cuentas, aunque intentaran forzar la dirección web directamente.",
+      "La siguiente tabla resume las diferencias más relevantes entre ambas especialidades dentro de la ficha clínica del paciente y del menú \"Operación & Recursos\"."
+    ],
+    "tabla": {
+      "encabezados": [
+        "Elemento",
+        "Dermatología",
+        "Psicología"
+      ],
+      "filas": [
+        [
+          "Pestaña 3 de la ficha del paciente",
+          "Módulo Dermatología (8 sub-secciones: Evaluación Inicial, Antecedentes Dermato, Lesiones y Fotos, Diagnósticos, Exámenes Auxiliares, Tratamientos, Procedimientos, Controles)",
+          "Módulo Psicología (4 sub-secciones: Evaluación Inicial, Pruebas Psicométricas, Diagnósticos, Plan Terapéutico)"
+        ],
+        [
+          "Registro característico",
+          "Lesiones anatómicas con fotografías y comparador evolutivo",
+          "Pruebas psicométricas con puntaje, interpretación y gráfico de evolución"
+        ],
+        [
+          "Enlace \"Pruebas\" en Operación & Recursos",
+          "No visible",
+          "Visible — catálogo de pruebas psicométricas"
+        ],
+        [
+          "Servicios clínicos típicos",
+          "Consulta Dermatológica, Limpieza Facial Profunda, etc.",
+          "Consulta Psicológica General, Terapia de Pareja, Terapia Individual, etc."
+        ],
+        [
+          "Evaluación de Riesgo Estructurada obligatoria en sesión clínica",
+          "No aplica",
+          "Sí, cuando el paciente tiene una alerta de riesgo activa"
+        ]
+      ]
+    },
+    "imagenes": [
+      {
+        "file": "14-sidebar-operacion-recursos.png",
+        "caption": "Menu lateral \"Operacion & Recursos\" para un usuario de Dermatologia (sin el enlace \"Pruebas\")."
+      },
+      {
+        "file": "21-sidebar-operacion-recursos-psicologia.png",
+        "caption": "Menu lateral \"Operacion & Recursos\" para un usuario de Psicologia (con el enlace \"Pruebas\" visible)."
+      }
+    ]
+  }
+}

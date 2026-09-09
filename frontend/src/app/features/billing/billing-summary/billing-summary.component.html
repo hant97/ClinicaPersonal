@@ -1,137 +1,6 @@
 <!-- KPI Cards & Summary Dashboard -->
 @if (summary) {
   <div class="space-y-4">
-    <!-- Period Control & Quick Preset Filter Bar -->
-    <div class="rounded-xl border border-line bg-surface p-3 shadow-xs space-y-3">
-      <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <!-- Preset Selector Pills -->
-        <div class="flex flex-wrap items-center gap-1.5">
-          <div class="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-600 mr-1.5">
-            <lucide-icon [img]="CalendarRange" [size]="15" class="text-primary-600"></lucide-icon>
-            <span>Período:</span>
-          </div>
-
-          <button
-            type="button"
-            class="px-2.5 py-1 rounded-md text-xs font-semibold transition cursor-pointer"
-            [class.bg-primary-50]="selectedPreset === 'TODAY'"
-            [class.text-primary-700]="selectedPreset === 'TODAY'"
-            [class.border]="selectedPreset === 'TODAY'"
-            [class.border-primary-200]="selectedPreset === 'TODAY'"
-            [class.text-slate-600]="selectedPreset !== 'TODAY'"
-            [class.hover:bg-slate-100]="selectedPreset !== 'TODAY'"
-            (click)="setPreset('TODAY')"
-          >
-            Hoy
-          </button>
-
-          <button
-            type="button"
-            class="px-2.5 py-1 rounded-md text-xs font-semibold transition cursor-pointer"
-            [class.bg-primary-50]="selectedPreset === 'WEEK'"
-            [class.text-primary-700]="selectedPreset === 'WEEK'"
-            [class.border]="selectedPreset === 'WEEK'"
-            [class.border-primary-200]="selectedPreset === 'WEEK'"
-            [class.text-slate-600]="selectedPreset !== 'WEEK'"
-            [class.hover:bg-slate-100]="selectedPreset !== 'WEEK'"
-            (click)="setPreset('WEEK')"
-          >
-            Últimos 7 días
-          </button>
-
-          <button
-            type="button"
-            class="px-2.5 py-1 rounded-md text-xs font-semibold transition cursor-pointer"
-            [class.bg-primary-50]="selectedPreset === 'MONTH'"
-            [class.text-primary-700]="selectedPreset === 'MONTH'"
-            [class.border]="selectedPreset === 'MONTH'"
-            [class.border-primary-200]="selectedPreset === 'MONTH'"
-            [class.text-slate-600]="selectedPreset !== 'MONTH'"
-            [class.hover:bg-slate-100]="selectedPreset !== 'MONTH'"
-            (click)="setPreset('MONTH')"
-          >
-            Este mes
-          </button>
-
-          <button
-            type="button"
-            class="px-2.5 py-1 rounded-md text-xs font-semibold transition cursor-pointer"
-            [class.bg-primary-50]="selectedPreset === 'LAST_MONTH'"
-            [class.text-primary-700]="selectedPreset === 'LAST_MONTH'"
-            [class.border]="selectedPreset === 'LAST_MONTH'"
-            [class.border-primary-200]="selectedPreset === 'LAST_MONTH'"
-            [class.text-slate-600]="selectedPreset !== 'LAST_MONTH'"
-            [class.hover:bg-slate-100]="selectedPreset !== 'LAST_MONTH'"
-            (click)="setPreset('LAST_MONTH')"
-          >
-            Mes anterior
-          </button>
-
-          <button
-            type="button"
-            class="px-2.5 py-1 rounded-md text-xs font-semibold transition cursor-pointer"
-            [class.bg-primary-50]="selectedPreset === 'YEAR'"
-            [class.text-primary-700]="selectedPreset === 'YEAR'"
-            [class.border]="selectedPreset === 'YEAR'"
-            [class.border-primary-200]="selectedPreset === 'YEAR'"
-            [class.text-slate-600]="selectedPreset !== 'YEAR'"
-            [class.hover:bg-slate-100]="selectedPreset !== 'YEAR'"
-            (click)="setPreset('YEAR')"
-          >
-            Este año
-          </button>
-
-          <button
-            type="button"
-            class="px-2.5 py-1 rounded-md text-xs font-semibold transition cursor-pointer"
-            [class.bg-primary-50]="selectedPreset === 'CUSTOM'"
-            [class.text-primary-700]="selectedPreset === 'CUSTOM'"
-            [class.border]="selectedPreset === 'CUSTOM'"
-            [class.border-primary-200]="selectedPreset === 'CUSTOM'"
-            [class.text-slate-600]="selectedPreset !== 'CUSTOM'"
-            [class.hover:bg-slate-100]="selectedPreset !== 'CUSTOM'"
-            (click)="setPreset('CUSTOM')"
-          >
-            Personalizado
-          </button>
-        </div>
-
-        <!-- Date Inputs -->
-        <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-line/60 lg:pt-0 lg:border-t-0">
-          <div class="flex items-center gap-1.5 text-xs">
-            <span class="text-muted font-medium">Desde:</span>
-            <input
-              type="date"
-              class="rounded-md border border-line bg-canvas/70 px-2 py-1 text-xs text-ink focus:border-primary-500 focus:outline-none"
-              [(ngModel)]="dateFrom"
-              (change)="onCustomDateChange()"
-            />
-          </div>
-          <div class="flex items-center gap-1.5 text-xs">
-            <span class="text-muted font-medium">Hasta:</span>
-            <input
-              type="date"
-              class="rounded-md border border-line bg-canvas/70 px-2 py-1 text-xs text-ink focus:border-primary-500 focus:outline-none"
-              [(ngModel)]="dateTo"
-              (change)="onCustomDateChange()"
-            />
-          </div>
-
-          @if (isCustomRange) {
-            <button
-              type="button"
-              class="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted hover:text-ink hover:bg-slate-100 transition cursor-pointer"
-              (click)="clearRange()"
-              title="Restablecer período a este mes"
-            >
-              <lucide-icon [img]="FilterX" [size]="13"></lucide-icon>
-              <span>Restablecer</span>
-            </button>
-          }
-        </div>
-      </div>
-    </div>
-
     <!-- Modern FlowGrid KPI Cards -->
     <div class="responsive-kpi-grid" data-testid="kpi-grid">
       <!-- 1. Ingresos Hoy -->
@@ -236,7 +105,7 @@
       <!-- Charts Grid -->
       <div class="grid gap-4 lg:grid-cols-3 pt-2">
         <div class="rounded-xl border border-line p-4 lg:col-span-2 min-w-0 overflow-hidden bg-surface shadow-xs">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Ingresos — {{ isCustomRange ? 'del período' : 'últimos 30 días' }}</h3>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Ingresos {{ periodLabel }}</h3>
           <div class="mt-3 h-52 relative w-full min-w-0 overflow-hidden">
             <canvas #incomeCanvas></canvas>
           </div>

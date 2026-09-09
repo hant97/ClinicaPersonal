@@ -1,9 +1,10 @@
 # Plan de corrección de deuda técnica
 
-> **Estado:** ✅ Entregas A, B y C implementadas; checklist sincronizado con el código real.
-> Quedan abiertos: remedir bundle inicial y mitigar vulnerabilidades de devDependencies
-> (ver sección 11).  
-> **Última actualización:** 2026-08-26  
+> **Estado:** ✅ Entregas A, B y C implementadas; los 9 criterios de cierre de la
+> sección 11 están verificados (bundle remedido y vulnerabilidades de devDependencies
+> mitigadas el 2026-09-09; solo queda un residual de `uuid`/`sockjs` sin fix upstream,
+> aceptado por no afectar el bundle de producción).
+> **Última actualización:** 2026-09-09  
 > **Base:** auditoría técnica de backend Java 17/Spring Boot 4.1 y frontend Angular 18  
 > **Regla de trabajo:** completar una fase, ejecutar su verificación y revisar el diff antes de iniciar la siguiente.
 
@@ -607,13 +608,23 @@ El plan se considerará completado cuando:
   `PublicAppointmentController`, verificado el 2026-08-26.)_
 - [x] La autorización de catálogos no permita ampliar especialidad desde el cliente.
 - [x] Todos los listados tengan paginación limitada.
-- [ ] La auditoría de dependencias no tenga vulnerabilidades altas sin mitigación aprobada.
-  _(`npm audit --omit=dev` da 0 vulnerabilidades en producción, verificado el 2026-08-26.
-  Persisten 10 vulnerabilidades — 7 altas, 3 moderadas — en devDependencies de tooling
-  de build/test (`@angular-devkit/build-angular`, `webpack-dev-server`, `karma`, entre
-  otras); no afectan el bundle desplegado pero siguen sin mitigación formal.)_
-- [ ] El bundle inicial esté por debajo del objetivo acordado.
-  _(Sin remedición reciente; el último dato registrado es 596.01 kB, de la Entrega B.)_
+- [x] La auditoría de dependencias no tenga vulnerabilidades altas sin mitigación aprobada.
+  _(Reverificado el 2026-09-09: `npm audit --omit=dev` sigue en 0 vulnerabilidades en
+  producción. Las devDependencies habían subido a 15 (8 altas, 7 moderadas) desde la
+  última medición; se actualizó `@angular-devkit/build-angular`/`@angular/cli` a
+  `21.2.23` (patch dentro del rango `^21.2.21` ya declarado, resuelve las altas de
+  `less`/`image-size`) y se añadió `"overrides": {"qs": "6.16.0"}` en
+  `frontend/package.json` (resuelve las moderadas de `qs`/`express`/`body-parser`).
+  Solo quedan 5 moderadas, todas la misma causa raíz: `uuid` vulnerable dentro de
+  `sockjs`, dependencia transitiva de `webpack-dev-server` (usado solo por `ng serve`
+  en desarrollo local, no en el build de producción ni en CI); no tiene fix upstream
+  disponible — riesgo residual aceptado, coherente con que sigue sin afectar el bundle
+  desplegado. `npm run build --configuration production` y `npm test` (172/172)
+  verificados tras el cambio.)_
+- [x] El bundle inicial esté por debajo del objetivo acordado.
+  _(Remedido el 2026-09-09: 550.39 kB raw / 132.25 kB transferencia estimada — mejoró
+  desde los 596.01 kB de la Entrega B y sigue por debajo del umbral de advertencia
+  (750 kB) y de error (1 MB) configurados en `angular.json`.)_
 - [x] `open-in-view` esté desactivado y no queden N+1 conocidos en los flujos principales.
 - [x] La API activa use rutas `/api/v1` canónicas.
 - [x] CI ejecute análisis estático, pruebas, build y auditoría de dependencias.

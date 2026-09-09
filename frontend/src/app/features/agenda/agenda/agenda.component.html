@@ -537,20 +537,14 @@
             }
           }
 
-          @if (selectedAppointmentPreview.status === 'NO_ASISTIO' || selectedAppointmentPreview.status === 'CANCELADA') {
+          @if (selectedAppointmentPreview.status === 'CANCELADA') {
             <button
               type="button"
-              class="btn-secondary w-full !py-2.5 !text-sm flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-              [disabled]="isUpdatingStatus || isStartingAttention"
-              (click)="reopenAppointment(selectedAppointmentPreview)"
+              class="btn-primary w-full !py-2.5 !text-sm flex items-center justify-center gap-2 shadow-xs"
+              (click)="scheduleNewAppointmentInSameSlot(selectedAppointmentPreview)"
             >
-              @if (isUpdatingStatus && activeStatusAction === 'CONFIRMADA') {
-                <span class="spinner !h-4 !w-4 !border-2" role="status"></span>
-                <span>Reabriendo...</span>
-              } @else {
-                <lucide-icon [img]="RotateCcw" [size]="15"></lucide-icon>
-                <span>Reabrir y Confirmar Cita</span>
-              }
+              <lucide-icon [img]="Plus" [size]="15"></lucide-icon>
+              <span>Agendar nueva cita en este horario</span>
             </button>
           }
 

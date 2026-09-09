@@ -11,7 +11,7 @@ import { CatalogService } from '../../../core/services/catalog.service';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { LucideAngularModule } from 'lucide-angular';
 import {
-  Plus, Edit, Trash2, Download, Eye, Search, FilterX, CalendarCheck,
+  Plus, Edit, Trash2, Download, Eye, Search, FilterX, CalendarCheck, CalendarRange,
   LayoutGrid, List, Banknote, Wallet, CreditCard, Landmark, Smartphone, MoreHorizontal, BarChart3
 } from '../../../shared/icons/lucide-icons';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
@@ -21,6 +21,8 @@ import { ViewPreferenceService } from '../../../shared/services/view-preference/
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { fetchAllPages } from '../../../core/utils/pagination.util';
+
+type DatePreset = 'TODAY' | 'WEEK' | 'MONTH' | 'LAST_MONTH' | 'YEAR' | 'CUSTOM';
 
 @Component({
   selector: 'app-billing',
@@ -37,6 +39,7 @@ export class BillingComponent implements OnInit, OnDestroy {
   readonly Search = Search;
   readonly FilterX = FilterX;
   readonly CalendarCheck = CalendarCheck;
+  readonly CalendarRange = CalendarRange;
   readonly LayoutGrid = LayoutGrid;
   readonly List = List;
   readonly Banknote = Banknote;
@@ -72,8 +75,16 @@ export class BillingComponent implements OnInit, OnDestroy {
   filterMethod: string = '';
   filterStatus: string = '';
 
-  summaryDateFrom: string = '';
-  summaryDateTo: string = '';
+  selectedPreset: DatePreset = 'MONTH';
+
+  readonly datePresets: { code: DatePreset; label: string }[] = [
+    { code: 'TODAY', label: 'Hoy' },
+    { code: 'WEEK', label: 'Últimos 7 días' },
+    { code: 'MONTH', label: 'Este mes' },
+    { code: 'LAST_MONTH', label: 'Mes anterior' },
+    { code: 'YEAR', label: 'Este año' },
+    { code: 'CUSTOM', label: 'Personalizado' }
+  ];
 
   readonly statusOptions: { code: string; name: string }[] = [
     { code: 'PENDIENTE', name: 'Pendiente' },
@@ -98,6 +109,7 @@ export class BillingComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.viewMode = this.viewPreferenceService.getViewMode<'table' | 'cards'>('billing_view_mode', 'table', 'cards');
+    this.setPresetDates('MONTH', false);
 
     // Debounce search
     this.searchSubscription = this.searchSubject.pipe(
@@ -114,11 +126,11 @@ export class BillingComponent implements OnInit, OnDestroy {
       next: (items) => {
         items.forEach(item => this.paymentMethodMap.set(item.itemCode, item.itemName));
         this.paymentMethodOptions = items.map(item => ({ code: item.itemCode, name: item.itemName }));
-        this.loadSummary();
+        this.loadSummary(this.filterDateFrom, this.filterDateTo);
       },
       error: (err) => {
         console.error('Error fetching payment methods', err);
-        this.loadSummary();
+        this.loadSummary(this.filterDateFrom, this.filterDateTo);
       }
     });
 
@@ -169,21 +181,58 @@ export class BillingComponent implements OnInit, OnDestroy {
   }
 
   get hasActiveFilters(): boolean {
-    return !!(this.filterDateFrom || this.filterDateTo || this.filterMethod || this.filterStatus);
+    return this.selectedPreset !== 'MONTH'
+      || !!(this.searchTerm || this.filterMethod || this.filterStatus);
+  }
+
+  get dateRangeIncomplete(): boolean {
+    return (!!this.filterDateFrom && !this.filterDateTo) || (!this.filterDateFrom && !!this.filterDateTo);
+  }
+
+  get dateRangeInvalid(): boolean {
+    return !!(this.filterDateFrom && this.filterDateTo && this.filterDateFrom > this.filterDateTo);
+  }
+
+  get periodLabel(): string {
+    switch (this.selectedPreset) {
+      case 'TODAY': return 'de hoy';
+      case 'WEEK': return 'de los últimos 7 días';
+      case 'LAST_MONTH': return 'del mes anterior';
+      case 'YEAR': return 'de este año';
+      case 'CUSTOM': return 'del período seleccionado';
+      default: return 'de este mes';
+    }
+  }
+
+  get appliedPeriodLabel(): string {
+    if (!this.filterDateFrom || !this.filterDateTo) return 'Selecciona ambas fechas';
+    return `Resultados del ${this.formatIsoDate(this.filterDateFrom)} al ${this.formatIsoDate(this.filterDateTo)}`;
   }
 
   applyFilters(): void {
+    if (this.dateRangeIncomplete || this.dateRangeInvalid) return;
     this.currentPage = 0;
     this.loadPayments();
   }
 
-  clearFilters(): void {
-    this.filterDateFrom = '';
-    this.filterDateTo = '';
-    this.filterMethod = '';
-    this.filterStatus = '';
+  applyDateRange(): void {
+    this.selectedPreset = 'CUSTOM';
+    if (this.dateRangeIncomplete || this.dateRangeInvalid) return;
     this.currentPage = 0;
     this.loadPayments();
+    this.loadSummary(this.filterDateFrom, this.filterDateTo);
+  }
+
+  setPreset(preset: DatePreset): void {
+    this.setPresetDates(preset, true);
+  }
+
+  clearFilters(): void {
+    this.searchTerm = '';
+    this.searchSubject.next('');
+    this.filterMethod = '';
+    this.filterStatus = '';
+    this.setPresetDates('MONTH', true);
   }
 
   loadPayments(): void {
@@ -210,12 +259,6 @@ export class BillingComponent implements OnInit, OnDestroy {
       next: (summary) => this.summary = summary,
       error: (err) => console.error('Error fetching payment summary', err)
     });
-  }
-
-  onSummaryRangeChange(range: { dateFrom: string; dateTo: string }): void {
-    this.summaryDateFrom = range.dateFrom;
-    this.summaryDateTo = range.dateTo;
-    this.loadSummary(range.dateFrom || undefined, range.dateTo || undefined);
   }
 
   onPageChange(page: number): void {
@@ -246,7 +289,7 @@ export class BillingComponent implements OnInit, OnDestroy {
 
   onPaymentChanged(): void {
     this.loadPayments();
-    this.loadSummary(this.summaryDateFrom || undefined, this.summaryDateTo || undefined);
+    this.loadSummary(this.filterDateFrom || undefined, this.filterDateTo || undefined);
   }
 
   onPaymentSaved(): void {
@@ -254,7 +297,7 @@ export class BillingComponent implements OnInit, OnDestroy {
     this.selectedPayment = null;
     this.initialPaymentData = null;
     this.loadPayments();
-    this.loadSummary();
+    this.loadSummary(this.filterDateFrom || undefined, this.filterDateTo || undefined);
   }
 
   deletePayment(id: number): void {
@@ -269,7 +312,7 @@ export class BillingComponent implements OnInit, OnDestroy {
           next: () => {
             this.toastService.show('Cobro eliminado exitosamente', 'success');
             this.loadPayments();
-            this.loadSummary();
+            this.loadSummary(this.filterDateFrom || undefined, this.filterDateTo || undefined);
           },
           error: (err) => {
             console.error('Error deleting payment', err);
@@ -386,5 +429,49 @@ export class BillingComponent implements OnInit, OnDestroy {
       default:
         return { classes: 'bg-slate-100 text-slate-600 border-line' };
     }
+  }
+
+  private setPresetDates(preset: DatePreset, reload: boolean): void {
+    this.selectedPreset = preset;
+    if (preset === 'CUSTOM') return;
+
+    const now = new Date();
+    let from = new Date(now);
+    let to = new Date(now);
+
+    switch (preset) {
+      case 'WEEK':
+        from.setDate(from.getDate() - 6);
+        break;
+      case 'MONTH':
+        from = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+      case 'LAST_MONTH':
+        from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        to = new Date(now.getFullYear(), now.getMonth(), 0);
+        break;
+      case 'YEAR':
+        from = new Date(now.getFullYear(), 0, 1);
+        break;
+    }
+
+    this.filterDateFrom = this.toIsoDate(from);
+    this.filterDateTo = this.toIsoDate(to);
+
+    if (reload) {
+      this.currentPage = 0;
+      this.loadPayments();
+      this.loadSummary(this.filterDateFrom, this.filterDateTo);
+    }
+  }
+
+  private toIsoDate(date: Date): string {
+    const pad = (value: number) => value.toString().padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  }
+
+  private formatIsoDate(value: string): string {
+    const [year, month, day] = value.split('-');
+    return `${day}/${month}/${year}`;
   }
 }

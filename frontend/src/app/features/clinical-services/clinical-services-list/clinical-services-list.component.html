@@ -169,10 +169,10 @@
     <div class="flex flex-wrap items-end gap-2">
       <div>
         <label class="form-label !mb-1 !text-[10px]">Categoría</label>
-        <select class="input-field !py-1.5 text-xs" [(ngModel)]="filterCategory" (change)="applyFilters()">
+        <select id="serviceCategoryFilter" class="input-field !py-1.5 text-xs" [(ngModel)]="filterCategory" (change)="applyFilters()">
           <option value="">Todas</option>
-          @for (cat of categories; track cat) {
-            <option [value]="cat">{{ cat }}</option>
+          @for (category of categories; track category.id ?? category.itemCode) {
+            <option [value]="category.itemCode">{{ category.itemName }}</option>
           }
         </select>
       </div>
@@ -245,7 +245,7 @@
 
           <div class="mt-3 flex flex-wrap items-center gap-1.5">
             @if (service.category) {
-              <span class="rounded bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-700 border border-violet-200">{{ service.category }}</span>
+              <span class="rounded bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-700 border border-violet-200">{{ getCategoryLabel(service.category) }}</span>
             }
             @if (service.durationMinutes) {
               <span class="inline-flex items-center gap-1 rounded bg-sky-50 px-2 py-0.5 text-[10px] font-semibold text-sky-700 border border-sky-200">
@@ -301,7 +301,7 @@
               </td>
               <td>
                 @if (service.category) {
-                  <span class="rounded bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-700 border border-violet-200">{{ service.category }}</span>
+                  <span class="rounded bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-700 border border-violet-200">{{ getCategoryLabel(service.category) }}</span>
                 } @else { <span class="text-xs text-muted">—</span> }
               </td>
               <td class="text-xs text-muted max-w-md truncate">{{ service.description || '—' }}</td>
@@ -391,7 +391,7 @@
 
         <div class="mt-4 flex flex-wrap gap-1.5">
           @if (viewingService.category) {
-            <span class="rounded bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-700 border border-violet-200">{{ viewingService.category }}</span>
+            <span class="rounded bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-700 border border-violet-200">{{ getCategoryLabel(viewingService.category) }}</span>
           }
           @if (viewingService.durationMinutes) {
             <span class="inline-flex items-center gap-1 rounded bg-sky-50 px-2 py-0.5 text-[10px] font-semibold text-sky-700 border border-sky-200">
@@ -408,10 +408,6 @@
 
         <div class="mt-6 flex justify-end gap-2 border-t border-line pt-4">
           <button type="button" class="btn-secondary !text-xs" (click)="closeView()">Cerrar</button>
-          <button type="button" class="btn-primary !text-xs" (click)="closeView(); openModal(viewingService.id!)">
-            <lucide-icon [img]="Edit" [size]="14"></lucide-icon>
-            <span>Editar</span>
-          </button>
         </div>
       </div>
     </section>

@@ -59,7 +59,7 @@ class ClinicalServiceServiceTest {
         ClinicalServiceDto dto = new ClinicalServiceDto();
         dto.setName("Terapia de Pareja");
         dto.setPrice(new BigDecimal("80.00"));
-        dto.setCategory("Terapia");
+        dto.setCategory("TERAPIA");
         dto.setDurationMinutes(60);
         dto.setActive(null);
 
@@ -68,7 +68,7 @@ class ClinicalServiceServiceTest {
         assertEquals(10L, created.getId());
         assertTrue(created.getActive());
         assertEquals("PSICOLOGIA", created.getSpecialty());
-        assertEquals("Terapia", created.getCategory());
+        assertEquals("TERAPIA", created.getCategory());
         assertEquals(60, created.getDurationMinutes());
     }
 
@@ -87,7 +87,7 @@ class ClinicalServiceServiceTest {
         ClinicalServiceDto dto = new ClinicalServiceDto();
         dto.setName("Consulta Psicológica");
         dto.setPrice(new BigDecimal("50.00"));
-        dto.setCategory("Evaluación");
+        dto.setCategory("EVALUACION");
         dto.setDurationMinutes(45);
         dto.setImageUrl("https://example.com/img.png");
         dto.setActive(false);
@@ -95,7 +95,7 @@ class ClinicalServiceServiceTest {
         ClinicalServiceDto updated = clinicalServiceService.updateService(10L, dto);
 
         assertEquals("Consulta Psicológica", updated.getName());
-        assertEquals("Evaluación", updated.getCategory());
+        assertEquals("EVALUACION", updated.getCategory());
         assertEquals(45, updated.getDurationMinutes());
         assertEquals("https://example.com/img.png", updated.getImageUrl());
         assertFalse(updated.getActive());

@@ -42,8 +42,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             @Param("specialty") String specialty,
             @Param("professionalId") Long professionalId);
 
-    long countByAppointmentDateAndSpecialty(LocalDate date, String specialty);
-
     @Query("SELECT a FROM Appointment a JOIN FETCH a.patient p " +
            "WHERE a.status = 'PROGRAMADA' AND a.reminderSentAt IS NULL AND a.appointmentDate = :date " +
            "ORDER BY a.startTime ASC")
@@ -51,6 +49,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     @Query("SELECT a FROM Appointment a JOIN FETCH a.patient p " +
            "WHERE a.appointmentDate = :date AND a.specialty = :specialty " +
+           "AND a.status <> 'CANCELADA' " +
            "ORDER BY a.startTime ASC NULLS LAST")
     List<Appointment> findTodayAppointmentsBySpecialty(@Param("date") LocalDate date, @Param("specialty") String specialty);
 
