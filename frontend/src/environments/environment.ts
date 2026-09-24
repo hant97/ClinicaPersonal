@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://cliniappper.duckdns.org/api'
+  apiUrl: 'https://clinicapersonal.onrender.com/api'
 };
