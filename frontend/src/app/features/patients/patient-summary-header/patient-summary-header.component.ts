@@ -5,17 +5,20 @@ import { LucideAngularModule } from 'lucide-angular';
 import { ArrowLeft, Calendar, Edit, ImagePlus,
  Mail, Phone, Plus, Printer } from '../../../shared/icons/lucide-icons';
 import { Patient } from '../../../core/models/patient.model';
+import { AuthImageSrcDirective } from '../../../shared/directives/auth-image-src.directive';
 
 @Component({
   selector: 'app-patient-summary-header',
   standalone: true,
-  imports: [CommonModule, RouterLink, LucideAngularModule],
+  imports: [CommonModule, RouterLink, LucideAngularModule, AuthImageSrcDirective],
   templateUrl: './patient-summary-header.component.html'
 })
 export class PatientSummaryHeaderComponent {
   @Input({ required: true }) patient!: Patient;
   @Input() age: number | null = null;
   @Input() isMinor = false;
+  /** Falso para usuarios sin rol de profesional: se ocultan las acciones clínicas. */
+  @Input() clinicalAccess = true;
 
   @Output() backRequested = new EventEmitter<void>();
   @Output() printRequested = new EventEmitter<void>();

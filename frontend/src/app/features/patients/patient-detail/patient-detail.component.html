@@ -4,6 +4,7 @@
       [patient]="patient"
       [age]="age"
       [isMinor]="esMenorEdad"
+      [clinicalAccess]="isProfessional"
       (backRequested)="goBack()"
       (printRequested)="openPrint()"
       (appointmentRequested)="scheduleAppointment()"
@@ -11,7 +12,8 @@
       (photoSelected)="onPhotoSelected($event)"
     ></app-patient-summary-header>
 
-    <!-- Persistent Unified Safety Cockpit Banner -->
+    <!-- Persistent Unified Safety Cockpit Banner (información clínica) -->
+    @if (isProfessional) {
     <app-risk-alert-banner
       [allergies]="allergies"
       [activeAlerts]="activeAlerts"
@@ -24,6 +26,7 @@
       (openDiagnoses)="openDiagnosesSection()"
       (scheduleAppointment)="scheduleAppointment()"
     ></app-risk-alert-banner>
+    }
 
     <!-- 2-Column Clinical Split Screen Workspace -->
     <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px] gap-6 items-start">
@@ -33,6 +36,8 @@
         <!-- 1. Workspace Navigation Tabs -->
         <div class="border-b border-line bg-surface rounded-t-xl px-3 pt-2.5 shadow-xs">
           <nav class="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-touch pb-1" aria-label="Pestañas de expediente clínico">
+            <!-- Pestañas clínicas (1 a 3): solo para profesionales de salud -->
+            @if (isProfessional) {
             <!-- Tab 1: Timeline -->
             <button
               type="button"
@@ -90,6 +95,7 @@
                 </span>
               }
             </button>
+            }
 
             <!-- Tab 4: Cobros & Facturación -->
             <button
@@ -801,7 +807,7 @@
           <div class="flex items-center gap-3">
             <label class="relative block shrink-0 cursor-pointer" title="Cambiar foto">
               @if (patient.photoUrl) {
-                <img [src]="patient.photoUrl" class="h-11 w-11 rounded-full object-cover border border-line" [alt]="patient.firstName">
+                <img [appAuthSrc]="patient.photoUrl" class="h-11 w-11 rounded-full object-cover border border-line" [alt]="patient.firstName">
               } @else {
                 <span class="avatar-initials !h-11 !w-11 !text-sm font-bold bg-primary-100 text-primary-700 flex">
                   {{ getInitials(patient.firstName, patient.lastName) }}
@@ -905,6 +911,8 @@
           }
         </div>
 
+        <!-- Widgets clínicos: solo para profesionales de salud -->
+        @if (isProfessional) {
         <!-- 2. Active Risk Alerts Box (If any) -->
         @if (activeAlerts.length > 0) {
           <div class="card !p-3.5 border-l-4 border-l-red-500 bg-red-50/50 space-y-2">
@@ -979,6 +987,7 @@
             <p class="text-[11px] text-muted italic">Sin medicamentos prescritos actualmente.</p>
           }
         </div>
+        }
       </aside>
     </div>
 

@@ -67,10 +67,10 @@ describe('MainLayoutComponent', () => {
 
   it('should open and close the mobile navigation', () => {
     component.toggleSidebar();
-    expect(component.isSidebarOpen).toBeTrue();
+    expect(component.isSidebarOpen).toBe(true);
 
     component.closeSidebar();
-    expect(component.isSidebarOpen).toBeFalse();
+    expect(component.isSidebarOpen).toBe(false);
   });
 
   it('should toggle sidebar collapse state', () => {
@@ -90,7 +90,7 @@ describe('MainLayoutComponent', () => {
 
     component.toggleSidebarCollapse();
 
-    expect(component.isSidebarExpanded).toBeFalse();
+    expect(component.isSidebarExpanded).toBe(false);
     expect(localStorage.getItem('sidebar_expanded')).toBeNull();
   });
 
@@ -98,42 +98,43 @@ describe('MainLayoutComponent', () => {
     const sidebar = fixture.nativeElement.querySelector('#main-navigation') as HTMLElement;
     const collapseControl = fixture.nativeElement.querySelector('[data-testid="sidebar-collapse"]') as HTMLElement;
 
-    expect(sidebar.classList.contains('md:w-16')).toBeTrue();
-    expect(sidebar.classList.contains('lg:w-64')).toBeFalse();
-    expect(collapseControl.classList.contains('xl:flex')).toBeTrue();
+    expect(sidebar.classList.contains('md:w-16')).toBe(true);
+    expect(sidebar.classList.contains('lg:w-64')).toBe(false);
+    expect(collapseControl.classList.contains('xl:flex')).toBe(true);
   });
 
   it('should toggle and close the profile dropdown menu', () => {
-    expect(component.isProfileMenuOpen).toBeFalse();
+    expect(component.isProfileMenuOpen).toBe(false);
 
     component.toggleProfileMenu();
-    expect(component.isProfileMenuOpen).toBeTrue();
+    expect(component.isProfileMenuOpen).toBe(true);
 
     component.closeProfileMenu();
-    expect(component.isProfileMenuOpen).toBeFalse();
+    expect(component.isProfileMenuOpen).toBe(false);
   });
 
   it('should close profile menu on escape key', () => {
     const profileToggle = fixture.nativeElement.querySelector('[aria-haspopup="menu"]') as HTMLButtonElement;
     expect(profileToggle).not.toBeNull();
-    const focusSpy = spyOn(profileToggle, 'focus');
+    const focusSpy = vi.spyOn(profileToggle, 'focus');
     component.isProfileMenuOpen = true;
     component.onEscape();
-    expect(component.isProfileMenuOpen).toBeFalse();
+    expect(component.isProfileMenuOpen).toBe(false);
     expect(focusSpy).toHaveBeenCalled();
   });
 
   it('should call authService.logout and close menu on logout', () => {
     const authService = TestBed.inject(AuthService);
     const router = TestBed.inject(Router);
-    const logoutSpy = spyOn(authService, 'logout');
-    const navigateSpy = spyOn(router, 'navigate').and.resolveTo(true);
+    const logoutSpy = vi.spyOn(authService, 'logout');
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     component.isProfileMenuOpen = true;
 
     component.logout();
 
     expect(logoutSpy).toHaveBeenCalled();
-    expect(navigateSpy).toHaveBeenCalledOnceWith(['/login']);
-    expect(component.isProfileMenuOpen).toBeFalse();
+    expect(navigateSpy).toHaveBeenCalledTimes(1);
+    expect(navigateSpy).toHaveBeenCalledWith(['/login']);
+    expect(component.isProfileMenuOpen).toBe(false);
   });
 });

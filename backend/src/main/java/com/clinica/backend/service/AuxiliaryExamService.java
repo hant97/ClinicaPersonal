@@ -28,7 +28,7 @@ public class AuxiliaryExamService {
 
     @Transactional(readOnly = true)
     public Page<AuxiliaryExamDto> getExams(Long patientId, Pageable pageable) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, user.getSpecialty())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
         Page<AuxiliaryExam> exams = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
@@ -39,7 +39,7 @@ public class AuxiliaryExamService {
 
     @Transactional
     public AuxiliaryExamDto createExam(Long patientId, AuxiliaryExamDto dto) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         clinicalAuthorizationService.ensureSameSpecialty("DERMATOLOGIA");
         Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, "DERMATOLOGIA")
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
@@ -65,7 +65,7 @@ public class AuxiliaryExamService {
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator("DERMATOLOGIA", exam.getProfessionalId());
         exam.setDeleted(true);
         exam.setDeletedAt(LocalDateTime.now());
-        exam.setDeletedBy(clinicalAuthorizationService.currentUser().getId());
+        exam.setDeletedBy(clinicalAuthorizationService.currentProfessional().getId());
         repository.save(exam);
     }
 

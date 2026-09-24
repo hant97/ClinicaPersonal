@@ -48,7 +48,7 @@ describe('FocusTrapDirective', () => {
     trap.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     fixture.detectChanges();
 
-    expect(component.isOpen).toBeFalse();
+    expect(component.isOpen).toBe(false);
     expect(document.activeElement).toBe(trigger);
   });
 

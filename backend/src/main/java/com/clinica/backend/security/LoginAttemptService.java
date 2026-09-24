@@ -44,16 +44,7 @@ public class LoginAttemptService {
         if (key == null) return;
         cleanupIfNecessary(attemptsCache);
 
-        String normalizedKey = key.toLowerCase().trim();
-        AttemptInfo info = attemptsCache.get(normalizedKey);
-        int attempts = (info == null) ? 1 : info.attempts + 1;
-
-        Instant lockedUntil = null;
-        if (attempts >= MAX_ATTEMPTS) {
-            lockedUntil = Instant.now().plusSeconds(LOCK_DURATION_SECONDS);
-        }
-
-        attemptsCache.put(normalizedKey, new AttemptInfo(attempts, lockedUntil));
+        recordFailure(attemptsCache, key.toLowerCase().trim(), MAX_ATTEMPTS);
     }
 
     public boolean isBlocked(String key) {
@@ -104,12 +95,20 @@ public class LoginAttemptService {
 
     private void recordIpFailure(Map<String, AttemptInfo> cache, String key) {
         if (key == null || key.isBlank()) return;
-        String normalizedKey = key.trim();
-        AttemptInfo info = cache.get(normalizedKey);
-        int attempts = info == null ? 1 : info.attempts + 1;
-        Instant lockedUntil = attempts >= MAX_IP_ATTEMPTS
-                ? Instant.now().plusSeconds(LOCK_DURATION_SECONDS) : null;
-        cache.put(normalizedKey, new AttemptInfo(attempts, lockedUntil));
+        recordFailure(cache, key.trim(), MAX_IP_ATTEMPTS);
+    }
+
+    /**
+     * Incremento atómico: con leer-y-escribir por separado, fallos simultáneos se pisaban entre
+     * sí y el contador podía no llegar nunca al límite.
+     */
+    private static void recordFailure(Map<String, AttemptInfo> cache, String key, int maxAttempts) {
+        cache.compute(key, (k, info) -> {
+            int attempts = info == null ? 1 : info.attempts + 1;
+            Instant lockedUntil = attempts >= maxAttempts
+                    ? Instant.now().plusSeconds(LOCK_DURATION_SECONDS) : null;
+            return new AttemptInfo(attempts, lockedUntil);
+        });
     }
 
     public long getRemainingLockMinutes(String key) {

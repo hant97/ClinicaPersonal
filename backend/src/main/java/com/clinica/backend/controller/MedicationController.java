@@ -5,7 +5,8 @@ import com.clinica.backend.service.MedicationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,9 +20,8 @@ public class MedicationController {
     @GetMapping("/patients/{patientId}/medications")
     public ResponseEntity<Page<MedicationDto>> getMedications(
             @PathVariable Long patientId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(service.getMedications(patientId, PageRequest.of(page, size)));
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(service.getMedications(patientId, pageable));
     }
 
     @PostMapping("/patients/{patientId}/medications")

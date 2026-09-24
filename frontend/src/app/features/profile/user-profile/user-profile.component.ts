@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { UserService } from '../../../core/services/user.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { ROLES, describeRoles } from '../../../core/models/roles';
 import { ClinicSettingsService } from '../../../core/services/clinic-settings.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { UserProfile } from '../../../core/models/user-profile.model';
@@ -169,10 +170,8 @@ export class UserProfileComponent implements OnInit {
   }
 
   get roleLabel(): string {
-    if (this.authService.hasRole('ROLE_SITE_ADMIN')) return 'Super Administrador';
-    if (this.authService.hasRole('ROLE_ADMIN')) return 'Profesional Titular (Admin)';
-    if (this.authService.hasRole('ROLE_ASISTENTE')) return 'Asistente / Recepción';
-    return 'Usuario del Sistema';
+    const roles = Object.values(ROLES).filter(role => this.authService.hasRole(role));
+    return describeRoles(roles).map(role => role.label).join(' · ') || 'Usuario del Sistema';
   }
 
   passwordMatchValidator(g: FormGroup) {

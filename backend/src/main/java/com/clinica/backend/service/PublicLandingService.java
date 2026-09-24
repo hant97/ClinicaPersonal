@@ -1,6 +1,7 @@
 package com.clinica.backend.service;
 
 import com.clinica.backend.dto.PublicLandingDto;
+import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.ClinicalService;
 import com.clinica.backend.model.WebsiteBenefit;
 import com.clinica.backend.model.WebsiteProcessStep;
@@ -65,6 +66,10 @@ public class PublicLandingService {
     }
 
     public Resource loadAsset(String key) {
+        // Las fotos de pacientes se guardaban aquí antes de V14; nunca deben servirse sin autenticación.
+        if (key == null || key.startsWith("patients/")) {
+            throw new ResourceNotFoundException("Archivo no encontrado");
+        }
         return fileStorage.load(key);
     }
 

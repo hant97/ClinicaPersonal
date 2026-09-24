@@ -54,7 +54,7 @@ class DiagnosisServiceTest {
     void createDiagnosisUsesAuthenticatedProfessionalAndSpecialty() {
         Patient patient = new Patient();
         patient.setId(7L);
-        when(clinicalAuthorizationService.currentUser()).thenReturn(user);
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(user);
         when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(7L, "PSICOLOGIA")).thenReturn(Optional.of(patient));
         when(repository.save(any(Diagnosis.class))).thenAnswer(invocation -> {
             Diagnosis diagnosis = invocation.getArgument(0);

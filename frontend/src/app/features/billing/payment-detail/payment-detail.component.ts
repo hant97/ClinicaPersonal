@@ -13,6 +13,7 @@ import { NotificationService } from '../../../shared/services/notification/notif
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { Subscription } from 'rxjs';
 import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-payment-detail',
@@ -47,8 +48,14 @@ export class PaymentDetailComponent implements OnInit, OnDestroy {
     private paymentService: PaymentService,
     private catalogService: CatalogService,
     private notificationService: NotificationService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private authService: AuthService
   ) {}
+
+  /** Eliminar abonos está reservado a administradores (el backend también lo exige). */
+  get canDelete(): boolean {
+    return this.authService.isClinicAdmin();
+  }
 
   ngOnInit(): void {
     this.settingsSubscription = this.clinicSettingsService.settings$.subscribe(

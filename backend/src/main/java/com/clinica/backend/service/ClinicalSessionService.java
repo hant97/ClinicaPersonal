@@ -35,7 +35,7 @@ public class ClinicalSessionService {
 
     @Transactional(readOnly = true)
     public Page<ClinicalSessionDto> getSessionsByPatientId(Long patientId, Pageable pageable) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, user.getSpecialty())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
         Page<ClinicalSession> sessions = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
@@ -57,7 +57,7 @@ public class ClinicalSessionService {
 
     @Transactional
     public ClinicalSessionDto createSession(ClinicalSessionDto dto) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(dto.getPatientId(), user.getSpecialty())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
 
@@ -104,7 +104,7 @@ public class ClinicalSessionService {
         ClinicalSession updated = sessionRepository.save(session);
 
         if (hasMeaningfulRiskAssessment(dto, session.getSpecialty())) {
-            User user = clinicalAuthorizationService.currentUser();
+            User user = clinicalAuthorizationService.currentProfessional();
             riskAssessmentService.createOrUpdateForSession(updated.getId(), updated.getPatient().getId(), dto.getRiskAssessment(), user);
         }
 
@@ -166,7 +166,7 @@ public class ClinicalSessionService {
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator(session.getSpecialty(), session.getProfessionalId());
         session.setDeleted(true);
         session.setDeletedAt(LocalDateTime.now());
-        session.setDeletedBy(clinicalAuthorizationService.currentUser().getId());
+        session.setDeletedBy(clinicalAuthorizationService.currentProfessional().getId());
         sessionRepository.save(session);
 
         auditLogService.record(

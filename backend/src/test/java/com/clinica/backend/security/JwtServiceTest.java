@@ -81,6 +81,26 @@ class JwtServiceTest {
         assertNotNull(jwtService.extractTokenId(token));
     }
 
+    @Test
+    void shouldKeepHs256EvenWithKeysLongerThan32Bytes() {
+        // validSecret decodifica a 48 bytes: sin algoritmo explícito jjwt firmaría con HS384.
+        String token = jwtService.generateToken(createUser("admin", "ROLE_ADMIN"));
+        String header = new String(java.util.Base64.getUrlDecoder().decode(token.split("\\.")[0]));
+
+        assertTrue(header.contains("\"alg\":\"HS256\""), header);
+    }
+
+    @Test
+    void shouldRejectExpiredTokens() {
+        ReflectionTestUtils.setField(jwtService, "jwtExpiration", -1000L);
+        User user = createUser("admin", "ROLE_ADMIN");
+        String expired = jwtService.generateToken(user);
+
+        assertTrue(jwtService.parseClaims(expired).isEmpty());
+        assertFalse(jwtService.isTokenValid(expired, user));
+        assertEquals(-1L, jwtService.extractTokenVersion(expired));
+    }
+
     private User createUser(String username, String role) {
         User user = new User();
         user.setUsername(username);

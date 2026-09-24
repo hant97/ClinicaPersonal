@@ -4,7 +4,6 @@ import com.clinica.backend.mapper.RiskAlertMapper;
 
 import com.clinica.backend.dto.RiskAlertDto;
 import com.clinica.backend.model.RiskAlert;
-import com.clinica.backend.model.User;
 import com.clinica.backend.repository.PatientRepository;
 import com.clinica.backend.repository.RiskAlertRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDateTime;
 
@@ -24,6 +22,7 @@ public class RiskAlertService {
     private final RiskAlertRepository riskAlertRepository;
     private final PatientRepository patientRepository;
     private final RiskAlertMapper riskAlertMapper;
+    private final ClinicalAuthorizationService clinicalAuthorizationService;
 
     @Transactional(readOnly = true)
     public Page<RiskAlertDto> getAlertsByPatientId(Long patientId, boolean onlyActive, Pageable pageable) {
@@ -76,7 +75,9 @@ public class RiskAlertService {
     }
 
 
+    // El detalle de las alertas es información clínica: solo para profesionales. El indicador
+    // "tiene alertas activas" de la ficha del paciente sigue visible para recepción.
     private String specialty() {
-        return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getSpecialty();
+        return clinicalAuthorizationService.currentProfessional().getSpecialty();
     }
 }

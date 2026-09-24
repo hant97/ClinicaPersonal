@@ -16,15 +16,38 @@ class FileStorageSecurityTest {
     @TempDir
     Path tempDir;
 
-    private LocalWebsiteFileStorage websiteFileStorage;
+    private BlobWebsiteFileStorage websiteFileStorage;
     private ClinicSettingsService clinicSettingsService;
     private ClinicSettingsRepository clinicSettingsRepository;
 
     @BeforeEach
     void setUp() {
-        websiteFileStorage = new LocalWebsiteFileStorage(tempDir.toString());
+        LocalBlobStore blobStore = new LocalBlobStore(tempDir.toString());
+        websiteFileStorage = new BlobWebsiteFileStorage(blobStore);
         clinicSettingsRepository = mock(ClinicSettingsRepository.class);
-        clinicSettingsService = new ClinicSettingsService(clinicSettingsRepository, new com.clinica.backend.mapper.ClinicSettingsMapperImpl());
+        clinicSettingsService = new ClinicSettingsService(clinicSettingsRepository,
+                new com.clinica.backend.mapper.ClinicSettingsMapperImpl(), new LogoFileStorage(blobStore));
+    }
+
+    @Test
+    void clinicalFileStorageShouldRejectSvgDisguisedAsPngWithPngContentType() {
+        ClinicalFileStorage clinicalFileStorage = new ClinicalFileStorage(new LocalBlobStore(tempDir.toString()));
+        MockMultipartFile disguisedSvg = new MockMultipartFile(
+                "file",
+                "lesion.png",
+                "image/png",
+                "<svg onload=\"alert(1)\"></svg>".getBytes()
+        );
+
+        assertThrows(IllegalArgumentException.class, () ->
+                clinicalFileStorage.store(disguisedSvg, "lesions")
+        );
+    }
+
+    @Test
+    void logoShouldNotBeLoadedFromOutsideLogosFolder() {
+        assertThrows(IllegalArgumentException.class, () -> clinicSettingsService.loadLogo("../website/hero.png"));
+        assertThrows(IllegalArgumentException.class, () -> clinicSettingsService.loadLogo("sub/logo.png"));
     }
 
     @Test

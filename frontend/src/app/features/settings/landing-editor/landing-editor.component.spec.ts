@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { of } from 'rxjs';
@@ -25,19 +26,32 @@ function editorWith(draft: WebsiteDraft, revision = 3): WebsiteEditor {
 
 describe('LandingEditorComponent', () => {
   let component: LandingEditorComponent;
-  let websiteService: jasmine.SpyObj<WebsiteSettingsService>;
-  let router: jasmine.SpyObj<Router>;
-  let notification: jasmine.SpyObj<NotificationService>;
-  let toast: jasmine.SpyObj<ToastService>;
+  let websiteService: MockedObject<WebsiteSettingsService>;
+  let router: MockedObject<Router>;
+  let notification: MockedObject<NotificationService>;
+  let toast: MockedObject<ToastService>;
 
   beforeEach(async () => {
-    websiteService = jasmine.createSpyObj<WebsiteSettingsService>('WebsiteSettingsService', [
-      'getEditor', 'getPublicLanding', 'saveDraft', 'publish', 'resetDraft',
-      'uploadDraftAsset', 'deleteDraftAsset', 'uploadDraftProfessionalPhoto'
-    ]);
-    router = jasmine.createSpyObj<Router>('Router', ['navigate']);
-    notification = jasmine.createSpyObj<NotificationService>('NotificationService', ['confirm', 'alert']);
-    toast = jasmine.createSpyObj<ToastService>('ToastService', ['show']);
+    websiteService = {
+      getEditor: vi.fn().mockName('WebsiteSettingsService.getEditor'),
+      getPublicLanding: vi.fn().mockName('WebsiteSettingsService.getPublicLanding'),
+      saveDraft: vi.fn().mockName('WebsiteSettingsService.saveDraft'),
+      publish: vi.fn().mockName('WebsiteSettingsService.publish'),
+      resetDraft: vi.fn().mockName('WebsiteSettingsService.resetDraft'),
+      uploadDraftAsset: vi.fn().mockName('WebsiteSettingsService.uploadDraftAsset'),
+      deleteDraftAsset: vi.fn().mockName('WebsiteSettingsService.deleteDraftAsset'),
+      uploadDraftProfessionalPhoto: vi.fn().mockName('WebsiteSettingsService.uploadDraftProfessionalPhoto')
+    } as unknown as MockedObject<WebsiteSettingsService>;
+    router = {
+      navigate: vi.fn().mockName('Router.navigate')
+    } as unknown as MockedObject<Router>;
+    notification = {
+      confirm: vi.fn().mockName('NotificationService.confirm'),
+      alert: vi.fn().mockName('NotificationService.alert')
+    } as unknown as MockedObject<NotificationService>;
+    toast = {
+      show: vi.fn().mockName('ToastService.show')
+    } as unknown as MockedObject<ToastService>;
 
     await TestBed.configureTestingModule({
       imports: [LandingEditorComponent],
@@ -55,20 +69,20 @@ describe('LandingEditorComponent', () => {
 
   it('carga el borrador y deriva la vista previa', () => {
     const draft = validDraft();
-    websiteService.getEditor.and.returnValue(of(editorWith(draft)));
-    websiteService.getPublicLanding.and.returnValue(of({ specialties: [] } as unknown as PublicLanding));
+    websiteService.getEditor.mockReturnValue(of(editorWith(draft)));
+    websiteService.getPublicLanding.mockReturnValue(of({ specialties: [] } as unknown as PublicLanding));
 
     component.ngOnInit();
 
     expect(component.draft?.commercialName).toBe('Clínica Demo');
-    expect(component.loading).toBeFalse();
+    expect(component.loading).toBe(false);
     expect(component.viewLanding?.hero.title).toBe('Tu bienestar');
   });
 
   it('editar el borrador actualiza la vista previa sin publicar', () => {
     const draft = validDraft();
-    websiteService.getEditor.and.returnValue(of(editorWith(draft)));
-    websiteService.getPublicLanding.and.returnValue(of({ specialties: [] } as unknown as PublicLanding));
+    websiteService.getEditor.mockReturnValue(of(editorWith(draft)));
+    websiteService.getPublicLanding.mockReturnValue(of({ specialties: [] } as unknown as PublicLanding));
 
     component.ngOnInit();
     component.draft!.heroTitle = 'Nuevo título';
@@ -79,9 +93,9 @@ describe('LandingEditorComponent', () => {
 
   it('guarda el borrador con la revisión actual', async () => {
     const draft = validDraft();
-    websiteService.getEditor.and.returnValue(of(editorWith(draft)));
-    websiteService.getPublicLanding.and.returnValue(of({ specialties: [] } as unknown as PublicLanding));
-    websiteService.saveDraft.and.returnValue(of(editorWith(draft, 4)));
+    websiteService.getEditor.mockReturnValue(of(editorWith(draft)));
+    websiteService.getPublicLanding.mockReturnValue(of({ specialties: [] } as unknown as PublicLanding));
+    websiteService.saveDraft.mockReturnValue(of(editorWith(draft, 4)));
 
     component.ngOnInit();
     await component.save();
@@ -92,8 +106,8 @@ describe('LandingEditorComponent', () => {
   it('bloquea la publicación cuando existen errores de validación', async () => {
     const invalid = validDraft();
     invalid.commercialName = '';
-    websiteService.getEditor.and.returnValue(of(editorWith(invalid)));
-    websiteService.getPublicLanding.and.returnValue(of({ specialties: [] } as unknown as PublicLanding));
+    websiteService.getEditor.mockReturnValue(of(editorWith(invalid)));
+    websiteService.getPublicLanding.mockReturnValue(of({ specialties: [] } as unknown as PublicLanding));
 
     component.ngOnInit();
     await component.publish();
@@ -104,9 +118,9 @@ describe('LandingEditorComponent', () => {
 
   it('confirma antes de salir cuando hay cambios sin guardar', async () => {
     const draft = validDraft();
-    websiteService.getEditor.and.returnValue(of(editorWith(draft)));
-    websiteService.getPublicLanding.and.returnValue(of({ specialties: [] } as unknown as PublicLanding));
-    notification.confirm.and.returnValue(Promise.resolve(true));
+    websiteService.getEditor.mockReturnValue(of(editorWith(draft)));
+    websiteService.getPublicLanding.mockReturnValue(of({ specialties: [] } as unknown as PublicLanding));
+    notification.confirm.mockReturnValue(Promise.resolve(true));
 
     component.ngOnInit();
     component.draft!.heroTitle = 'Sin guardar';

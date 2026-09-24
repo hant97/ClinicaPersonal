@@ -470,7 +470,7 @@
           <div class="card !p-4 space-y-3">
             <div class="flex items-center gap-3">
               @if (patient.photoUrl) {
-                <img [src]="patient.photoUrl" [alt]="patient.firstName" class="h-11 w-11 rounded-full object-cover border border-line shrink-0" />
+                <img [appAuthSrc]="patient.photoUrl" [alt]="patient.firstName" class="h-11 w-11 rounded-full object-cover border border-line shrink-0" />
               } @else {
                 <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700 font-bold text-sm">
                   {{ patient.firstName.charAt(0) }}{{ patient.lastName.charAt(0) }}

@@ -8,7 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 
 @RestController
 @RequestMapping("/api/v1/patients/{patientId}/alerts")
@@ -21,10 +22,9 @@ public class RiskAlertController {
     public ResponseEntity<Page<RiskAlertDto>> getAlerts(
             @PathVariable Long patientId,
             @RequestParam(required = false, defaultValue = "false") boolean onlyActive,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity
-                .ok(riskAlertService.getAlertsByPatientId(patientId, onlyActive, PageRequest.of(page, size)));
+                .ok(riskAlertService.getAlertsByPatientId(patientId, onlyActive, pageable));
     }
 
     @PostMapping

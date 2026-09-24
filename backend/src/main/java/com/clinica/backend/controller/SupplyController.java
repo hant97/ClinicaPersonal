@@ -15,7 +15,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 
 @RestController
 @RequestMapping("/api/v1/supplies")
@@ -27,9 +28,8 @@ public class SupplyController {
     @GetMapping
     public ResponseEntity<Page<SupplyDto>> getAllSupplies(
             @RequestParam(required = false) String name,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(supplyService.getAllSupplies(name, PageRequest.of(page, size)));
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(supplyService.getAllSupplies(name, pageable));
     }
     
     @GetMapping("/low-stock")

@@ -5,12 +5,18 @@ import com.clinica.backend.dto.PatientStatsDto;
 import com.clinica.backend.service.PatientService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.time.Duration;
 
 @RestController
 @RequestMapping("/api/v1/patients")
@@ -23,9 +29,8 @@ public class PatientController {
     public ResponseEntity<Page<PatientDto>> getAllPatients(
             @RequestParam(required = false) Boolean active,
             @RequestParam(required = false) String gender,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(patientService.getAllPatients(active, gender, PageRequest.of(page, size)));
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(patientService.getAllPatients(active, gender, pageable));
     }
 
     @GetMapping("/stats")
@@ -38,9 +43,8 @@ public class PatientController {
             @RequestParam String query,
             @RequestParam(required = false) Boolean active,
             @RequestParam(required = false) String gender,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(patientService.searchPatients(query, active, gender, PageRequest.of(page, size)));
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(patientService.searchPatients(query, active, gender, pageable));
     }
 
     @GetMapping("/{identifier}")
@@ -59,9 +63,25 @@ public class PatientController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deletePatient(@PathVariable Long id) {
         patientService.deletePatient(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/photo")
+    public ResponseEntity<Resource> getPhoto(@PathVariable Long id) {
+        Resource photo = patientService.loadPhoto(id);
+        String filename = photo.getFilename() == null ? "" : photo.getFilename().toLowerCase();
+        MediaType type = filename.endsWith(".png") ? MediaType.IMAGE_PNG
+                : filename.endsWith(".webp") ? MediaType.parseMediaType("image/webp")
+                : MediaType.IMAGE_JPEG;
+        return ResponseEntity.ok()
+                // privada: la URL cambia con cada foto (?v=), así que puede guardarse en caché.
+                .cacheControl(CacheControl.maxAge(Duration.ofDays(1)).cachePrivate())
+                .header("X-Content-Type-Options", "nosniff")
+                .contentType(type)
+                .body(photo);
     }
 
     @PostMapping(value = "/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

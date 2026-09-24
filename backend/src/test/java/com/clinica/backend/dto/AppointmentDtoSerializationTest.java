@@ -1,6 +1,6 @@
 package com.clinica.backend.dto;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -33,7 +33,7 @@ class AppointmentDtoSerializationTest {
 
     @Test
     void testAppointmentDtoDeserializationWithExtraFields() throws Exception {
-        ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+        ObjectMapper mapper = new ObjectMapper();
 
         String json = "{"
                 + "\"patientId\":1,"

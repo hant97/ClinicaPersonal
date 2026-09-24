@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { of } from 'rxjs';
@@ -12,14 +13,18 @@ import { NotificationService } from '../../../shared/services/notification/notif
 describe('AppointmentFormComponent', () => {
   let component: AppointmentFormComponent;
   let fixture: ComponentFixture<AppointmentFormComponent>;
-  let appointmentService: jasmine.SpyObj<AppointmentService>;
-  let catalogService: jasmine.SpyObj<CatalogService>;
-  let clinicalService: jasmine.SpyObj<ClinicalServiceService>;
-  let userService: jasmine.SpyObj<UserService>;
+  let appointmentService: MockedObject<AppointmentService>;
+  let catalogService: MockedObject<CatalogService>;
+  let clinicalService: MockedObject<ClinicalServiceService>;
+  let userService: MockedObject<UserService>;
 
   beforeEach(async () => {
-    const appointmentSpy = jasmine.createSpyObj('AppointmentService', ['search', 'create', 'update']);
-    appointmentSpy.search.and.returnValue(of({
+    const appointmentSpy = {
+      search: vi.fn().mockName('AppointmentService.search'),
+      create: vi.fn().mockName('AppointmentService.create'),
+      update: vi.fn().mockName('AppointmentService.update')
+    };
+    appointmentSpy.search.mockReturnValue(of({
       content: [],
       totalElements: 0,
       totalPages: 0,
@@ -30,23 +35,30 @@ describe('AppointmentFormComponent', () => {
       last: true,
       empty: true
     }));
-    appointmentSpy.create.and.returnValue(of({ id: 1, patientId: 1, appointmentDate: '2026-10-10', startTime: '10:00', endTime: '10:30', status: 'PROGRAMADA' }));
+    appointmentSpy.create.mockReturnValue(of({ id: 1, patientId: 1, appointmentDate: '2026-10-10', startTime: '10:00', endTime: '10:30', status: 'PROGRAMADA' }));
 
-    const catalogSpy = jasmine.createSpyObj('CatalogService', ['getActiveItemsByCatalogCode']);
-    catalogSpy.getActiveItemsByCatalogCode.and.returnValue(of([
+    const catalogSpy = {
+      getActiveItemsByCatalogCode: vi.fn().mockName('CatalogService.getActiveItemsByCatalogCode')
+    };
+    catalogSpy.getActiveItemsByCatalogCode.mockReturnValue(of([
       { id: 1, catalogCode: 'APPOINTMENT_MODALITY', itemCode: 'PRESENCIAL', itemName: 'Presencial', active: true }
     ]));
 
-    const clinicalSpy = jasmine.createSpyObj('ClinicalServiceService', ['getAllActiveServices']);
-    clinicalSpy.getAllActiveServices.and.returnValue(of([
+    const clinicalSpy = {
+      getAllActiveServices: vi.fn().mockName('ClinicalServiceService.getAllActiveServices')
+    };
+    clinicalSpy.getAllActiveServices.mockReturnValue(of([
       { id: 1, name: 'Consulta General', price: 100, durationMinutes: 45, active: true }
     ]));
 
-    const userSpy = jasmine.createSpyObj('UserService', ['getProfessionals', 'getCurrentUserProfile']);
-    userSpy.getProfessionals.and.returnValue(of([
+    const userSpy = {
+      getProfessionals: vi.fn().mockName('UserService.getProfessionals'),
+      getCurrentUserProfile: vi.fn().mockName('UserService.getCurrentUserProfile')
+    };
+    userSpy.getProfessionals.mockReturnValue(of([
       { id: 1, username: 'dr1', firstName: 'Juan', lastName: 'Pérez', specialty: 'PSICOLOGIA', enabled: true, roles: ['ROLE_ADMIN'] }
     ]));
-    userSpy.getCurrentUserProfile.and.returnValue(of({
+    userSpy.getCurrentUserProfile.mockReturnValue(of({
       id: 1,
       username: 'dr1',
       firstName: 'Juan',
@@ -68,10 +80,10 @@ describe('AppointmentFormComponent', () => {
       ]
     }).compileComponents();
 
-    appointmentService = TestBed.inject(AppointmentService) as jasmine.SpyObj<AppointmentService>;
-    catalogService = TestBed.inject(CatalogService) as jasmine.SpyObj<CatalogService>;
-    clinicalService = TestBed.inject(ClinicalServiceService) as jasmine.SpyObj<ClinicalServiceService>;
-    userService = TestBed.inject(UserService) as jasmine.SpyObj<UserService>;
+    appointmentService = TestBed.inject(AppointmentService) as MockedObject<AppointmentService>;
+    catalogService = TestBed.inject(CatalogService) as MockedObject<CatalogService>;
+    clinicalService = TestBed.inject(ClinicalServiceService) as MockedObject<ClinicalServiceService>;
+    userService = TestBed.inject(UserService) as MockedObject<UserService>;
 
     fixture = TestBed.createComponent(AppointmentFormComponent);
     component = fixture.componentInstance;
@@ -120,7 +132,7 @@ describe('AppointmentFormComponent', () => {
       professionalId: 1
     });
 
-    spyOn(component.saved, 'emit');
+    vi.spyOn(component.saved, 'emit');
     component.onSubmit();
 
     expect(appointmentService.create).toHaveBeenCalled();

@@ -26,6 +26,11 @@ auth:
 cors:
   allowed-origins: http://localhost:4200
 
+storage:
+  provider: local
+  local:
+    root: target/test-uploads
+
 management:
   endpoints:
     web:

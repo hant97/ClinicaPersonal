@@ -28,7 +28,7 @@ public class LesionService {
 
     @Transactional(readOnly = true)
     public Page<LesionDto> getLesions(Long patientId, Pageable pageable) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, user.getSpecialty())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
         Page<Lesion> lesions = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
@@ -39,7 +39,7 @@ public class LesionService {
 
     @Transactional
     public LesionDto createLesion(Long patientId, LesionDto dto) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         clinicalAuthorizationService.ensureSameSpecialty("DERMATOLOGIA");
         Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, "DERMATOLOGIA")
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
@@ -65,7 +65,7 @@ public class LesionService {
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator("DERMATOLOGIA", lesion.getProfessionalId());
         lesion.setDeleted(true);
         lesion.setDeletedAt(LocalDateTime.now());
-        lesion.setDeletedBy(clinicalAuthorizationService.currentUser().getId());
+        lesion.setDeletedBy(clinicalAuthorizationService.currentProfessional().getId());
         repository.save(lesion);
     }
 

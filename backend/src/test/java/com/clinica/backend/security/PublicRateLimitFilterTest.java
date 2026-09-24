@@ -60,6 +60,27 @@ class PublicRateLimitFilterTest {
     }
 
     @Test
+    void shouldNotBypassLimitByRotatingForwardedForHeader() throws ServletException, IOException {
+        String clientIp = "203.0.113.10";
+
+        for (int i = 0; i < 120; i++) {
+            MockHttpServletRequest req = new MockHttpServletRequest("GET", "/api/v1/public/landing");
+            req.setRemoteAddr(clientIp);
+            req.addHeader("X-Forwarded-For", "198.51.100." + i);
+            filter.doFilterInternal(req, new MockHttpServletResponse(), filterChain);
+        }
+
+        MockHttpServletRequest reqOverLimit = new MockHttpServletRequest("GET", "/api/v1/public/landing");
+        reqOverLimit.setRemoteAddr(clientIp);
+        reqOverLimit.addHeader("X-Forwarded-For", "127.0.0.1");
+        MockHttpServletResponse resOverLimit = new MockHttpServletResponse();
+
+        filter.doFilterInternal(reqOverLimit, resOverLimit, filterChain);
+
+        assertEquals(429, resOverLimit.getStatus());
+    }
+
+    @Test
     void shouldPassNonProtectedRequestsWithoutRateLimiting() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/patients");
         request.setRemoteAddr("192.168.1.50");

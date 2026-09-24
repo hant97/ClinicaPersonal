@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -46,7 +47,7 @@ class UserServiceTest {
                 .lastName("Doctor")
                 .email("test@clinica.com")
                 .phone("999888777")
-                .roles(Set.of("ROLE_DOCTOR"))
+                .roles(Set.of("ROLE_PROFESIONAL"))
                 .build();
 
         when(userRepository.findByUsername("doctor.test")).thenReturn(Optional.empty());
@@ -63,6 +64,37 @@ class UserServiceTest {
         assertEquals("doctor.test", result.getUsername());
         verify(passwordEncoder).encode("plain_pass");
         verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    void createUserAcceptsProfessionalCombinedWithAdministrator() {
+        CreateUserRequest request = CreateUserRequest.builder()
+                .username("psicologa.admin").password("plain_pass").specialty("PSICOLOGIA")
+                .roles(Set.of("ROLE_PROFESIONAL", "ROLE_ADMIN"))
+                .build();
+        when(userRepository.findByUsername("psicologa.admin")).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User saved = invocation.getArgument(0);
+            saved.setId(11L);
+            return saved;
+        });
+
+        UserProfileDTO result = userService.createUser(request);
+
+        assertEquals(Set.of("ROLE_PROFESIONAL", "ROLE_ADMIN"), result.getRoles());
+    }
+
+    @Test
+    void createUserRejectsMissingUnknownOrContradictoryRoles() {
+        for (Set<String> roles : List.of(Set.<String>of(), Set.of("ROLE_DOCTOR"), Set.of("ROLE_PROFESIONAL", "ROLE_ASISTENTE"))) {
+            CreateUserRequest request = CreateUserRequest.builder()
+                    .username("invalid.roles").password("plain_pass").specialty("PSICOLOGIA").roles(roles)
+                    .build();
+            when(userRepository.findByUsername("invalid.roles")).thenReturn(Optional.empty());
+
+            assertThrows(IllegalArgumentException.class, () -> userService.createUser(request), roles.toString());
+        }
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test

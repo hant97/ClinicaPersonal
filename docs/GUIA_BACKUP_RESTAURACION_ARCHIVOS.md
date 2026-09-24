@@ -6,20 +6,25 @@ Esta guía establece el protocolo formal de respaldo, retención, cifrado y recu
 
 ## 📁 1. Arquitectura del Almacenamiento Local
 
-El sistema utiliza el patrón `ClinicalFileStorage` / `ClinicalDocumentStorage` para gestionar los archivos clínicos en el sistema de archivos del servidor sin dependencias de servicios en la nube externos:
+> Esta guía cubre el modo `STORAGE_PROVIDER=local`. En producción con un bucket S3/R2
+> (`STORAGE_PROVIDER=s3`), el respaldo se hace desde el bucket: ver
+> [GUIA_ALMACENAMIENTO_ARCHIVOS.md](GUIA_ALMACENAMIENTO_ARCHIVOS.md), sección 5.
+
+Los archivos se guardan bajo `STORAGE_LOCAL_ROOT` (por defecto `uploads/`, relativo al
+directorio de arranque del backend; se recomienda una ruta absoluta):
 
 ```text
-ClinicaPersonal/
-└── uploads/
-    ├── documents/         # Documentos clínicos del paciente (PDFs, estudios, laboratorios)
-    ├── lesions/           # Registro fotográfico longitudinal de lesiones dermatológicas
-    ├── patients/          # Fotografías de identificación y avatares de pacientes
-    └── website/
-        └── assets/        # Medios e imágenes del sitio web público y editor visual
+uploads/
+├── clinical/
+│   ├── documents/     # Documentos clínicos del paciente (PDFs, estudios, laboratorios)
+│   ├── lesions/       # Registro fotográfico longitudinal de lesiones dermatológicas
+│   └── patients/      # Fotografías de identificación de pacientes
+├── website/           # Imágenes del sitio web público, borradores (draft/) e inventario
+└── logos/             # Logos de la clínica
 ```
 
 ### 🔒 Reglas de Seguridad en Almacenamiento
-1. **Acceso indirecto autenticado**: Los archivos en `uploads/` nunca se sirven directamente como archivos estáticos públicos. Toda descarga pasa por controladores Spring Boot con validación de sesión JWT y autorización owner-or-admin (`ClinicalAuthorizationService`).
+1. **Acceso indirecto**: Los archivos de `uploads/` nunca se sirven como estáticos. Los de `clinical/` solo se entregan mediante endpoints autenticados con alcance por especialidad; los de `website/` se publican sin autenticación en `/api/v1/public/website-assets/` y por eso no deben contener datos de pacientes.
 2. **Nombres de archivo sanitizados**: Los nombres se generan con UUIDs o claves aleatorias para evitar colisiones y ataques de Directory Traversal (`..` o paths absolutos).
 3. **Permisos del sistema de archivos**:
    - **Linux**: `chmod 700 uploads/` y `chmod 600 uploads/**/*` pertenecientes al usuario del servicio (`clinica:clinica`).
@@ -114,5 +119,5 @@ En caso de fallo de hardware, corrupción de disco o incidente de seguridad:
    ```powershell
    powershell -ExecutionPolicy Bypass -File .\scripts\restore-uploads.ps1 -BackupFile "D:\Backups\uploads_backup_2026-08-20_020000.zip" -TargetDir "C:\ClinicaPersonal\uploads"
    ```
-5. **Verificar integridad de la base de datos**: Los registros en las tablas `clinical_documents`, `lesion_photos` y `patients.photo_path` deben correlacionarse con los archivos restaurados.
+5. **Verificar integridad de la base de datos**: Los registros en las tablas `clinical_documents`, `lesion_photos` y la columna `patients.photo_key` deben correlacionarse con los archivos restaurados.
 6. **Reiniciar los servicios**: Iniciar nuevamente el backend y verificar la visualización correcta de documentos y fotos en la interfaz de usuario.

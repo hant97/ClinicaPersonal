@@ -29,7 +29,7 @@ public class DermatologicalEvaluationService {
 
     @Transactional(readOnly = true)
     public Page<DermatologicalEvaluationDto> getEvaluationsByPatientId(Long patientId, Pageable pageable) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         Page<DermatologicalEvaluation> evaluations = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
                 ? repository.findByPatientIdAndDeletedFalse(patientId, pageable)
                 : repository.findByPatientIdAndProfessionalIdAndDeletedFalse(patientId, user.getId(), pageable);
@@ -46,7 +46,7 @@ public class DermatologicalEvaluationService {
 
     @Transactional
     public DermatologicalEvaluationDto createEvaluation(DermatologicalEvaluationDto dto) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         clinicalAuthorizationService.ensureSameSpecialty("DERMATOLOGIA");
         Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(dto.getPatientId(), user.getSpecialty())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
@@ -77,7 +77,7 @@ public class DermatologicalEvaluationService {
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator("DERMATOLOGIA", evaluation.getProfessionalId());
         evaluation.setDeleted(true);
         evaluation.setDeletedAt(LocalDateTime.now());
-        evaluation.setDeletedBy(clinicalAuthorizationService.currentUser().getId());
+        evaluation.setDeletedBy(clinicalAuthorizationService.currentProfessional().getId());
         repository.save(evaluation);
     }
 

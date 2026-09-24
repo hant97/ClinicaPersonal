@@ -4,12 +4,16 @@ import com.clinica.backend.dto.ApiErrorResponse;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.exception.BusinessRuleException;
 import com.clinica.backend.exception.ConflictException;
+import com.clinica.backend.exception.StorageException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.hibernate.query.sqm.UnknownPathException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -25,12 +29,14 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import tools.jackson.core.JacksonException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -158,11 +164,43 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
     }
 
-    @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})
-    public ResponseEntity<ApiErrorResponse> handleUnreadableRequest(Exception ex) {
-        log.warn("Solicitud no legible o tipo de argumento inválido: ", ex);
-        String detail = ex.getCause() != null && ex.getCause().getMessage() != null ? ex.getCause().getMessage() : ex.getMessage();
-        return error(HttpStatus.BAD_REQUEST, "La solicitud contiene datos con un formato inválido: " + (detail != null ? detail : ""));
+    // El mensaje del parser incluye clases Java y valores recibidos: queda en el log y al
+    // cliente solo se le indica el campo afectado.
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiErrorResponse> handleUnreadableRequest(HttpMessageNotReadableException ex) {
+        log.warn("Solicitud no legible: {}", ex.getMessage());
+        String field = ex.getCause() instanceof JacksonException jacksonException
+                ? jacksonException.getPath().stream()
+                        .map(ref -> ref.getPropertyName() != null ? ref.getPropertyName() : "[" + ref.getIndex() + "]")
+                        .collect(Collectors.joining("."))
+                : "";
+        return error(HttpStatus.BAD_REQUEST, field.isEmpty()
+                ? "La solicitud contiene datos con un formato inválido"
+                : "La solicitud contiene datos con un formato inválido en el campo '" + field + "'");
+    }
+
+    // Los listados aceptan `sort` de Spring Data; una propiedad inexistente es un error del cliente.
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ResponseEntity<ApiErrorResponse> handleInvalidSortProperty(PropertyReferenceException ex) {
+        return error(HttpStatus.BAD_REQUEST, "Criterio de ordenación no válido: '" + ex.getPropertyName() + "'");
+    }
+
+    // En consultas JPQL (@Query) la propiedad inválida del `sort` la detecta Hibernate al ejecutar.
+    // Las @Query se validan al arrancar, así que en ejecución esta causa solo proviene del `sort`.
+    @ExceptionHandler(InvalidDataAccessApiUsageException.class)
+    public ResponseEntity<ApiErrorResponse> handleInvalidDataAccessApiUsage(InvalidDataAccessApiUsageException ex) {
+        for (Throwable cause = ex; cause != null; cause = cause.getCause()) {
+            if (cause instanceof UnknownPathException) {
+                return error(HttpStatus.BAD_REQUEST, "Criterio de ordenación no válido");
+            }
+        }
+        return handleGenericException(ex);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiErrorResponse> handleArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        log.warn("Tipo de argumento inválido: {}", ex.getMessage());
+        return error(HttpStatus.BAD_REQUEST, "El parámetro '" + ex.getName() + "' tiene un formato inválido");
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
@@ -173,6 +211,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ApiErrorResponse> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
         return error(HttpStatus.METHOD_NOT_ALLOWED, "Método HTTP no soportado para este endpoint");
+    }
+
+    @ExceptionHandler(StorageException.class)
+    public ResponseEntity<ApiErrorResponse> handleStorageException(StorageException ex) {
+        log.error("Fallo de almacenamiento de archivos: {}", ex.getMessage(), ex);
+        return error(HttpStatus.INTERNAL_SERVER_ERROR,
+                "No se pudo procesar el archivo en este momento. Intente nuevamente más tarde.");
     }
 
     @ExceptionHandler(Exception.class)

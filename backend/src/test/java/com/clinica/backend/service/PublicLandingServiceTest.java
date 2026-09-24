@@ -11,6 +11,7 @@ import com.clinica.backend.repository.WebsiteSettingsRepository;
 import com.clinica.backend.repository.WebsiteSpecialtyRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import com.clinica.backend.exception.ResourceNotFoundException;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -20,7 +21,9 @@ import java.util.Optional;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 
@@ -45,6 +48,12 @@ class PublicLandingServiceTest {
         Resource result = service.loadAsset("logo/test.png");
         assertEquals(mockResource, result);
         verify(fileStorage).load("logo/test.png");
+    }
+
+    @Test
+    void loadAssetNeverServesLegacyPatientPhotos() {
+        assertThrows(ResourceNotFoundException.class, () -> service.loadAsset("patients/legacy.jpg"));
+        verifyNoInteractions(fileStorage);
     }
 
     @Test

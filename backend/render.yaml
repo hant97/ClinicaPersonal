@@ -19,3 +19,21 @@ services:
         value: "true"
       - key: AUTH_COOKIE_SAME_SITE
         value: "None"
+      # URL pública del frontend; se usa en los enlaces de confirmación de los recordatorios.
+      # Sin ella, los correos apuntarían a http://localhost:4200.
+      - key: APP_PUBLIC_BASE_URL
+        sync: false
+      # El disco del plan free se borra en cada deploy: los archivos van a un bucket privado
+      # compatible con S3 (Cloudflare R2 o AWS S3). Ver docs/GUIA_ALMACENAMIENTO_ARCHIVOS.md.
+      - key: STORAGE_PROVIDER
+        value: "s3"
+      - key: STORAGE_S3_BUCKET
+        sync: false
+      - key: STORAGE_S3_ENDPOINT
+        sync: false
+      - key: STORAGE_S3_REGION
+        sync: false
+      - key: STORAGE_S3_ACCESS_KEY
+        sync: false
+      - key: STORAGE_S3_SECRET_KEY
+        sync: false

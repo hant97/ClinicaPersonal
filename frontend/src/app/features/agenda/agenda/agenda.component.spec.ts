@@ -1,4 +1,5 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import type { MockedObject } from 'vitest';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
@@ -13,16 +14,21 @@ import { Appointment } from '../../../core/models/appointment.model';
 describe('AgendaComponent', () => {
   let component: AgendaComponent;
   let fixture: ComponentFixture<AgendaComponent>;
-  let appointmentService: jasmine.SpyObj<AppointmentService>;
-  let blockService: jasmine.SpyObj<ScheduleBlockService>;
-  let userService: jasmine.SpyObj<UserService>;
-  let viewPreferenceService: jasmine.SpyObj<ViewPreferenceService>;
+  let appointmentService: MockedObject<AppointmentService>;
+  let blockService: MockedObject<ScheduleBlockService>;
+  let userService: MockedObject<UserService>;
+  let viewPreferenceService: MockedObject<ViewPreferenceService>;
 
   beforeEach(async () => {
     localStorage.clear();
 
-    const appointmentSpy = jasmine.createSpyObj('AppointmentService', ['search', 'updateStatus', 'create', 'update']);
-    appointmentSpy.search.and.returnValue(of({
+    const appointmentSpy = {
+      search: vi.fn().mockName('AppointmentService.search'),
+      updateStatus: vi.fn().mockName('AppointmentService.updateStatus'),
+      create: vi.fn().mockName('AppointmentService.create'),
+      update: vi.fn().mockName('AppointmentService.update')
+    };
+    appointmentSpy.search.mockReturnValue(of({
       content: [],
       totalElements: 0,
       totalPages: 0,
@@ -34,17 +40,27 @@ describe('AgendaComponent', () => {
       empty: true
     }));
 
-    const blockSpy = jasmine.createSpyObj('ScheduleBlockService', ['getBlocks', 'createBlock', 'deleteBlock']);
-    blockSpy.getBlocks.and.returnValue(of([]));
+    const blockSpy = {
+      getBlocks: vi.fn().mockName('ScheduleBlockService.getBlocks'),
+      createBlock: vi.fn().mockName('ScheduleBlockService.createBlock'),
+      deleteBlock: vi.fn().mockName('ScheduleBlockService.deleteBlock')
+    };
+    blockSpy.getBlocks.mockReturnValue(of([]));
 
-    const userSpy = jasmine.createSpyObj('UserService', ['getProfessionals']);
-    userSpy.getProfessionals.and.returnValue(of([
+    const userSpy = {
+      getProfessionals: vi.fn().mockName('UserService.getProfessionals')
+    };
+    userSpy.getProfessionals.mockReturnValue(of([
       { id: 1, username: 'dr1', firstName: 'Juan', lastName: 'Pérez', specialty: 'PSICOLOGIA', enabled: true, roles: ['ROLE_ADMIN'] }
     ]));
 
-    const viewPreferenceSpy = jasmine.createSpyObj('ViewPreferenceService', ['getViewMode', 'setViewMode', 'isMobile']);
-    viewPreferenceSpy.getViewMode.and.returnValue('list');
-    viewPreferenceSpy.setViewMode.and.returnValue(undefined);
+    const viewPreferenceSpy = {
+      getViewMode: vi.fn().mockName('ViewPreferenceService.getViewMode'),
+      setViewMode: vi.fn().mockName('ViewPreferenceService.setViewMode'),
+      isMobile: vi.fn().mockName('ViewPreferenceService.isMobile')
+    };
+    viewPreferenceSpy.getViewMode.mockReturnValue('list');
+    viewPreferenceSpy.setViewMode.mockReturnValue(undefined);
 
     await TestBed.configureTestingModule({
       imports: [AgendaComponent, HttpClientTestingModule, RouterTestingModule],
@@ -55,17 +71,19 @@ describe('AgendaComponent', () => {
         { provide: ViewPreferenceService, useValue: viewPreferenceSpy }
       ]
     })
-    .compileComponents();
+      .compileComponents();
 
-    appointmentService = TestBed.inject(AppointmentService) as jasmine.SpyObj<AppointmentService>;
-    blockService = TestBed.inject(ScheduleBlockService) as jasmine.SpyObj<ScheduleBlockService>;
-    userService = TestBed.inject(UserService) as jasmine.SpyObj<UserService>;
-    viewPreferenceService = TestBed.inject(ViewPreferenceService) as jasmine.SpyObj<ViewPreferenceService>;
+    appointmentService = TestBed.inject(AppointmentService) as MockedObject<AppointmentService>;
+    blockService = TestBed.inject(ScheduleBlockService) as MockedObject<ScheduleBlockService>;
+    userService = TestBed.inject(UserService) as MockedObject<UserService>;
+    viewPreferenceService = TestBed.inject(ViewPreferenceService) as MockedObject<ViewPreferenceService>;
 
     fixture = TestBed.createComponent(AgendaComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
+
+  afterEach(() => vi.useRealTimers());
 
   it('should use the compact list view returned by the preference service', () => {
     expect(component).toBeTruthy();
@@ -75,33 +93,35 @@ describe('AgendaComponent', () => {
   });
 
   it('should keep dateRange form control enabled in calendar and list views', () => {
-    expect(component.filterForm.get('dateRange')?.enabled).toBeTrue();
+    expect(component.filterForm.get('dateRange')?.enabled).toBe(true);
 
     component.toggleView('list');
     expect(component.currentView).toBe('list');
-    expect(component.filterForm.get('dateRange')?.enabled).toBeTrue();
+    expect(component.filterForm.get('dateRange')?.enabled).toBe(true);
 
     component.toggleView('calendar');
     expect(component.currentView).toBe('calendar');
-    expect(component.filterForm.get('dateRange')?.enabled).toBeTrue();
+    expect(component.filterForm.get('dateRange')?.enabled).toBe(true);
   });
 
-  it('should update appointments when dateRange filter changes to ALL (Cualquier fecha)', fakeAsync(() => {
-    appointmentService.search.calls.reset();
+  it('should update appointments when dateRange filter changes to ALL (Cualquier fecha)', () => {
+    vi.useFakeTimers();
+    appointmentService.search.mockClear();
 
     component.filterForm.patchValue({ dateRange: 'ALL' });
-    tick(350);
+    vi.advanceTimersByTime(350);
 
     expect(appointmentService.search).toHaveBeenCalled();
-  }));
+  });
 
-  it('should update calendar week when dateRange changes in calendar view', fakeAsync(() => {
+  it('should update calendar week when dateRange changes in calendar view', () => {
+    vi.useFakeTimers();
     component.toggleView('calendar');
     component.filterForm.patchValue({ dateRange: 'TODAY' });
-    tick(350);
+    vi.advanceTimersByTime(350);
 
     expect(component.weekDays.length).toBe(7);
-  }));
+  });
 
   it('should format time range properly', () => {
     expect(component.formatTimeRange('09:00:00', '10:00:00')).toBe('09:00 – 10:00');
@@ -123,7 +143,7 @@ describe('AgendaComponent', () => {
     expect(component.openMenuAppointmentId).toBeNull();
 
     const mockEvent = new MouseEvent('click');
-    spyOn(mockEvent, 'stopPropagation');
+    vi.spyOn(mockEvent, 'stopPropagation');
 
     component.toggleMenu(5, mockEvent);
     expect(component.openMenuAppointmentId).toBe(5);
@@ -158,7 +178,7 @@ describe('AgendaComponent', () => {
 
     component.scheduleNewAppointmentInSameSlot(cancelledAppointment);
 
-    expect(component.showForm).toBeTrue();
+    expect(component.showForm).toBe(true);
     expect(component.appointmentToEdit).toBeNull();
     expect(component.initialAppointmentData).toEqual({
       appointmentDate: '2026-09-09',
@@ -167,7 +187,7 @@ describe('AgendaComponent', () => {
       professionalId: 7
     });
     expect(component.initialAppointmentData?.patientId).toBeUndefined();
-    expect(component.isDrawerOpen).toBeFalse();
+    expect(component.isDrawerOpen).toBe(false);
     expect(component.selectedAppointmentPreview).toBeNull();
   });
 
@@ -191,10 +211,7 @@ describe('AgendaComponent', () => {
       }
     ];
 
-    const visibleAppointments = component.getAppointmentsForDayAndHour(
-      new Date(2026, 8, 9),
-      '10:00'
-    );
+    const visibleAppointments = component.getAppointmentsForDayAndHour(new Date(2026, 8, 9), '10:00');
 
     expect(visibleAppointments.map(appointment => appointment.id)).toEqual([13]);
   });

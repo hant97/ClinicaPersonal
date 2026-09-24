@@ -55,7 +55,7 @@ class GeneralHistoryServiceTest {
     void getGeneralHistoryWhenMissingReturnsEmptyDtoWithPatientIdAndSpecialty() {
         Patient patient = new Patient();
         patient.setId(7L);
-        when(clinicalAuthorizationService.currentUser()).thenReturn(user);
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(user);
         when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(7L, "PSICOLOGIA")).thenReturn(Optional.of(patient));
         when(repository.findByPatientIdAndSpecialtyAndDeletedFalse(7L, "PSICOLOGIA")).thenReturn(Optional.empty());
 
@@ -70,7 +70,7 @@ class GeneralHistoryServiceTest {
     void upsertGeneralHistoryCreatesWhenMissingUsingAuthenticatedProfessional() {
         Patient patient = new Patient();
         patient.setId(7L);
-        when(clinicalAuthorizationService.currentUser()).thenReturn(user);
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(user);
         when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(7L, "PSICOLOGIA")).thenReturn(Optional.of(patient));
         when(repository.findByPatientIdAndSpecialtyAndDeletedFalse(7L, "PSICOLOGIA")).thenReturn(Optional.empty());
         when(repository.save(any(GeneralHistory.class))).thenAnswer(invocation -> {

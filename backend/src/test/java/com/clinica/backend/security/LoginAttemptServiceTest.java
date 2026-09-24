@@ -3,6 +3,14 @@ package com.clinica.backend.security;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class LoginAttemptServiceTest {
@@ -92,5 +100,31 @@ class LoginAttemptServiceTest {
             loginAttemptService.loginFailedFromIp(ip);
         }
         assertFalse(loginAttemptService.isIpBlocked(ip));
+    }
+
+    @Test
+    void shouldCountSimultaneousFailuresWithoutLosingUpdates() throws Exception {
+        ExecutorService executor = Executors.newFixedThreadPool(LoginAttemptService.MAX_ATTEMPTS);
+        try {
+            for (int round = 0; round < 50; round++) {
+                String username = "parallel-" + round;
+                CyclicBarrier barrier = new CyclicBarrier(LoginAttemptService.MAX_ATTEMPTS);
+                List<Future<?>> failures = new ArrayList<>();
+                for (int i = 0; i < LoginAttemptService.MAX_ATTEMPTS; i++) {
+                    failures.add(executor.submit(() -> {
+                        barrier.await();
+                        loginAttemptService.loginFailed(username);
+                        return null;
+                    }));
+                }
+                for (Future<?> failure : failures) {
+                    failure.get(5, TimeUnit.SECONDS);
+                }
+                assertTrue(loginAttemptService.isBlocked(username),
+                        "Exactamente MAX_ATTEMPTS fallos simultáneos deben bloquear la cuenta");
+            }
+        } finally {
+            executor.shutdownNow();
+        }
     }
 }

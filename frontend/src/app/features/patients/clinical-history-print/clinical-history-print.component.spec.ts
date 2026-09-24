@@ -39,65 +39,57 @@ describe('ClinicalHistoryPrintComponent', () => {
 
   beforeEach(async () => {
     clinicalHistoryServiceMock = {
-      get: jasmine.createSpy('get').and.returnValue(
-        of({
-          patientId: 42,
-          specialty: 'DERMATOLOGIA',
-          generalHistory: { patientId: 42, pathologicalHistory: 'Ninguno' },
-          allergies: [{ id: 1, patientId: 42, allergen: 'Penicilina', active: true }],
-          medications: [],
-          diagnoses: []
-        })
-      )
+      get: vi.fn().mockReturnValue(of({
+        patientId: 42,
+        specialty: 'DERMATOLOGIA',
+        generalHistory: { patientId: 42, pathologicalHistory: 'Ninguno' },
+        allergies: [{ id: 1, patientId: 42, allergen: 'Penicilina', active: true }],
+        medications: [],
+        diagnoses: []
+      }))
     };
 
     patientServiceMock = {
-      getById: jasmine.createSpy('getById').and.returnValue(
-        of({
-          id: 42,
-          firstName: 'Ana',
-          lastName: 'Pérez',
-          identificationDocument: '12345678',
-          dateOfBirth: '1990-01-01'
-        })
-      )
+      getById: vi.fn().mockReturnValue(of({
+        id: 42,
+        firstName: 'Ana',
+        lastName: 'Pérez',
+        identificationDocument: '12345678',
+        dateOfBirth: '1990-01-01'
+      }))
     };
 
     sessionServiceMock = {
-      getSessionsByPatientId: jasmine.createSpy('getSessionsByPatientId').and.returnValue(
-        of({
-          content: [
-            {
-              id: 1,
-              patientId: 42,
-              sessionDate: '2026-08-01',
-              startTime: '10:00',
-              endTime: '11:00',
-              sessionType: 'CONTROL',
-              modality: 'PRESENCIAL',
-              status: 'COMPLETADA',
-              isConfidential: false
-            }
-          ],
-          page: { number: 0, size: 10, totalElements: 1, totalPages: 1 }
-        })
-      )
+      getSessionsByPatientId: vi.fn().mockReturnValue(of({
+        content: [
+          {
+            id: 1,
+            patientId: 42,
+            sessionDate: '2026-08-01',
+            startTime: '10:00',
+            endTime: '11:00',
+            sessionType: 'CONTROL',
+            modality: 'PRESENCIAL',
+            status: 'COMPLETADA',
+            isConfidential: false
+          }
+        ],
+        page: { number: 0, size: 10, totalElements: 1, totalPages: 1 }
+      }))
     };
 
     dermatologicalEvaluationServiceMock = {
-      getByPatientId: jasmine.createSpy('getByPatientId').and.returnValue(of(emptyPage))
+      getByPatientId: vi.fn().mockReturnValue(of(emptyPage))
     };
 
     clinicSettingsServiceMock = {
       settings$: of(mockSettings),
-      loadSettings: jasmine.createSpy('loadSettings'),
-      getLogoUrl: jasmine.createSpy('getLogoUrl').and.callFake((path: string) => `http://localhost:8080${path}`)
+      loadSettings: vi.fn(),
+      getLogoUrl: vi.fn().mockImplementation((path: string) => `http://localhost:8080${path}`)
     };
 
     userServiceMock = {
-      getCurrentUserProfile: jasmine.createSpy('getCurrentUserProfile').and.returnValue(
-        of({ id: 1, username: 'dra', firstName: 'Laura', lastName: 'Rojas' })
-      )
+      getCurrentUserProfile: vi.fn().mockReturnValue(of({ id: 1, username: 'dra', firstName: 'Laura', lastName: 'Rojas' }))
     };
 
     specialtyServiceMock = {
@@ -127,7 +119,7 @@ describe('ClinicalHistoryPrintComponent', () => {
     fixture.detectChanges();
 
     expect(component).toBeTruthy();
-    expect(component.loading).toBeFalse();
+    expect(component.loading).toBe(false);
     expect(clinicalHistoryServiceMock.get).toHaveBeenCalledWith(42);
     expect(patientServiceMock.getById).toHaveBeenCalledWith(42);
     expect(component.patient?.firstName).toBe('Ana');
@@ -152,7 +144,7 @@ describe('ClinicalHistoryPrintComponent', () => {
 
   it('should call window.print when print is triggered', () => {
     fixture.detectChanges();
-    spyOn(window, 'print');
+    vi.spyOn(window, 'print');
 
     component.print();
 
@@ -160,7 +152,7 @@ describe('ClinicalHistoryPrintComponent', () => {
   });
 
   it('should emit close when onClose is called', () => {
-    spyOn(component.close, 'emit');
+    vi.spyOn(component.close, 'emit');
 
     component.onClose();
 

@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
@@ -21,8 +22,7 @@ public class GlobalRiskAlertController {
 
     @GetMapping("/active")
     public ResponseEntity<Page<RiskAlertDto>> getAllActiveAlerts(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(riskAlertService.getAllActiveAlerts(PageRequest.of(page, size)));
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(riskAlertService.getAllActiveAlerts(pageable));
     }
 }

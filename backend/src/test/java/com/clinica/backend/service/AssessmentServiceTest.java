@@ -76,7 +76,7 @@ class AssessmentServiceTest {
     @Test
     @DisplayName("getPatientEvolution should return full list of assessments ordered chronologically")
     void getPatientEvolution_ShouldReturnChronologicalAssessments() {
-        when(clinicalAuthorizationService.currentUser()).thenReturn(user);
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(user);
         when(patientRepository.existsByIdAndSpecialtyAndDeletedFalse(10L, "PSICOLOGIA")).thenReturn(true);
 
         Assessment a1 = new Assessment();
@@ -109,7 +109,7 @@ class AssessmentServiceTest {
     @Test
     @DisplayName("getPatientEvolution should throw ResourceNotFoundException if patient does not exist in specialty")
     void getPatientEvolution_PatientNotFound_ShouldThrow() {
-        when(clinicalAuthorizationService.currentUser()).thenReturn(user);
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(user);
         when(patientRepository.existsByIdAndSpecialtyAndDeletedFalse(99L, "PSICOLOGIA")).thenReturn(false);
 
         assertThrows(ResourceNotFoundException.class, () -> assessmentService.getPatientEvolution(99L));
@@ -118,7 +118,7 @@ class AssessmentServiceTest {
     @Test
     @DisplayName("saveAssessment should correctly persist assessment and return mapped DTO")
     void saveAssessment_ShouldPersistAndReturnDto() {
-        when(clinicalAuthorizationService.currentUser()).thenReturn(user);
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(user);
         when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(10L, "PSICOLOGIA")).thenReturn(Optional.of(patient));
         when(psychometricTestRepository.findById(5L)).thenReturn(Optional.of(test));
 

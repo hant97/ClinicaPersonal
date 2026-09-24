@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { UserService } from '../../../core/services/user.service';
 import { UserProfile, CreateUserRequest, AdminUpdateUserRequest } from '../../../core/models/user-profile.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
@@ -26,6 +26,12 @@ import {
 
 import { SpecialtyService } from '../../../core/services/specialty.service';
 import { SpecialtyItem } from '../../../core/models/specialty.model';
+import { ASSIGNABLE_ROLES, ROLES, RoleOption, describeRoles, roleSelectionError } from '../../../core/models/roles';
+
+const rolesValidator = (control: AbstractControl): ValidationErrors | null => {
+  const error = roleSelectionError(control.value as string[]);
+  return error ? { roles: error } : null;
+};
 
 @Component({
   selector: 'app-user-management',
@@ -113,7 +119,7 @@ export class UserManagementComponent implements OnInit {
       email: ['', [Validators.email]],
       phone: [''],
       specialty: ['PSICOLOGIA', [Validators.required]],
-      role: ['ROLE_ADMIN', [Validators.required]],
+      roles: [[ROLES.PROFESIONAL] as string[], [rolesValidator]],
       enabled: [true],
     });
 
@@ -191,7 +197,7 @@ export class UserManagementComponent implements OnInit {
       email: '',
       phone: '',
       specialty: defaultSpecialty,
-      role: 'ROLE_ADMIN',
+      roles: [ROLES.PROFESIONAL],
       enabled: true,
     });
     this.userForm.get('username')?.enable();
@@ -206,7 +212,6 @@ export class UserManagementComponent implements OnInit {
 
   openEditModal(user: UserProfile): void {
     this.selectedUser = user;
-    const role = user.roles?.includes('ROLE_ADMIN') ? 'ROLE_ADMIN' : 'ROLE_ASISTENTE';
     this.userForm.reset({
       username: user.username,
       password: '',
@@ -215,7 +220,9 @@ export class UserManagementComponent implements OnInit {
       email: user.email,
       phone: user.phone,
       specialty: user.specialty || 'PSICOLOGIA',
-      role: role,
+      // Se conservan todos los roles (incluido ROLE_SITE_ADMIN, que no tiene casilla): el
+      // backend reemplaza el conjunto completo al guardar.
+      roles: [...(user.roles ?? [])],
       enabled: user.enabled !== false,
     });
     this.userForm.get('username')?.disable();
@@ -246,7 +253,7 @@ export class UserManagementComponent implements OnInit {
         email: formVal.email || undefined,
         phone: formVal.phone || undefined,
         specialty: formVal.specialty,
-        roles: [formVal.role],
+        roles: formVal.roles,
         enabled: formVal.enabled,
       };
 
@@ -273,7 +280,7 @@ export class UserManagementComponent implements OnInit {
         email: formVal.email || undefined,
         phone: formVal.phone || undefined,
         specialty: formVal.specialty,
-        roles: [formVal.role],
+        roles: formVal.roles,
       };
 
       this.userService.createUser(request).subscribe({
@@ -356,14 +363,29 @@ export class UserManagementComponent implements OnInit {
     });
   }
 
-  getRoleBadge(roles?: string[]): { label: string; class: string } {
-    if (roles?.includes('ROLE_ADMIN')) {
-      return { label: 'Profesional Titular (Admin)', class: 'bg-primary-50 text-primary-700 border-primary-200' };
-    }
-    if (roles?.includes('ROLE_SITE_ADMIN')) {
-      return { label: 'Administrador Web', class: 'bg-amber-50 text-amber-700 border-amber-200' };
-    }
-    return { label: 'Asistente / Recepción', class: 'bg-slate-100 text-slate-700 border-slate-200' };
+  readonly roleOptions = ASSIGNABLE_ROLES;
+
+  get selectedRoles(): string[] {
+    return (this.userForm.get('roles')?.value as string[]) ?? [];
+  }
+
+  get rolesError(): string | null {
+    return (this.userForm.get('roles')?.errors?.['roles'] as string | undefined) ?? null;
+  }
+
+  hasSelectedRole(code: string): boolean {
+    return this.selectedRoles.includes(code);
+  }
+
+  toggleRole(code: string, checked: boolean): void {
+    const roles = this.selectedRoles.filter(role => role !== code);
+    const control = this.userForm.get('roles');
+    control?.setValue(checked ? [...roles, code] : roles);
+    control?.markAsTouched();
+  }
+
+  getRoleBadges(roles?: string[]): RoleOption[] {
+    return describeRoles(roles);
   }
 
   getSpecialtyLabel(code?: string): string {

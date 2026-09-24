@@ -3,6 +3,7 @@ package com.clinica.backend.controller;
 import com.clinica.backend.dto.AuthRequest;
 import com.clinica.backend.dto.AuthResponse;
 import com.clinica.backend.repository.UserRepository;
+import com.clinica.backend.security.ClientIpResolver;
 import com.clinica.backend.security.JwtService;
 import com.clinica.backend.security.LoginAttemptService;
 import com.clinica.backend.security.TokenRevocationService;
@@ -52,7 +53,7 @@ public class AuthController {
                                               HttpServletRequest httpRequest,
                                               HttpServletResponse httpResponse) {
         String username = request.getUsername();
-        String ip = extractClientIp(httpRequest);
+        String ip = ClientIpResolver.resolve(httpRequest);
 
         if (loginAttemptService.isBlocked(username) || loginAttemptService.isIpBlocked(ip)) {
             auditLogService.record(null, username, null, "LOGIN_FAILED", "AUTH", null,
@@ -111,7 +112,7 @@ public class AuthController {
                                        @RequestHeader(value = "Authorization", required = false) String authorization,
                                        HttpServletRequest httpRequest,
                                        HttpServletResponse response) {
-        String ip = extractClientIp(httpRequest);
+        String ip = ClientIpResolver.resolve(httpRequest);
         String username = null;
         Long userId = null;
         String specialty = null;
@@ -148,27 +149,5 @@ public class AuthController {
         response.addHeader("Set-Cookie", ResponseCookie.from("refresh_token", value)
                 .httpOnly(true).secure(secureCookie).sameSite(cookieSameSite).path("/api/v1/auth")
                 .maxAge(refreshExpiration / 1000).build().toString());
-    }
-
-    private String extractClientIp(HttpServletRequest request) {
-        if (request == null) {
-            return "127.0.0.1";
-        }
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isBlank()) {
-            String[] parts = xForwardedFor.split(",");
-            for (String part : parts) {
-                String trimmed = part.trim();
-                if (!trimmed.isEmpty() && !trimmed.equalsIgnoreCase("unknown")) {
-                    return trimmed;
-                }
-            }
-        }
-        String xRealIp = request.getHeader("X-Real-IP");
-        if (xRealIp != null && !xRealIp.isBlank() && !xRealIp.equalsIgnoreCase("unknown")) {
-            return xRealIp.trim();
-        }
-        String remoteAddr = request.getRemoteAddr();
-        return (remoteAddr != null && !remoteAddr.isBlank()) ? remoteAddr.trim() : "127.0.0.1";
     }
 }

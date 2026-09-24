@@ -12,7 +12,7 @@ describe('PatientListComponent', () => {
     await TestBed.configureTestingModule({
       imports: [PatientListComponent, HttpClientTestingModule, RouterTestingModule]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(PatientListComponent);
     component = fixture.componentInstance;
@@ -27,7 +27,7 @@ describe('PatientListComponent', () => {
     expect(component.openMenuPatientId).toBeNull();
 
     const mockEvent = new MouseEvent('click');
-    spyOn(mockEvent, 'stopPropagation');
+    vi.spyOn(mockEvent, 'stopPropagation');
 
     component.toggleMenu(10, mockEvent);
     expect(component.openMenuPatientId).toBe(10);

@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CatalogManagementComponent } from './catalog-management.component';
 import { CatalogService } from '../../../core/services/catalog.service';
@@ -12,11 +13,11 @@ import { AuthService } from '../../../core/services/auth.service';
 describe('CatalogManagementComponent', () => {
   let component: CatalogManagementComponent;
   let fixture: ComponentFixture<CatalogManagementComponent>;
-  let catalogServiceSpy: jasmine.SpyObj<CatalogService>;
-  let specialtyServiceSpy: jasmine.SpyObj<SpecialtyService>;
-  let notificationServiceSpy: jasmine.SpyObj<NotificationService>;
-  let toastServiceSpy: jasmine.SpyObj<ToastService>;
-  let authServiceSpy: jasmine.SpyObj<AuthService>;
+  let catalogServiceSpy: MockedObject<CatalogService>;
+  let specialtyServiceSpy: MockedObject<SpecialtyService>;
+  let notificationServiceSpy: MockedObject<NotificationService>;
+  let toastServiceSpy: MockedObject<ToastService>;
+  let authServiceSpy: MockedObject<AuthService>;
 
   const mockSpecialties: SpecialtyItem[] = [
     { id: 1, code: 'PSICOLOGIA', name: 'Psicología', active: true, displayOrder: 1 },
@@ -59,25 +60,37 @@ describe('CatalogManagementComponent', () => {
   ];
 
   beforeEach(async () => {
-    catalogServiceSpy = jasmine.createSpyObj('CatalogService', [
-      'getAllAccessibleCatalogs',
-      'addCatalogItem',
-      'updateCatalogItem',
-      'deleteCatalogItem',
-      'reorderCatalogItems',
-      'createCatalog',
-      'updateCatalog'
-    ]);
-    specialtyServiceSpy = jasmine.createSpyObj('SpecialtyService', ['getActiveSpecialties']);
-    notificationServiceSpy = jasmine.createSpyObj('NotificationService', ['alert']);
-    toastServiceSpy = jasmine.createSpyObj('ToastService', ['success', 'error', 'info', 'warning', 'show']);
-    authServiceSpy = jasmine.createSpyObj('AuthService', ['hasRole']);
-    authServiceSpy.hasRole.and.returnValue(false);
+    catalogServiceSpy = {
+      getAllAccessibleCatalogs: vi.fn().mockName('CatalogService.getAllAccessibleCatalogs'),
+      addCatalogItem: vi.fn().mockName('CatalogService.addCatalogItem'),
+      updateCatalogItem: vi.fn().mockName('CatalogService.updateCatalogItem'),
+      deleteCatalogItem: vi.fn().mockName('CatalogService.deleteCatalogItem'),
+      reorderCatalogItems: vi.fn().mockName('CatalogService.reorderCatalogItems'),
+      createCatalog: vi.fn().mockName('CatalogService.createCatalog'),
+      updateCatalog: vi.fn().mockName('CatalogService.updateCatalog')
+    } as unknown as MockedObject<CatalogService>;
+    specialtyServiceSpy = {
+      getActiveSpecialties: vi.fn().mockName('SpecialtyService.getActiveSpecialties')
+    } as unknown as MockedObject<SpecialtyService>;
+    notificationServiceSpy = {
+      alert: vi.fn().mockName('NotificationService.alert')
+    } as unknown as MockedObject<NotificationService>;
+    toastServiceSpy = {
+      success: vi.fn().mockName('ToastService.success'),
+      error: vi.fn().mockName('ToastService.error'),
+      info: vi.fn().mockName('ToastService.info'),
+      warning: vi.fn().mockName('ToastService.warning'),
+      show: vi.fn().mockName('ToastService.show')
+    } as unknown as MockedObject<ToastService>;
+    authServiceSpy = {
+      hasRole: vi.fn().mockName('AuthService.hasRole')
+    } as unknown as MockedObject<AuthService>;
+    authServiceSpy.hasRole.mockReturnValue(false);
 
-    specialtyServiceSpy.getActiveSpecialties.and.returnValue(of(mockSpecialties));
+    specialtyServiceSpy.getActiveSpecialties.mockReturnValue(of(mockSpecialties));
 
     const clonedCatalogs: Catalog[] = JSON.parse(JSON.stringify(mockCatalogs));
-    catalogServiceSpy.getAllAccessibleCatalogs.and.returnValue(of(clonedCatalogs));
+    catalogServiceSpy.getAllAccessibleCatalogs.mockReturnValue(of(clonedCatalogs));
 
     await TestBed.configureTestingModule({
       imports: [CatalogManagementComponent],
@@ -103,8 +116,8 @@ describe('CatalogManagementComponent', () => {
   });
 
   it('solo solicita todos los ámbitos para el administrador global', () => {
-    catalogServiceSpy.getAllAccessibleCatalogs.calls.reset();
-    authServiceSpy.hasRole.and.returnValue(true);
+    catalogServiceSpy.getAllAccessibleCatalogs.mockClear();
+    authServiceSpy.hasRole.mockReturnValue(true);
 
     component.loadCatalogs();
 
@@ -146,18 +159,18 @@ describe('CatalogManagementComponent', () => {
       isActive: true,
       orderIndex: 3
     };
-    catalogServiceSpy.addCatalogItem.and.returnValue(of(savedItem));
+    catalogServiceSpy.addCatalogItem.mockReturnValue(of(savedItem));
 
     component.newItemName = 'Transferencia';
     component.addItem();
 
-    expect(catalogServiceSpy.addCatalogItem).toHaveBeenCalledWith('PAYMENT_METHOD', jasmine.objectContaining({
+    expect(catalogServiceSpy.addCatalogItem).toHaveBeenCalledWith('PAYMENT_METHOD', expect.objectContaining({
       itemCode: 'TRANSFERENCIA',
       itemName: 'Transferencia',
       isActive: true
     }));
     expect(component.items.length).toBe(4);
-    expect(toastServiceSpy.success).toHaveBeenCalledWith(jasmine.stringMatching(/Transferencia/));
+    expect(toastServiceSpy.success).toHaveBeenCalledWith(expect.stringMatching(/Transferencia/));
   });
 
   it('debe permitir la edición inline del nombre de una opción', () => {
@@ -167,11 +180,11 @@ describe('CatalogManagementComponent', () => {
 
     component.editingItemName = 'Efectivo en Caja';
     const updatedItem = { ...targetItem, itemName: 'Efectivo en Caja' };
-    catalogServiceSpy.updateCatalogItem.and.returnValue(of(updatedItem));
+    catalogServiceSpy.updateCatalogItem.mockReturnValue(of(updatedItem));
 
     component.saveEditItem(targetItem);
 
-    expect(catalogServiceSpy.updateCatalogItem).toHaveBeenCalledWith(targetItem.id!, jasmine.objectContaining({
+    expect(catalogServiceSpy.updateCatalogItem).toHaveBeenCalledWith(targetItem.id!, expect.objectContaining({
       itemName: 'Efectivo en Caja'
     }), 'PAYMENT_METHOD');
     expect(targetItem.itemName).toBe('Efectivo en Caja');
@@ -181,17 +194,17 @@ describe('CatalogManagementComponent', () => {
   it('debe alternar el estado activo/inactivo', () => {
     const item = component.items[0];
     item.isActive = false;
-    catalogServiceSpy.updateCatalogItem.and.returnValue(of(item));
+    catalogServiceSpy.updateCatalogItem.mockReturnValue(of(item));
 
     component.toggleActive(item);
 
     expect(catalogServiceSpy.updateCatalogItem).toHaveBeenCalled();
-    expect(toastServiceSpy.success).toHaveBeenCalledWith(jasmine.stringMatching(/desactivada/));
+    expect(toastServiceSpy.success).toHaveBeenCalledWith(expect.stringMatching(/desactivada/));
   });
 
   it('debe reordenar opciones hacia arriba y abajo', () => {
     const reordered: CatalogItem[] = [component.items[1], component.items[0], component.items[2]];
-    catalogServiceSpy.reorderCatalogItems.and.returnValue(of(reordered));
+    catalogServiceSpy.reorderCatalogItems.mockReturnValue(of(reordered));
 
     component.moveItemDown(0);
 
@@ -202,21 +215,21 @@ describe('CatalogManagementComponent', () => {
   it('debe eliminar una opción tras confirmar en el modal', () => {
     const itemToDelete = component.items[0];
     component.confirmDeleteItem(itemToDelete);
-    expect(component.showDeleteModal).toBeTrue();
+    expect(component.showDeleteModal).toBe(true);
     expect(component.itemToDelete).toBe(itemToDelete);
 
-    catalogServiceSpy.deleteCatalogItem.and.returnValue(of(void 0));
+    catalogServiceSpy.deleteCatalogItem.mockReturnValue(of(void 0));
     component.executeDeleteItem();
 
     expect(catalogServiceSpy.deleteCatalogItem).toHaveBeenCalledWith(itemToDelete.id!, 'PAYMENT_METHOD');
     expect(component.items.find(i => i.id === itemToDelete.id)).toBeUndefined();
-    expect(component.showDeleteModal).toBeFalse();
+    expect(component.showDeleteModal).toBe(false);
   });
 
   it('debe crear un nuevo catálogo maestro', () => {
     component.openCreateCatalogModal();
-    expect(component.showCatalogModal).toBeTrue();
-    expect(component.isEditingCatalog).toBeFalse();
+    expect(component.showCatalogModal).toBe(true);
+    expect(component.isEditingCatalog).toBe(false);
 
     component.catalogFormName = 'Tipo de Sangre';
     component.onCatalogFormNameChange();
@@ -229,15 +242,15 @@ describe('CatalogManagementComponent', () => {
       specialty: 'GENERAL',
       items: []
     };
-    catalogServiceSpy.createCatalog.and.returnValue(of(createdCatalog));
+    catalogServiceSpy.createCatalog.mockReturnValue(of(createdCatalog));
 
     component.saveCatalog();
 
-    expect(catalogServiceSpy.createCatalog).toHaveBeenCalledWith(jasmine.objectContaining({
+    expect(catalogServiceSpy.createCatalog).toHaveBeenCalledWith(expect.objectContaining({
       name: 'Tipo de Sangre',
       code: 'TIPO_DE_SANGRE'
     }));
-    expect(component.showCatalogModal).toBeFalse();
+    expect(component.showCatalogModal).toBe(false);
   });
 
   it('debe resolver la etiqueta de especialidad dinámicamente', () => {

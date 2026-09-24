@@ -123,7 +123,7 @@ class ClinicalSessionServiceTest {
         ClinicalSessionDto request = new ClinicalSessionDto();
         request.setPatientId(7L);
         request.setProfessionalId(999L);
-        when(clinicalAuthorizationService.currentUser()).thenReturn(owner);
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(owner);
         when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(7L, "PSICOLOGIA")).thenReturn(Optional.of(patient));
         when(sessionRepository.save(any(ClinicalSession.class))).thenAnswer(invocation -> {
             ClinicalSession session = invocation.getArgument(0);
@@ -146,7 +146,7 @@ class ClinicalSessionServiceTest {
         patient.setId(7L);
         ClinicalSessionDto request = new ClinicalSessionDto();
         request.setPatientId(7L);
-        when(clinicalAuthorizationService.currentUser()).thenReturn(owner);
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(owner);
         when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(7L, "PSICOLOGIA")).thenReturn(Optional.of(patient));
         when(riskAlertRepository.existsByPatientIdAndSpecialtyAndActiveTrue(7L, "PSICOLOGIA")).thenReturn(false);
         when(sessionRepository.save(any(ClinicalSession.class))).thenAnswer(invocation -> {
@@ -168,7 +168,7 @@ class ClinicalSessionServiceTest {
         patient.setId(7L);
         ClinicalSessionDto request = new ClinicalSessionDto();
         request.setPatientId(7L);
-        when(clinicalAuthorizationService.currentUser()).thenReturn(owner);
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(owner);
         when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(7L, "PSICOLOGIA")).thenReturn(Optional.of(patient));
         when(riskAlertRepository.existsByPatientIdAndSpecialtyAndActiveTrue(7L, "PSICOLOGIA")).thenReturn(true);
 
@@ -186,7 +186,7 @@ class ClinicalSessionServiceTest {
         ClinicalSessionDto request = new ClinicalSessionDto();
         request.setPatientId(7L);
         request.setRiskAssessment(riskAssessment);
-        when(clinicalAuthorizationService.currentUser()).thenReturn(owner);
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(owner);
         when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(7L, "PSICOLOGIA")).thenReturn(Optional.of(patient));
         when(riskAlertRepository.existsByPatientIdAndSpecialtyAndActiveTrue(7L, "PSICOLOGIA")).thenReturn(true);
         when(sessionRepository.save(any(ClinicalSession.class))).thenAnswer(invocation -> {

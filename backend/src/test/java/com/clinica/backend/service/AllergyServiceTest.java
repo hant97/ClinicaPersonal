@@ -52,7 +52,7 @@ class AllergyServiceTest {
     void createAllergyUsesAuthenticatedProfessionalInsteadOfClientValue() {
         Patient patient = new Patient();
         patient.setId(7L);
-        when(clinicalAuthorizationService.currentUser()).thenReturn(user);
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(user);
         when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(7L, "PSICOLOGIA")).thenReturn(Optional.of(patient));
         when(repository.save(any(Allergy.class))).thenAnswer(invocation -> {
             Allergy allergy = invocation.getArgument(0);

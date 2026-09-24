@@ -35,6 +35,8 @@ import { ClinicalHistoryPrintComponent } from '../clinical-history-print/clinica
 import { PatientPaymentsSectionComponent } from '../patient-payments-section/patient-payments-section.component';
 import { PatientSummaryHeaderComponent } from '../patient-summary-header/patient-summary-header.component';
 import { OnboardingService } from '../../../shared/services/onboarding/onboarding.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { AuthImageSrcDirective } from '../../../shared/directives/auth-image-src.directive';
 import {
   calculatePatientAge,
   sessionStatusBadgeClass,
@@ -83,6 +85,7 @@ export type MainTabType = 'timeline' | 'expediente' | 'especialidad' | 'cobros';
   standalone: true,
   imports: [
     CommonModule,
+    AuthImageSrcDirective,
     AssessmentListComponent,
     RiskAlertFormComponent,
     GeneralHistorySectionComponent,
@@ -170,6 +173,7 @@ export class PatientDetailComponent implements OnInit {
   medications: Medication[] = [];
   diagnoses: Diagnosis[] = [];
 
+  isProfessional = false;
   isPsychology = false;
   isDermatology = false;
   specialtyElementsCount = 0;
@@ -189,10 +193,18 @@ export class PatientDetailComponent implements OnInit {
     private notificationService: NotificationService,
     private toastService: ToastService,
     private specialtyService: SpecialtyService,
-    private onboardingService: OnboardingService
+    private onboardingService: OnboardingService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
+    // Recepción y administradores que no son profesionales ven los datos administrativos y
+    // los cobros, pero no la historia clínica (el backend responde 403 a esas consultas).
+    this.isProfessional = this.authService.isProfessional();
+    if (!this.isProfessional) {
+      this.activeTab = 'cobros';
+    }
+
     this.isPsychology = this.specialtyService.isPsychology();
     this.isDermatology = this.specialtyService.isDermatology();
 
@@ -223,6 +235,9 @@ export class PatientDetailComponent implements OnInit {
     });
 
     this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      if (!this.isProfessional) {
+        return;
+      }
       if (params['newSession'] === 'true') {
         this.activeTab = 'timeline';
         this.pendingAppointmentContext = {
@@ -250,6 +265,9 @@ export class PatientDetailComponent implements OnInit {
   }
 
   setTab(tab: MainTabType): void {
+    if (!this.isProfessional && tab !== 'cobros') {
+      return;
+    }
     this.activeTab = tab;
   }
 
@@ -390,9 +408,11 @@ export class PatientDetailComponent implements OnInit {
         this.isLoading = false;
         this.calculateEsMenorEdad();
         if (data.id) {
-          this.loadSessions(data.id);
-          this.loadAlerts(data.id);
-          this.loadCounts(data.id);
+          if (this.isProfessional) {
+            this.loadSessions(data.id);
+            this.loadAlerts(data.id);
+            this.loadCounts(data.id);
+          }
           this.loadAppointments(data.id);
         }
       },

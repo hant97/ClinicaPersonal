@@ -28,7 +28,7 @@ public class ProcedureService {
 
     @Transactional(readOnly = true)
     public Page<ProcedureDto> getProcedures(Long patientId, Pageable pageable) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, user.getSpecialty())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
         Page<Procedure> procedures = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
@@ -39,7 +39,7 @@ public class ProcedureService {
 
     @Transactional
     public ProcedureDto createProcedure(Long patientId, ProcedureDto dto) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         clinicalAuthorizationService.ensureSameSpecialty("DERMATOLOGIA");
         Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, "DERMATOLOGIA")
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
@@ -65,7 +65,7 @@ public class ProcedureService {
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator("DERMATOLOGIA", procedure.getProfessionalId());
         procedure.setDeleted(true);
         procedure.setDeletedAt(LocalDateTime.now());
-        procedure.setDeletedBy(clinicalAuthorizationService.currentUser().getId());
+        procedure.setDeletedBy(clinicalAuthorizationService.currentProfessional().getId());
         repository.save(procedure);
     }
 

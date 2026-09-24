@@ -65,7 +65,7 @@ class ClinicalDocumentServiceTest {
         patient.setId(7L);
         MockMultipartFile file = new MockMultipartFile("file", "consentimiento.pdf", "application/pdf", new byte[]{1, 2, 3});
 
-        when(clinicalAuthorizationService.currentUser()).thenReturn(user);
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(user);
         when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(7L, "PSICOLOGIA")).thenReturn(Optional.of(patient));
         when(fileStorage.store(any(), eq("documents"))).thenReturn("documents/abc.pdf");
         when(repository.save(any(ClinicalDocument.class))).thenAnswer(invocation -> {
@@ -93,7 +93,7 @@ class ClinicalDocumentServiceTest {
         document.setProfessionalId(10L);
         document.setFileUrl("documents/abc.pdf");
         when(repository.findByIdAndDeletedFalse(5L)).thenReturn(Optional.of(document));
-        when(clinicalAuthorizationService.currentUser()).thenReturn(user);
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(user);
         when(repository.save(any(ClinicalDocument.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         service.deleteDocument(5L);

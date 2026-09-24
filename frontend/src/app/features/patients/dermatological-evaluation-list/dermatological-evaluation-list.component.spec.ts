@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
@@ -16,13 +17,18 @@ const firstPage: PageResponse<DermatologicalEvaluation> = {
 describe('DermatologicalEvaluationListComponent', () => {
   let component: DermatologicalEvaluationListComponent;
   let fixture: ComponentFixture<DermatologicalEvaluationListComponent>;
-  let evaluationService: jasmine.SpyObj<DermatologicalEvaluationService>;
-  let toastService: jasmine.SpyObj<ToastService>;
+  let evaluationService: MockedObject<DermatologicalEvaluationService>;
+  let toastService: MockedObject<ToastService>;
 
   beforeEach(async () => {
-    evaluationService = jasmine.createSpyObj<DermatologicalEvaluationService>('DermatologicalEvaluationService', ['getByPatientId', 'delete']);
-    toastService = jasmine.createSpyObj<ToastService>('ToastService', ['show']);
-    evaluationService.getByPatientId.and.returnValue(of(firstPage));
+    evaluationService = {
+      getByPatientId: vi.fn().mockName('DermatologicalEvaluationService.getByPatientId'),
+      delete: vi.fn().mockName('DermatologicalEvaluationService.delete')
+    } as unknown as MockedObject<DermatologicalEvaluationService>;
+    toastService = {
+      show: vi.fn().mockName('ToastService.show')
+    } as unknown as MockedObject<ToastService>;
+    evaluationService.getByPatientId.mockReturnValue(of(firstPage));
 
     await TestBed.configureTestingModule({
       imports: [DermatologicalEvaluationListComponent],
@@ -49,10 +55,7 @@ describe('DermatologicalEvaluationListComponent', () => {
   });
 
   it('conserva paciente y tamaño al ir a la página siguiente', () => {
-    evaluationService.getByPatientId.and.returnValues(
-      of(firstPage),
-      of({ ...firstPage, content: [], page: { ...firstPage.page, number: 1 } })
-    );
+    evaluationService.getByPatientId.mockReturnValueOnce(of(firstPage)).mockReturnValueOnce(of({ ...firstPage, content: [], page: { ...firstPage.page, number: 1 } }));
     fixture.detectChanges();
 
     component.onPageChange(1);
@@ -62,7 +65,7 @@ describe('DermatologicalEvaluationListComponent', () => {
   });
 
   it('muestra el estado vacío cuando la página no tiene evaluaciones', () => {
-    evaluationService.getByPatientId.and.returnValue(of({
+    evaluationService.getByPatientId.mockReturnValue(of({
       content: [], page: { number: 0, size: 10, totalElements: 0, totalPages: 0 }
     }));
 
@@ -72,8 +75,8 @@ describe('DermatologicalEvaluationListComponent', () => {
   });
 
   it('informa el error de carga al usuario', () => {
-    evaluationService.getByPatientId.and.returnValue(throwError(() => new Error('Error de red')));
-    spyOn(console, 'error');
+    evaluationService.getByPatientId.mockReturnValue(throwError(() => new Error('Error de red')));
+    vi.spyOn(console, 'error');
 
     fixture.detectChanges();
 

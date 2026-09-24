@@ -29,7 +29,7 @@ class ClinicalAuditMigrationTest {
                 .locations("classpath:db/migration")
                 .load();
 
-        assertEquals(13, flyway.migrate().migrationsExecuted);
+        assertEquals(16, flyway.migrate().migrationsExecuted);
         assertAuditColumns("clinical_sessions");
         assertAuditColumns("dermatological_evaluations");
         assertAuditColumns("general_history");
@@ -48,6 +48,30 @@ class ClinicalAuditMigrationTest {
         assertRiskAssessmentsTable();
         assertClinicalServiceCategoryCatalog();
         assertEquals(0, flyway.migrate().migrationsExecuted);
+    }
+
+    @Test
+    void backfillsAccentInsensitiveSearchTextForExistingPatients() throws Exception {
+        try (Connection connection = DriverManager.getConnection(URL, "sa", "");
+             Statement statement = connection.createStatement()) {
+            statement.execute("DROP ALL OBJECTS");
+        }
+        Flyway.configure().dataSource(URL, "sa", "").locations("classpath:db/migration").target("15").load().migrate();
+
+        try (Connection connection = DriverManager.getConnection(URL, "sa", "");
+             Statement statement = connection.createStatement()) {
+            statement.execute("INSERT INTO patients (uuid, first_name, last_name, identification_document, gender, specialty) "
+                    + "VALUES (RANDOM_UUID(), 'José', 'Núñez', 'DNI-77', 'Masculino', 'PSICOLOGIA')");
+        }
+
+        Flyway.configure().dataSource(URL, "sa", "").locations("classpath:db/migration").load().migrate();
+
+        try (Connection connection = DriverManager.getConnection(URL, "sa", "");
+             Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery("SELECT search_text FROM patients WHERE identification_document = 'DNI-77'")) {
+            rs.next();
+            assertEquals("jose nunez dni-77", rs.getString(1));
+        }
     }
 
     private void assertClinicalServiceCategoryCatalog() throws Exception {

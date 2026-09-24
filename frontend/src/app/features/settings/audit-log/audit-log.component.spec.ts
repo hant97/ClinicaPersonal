@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { AuditLogComponent } from './audit-log.component';
@@ -9,8 +10,8 @@ import { PageResponse } from '../../../core/models/page.model';
 describe('AuditLogComponent', () => {
   let component: AuditLogComponent;
   let fixture: ComponentFixture<AuditLogComponent>;
-  let auditLogServiceSpy: jasmine.SpyObj<AuditLogService>;
-  let specialtyServiceSpy: jasmine.SpyObj<SpecialtyService>;
+  let auditLogServiceSpy: MockedObject<AuditLogService>;
+  let specialtyServiceSpy: MockedObject<SpecialtyService>;
 
   const mockLog: AuditLog = {
     id: 1,
@@ -36,17 +37,19 @@ describe('AuditLogComponent', () => {
   };
 
   beforeEach(async () => {
-    auditLogServiceSpy = jasmine.createSpyObj('AuditLogService', [
-      'getAuditLogs',
-      'getDistinctActions',
-      'getDistinctEntityTypes'
-    ]);
-    specialtyServiceSpy = jasmine.createSpyObj('SpecialtyService', ['getActiveSpecialties']);
+    auditLogServiceSpy = {
+      getAuditLogs: vi.fn().mockName('AuditLogService.getAuditLogs'),
+      getDistinctActions: vi.fn().mockName('AuditLogService.getDistinctActions'),
+      getDistinctEntityTypes: vi.fn().mockName('AuditLogService.getDistinctEntityTypes')
+    } as unknown as MockedObject<AuditLogService>;
+    specialtyServiceSpy = {
+      getActiveSpecialties: vi.fn().mockName('SpecialtyService.getActiveSpecialties')
+    } as unknown as MockedObject<SpecialtyService>;
 
-    auditLogServiceSpy.getAuditLogs.and.returnValue(of(mockPageResponse));
-    auditLogServiceSpy.getDistinctActions.and.returnValue(of(['CREATE', 'DELETE', 'LOGIN']));
-    auditLogServiceSpy.getDistinctEntityTypes.and.returnValue(of(['AUTH', 'PATIENT', 'USER']));
-    specialtyServiceSpy.getActiveSpecialties.and.returnValue(of([
+    auditLogServiceSpy.getAuditLogs.mockReturnValue(of(mockPageResponse));
+    auditLogServiceSpy.getDistinctActions.mockReturnValue(of(['CREATE', 'DELETE', 'LOGIN']));
+    auditLogServiceSpy.getDistinctEntityTypes.mockReturnValue(of(['AUTH', 'PATIENT', 'USER']));
+    specialtyServiceSpy.getActiveSpecialties.mockReturnValue(of([
       { id: 1, code: 'PSICOLOGIA', name: 'Psicología', icon: 'Brain', active: true, displayOrder: 1 }
     ]));
 
@@ -76,7 +79,7 @@ describe('AuditLogComponent', () => {
     component.selectedAction = 'CREATE';
     component.applyFilters();
 
-    expect(auditLogServiceSpy.getAuditLogs).toHaveBeenCalledWith(jasmine.objectContaining({
+    expect(auditLogServiceSpy.getAuditLogs).toHaveBeenCalledWith(expect.objectContaining({
       username: 'doctor',
       action: 'CREATE',
       page: 0
@@ -105,7 +108,7 @@ describe('AuditLogComponent', () => {
 
   it('debe cambiar de pagina', () => {
     component.onPageChange(1);
-    expect(auditLogServiceSpy.getAuditLogs).toHaveBeenCalledWith(jasmine.objectContaining({
+    expect(auditLogServiceSpy.getAuditLogs).toHaveBeenCalledWith(expect.objectContaining({
       page: 1
     }));
   });

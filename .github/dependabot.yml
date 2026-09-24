@@ -1,0 +1,45 @@
+# Actualizaciones semanales agrupadas. Las versiones mayores de Angular y Spring Boot se
+# excluyen: requieren migraciones guiadas (ng update, notas de versión) en un PR propio.
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /backend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      backend-parches:
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: org.springframework.boot:*
+        update-types: [version-update:semver-major]
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      angular:
+        patterns: ['@angular/*', '@angular-devkit/*', '@schematics/angular', 'angular-eslint']
+        update-types: [minor, patch]
+      frontend-parches:
+        exclude-patterns: ['@angular/*', '@angular-devkit/*', '@schematics/angular', 'angular-eslint']
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: '@angular/*'
+        update-types: [version-update:semver-major]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker
+    directory: /backend
+    schedule:
+      interval: weekly
+    ignore:
+      # Un salto de 17 a otra versión de Java es una decisión de plataforma, no un parche.
+      - dependency-name: '*'
+        update-types: [version-update:semver-major]

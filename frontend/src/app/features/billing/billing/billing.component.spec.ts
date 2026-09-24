@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -47,10 +48,10 @@ describe('BillingComponent', () => {
     catalogService = TestBed.inject(CatalogService);
     viewPreferenceService = TestBed.inject(ViewPreferenceService);
 
-    spyOn(catalogService, 'getActiveItemsByCatalogCode').and.returnValue(of<CatalogItem[]>([]));
-    spyOn(paymentService, 'getSummary').and.returnValue(of(emptySummary()));
-    spyOn(paymentService, 'getAll').and.returnValue(of(emptyPage()));
-    spyOn(viewPreferenceService, 'getViewMode').and.returnValue('cards');
+    vi.spyOn(catalogService, 'getActiveItemsByCatalogCode').mockReturnValue(of<CatalogItem[]>([]));
+    vi.spyOn(paymentService, 'getSummary').mockReturnValue(of(emptySummary()));
+    vi.spyOn(paymentService, 'getAll').mockReturnValue(of(emptyPage()));
+    vi.spyOn(viewPreferenceService, 'getViewMode').mockReturnValue('cards');
 
     fixture = TestBed.createComponent(BillingComponent);
     component = fixture.componentInstance;
@@ -64,7 +65,7 @@ describe('BillingComponent', () => {
   });
 
   it('applyFilters resets page to 0 and reloads', () => {
-    (paymentService.getAll as jasmine.Spy).calls.reset();
+    (paymentService.getAll as Mock).mockClear();
     component.currentPage = 3;
     component.filterDateFrom = '2026-01-01';
 
@@ -90,46 +91,42 @@ describe('BillingComponent', () => {
     expect(component.filterStatus).toBe('');
     expect(component.searchTerm).toBe('');
     expect(component.selectedPreset).toBe('MONTH');
-    expect(component.hasActiveFilters).toBeFalse();
+    expect(component.hasActiveFilters).toBe(false);
   });
 
   it('hasActiveFilters reflects optional filters or a non-default period', () => {
     component.selectedPreset = 'MONTH';
     component.filterMethod = '';
-    expect(component.hasActiveFilters).toBeFalse();
+    expect(component.hasActiveFilters).toBe(false);
 
     component.filterMethod = 'YAPE';
-    expect(component.hasActiveFilters).toBeTrue();
+    expect(component.hasActiveFilters).toBe(true);
 
     component.filterMethod = '';
     component.selectedPreset = 'WEEK';
-    expect(component.hasActiveFilters).toBeTrue();
+    expect(component.hasActiveFilters).toBe(true);
   });
 
   it('a period preset updates the list and summary with the same dates', () => {
-    (paymentService.getAll as jasmine.Spy).calls.reset();
-    (paymentService.getSummary as jasmine.Spy).calls.reset();
+    (paymentService.getAll as Mock).mockClear();
+    (paymentService.getSummary as Mock).mockClear();
 
     component.setPreset('TODAY');
 
     expect(component.filterDateFrom).toBe(component.filterDateTo);
-    expect(paymentService.getAll).toHaveBeenCalledWith(
-      0,
-      component.pageSize,
-      jasmine.objectContaining({ dateFrom: component.filterDateFrom, dateTo: component.filterDateTo })
-    );
+    expect(paymentService.getAll).toHaveBeenCalledWith(0, component.pageSize, expect.objectContaining({ dateFrom: component.filterDateFrom, dateTo: component.filterDateTo }));
     expect(paymentService.getSummary).toHaveBeenCalledWith(component.filterDateFrom, component.filterDateTo);
   });
 
   it('does not query an invalid custom date range', () => {
-    (paymentService.getAll as jasmine.Spy).calls.reset();
-    (paymentService.getSummary as jasmine.Spy).calls.reset();
+    (paymentService.getAll as Mock).mockClear();
+    (paymentService.getSummary as Mock).mockClear();
     component.filterDateFrom = '2026-02-10';
     component.filterDateTo = '2026-02-01';
 
     component.applyDateRange();
 
-    expect(component.dateRangeInvalid).toBeTrue();
+    expect(component.dateRangeInvalid).toBe(true);
     expect(paymentService.getAll).not.toHaveBeenCalled();
     expect(paymentService.getSummary).not.toHaveBeenCalled();
   });
@@ -147,7 +144,7 @@ describe('BillingComponent', () => {
     expect(component.openMenuPaymentId).toBeNull();
 
     const mockEvent = new MouseEvent('click');
-    spyOn(mockEvent, 'stopPropagation');
+    vi.spyOn(mockEvent, 'stopPropagation');
 
     component.toggleMenu(10, mockEvent);
     expect(component.openMenuPaymentId).toBe(10);

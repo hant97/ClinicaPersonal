@@ -8,7 +8,8 @@ import com.clinica.backend.service.AttentionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,10 +33,9 @@ public class AttentionController {
             @RequestParam(required = false) Long patientId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(service.searchAttentions(
-                searchTerm, status, professionalId, patientId, startDate, endDate, PageRequest.of(page, size)
+                searchTerm, status, professionalId, patientId, startDate, endDate, pageable
         ));
     }
 

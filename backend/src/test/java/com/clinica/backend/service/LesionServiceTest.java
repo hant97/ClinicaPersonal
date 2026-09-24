@@ -54,7 +54,7 @@ class LesionServiceTest {
     void createLesionUsesAuthenticatedProfessionalInsteadOfClientValue() {
         Patient patient = new Patient();
         patient.setId(7L);
-        when(clinicalAuthorizationService.currentUser()).thenReturn(user);
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(user);
         when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(7L, "DERMATOLOGIA")).thenReturn(Optional.of(patient));
         when(repository.save(any(Lesion.class))).thenAnswer(invocation -> {
             Lesion lesion = invocation.getArgument(0);

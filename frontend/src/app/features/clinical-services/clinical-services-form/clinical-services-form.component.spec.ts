@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
@@ -9,7 +10,7 @@ import { ClinicalServicesFormComponent } from './clinical-services-form.componen
 
 describe('ClinicalServicesFormComponent', () => {
   let fixture: ComponentFixture<ClinicalServicesFormComponent>;
-  let catalogService: jasmine.SpyObj<CatalogService>;
+  let catalogService: MockedObject<CatalogService>;
 
   const categories: CatalogItem[] = [
     { id: 1, catalogId: 10, itemCode: 'EVALUACION', itemName: 'Evaluación', isActive: true, orderIndex: 0 },
@@ -17,15 +18,23 @@ describe('ClinicalServicesFormComponent', () => {
   ];
 
   beforeEach(async () => {
-    catalogService = jasmine.createSpyObj('CatalogService', ['getActiveItemsByCatalogCode']);
-    catalogService.getActiveItemsByCatalogCode.and.returnValue(of(categories));
+    catalogService = {
+      getActiveItemsByCatalogCode: vi.fn().mockName('CatalogService.getActiveItemsByCatalogCode')
+    } as unknown as MockedObject<CatalogService>;
+    catalogService.getActiveItemsByCatalogCode.mockReturnValue(of(categories));
 
     await TestBed.configureTestingModule({
       imports: [ClinicalServicesFormComponent],
       providers: [
         { provide: CatalogService, useValue: catalogService },
-        { provide: ClinicalServiceService, useValue: jasmine.createSpyObj('ClinicalServiceService', ['getServiceById', 'createService', 'updateService']) },
-        { provide: ToastService, useValue: jasmine.createSpyObj('ToastService', ['show']) }
+        { provide: ClinicalServiceService, useValue: {
+            getServiceById: vi.fn().mockName('ClinicalServiceService.getServiceById'),
+            createService: vi.fn().mockName('ClinicalServiceService.createService'),
+            updateService: vi.fn().mockName('ClinicalServiceService.updateService')
+          } },
+        { provide: ToastService, useValue: {
+            show: vi.fn().mockName('ToastService.show')
+          } }
       ]
     }).compileComponents();
 

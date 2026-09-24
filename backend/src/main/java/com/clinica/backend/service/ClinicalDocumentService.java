@@ -33,7 +33,7 @@ public class ClinicalDocumentService {
 
     @Transactional(readOnly = true)
     public Page<ClinicalDocumentDto> getDocuments(Long patientId, Pageable pageable) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         Page<ClinicalDocument> documents = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
                 ? repository.findByPatientIdAndSpecialtyAndDeletedFalseOrderByCreatedAtDesc(patientId, user.getSpecialty(), pageable)
                 : repository.findByPatientIdAndSpecialtyAndProfessionalIdAndDeletedFalseOrderByCreatedAtDesc(patientId, user.getSpecialty(), user.getId(), pageable);
@@ -42,7 +42,7 @@ public class ClinicalDocumentService {
 
     @Transactional
     public ClinicalDocumentDto uploadDocument(Long patientId, MultipartFile file, String category, String name, LocalDate documentDate) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, user.getSpecialty())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
 
@@ -89,7 +89,7 @@ public class ClinicalDocumentService {
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator(document.getSpecialty(), document.getProfessionalId());
         document.setDeleted(true);
         document.setDeletedAt(LocalDateTime.now());
-        document.setDeletedBy(clinicalAuthorizationService.currentUser().getId());
+        document.setDeletedBy(clinicalAuthorizationService.currentProfessional().getId());
         repository.save(document);
         fileStorage.delete(document.getFileUrl());
 

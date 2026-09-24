@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { LesionPhotoCompareComponent } from './lesion-photo-compare.component';
 import { LesionPhotoService } from '../../../core/services/lesion-photo.service';
@@ -8,7 +9,7 @@ import { LesionPhoto } from '../../../core/models/lesion-photo.model';
 describe('LesionPhotoCompareComponent', () => {
   let component: LesionPhotoCompareComponent;
   let fixture: ComponentFixture<LesionPhotoCompareComponent>;
-  let photoServiceSpy: jasmine.SpyObj<LesionPhotoService>;
+  let photoServiceSpy: MockedObject<LesionPhotoService>;
 
   const mockLesion: Lesion = {
     id: 1,
@@ -36,8 +37,10 @@ describe('LesionPhotoCompareComponent', () => {
   ];
 
   beforeEach(async () => {
-    photoServiceSpy = jasmine.createSpyObj('LesionPhotoService', ['getPhotoFile']);
-    photoServiceSpy.getPhotoFile.and.returnValue(of(new Blob(['fake-image'], { type: 'image/jpeg' })));
+    photoServiceSpy = {
+      getPhotoFile: vi.fn().mockName('LesionPhotoService.getPhotoFile')
+    } as unknown as MockedObject<LesionPhotoService>;
+    photoServiceSpy.getPhotoFile.mockReturnValue(of(new Blob(['fake-image'], { type: 'image/jpeg' })));
 
     await TestBed.configureTestingModule({
       imports: [LesionPhotoCompareComponent],
@@ -77,7 +80,7 @@ describe('LesionPhotoCompareComponent', () => {
   });
 
   it('should emit close event when closeModal is called', () => {
-    spyOn(component.close, 'emit');
+    vi.spyOn(component.close, 'emit');
     component.closeModal();
     expect(component.close.emit).toHaveBeenCalled();
   });

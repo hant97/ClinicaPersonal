@@ -72,7 +72,7 @@ public class RiskAssessmentService {
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator("PSICOLOGIA", assessment.getProfessionalId());
         assessment.setDeleted(true);
         assessment.setDeletedAt(LocalDateTime.now());
-        assessment.setDeletedBy(clinicalAuthorizationService.currentUser().getId());
+        assessment.setDeletedBy(clinicalAuthorizationService.currentProfessional().getId());
         repository.save(assessment);
     }
 

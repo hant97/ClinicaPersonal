@@ -59,12 +59,10 @@ describe('AttentionService', () => {
     service.getAll('Maria', 'EN_PROCESO', 5, undefined, '2026-08-01', '2026-08-20', 0, 20)
       .subscribe(data => result = data);
 
-    const req = httpTesting.expectOne(request =>
-      request.url.endsWith('/v1/attentions') &&
+    const req = httpTesting.expectOne(request => request.url.endsWith('/v1/attentions') &&
       request.params.get('searchTerm') === 'Maria' &&
       request.params.get('status') === 'EN_PROCESO' &&
-      request.params.get('professionalId') === '5'
-    );
+      request.params.get('professionalId') === '5');
     expect(req.request.method).toBe('GET');
     req.flush(mockPageResponse);
 
@@ -137,6 +135,6 @@ describe('AttentionService', () => {
     expect(req.request.method).toBe('DELETE');
     req.flush(null);
 
-    expect(completed).toBeTrue();
+    expect(completed).toBe(true);
   });
 });

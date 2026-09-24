@@ -46,7 +46,7 @@ public class PublicRateLimitFilter extends OncePerRequestFilter {
             return;
         }
 
-        String clientIp = extractClientIp(request);
+        String clientIp = ClientIpResolver.resolve(request);
         String counterKey = (isPublic ? "PUB:" : "REF:") + clientIp;
         int maxAllowed = isPublic ? PUBLIC_MAX_REQUESTS_PER_MINUTE : REFRESH_MAX_REQUESTS_PER_MINUTE;
 
@@ -77,18 +77,6 @@ public class PublicRateLimitFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
-    }
-
-    private String extractClientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            String[] parts = forwarded.split(",");
-            String candidate = parts[0].trim();
-            if (!candidate.equalsIgnoreCase("unknown") && !candidate.isBlank()) {
-                return candidate;
-            }
-        }
-        return request.getRemoteAddr();
     }
 
     @Scheduled(fixedRate = 60_000)

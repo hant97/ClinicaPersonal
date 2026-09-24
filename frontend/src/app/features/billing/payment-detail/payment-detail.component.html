@@ -133,14 +133,16 @@
                   <td class="py-2 text-xs">{{ getPaymentMethodText(transaction.paymentMethod) }}</td>
                   <td class="py-2 text-right font-medium text-xs">{{ transaction.amount | currency:'PEN':'S/ ':'1.2-2' }}</td>
                   <td class="py-2 text-right print:hidden">
-                    <button
-                      type="button"
-                      class="text-muted hover:text-danger p-1 rounded transition"
-                      (click)="deleteTransaction(transaction)"
-                      title="Eliminar abono"
-                    >
-                      <lucide-icon [img]="Trash2" [size]="14"></lucide-icon>
-                    </button>
+                    @if (canDelete) {
+                      <button
+                        type="button"
+                        class="text-muted hover:text-danger p-1 rounded transition"
+                        (click)="deleteTransaction(transaction)"
+                        title="Eliminar abono"
+                      >
+                        <lucide-icon [img]="Trash2" [size]="14"></lucide-icon>
+                      </button>
+                    }
                   </td>
                 </tr>
               }

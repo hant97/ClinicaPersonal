@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { DashboardService, DashboardStats } from '../../../core/services/dashboard.service';
@@ -9,20 +10,22 @@ const dashboardStats: DashboardStats = {
   activePatients: 12, appointmentsToday: 3, monthlyIncome: 450,
   upcomingAppointments: [], todaysAppointments: [], attendanceRate: 90, cancelledAppointments: 0,
   newPatientsThisMonth: 2, monthlyIncomeGrowth: 10,
-   activeRiskAlerts: [], lowStockSupplies: [], pendingSoapNotes: [],
-   psychometricEvaluationsThisMonth: 0,
-   dermatologicalEvaluationsThisMonth: 0,
-   dermatologicalProceduresThisMonth: 0
+  activeRiskAlerts: [], lowStockSupplies: [], pendingSoapNotes: [],
+  psychometricEvaluationsThisMonth: 0,
+  dermatologicalEvaluationsThisMonth: 0,
+  dermatologicalProceduresThisMonth: 0
 };
 
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
   let fixture: ComponentFixture<DashboardComponent>;
-  let dashboardService: jasmine.SpyObj<DashboardService>;
+  let dashboardService: MockedObject<DashboardService>;
 
   beforeEach(async () => {
-    dashboardService = jasmine.createSpyObj<DashboardService>('DashboardService', ['getDashboardStats']);
-    dashboardService.getDashboardStats.and.returnValue(of(dashboardStats));
+    dashboardService = {
+      getDashboardStats: vi.fn().mockName('DashboardService.getDashboardStats')
+    } as unknown as MockedObject<DashboardService>;
+    dashboardService.getDashboardStats.mockReturnValue(of(dashboardStats));
     await TestBed.configureTestingModule({
       imports: [DashboardComponent],
       providers: [
@@ -42,9 +45,9 @@ describe('DashboardComponent', () => {
   });
 
   it('muestra una opción para reintentar cuando ocurre un error', () => {
-    dashboardService.getDashboardStats.and.returnValue(throwError(() => new Error('Error de red')));
+    dashboardService.getDashboardStats.mockReturnValue(throwError(() => new Error('Error de red')));
     fixture.detectChanges();
-    expect(component.loadError).toBeTrue();
+    expect(component.loadError).toBe(true);
     expect(fixture.nativeElement.textContent).toContain('Reintentar');
   });
 });

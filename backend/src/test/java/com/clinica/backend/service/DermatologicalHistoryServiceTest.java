@@ -54,7 +54,7 @@ class DermatologicalHistoryServiceTest {
     void upsertHistoryCreatesWhenMissingUsingAuthenticatedProfessional() {
         Patient patient = new Patient();
         patient.setId(7L);
-        when(clinicalAuthorizationService.currentUser()).thenReturn(user);
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(user);
         when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(7L, "DERMATOLOGIA")).thenReturn(Optional.of(patient));
         when(repository.findByPatientIdAndDeletedFalse(7L)).thenReturn(Optional.empty());
         when(repository.save(any(DermatologicalHistory.class))).thenAnswer(invocation -> {

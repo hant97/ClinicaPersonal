@@ -5,7 +5,8 @@ import com.clinica.backend.service.ClinicalDocumentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -25,9 +26,8 @@ public class ClinicalDocumentController {
     @GetMapping("/patients/{patientId}/clinical-documents")
     public ResponseEntity<Page<ClinicalDocumentDto>> getDocuments(
             @PathVariable Long patientId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(service.getDocuments(patientId, PageRequest.of(page, size)));
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(service.getDocuments(patientId, pageable));
     }
 
     @PostMapping(value = "/patients/{patientId}/clinical-documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

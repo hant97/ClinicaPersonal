@@ -78,9 +78,10 @@ class AttentionServiceTest {
         currentUser.setFirstName("Juan");
         currentUser.setLastName("Perez");
         currentUser.setSpecialty("PSICOLOGIA");
-        currentUser.setRoles(Set.of("ROLE_USER"));
+        currentUser.setRoles(Set.of("ROLE_PROFESIONAL"));
 
         when(clinicalAuthorizationService.currentUser()).thenReturn(currentUser);
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(currentUser);
 
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(currentUser, null, currentUser.getAuthorities())

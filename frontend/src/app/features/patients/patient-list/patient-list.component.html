@@ -175,7 +175,7 @@
             <div class="flex items-start justify-between gap-2">
               <div class="flex items-center gap-3 min-w-0">
                 @if (patient.photoUrl) {
-                  <img [src]="patient.photoUrl" class="h-11 w-11 rounded-full object-cover border border-line shrink-0" [alt]="patient.firstName">
+                  <img [appAuthSrc]="patient.photoUrl" class="h-11 w-11 rounded-full object-cover border border-line shrink-0" [alt]="patient.firstName">
                 } @else {
                   <span class="avatar-initials !h-11 !w-11 !text-sm shrink-0 bg-primary-100 text-primary-700 font-bold">
                     {{ getInitials(patient.firstName, patient.lastName) }}
@@ -261,15 +261,17 @@
                     <lucide-icon [img]="patient.active === false ? CheckCircle2 : XCircle" [size]="14" [class]="patient.active === false ? 'text-emerald-600' : 'text-amber-600'"></lucide-icon>
                     <span>{{ patient.active === false ? 'Reactivar' : 'Dar de Baja' }}</span>
                   </button>
-                  <div class="my-1 border-t border-line"></div>
-                  <button
-                    type="button"
-                    class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-danger hover:bg-red-50 transition text-left"
-                    (click)="deletePatient(patient.id!, $event); closeMenu()"
-                  >
-                    <lucide-icon [img]="Trash2" [size]="14"></lucide-icon>
-                    <span>Eliminar</span>
-                  </button>
+                  @if (canDelete) {
+                    <div class="my-1 border-t border-line"></div>
+                    <button
+                      type="button"
+                      class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-danger hover:bg-red-50 transition text-left"
+                      (click)="deletePatient(patient.id!, $event); closeMenu()"
+                    >
+                      <lucide-icon [img]="Trash2" [size]="14"></lucide-icon>
+                      <span>Eliminar</span>
+                    </button>
+                  }
                 </div>
               }
             </div>
@@ -297,7 +299,7 @@
               <td>
                 <div class="flex items-center gap-3">
                   @if (patient.photoUrl) {
-                    <img [src]="patient.photoUrl" class="h-9 w-9 rounded-full object-cover border border-line" [alt]="patient.firstName">
+                    <img [appAuthSrc]="patient.photoUrl" class="h-9 w-9 rounded-full object-cover border border-line" [alt]="patient.firstName">
                   } @else {
                     <span class="avatar-initials !h-9 !w-9 !text-xs font-bold">
                       {{ getInitials(patient.firstName, patient.lastName) }}
@@ -352,9 +354,11 @@
                   <a class="btn-text !p-1.5" [routerLink]="['/patients', patient.uuid || patient.id, 'edit']" (click)="$event.stopPropagation()" title="Editar Datos">
                     <lucide-icon [img]="Edit" [size]="16"></lucide-icon>
                   </a>
-                  <button type="button" class="btn-text !p-1.5 text-danger hover:bg-red-50" (click)="deletePatient(patient.id!, $event)" title="Eliminar">
-                    <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
-                  </button>
+                  @if (canDelete) {
+                    <button type="button" class="btn-text !p-1.5 text-danger hover:bg-red-50" (click)="deletePatient(patient.id!, $event)" title="Eliminar">
+                      <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
+                    </button>
+                  }
                 </div>
               </td>
             </tr>

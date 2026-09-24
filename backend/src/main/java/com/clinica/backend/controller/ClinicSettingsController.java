@@ -5,7 +5,6 @@ import com.clinica.backend.service.ClinicSettingsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -14,9 +13,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.clinica.backend.model.User;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @RestController
 @RequestMapping("/api/v1/settings/clinic")
@@ -47,40 +43,16 @@ public class ClinicSettingsController {
 
     @GetMapping("/logo/{filename:.+}")
     public ResponseEntity<Resource> serveLogo(@PathVariable String filename) {
-        try {
-            if (filename == null || filename.contains("..") || filename.contains("/") || filename.contains("\\")) {
-                return ResponseEntity.badRequest().build();
-            }
-
-            Path basePath = Paths.get("uploads/logos/").toAbsolutePath().normalize();
-            Path filePath = basePath.resolve(filename).normalize();
-
-            if (!filePath.startsWith(basePath)) {
-                return ResponseEntity.badRequest().build();
-            }
-
-            Resource resource = new UrlResource(filePath.toUri());
-
-            if (resource.exists() && resource.isReadable()) {
-                String contentType = "image/jpeg";
-                String lower = filename.toLowerCase();
-                if (lower.endsWith(".png")) {
-                    contentType = "image/png";
-                } else if (lower.endsWith(".webp")) {
-                    contentType = "image/webp";
-                }
-
-                return ResponseEntity.ok()
-                        .header(HttpHeaders.CONTENT_TYPE, contentType)
-                        .header("X-Content-Type-Options", "nosniff")
-                        .header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'")
-                        .body(resource);
-            } else {
-                return ResponseEntity.notFound().build();
-            }
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
+        Resource resource = service.loadLogo(filename);
+        String lower = filename.toLowerCase();
+        String contentType = lower.endsWith(".png") ? "image/png"
+                : lower.endsWith(".webp") ? "image/webp"
+                : "image/jpeg";
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, contentType)
+                .header("X-Content-Type-Options", "nosniff")
+                .header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'")
+                .body(resource);
     }
 
     private String getSpecialtyFromAuthentication(Authentication authentication) {

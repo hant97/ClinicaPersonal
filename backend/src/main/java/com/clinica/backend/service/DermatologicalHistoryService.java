@@ -39,7 +39,7 @@ public class DermatologicalHistoryService {
 
     @Transactional
     public DermatologicalHistoryDto upsertHistory(Long patientId, DermatologicalHistoryDto dto) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         clinicalAuthorizationService.ensureSameSpecialty("DERMATOLOGIA");
         Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, "DERMATOLOGIA")
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));

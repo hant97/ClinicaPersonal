@@ -19,50 +19,50 @@ describe('ViewPreferenceService', () => {
   });
 
   it('should classify mobile boundaries at 767 and 768 pixels', () => {
-    const widthSpy = spyOnProperty(window, 'innerWidth', 'get');
-    widthSpy.and.returnValue(767);
-    expect(service.isMobile()).toBeTrue();
+    const widthSpy = vi.spyOn(window, 'innerWidth', 'get');
+    widthSpy.mockReturnValue(767);
+    expect(service.isMobile()).toBe(true);
 
-    widthSpy.and.returnValue(768);
-    expect(service.isMobile()).toBeFalse();
+    widthSpy.mockReturnValue(768);
+    expect(service.isMobile()).toBe(false);
   });
 
   it('should classify compact boundaries at 768, 1023 and 1024 pixels', () => {
-    const widthSpy = spyOnProperty(window, 'innerWidth', 'get');
-    widthSpy.and.returnValue(768);
-    expect(service.isCompact()).toBeTrue();
+    const widthSpy = vi.spyOn(window, 'innerWidth', 'get');
+    widthSpy.mockReturnValue(768);
+    expect(service.isCompact()).toBe(true);
 
-    widthSpy.and.returnValue(1023);
-    expect(service.isCompact()).toBeTrue();
+    widthSpy.mockReturnValue(1023);
+    expect(service.isCompact()).toBe(true);
 
-    widthSpy.and.returnValue(1024);
-    expect(service.isCompact()).toBeFalse();
+    widthSpy.mockReturnValue(1024);
+    expect(service.isCompact()).toBe(false);
   });
 
   it('should allow an expanded sidebar from 1280 pixels', () => {
-    const widthSpy = spyOnProperty(window, 'innerWidth', 'get');
-    widthSpy.and.returnValue(1279);
-    expect(service.canExpandSidebar()).toBeFalse();
+    const widthSpy = vi.spyOn(window, 'innerWidth', 'get');
+    widthSpy.mockReturnValue(1279);
+    expect(service.canExpandSidebar()).toBe(false);
 
-    widthSpy.and.returnValue(1280);
-    expect(service.canExpandSidebar()).toBeTrue();
+    widthSpy.mockReturnValue(1280);
+    expect(service.canExpandSidebar()).toBe(true);
   });
 
   it('should return desktop default when viewport is not compact and no storage exists', () => {
-    spyOnProperty(window, 'innerWidth', 'get').and.returnValue(1024);
+    vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(1024);
     const mode = service.getViewMode('test_key', 'table', 'cards');
     expect(mode).toBe('table');
   });
 
   it('should return compact default on tablet when no storage exists', () => {
-    spyOnProperty(window, 'innerWidth', 'get').and.returnValue(768);
+    vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(768);
     const mode = service.getViewMode('test_key', 'table', 'cards');
     expect(mode).toBe('cards');
   });
 
   it('should return saved preference over responsive default', () => {
     localStorage.setItem('test_key', 'cards');
-    spyOnProperty(window, 'innerWidth', 'get').and.returnValue(1200);
+    vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(1200);
 
     const mode = service.getViewMode('test_key', 'table', 'cards');
     expect(mode).toBe('cards');

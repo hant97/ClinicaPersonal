@@ -5,7 +5,7 @@ const today = new Date().toISOString().slice(0, 10);
 const authResponse = {
   token: 'e30.eyJzcGVjaWFsdHkiOiJQU0lDT0xPR0lBIn0.e2e-signature',
   specialty: 'PSICOLOGIA',
-  roles: ['ROLE_ADMIN'],
+  roles: ['ROLE_PROFESIONAL', 'ROLE_ADMIN'],
 };
 
 const professional = {
@@ -15,7 +15,7 @@ const professional = {
   lastName: 'Salazar Apellido Compuesto',
   email: 'alejandra.salazar+responsive@clinica-e2e.example',
   phone: '999999999',
-  roles: ['ROLE_ADMIN'],
+  roles: ['ROLE_PROFESIONAL', 'ROLE_ADMIN'],
   specialty: 'PSICOLOGIA',
   enabled: true,
 };

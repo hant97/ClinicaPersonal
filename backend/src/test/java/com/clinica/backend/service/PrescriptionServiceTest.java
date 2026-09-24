@@ -72,7 +72,7 @@ class PrescriptionServiceTest {
     void createPrescriptionUsesAuthenticatedProfessionalSpecialtyAndItems() {
         Patient patient = new Patient();
         patient.setId(7L);
-        when(clinicalAuthorizationService.currentUser()).thenReturn(user);
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(user);
         when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(7L, "PSICOLOGIA")).thenReturn(Optional.of(patient));
         when(repository.save(any(Prescription.class))).thenAnswer(invocation -> {
             Prescription prescription = invocation.getArgument(0);
@@ -105,7 +105,7 @@ class PrescriptionServiceTest {
         prescription.setSpecialty("PSICOLOGIA");
         prescription.setProfessionalId(10L);
         when(repository.findByIdAndDeletedFalse(5L)).thenReturn(Optional.of(prescription));
-        when(clinicalAuthorizationService.currentUser()).thenReturn(user);
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(user);
         when(repository.save(any(Prescription.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         service.deletePrescription(5L);

@@ -11,7 +11,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 
 @RestController
 @RequestMapping("/api/v1/tests")
@@ -23,9 +24,8 @@ public class PsychometricTestController {
     @GetMapping
     @PreAuthorize("principal.specialty == 'PSICOLOGIA'")
     public ResponseEntity<Page<PsychometricTestDto>> getAllTests(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(psychometricTestService.getAllTests(PageRequest.of(page, size)));
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(psychometricTestService.getAllTests(pageable));
     }
 
     @GetMapping("/{id}")

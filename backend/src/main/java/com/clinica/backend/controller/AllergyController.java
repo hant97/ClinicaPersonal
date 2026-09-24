@@ -5,7 +5,8 @@ import com.clinica.backend.service.AllergyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,9 +20,8 @@ public class AllergyController {
     @GetMapping("/patients/{patientId}/allergies")
     public ResponseEntity<Page<AllergyDto>> getAllergies(
             @PathVariable Long patientId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(service.getAllergies(patientId, PageRequest.of(page, size)));
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(service.getAllergies(patientId, pageable));
     }
 
     @PostMapping("/patients/{patientId}/allergies")

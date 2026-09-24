@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, Subject, catchError, finalize, of, shareReplay, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { clearClinicalDrafts } from '../utils/clinical-draft.util';
+import { ROLES } from '../models/roles';
 
 export interface AuthRequest {
   username: string;
@@ -40,6 +42,9 @@ export class AuthService {
   }
 
   logout(): void {
+    // Solo en el cierre explícito: si la sesión expira, el mismo usuario recupera su borrador
+    // al volver a entrar.
+    clearClinicalDrafts();
     if (this.accessToken) {
       this.http.post(`${this.apiUrl}/logout`, {}, { withCredentials: true }).subscribe({ complete: () => this.clearSession(), error: () => this.clearSession() });
     } else {
@@ -78,7 +83,24 @@ export class AuthService {
   }
 
   getSpecialty(): string | null { return this.specialty; }
+
+  /** Usuario del token actual (claim `sub`). No valida la firma: solo sirve para aislar estado local. */
+  getUsername(): string | null {
+    const payload = this.accessToken?.split('.')[1];
+    if (!payload) return null;
+    try {
+      const claims = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+      return typeof claims.sub === 'string' ? claims.sub : null;
+    } catch {
+      return null;
+    }
+  }
+
   hasRole(role: string): boolean { return this.roles.includes(role); }
+  /** Profesional de salud: único rol con acceso a la información clínica. */
+  isProfessional(): boolean { return this.hasRole(ROLES.PROFESIONAL); }
+  /** Administrador de la clínica: puede eliminar pacientes y cobros. */
+  isClinicAdmin(): boolean { return this.hasRole(ROLES.ADMIN); }
   loginResponse(response: AuthResponse): void { this.storeResponse(response); }
 
   private storeResponse(response: AuthResponse): void {

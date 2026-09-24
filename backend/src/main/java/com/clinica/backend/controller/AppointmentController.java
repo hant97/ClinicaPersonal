@@ -7,7 +7,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,16 +23,14 @@ public class AppointmentController {
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<Page<AppointmentDto>> getByPatientId(
             @PathVariable Long patientId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(service.getByPatientId(patientId, PageRequest.of(page, size)));
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(service.getByPatientId(patientId, pageable));
     }
 
     @GetMapping
     public ResponseEntity<Page<AppointmentDto>> getAll(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(service.getAll(PageRequest.of(page, size)));
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(service.getAll(pageable));
     }
 
     @GetMapping("/search")
@@ -41,10 +40,9 @@ public class AppointmentController {
             @RequestParam(required = false) Long professionalId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity
-                .ok(service.searchAppointments(searchTerm, status, professionalId, startDate, endDate, PageRequest.of(page, size)));
+                .ok(service.searchAppointments(searchTerm, status, professionalId, startDate, endDate, pageable));
     }
 
     @PostMapping

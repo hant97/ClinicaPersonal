@@ -27,7 +27,7 @@ public class AllergyService {
 
     @Transactional(readOnly = true)
     public Page<AllergyDto> getAllergies(Long patientId, Pageable pageable) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, user.getSpecialty())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
         Page<Allergy> allergies = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
@@ -38,7 +38,7 @@ public class AllergyService {
 
     @Transactional
     public AllergyDto createAllergy(Long patientId, AllergyDto dto) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, user.getSpecialty())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
 
@@ -64,7 +64,7 @@ public class AllergyService {
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator(allergy.getSpecialty(), allergy.getProfessionalId());
         allergy.setDeleted(true);
         allergy.setDeletedAt(LocalDateTime.now());
-        allergy.setDeletedBy(clinicalAuthorizationService.currentUser().getId());
+        allergy.setDeletedBy(clinicalAuthorizationService.currentProfessional().getId());
         repository.save(allergy);
     }
 

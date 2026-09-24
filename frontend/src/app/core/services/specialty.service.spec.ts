@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
@@ -8,7 +9,7 @@ import { SpecialtyItem } from '../models/specialty.model';
 describe('SpecialtyService', () => {
   let service: SpecialtyService;
   let httpTesting: HttpTestingController;
-  let authServiceSpy: jasmine.SpyObj<AuthService>;
+  let authServiceSpy: MockedObject<AuthService>;
 
   const mockSpecialties: SpecialtyItem[] = [
     { id: 1, code: 'PSICOLOGIA', name: 'Psicología', icon: 'Brain', active: true, displayOrder: 1 },
@@ -16,7 +17,9 @@ describe('SpecialtyService', () => {
   ];
 
   beforeEach(() => {
-    authServiceSpy = jasmine.createSpyObj('AuthService', ['getToken']);
+    authServiceSpy = {
+      getToken: vi.fn().mockName('AuthService.getToken')
+    } as unknown as MockedObject<AuthService>;
 
     TestBed.configureTestingModule({
       providers: [
@@ -73,10 +76,10 @@ describe('SpecialtyService', () => {
     const payload = btoa(JSON.stringify({ specialty: 'PSICOLOGIA', sub: 'admin' }));
     const dummyToken = `${header}.${payload}.signature`;
 
-    authServiceSpy.getToken.and.returnValue(dummyToken);
+    authServiceSpy.getToken.mockReturnValue(dummyToken);
 
     expect(service.getSpecialty()).toBe('PSICOLOGIA');
-    expect(service.isPsychology()).toBeTrue();
-    expect(service.isDermatology()).toBeFalse();
+    expect(service.isPsychology()).toBe(true);
+    expect(service.isDermatology()).toBe(false);
   });
 });

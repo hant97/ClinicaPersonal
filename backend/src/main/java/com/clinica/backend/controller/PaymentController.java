@@ -10,9 +10,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 
 import java.time.LocalDate;
 
@@ -31,9 +33,8 @@ public class PaymentController {
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<Page<PaymentDto>> getByPatientId(
             @PathVariable Long patientId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(service.getByPatientId(patientId, PageRequest.of(page, size)));
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(service.getByPatientId(patientId, pageable));
     }
 
     @GetMapping("/patient/{patientId}/balance")
@@ -55,9 +56,8 @@ public class PaymentController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
             @RequestParam(required = false) String paymentMethod,
             @RequestParam(required = false) String status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(service.getAll(searchTerm, dateFrom, dateTo, paymentMethod, status, PageRequest.of(page, size)));
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(service.getAll(searchTerm, dateFrom, dateTo, paymentMethod, status, pageable));
     }
 
     @PostMapping
@@ -76,12 +76,14 @@ public class PaymentController {
     }
 
     @DeleteMapping("/{id}/transactions/{transactionId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteTransaction(@PathVariable Long id, @PathVariable Long transactionId) {
         service.deleteTransaction(id, transactionId);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.ok().build();

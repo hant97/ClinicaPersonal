@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AttentionListComponent } from './attention-list.component';
 import { AttentionService } from '../../../core/services/attention.service';
@@ -14,11 +15,11 @@ import { Attention, AttentionSummary } from '../../../core/models/attention.mode
 describe('AttentionListComponent', () => {
   let component: AttentionListComponent;
   let fixture: ComponentFixture<AttentionListComponent>;
-  let attentionServiceSpy: jasmine.SpyObj<AttentionService>;
-  let patientServiceSpy: jasmine.SpyObj<PatientService>;
-  let clinicalServiceSpy: jasmine.SpyObj<ClinicalServiceService>;
-  let userServiceSpy: jasmine.SpyObj<UserService>;
-  let toastServiceSpy: jasmine.SpyObj<ToastService>;
+  let attentionServiceSpy: MockedObject<AttentionService>;
+  let patientServiceSpy: MockedObject<PatientService>;
+  let clinicalServiceSpy: MockedObject<ClinicalServiceService>;
+  let userServiceSpy: MockedObject<UserService>;
+  let toastServiceSpy: MockedObject<ToastService>;
   let router: Router;
 
   const mockPageResponse: PageResponse<Attention> = {
@@ -53,21 +54,29 @@ describe('AttentionListComponent', () => {
   };
 
   beforeEach(async () => {
-    attentionServiceSpy = jasmine.createSpyObj('AttentionService', [
-      'getAll',
-      'getTodaySummary',
-      'create',
-      'updateStatus',
-      'delete'
-    ]);
-    patientServiceSpy = jasmine.createSpyObj('PatientService', ['search']);
-    clinicalServiceSpy = jasmine.createSpyObj('ClinicalServiceService', ['getAllActiveServices']);
-    userServiceSpy = jasmine.createSpyObj('UserService', ['getCurrentUserProfile']);
-    toastServiceSpy = jasmine.createSpyObj('ToastService', ['show']);
+    attentionServiceSpy = {
+      getAll: vi.fn().mockName('AttentionService.getAll'),
+      getTodaySummary: vi.fn().mockName('AttentionService.getTodaySummary'),
+      create: vi.fn().mockName('AttentionService.create'),
+      updateStatus: vi.fn().mockName('AttentionService.updateStatus'),
+      delete: vi.fn().mockName('AttentionService.delete')
+    } as unknown as MockedObject<AttentionService>;
+    patientServiceSpy = {
+      search: vi.fn().mockName('PatientService.search')
+    } as unknown as MockedObject<PatientService>;
+    clinicalServiceSpy = {
+      getAllActiveServices: vi.fn().mockName('ClinicalServiceService.getAllActiveServices')
+    } as unknown as MockedObject<ClinicalServiceService>;
+    userServiceSpy = {
+      getCurrentUserProfile: vi.fn().mockName('UserService.getCurrentUserProfile')
+    } as unknown as MockedObject<UserService>;
+    toastServiceSpy = {
+      show: vi.fn().mockName('ToastService.show')
+    } as unknown as MockedObject<ToastService>;
 
-    attentionServiceSpy.getAll.and.returnValue(of(mockPageResponse));
-    attentionServiceSpy.getTodaySummary.and.returnValue(of(mockSummary));
-    clinicalServiceSpy.getAllActiveServices.and.returnValue(of([]));
+    attentionServiceSpy.getAll.mockReturnValue(of(mockPageResponse));
+    attentionServiceSpy.getTodaySummary.mockReturnValue(of(mockSummary));
+    clinicalServiceSpy.getAllActiveServices.mockReturnValue(of([]));
 
     await TestBed.configureTestingModule({
       imports: [AttentionListComponent, RouterTestingModule],
@@ -82,7 +91,7 @@ describe('AttentionListComponent', () => {
     }).compileComponents();
 
     router = TestBed.inject(Router);
-    spyOn(router, 'navigate');
+    vi.spyOn(router, 'navigate');
 
     fixture = TestBed.createComponent(AttentionListComponent);
     component = fixture.componentInstance;
@@ -100,7 +109,7 @@ describe('AttentionListComponent', () => {
   it('debe iniciar la atención al invocar startAttention', () => {
     const attention = mockPageResponse.content[0];
     const updatedAttention: Attention = { ...attention, status: 'EN_PROCESO' };
-    attentionServiceSpy.updateStatus.and.returnValue(of(updatedAttention));
+    attentionServiceSpy.updateStatus.mockReturnValue(of(updatedAttention));
 
     component.startAttention(attention);
 
@@ -116,19 +125,16 @@ describe('AttentionListComponent', () => {
 
   it('debe abrir y cerrar modal de captura rápida', () => {
     component.openQuickModal();
-    expect(component.showQuickModal).toBeTrue();
+    expect(component.showQuickModal).toBe(true);
     component.closeQuickModal();
-    expect(component.showQuickModal).toBeFalse();
+    expect(component.showQuickModal).toBe(false);
   });
 
   it('debe navegar a sesión clínica al invocar goToClinicalSession', () => {
     const attention = mockPageResponse.content[0];
     component.goToClinicalSession(attention);
-    expect(router.navigate).toHaveBeenCalledWith(
-      ['/patients/10/sessions/new'],
-      jasmine.objectContaining({
-        queryParams: jasmine.objectContaining({ attentionId: 1 })
-      })
-    );
+    expect(router.navigate).toHaveBeenCalledWith(['/patients/10/sessions/new'], expect.objectContaining({
+      queryParams: expect.objectContaining({ attentionId: 1 })
+    }));
   });
 });

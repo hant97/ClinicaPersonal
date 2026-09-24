@@ -50,7 +50,7 @@ class LogicalDeleteIntegrityTest {
         user.setSpecialty("PSICOLOGIA");
         user.setRoles(Set.of("ROLE_ADMIN"));
 
-        when(authService.currentUser()).thenReturn(user);
+        when(authService.currentProfessional()).thenReturn(user);
 
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities())

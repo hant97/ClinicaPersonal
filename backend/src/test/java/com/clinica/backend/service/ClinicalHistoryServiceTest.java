@@ -93,7 +93,7 @@ class ClinicalHistoryServiceTest {
     @DisplayName("returns psychology branch for psychology user using provider delegation")
     void returnsPsychologyBranchForPsychologyUser() {
         user = user(10L, "PSICOLOGIA", "ROLE_ADMIN");
-        when(clinicalAuthorizationService.currentUser()).thenReturn(user);
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(user);
         when(psychologyEvaluationService.getEvaluationsByPatientId(any(), any())).thenReturn(emptyPage());
         when(therapeuticPlanService.getPlans(any(), any())).thenReturn(emptyPage());
 
@@ -111,7 +111,7 @@ class ClinicalHistoryServiceTest {
     @DisplayName("returns dermatology branch for dermatology user using provider delegation")
     void returnsDermatologyBranchForDermatologyUser() {
         user = user(10L, "DERMATOLOGIA", "ROLE_ADMIN");
-        when(clinicalAuthorizationService.currentUser()).thenReturn(user);
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(user);
         when(dermatologicalHistoryService.getHistory(7L)).thenReturn(new DermatologicalHistoryDto());
         when(lesionService.getLesions(any(), any())).thenReturn(emptyPage());
         when(auxiliaryExamService.getExams(any(), any())).thenReturn(emptyPage());
@@ -133,7 +133,7 @@ class ClinicalHistoryServiceTest {
     @DisplayName("returns base clinical history when no specific provider is registered for specialty")
     void returnsBaseClinicalHistoryWhenNoProviderRegistered() {
         user = user(10L, "CARDIOLOGIA", "ROLE_ADMIN");
-        when(clinicalAuthorizationService.currentUser()).thenReturn(user);
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(user);
 
         ClinicalHistoryDto result = service.getClinicalHistory(7L);
 

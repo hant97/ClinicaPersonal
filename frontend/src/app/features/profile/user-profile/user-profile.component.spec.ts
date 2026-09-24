@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { UserProfileComponent } from './user-profile.component';
 import { UserService } from '../../../core/services/user.service';
@@ -9,18 +10,33 @@ import { of } from 'rxjs';
 describe('UserProfileComponent', () => {
   let component: UserProfileComponent;
   let fixture: ComponentFixture<UserProfileComponent>;
-  let mockUserService: jasmine.SpyObj<UserService>;
-  let mockAuthService: jasmine.SpyObj<AuthService>;
-  let mockClinicSettingsService: jasmine.SpyObj<ClinicSettingsService>;
-  let mockToastService: jasmine.SpyObj<ToastService>;
+  let mockUserService: MockedObject<UserService>;
+  let mockAuthService: MockedObject<AuthService>;
+  let mockClinicSettingsService: MockedObject<ClinicSettingsService>;
+  let mockToastService: MockedObject<ToastService>;
 
   beforeEach(async () => {
-    mockUserService = jasmine.createSpyObj('UserService', ['getCurrentUserProfile', 'updateProfile', 'updatePassword']);
-    mockAuthService = jasmine.createSpyObj('AuthService', ['hasRole', 'getSpecialty', 'loginResponse']);
-    mockClinicSettingsService = jasmine.createSpyObj('ClinicSettingsService', ['getSettings', 'updateSettings', 'uploadLogo', 'getLogoUrl']);
-    mockToastService = jasmine.createSpyObj('ToastService', ['show']);
+    mockUserService = {
+      getCurrentUserProfile: vi.fn().mockName('UserService.getCurrentUserProfile'),
+      updateProfile: vi.fn().mockName('UserService.updateProfile'),
+      updatePassword: vi.fn().mockName('UserService.updatePassword')
+    } as unknown as MockedObject<UserService>;
+    mockAuthService = {
+      hasRole: vi.fn().mockName('AuthService.hasRole'),
+      getSpecialty: vi.fn().mockName('AuthService.getSpecialty'),
+      loginResponse: vi.fn().mockName('AuthService.loginResponse')
+    } as unknown as MockedObject<AuthService>;
+    mockClinicSettingsService = {
+      getSettings: vi.fn().mockName('ClinicSettingsService.getSettings'),
+      updateSettings: vi.fn().mockName('ClinicSettingsService.updateSettings'),
+      uploadLogo: vi.fn().mockName('ClinicSettingsService.uploadLogo'),
+      getLogoUrl: vi.fn().mockName('ClinicSettingsService.getLogoUrl')
+    } as unknown as MockedObject<ClinicSettingsService>;
+    mockToastService = {
+      show: vi.fn().mockName('ToastService.show')
+    } as unknown as MockedObject<ToastService>;
 
-    mockUserService.getCurrentUserProfile.and.returnValue(of({
+    mockUserService.getCurrentUserProfile.mockReturnValue(of({
       id: 1,
       username: 'silvi43',
       firstName: 'Silvia',
@@ -31,9 +47,9 @@ describe('UserProfileComponent', () => {
       roles: ['ROLE_ADMIN']
     }));
 
-    mockAuthService.hasRole.and.callFake((role: string) => role === 'ROLE_ADMIN');
-    mockAuthService.getSpecialty.and.returnValue('PSICOLOGIA');
-    mockClinicSettingsService.getSettings.and.returnValue(of({
+    mockAuthService.hasRole.mockImplementation((role: string) => role === 'ROLE_ADMIN');
+    mockAuthService.getSpecialty.mockReturnValue('PSICOLOGIA');
+    mockClinicSettingsService.getSettings.mockReturnValue(of({
       clinicName: 'Clínica Integral',
       shortName: 'Clínica',
       logoUrl: '',
@@ -78,17 +94,17 @@ describe('UserProfileComponent', () => {
   });
 
   it('should validate password requirements correctly', () => {
-    expect(component.hasMinLength('12345678')).toBeTrue();
-    expect(component.hasMinLength('1234')).toBeFalse();
-    expect(component.hasUppercase('Password1!')).toBeTrue();
-    expect(component.hasLowercase('Password1!')).toBeTrue();
-    expect(component.hasNumber('Password1!')).toBeTrue();
-    expect(component.hasSpecialChar('Password1!')).toBeTrue();
-    expect(component.hasSpecialChar('Password123')).toBeFalse();
+    expect(component.hasMinLength('12345678')).toBe(true);
+    expect(component.hasMinLength('1234')).toBe(false);
+    expect(component.hasUppercase('Password1!')).toBe(true);
+    expect(component.hasLowercase('Password1!')).toBe(true);
+    expect(component.hasNumber('Password1!')).toBe(true);
+    expect(component.hasSpecialChar('Password1!')).toBe(true);
+    expect(component.hasSpecialChar('Password123')).toBe(false);
   });
 
   it('should save profile when valid', () => {
-    mockUserService.updateProfile.and.returnValue(of({
+    mockUserService.updateProfile.mockReturnValue(of({
       id: 1,
       username: 'silvi43',
       firstName: 'Silvia Maria',

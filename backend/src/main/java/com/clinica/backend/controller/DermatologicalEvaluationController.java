@@ -4,7 +4,8 @@ import com.clinica.backend.dto.DermatologicalEvaluationDto;
 import com.clinica.backend.service.DermatologicalEvaluationService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,10 +23,8 @@ public class DermatologicalEvaluationController {
     @PreAuthorize("principal.specialty == 'DERMATOLOGIA'")
     public ResponseEntity<Page<DermatologicalEvaluationDto>> getEvaluationsByPatientId(
             @PathVariable Long patientId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(service.getEvaluationsByPatientId(patientId, 
-            PageRequest.of(page, size, Sort.by("evaluationDate").descending())));
+            @PageableDefault(size = 10, sort = "evaluationDate", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(service.getEvaluationsByPatientId(patientId, pageable));
     }
 
     @PostMapping("/patients/{patientId}/dermatological-evaluations")

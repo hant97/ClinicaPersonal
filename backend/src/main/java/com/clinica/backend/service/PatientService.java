@@ -5,15 +5,21 @@ import com.clinica.backend.dto.PatientStatsDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.mapper.PatientMapper;
 import com.clinica.backend.model.Patient;
+import com.clinica.backend.model.SearchText;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.PatientRepository;
 import com.clinica.backend.repository.RiskAlertRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
@@ -28,9 +34,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PatientService {
 
+    private static final Logger log = LoggerFactory.getLogger(PatientService.class);
+    private static final String PHOTO_CATEGORY = "patients";
+
     private final PatientRepository patientRepository;
     private final RiskAlertRepository riskAlertRepository;
-    private final WebsiteFileStorage fileStorage;
+    private final ClinicalFileStorage fileStorage;
     private final AuditLogService auditLogService;
     private final PatientMapper patientMapper;
 
@@ -47,7 +56,8 @@ public class PatientService {
             return getAllPatients(active, gender, pageable);
         }
         String specialty = currentSpecialty();
-        Page<Patient> patientsPage = patientRepository.searchPatients(query, specialty, active, gender, pageable);
+        Page<Patient> patientsPage = patientRepository.searchPatients(
+                SearchText.normalize(query), specialty, active, gender, pageable);
         return mapPageToDto(patientsPage, specialty);
     }
 
@@ -118,8 +128,7 @@ public class PatientService {
                 "CREATE",
                 "PATIENT",
                 savedPatient.getId().toString(),
-                "Paciente creado: " + savedPatient.getFirstName() + " " + savedPatient.getLastName() +
-                        (savedPatient.getIdentificationDocument() != null ? " (Doc: " + savedPatient.getIdentificationDocument() + ")" : "")
+                "Paciente creado (ID: " + savedPatient.getId() + ")"
         );
 
         return mapToDto(savedPatient, false);
@@ -146,7 +155,6 @@ public class PatientService {
         patient.setGuardianName(patientDto.getGuardianName());
         patient.setGuardianContact(patientDto.getGuardianContact());
         patient.setHasLegalGuardian(patientDto.isHasLegalGuardian());
-        patient.setPhotoUrl(trimToNull(patientDto.getPhotoUrl()));
         patient.setActive(patientDto.getActive() == null || patientDto.getActive());
 
         Patient updatedPatient = patientRepository.save(patient);
@@ -156,7 +164,7 @@ public class PatientService {
                 "UPDATE",
                 "PATIENT",
                 updatedPatient.getId().toString(),
-                "Paciente actualizado: " + updatedPatient.getFirstName() + " " + updatedPatient.getLastName()
+                "Paciente actualizado (ID: " + updatedPatient.getId() + ")"
         );
 
         return mapToDto(updatedPatient, hasAlerts);
@@ -174,7 +182,7 @@ public class PatientService {
                 "DELETE",
                 "PATIENT",
                 id.toString(),
-                "Paciente eliminado lógicamente: " + patient.getFirstName() + " " + patient.getLastName() + " (ID: " + id + ")"
+                "Paciente eliminado lógicamente (ID: " + id + ")"
         );
     }
 
@@ -183,9 +191,10 @@ public class PatientService {
         String specialty = currentSpecialty();
         Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(id, specialty)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
-        String previousKey = toAssetKey(patient.getPhotoUrl());
-        String key = fileStorage.store(file, "patients", previousKey);
-        patient.setPhotoUrl(fileStorage.publicUrl(key));
+        String previousKey = patient.getPhotoKey();
+        String key = fileStorage.store(file, PHOTO_CATEGORY);
+        replaceFileAfterCompletion(key, previousKey);
+        patient.setPhotoKey(key);
         patientRepository.save(patient);
         boolean hasAlerts = riskAlertRepository.existsByPatientIdAndSpecialtyAndActiveTrue(patient.getId(), specialty);
 
@@ -193,10 +202,54 @@ public class PatientService {
                 "UPDATE",
                 "PATIENT",
                 id.toString(),
-                "Foto de perfil actualizada para paciente: " + patient.getFirstName() + " " + patient.getLastName() + " (ID: " + id + ")"
+                "Foto de perfil actualizada (paciente ID: " + id + ")"
         );
 
         return mapToDto(patient, hasAlerts);
+    }
+
+    @Transactional(readOnly = true)
+    public Resource loadPhoto(Long id) {
+        Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(id, currentSpecialty())
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
+        if (patient.getPhotoKey() == null) {
+            throw new ResourceNotFoundException("El paciente no tiene foto");
+        }
+        return fileStorage.load(patient.getPhotoKey());
+    }
+
+    /**
+     * La foto anterior solo se borra si la base confirma el cambio; si hay rollback se borra la
+     * nueva, para no dejar la ficha apuntando a un archivo inexistente ni archivos huérfanos.
+     */
+    private void replaceFileAfterCompletion(String newKey, String previousKey) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            deleteQuietly(previousKey);
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                deleteQuietly(status == STATUS_COMMITTED ? previousKey : newKey);
+            }
+        });
+    }
+
+    private void deleteQuietly(String key) {
+        try {
+            fileStorage.delete(key);
+        } catch (RuntimeException ex) {
+            log.warn("No se pudo eliminar la foto de paciente {}: {}", key, ex.getMessage());
+        }
+    }
+
+    private String photoUrl(Patient patient) {
+        String key = patient.getPhotoKey();
+        if (key == null || patient.getId() == null) return null;
+        // El sufijo cambia con cada foto nueva y evita que el navegador muestre una versión en caché.
+        String version = BlobStore.filenameOf(key);
+        int dot = version.lastIndexOf('.');
+        return "/api/v1/patients/" + patient.getId() + "/photo?v=" + (dot > 0 ? version.substring(0, dot) : version);
     }
 
     private String currentSpecialty() {
@@ -219,6 +272,7 @@ public class PatientService {
     private PatientDto mapToDto(Patient patient, boolean hasActiveAlerts) {
         PatientDto dto = patientMapper.toDto(patient);
         dto.setHasActiveAlerts(hasActiveAlerts);
+        dto.setPhotoUrl(photoUrl(patient));
         return dto;
     }
 
@@ -227,20 +281,7 @@ public class PatientService {
         if (dto.getUuid() != null) {
             patient.setUuid(dto.getUuid());
         }
-        patient.setPhotoUrl(trimToNull(dto.getPhotoUrl()));
         patient.setActive(dto.getActive() == null || dto.getActive());
         return patient;
-    }
-
-    private String toAssetKey(String photoUrl) {
-        String prefix = "/api/v1/public/website-assets/";
-        if (photoUrl == null || !photoUrl.startsWith(prefix)) {
-            return null;
-        }
-        return photoUrl.substring(prefix.length());
-    }
-
-    private String trimToNull(String value) {
-        return value == null || value.trim().isEmpty() ? null : value.trim();
     }
 }

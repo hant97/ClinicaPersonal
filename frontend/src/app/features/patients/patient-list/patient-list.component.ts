@@ -11,6 +11,8 @@ import { ExportService } from '../../../shared/services/export/export.service';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { ViewPreferenceService } from '../../../shared/services/view-preference/view-preference.service';
 import { fetchAllPages } from '../../../core/utils/pagination.util';
+import { AuthService } from '../../../core/services/auth.service';
+import { AuthImageSrcDirective } from '../../../shared/directives/auth-image-src.directive';
 import { LucideAngularModule } from 'lucide-angular';
 import {
   Search,
@@ -48,7 +50,8 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
     FormsModule,
     PaginationComponent,
     RouterLink,
-    LucideAngularModule
+    LucideAngularModule,
+    AuthImageSrcDirective
   ],
   templateUrl: './patient-list.component.html',
 })
@@ -108,7 +111,8 @@ export class PatientListComponent implements OnInit, OnDestroy {
     private exportService: ExportService,
     private catalogService: CatalogService,
     private viewPreferenceService: ViewPreferenceService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {
     this.searchSubject.pipe(
       debounceTime(300),
@@ -268,6 +272,11 @@ export class PatientListComponent implements OnInit, OnDestroy {
         queryParams: { newAppointment: 'true', patientId: patientId }
       });
     }
+  }
+
+  /** Eliminar pacientes está reservado a administradores (el backend también lo exige). */
+  get canDelete(): boolean {
+    return this.authService.isClinicAdmin();
   }
 
   async deletePatient(id: number, event?: Event): Promise<void> {

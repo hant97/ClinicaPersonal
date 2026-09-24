@@ -8,10 +8,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -24,6 +26,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -37,7 +42,9 @@ class PatientControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(new PatientController(patientService)).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(new PatientController(patientService))
+                .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
+                .build();
     }
 
     @Test
@@ -75,5 +82,23 @@ class PatientControllerTest {
         mockMvc.perform(multipart("/api/v1/patients/1/photo").file(file))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName").value("Ana"));
+    }
+
+    @Test
+    void getPhotoServesImageWithPrivateCache() throws Exception {
+        byte[] content = {1, 2, 3};
+        when(patientService.loadPhoto(1L)).thenReturn(new ByteArrayResource(content) {
+            @Override
+            public String getFilename() {
+                return "abc.png";
+            }
+        });
+
+        mockMvc.perform(get("/api/v1/patients/1/photo"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("image/png"))
+                .andExpect(content().bytes(content))
+                .andExpect(header().string("Cache-Control", containsString("private")))
+                .andExpect(header().string("X-Content-Type-Options", "nosniff"));
     }
 }

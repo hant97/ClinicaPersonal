@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 
@@ -5,12 +6,16 @@ import { specialtyGuard } from './specialty.guard';
 import { SpecialtyService } from '../services/specialty.service';
 
 describe('specialtyGuard', () => {
-  let specialtyService: jasmine.SpyObj<SpecialtyService>;
-  let router: jasmine.SpyObj<Router>;
+  let specialtyService: MockedObject<SpecialtyService>;
+  let router: MockedObject<Router>;
 
   beforeEach(() => {
-    specialtyService = jasmine.createSpyObj<SpecialtyService>('SpecialtyService', ['getSpecialty']);
-    router = jasmine.createSpyObj<Router>('Router', ['navigate']);
+    specialtyService = {
+      getSpecialty: vi.fn().mockName('SpecialtyService.getSpecialty')
+    } as unknown as MockedObject<SpecialtyService>;
+    router = {
+      navigate: vi.fn().mockName('Router.navigate')
+    } as unknown as MockedObject<Router>;
     TestBed.configureTestingModule({
       providers: [
         { provide: SpecialtyService, useValue: specialtyService },
@@ -20,24 +25,20 @@ describe('specialtyGuard', () => {
   });
 
   it('permite la navegación a una ruta dermatológica al dermatólogo', () => {
-    specialtyService.getSpecialty.and.returnValue('DERMATOLOGIA');
+    specialtyService.getSpecialty.mockReturnValue('DERMATOLOGIA');
 
-    const allowed = TestBed.runInInjectionContext(() =>
-      specialtyGuard('DERMATOLOGIA')({} as never, {} as never)
-    );
+    const allowed = TestBed.runInInjectionContext(() => specialtyGuard('DERMATOLOGIA')({} as never, {} as never));
 
-    expect(allowed).toBeTrue();
+    expect(allowed).toBe(true);
     expect(router.navigate).not.toHaveBeenCalled();
   });
 
   it('rechaza la navegación dermatológica para otra especialidad', () => {
-    specialtyService.getSpecialty.and.returnValue('PSICOLOGIA');
+    specialtyService.getSpecialty.mockReturnValue('PSICOLOGIA');
 
-    const allowed = TestBed.runInInjectionContext(() =>
-      specialtyGuard('DERMATOLOGIA')({} as never, {} as never)
-    );
+    const allowed = TestBed.runInInjectionContext(() => specialtyGuard('DERMATOLOGIA')({} as never, {} as never));
 
-    expect(allowed).toBeFalse();
+    expect(allowed).toBe(false);
     expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
   });
 });

@@ -29,7 +29,7 @@ public class EvolutionService {
 
     @Transactional(readOnly = true)
     public Page<EvolutionDto> getEvolutions(Long patientId, Pageable pageable) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, user.getSpecialty())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
         Page<Evolution> evolutions = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
@@ -40,7 +40,7 @@ public class EvolutionService {
 
     @Transactional
     public EvolutionDto createEvolution(Long patientId, EvolutionDto dto) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         clinicalAuthorizationService.ensureSameSpecialty("DERMATOLOGIA");
         Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, "DERMATOLOGIA")
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
@@ -69,7 +69,7 @@ public class EvolutionService {
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator("DERMATOLOGIA", evolution.getProfessionalId());
         evolution.setDeleted(true);
         evolution.setDeletedAt(LocalDateTime.now());
-        evolution.setDeletedBy(clinicalAuthorizationService.currentUser().getId());
+        evolution.setDeletedBy(clinicalAuthorizationService.currentProfessional().getId());
         repository.save(evolution);
     }
 

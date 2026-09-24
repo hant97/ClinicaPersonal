@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AssessmentListComponent } from './assessment-list.component';
 import { AssessmentService } from '../../../core/services/assessment.service';
@@ -8,7 +9,7 @@ import { Assessment } from '../../../core/models/assessment.model';
 describe('AssessmentListComponent', () => {
   let component: AssessmentListComponent;
   let fixture: ComponentFixture<AssessmentListComponent>;
-  let assessmentServiceSpy: jasmine.SpyObj<AssessmentService>;
+  let assessmentServiceSpy: MockedObject<AssessmentService>;
 
   const mockAssessments: Assessment[] = [
     {
@@ -44,14 +45,14 @@ describe('AssessmentListComponent', () => {
   };
 
   beforeEach(async () => {
-    assessmentServiceSpy = jasmine.createSpyObj('AssessmentService', [
-      'getAssessmentsByPatient',
-      'getPatientEvolution',
-      'getAvailableTests'
-    ]);
-    assessmentServiceSpy.getAssessmentsByPatient.and.returnValue(of(mockPage));
-    assessmentServiceSpy.getPatientEvolution.and.returnValue(of(mockAssessments));
-    assessmentServiceSpy.getAvailableTests.and.returnValue(of({ content: [], page: { totalElements: 0, totalPages: 0, size: 10, number: 0 } }));
+    assessmentServiceSpy = {
+      getAssessmentsByPatient: vi.fn().mockName('AssessmentService.getAssessmentsByPatient'),
+      getPatientEvolution: vi.fn().mockName('AssessmentService.getPatientEvolution'),
+      getAvailableTests: vi.fn().mockName('AssessmentService.getAvailableTests')
+    } as unknown as MockedObject<AssessmentService>;
+    assessmentServiceSpy.getAssessmentsByPatient.mockReturnValue(of(mockPage));
+    assessmentServiceSpy.getPatientEvolution.mockReturnValue(of(mockAssessments));
+    assessmentServiceSpy.getAvailableTests.mockReturnValue(of({ content: [], page: { totalElements: 0, totalPages: 0, size: 10, number: 0 } }));
 
     await TestBed.configureTestingModule({
       imports: [AssessmentListComponent],
@@ -83,10 +84,10 @@ describe('AssessmentListComponent', () => {
   });
 
   it('should toggle form modal state', () => {
-    expect(component.showForm).toBeFalse();
+    expect(component.showForm).toBe(false);
     component.openForm();
-    expect(component.showForm).toBeTrue();
+    expect(component.showForm).toBe(true);
     component.closeForm(false);
-    expect(component.showForm).toBeFalse();
+    expect(component.showForm).toBe(false);
   });
 });

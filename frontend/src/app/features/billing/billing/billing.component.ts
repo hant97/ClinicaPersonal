@@ -21,6 +21,7 @@ import { ViewPreferenceService } from '../../../shared/services/view-preference/
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { fetchAllPages } from '../../../core/utils/pagination.util';
+import { AuthService } from '../../../core/services/auth.service';
 
 type DatePreset = 'TODAY' | 'WEEK' | 'MONTH' | 'LAST_MONTH' | 'YEAR' | 'CUSTOM';
 
@@ -104,8 +105,14 @@ export class BillingComponent implements OnInit, OnDestroy {
     private exportService: ExportService,
     private viewPreferenceService: ViewPreferenceService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {}
+
+  /** Eliminar cobros está reservado a administradores (el backend también lo exige). */
+  get canDelete(): boolean {
+    return this.authService.isClinicAdmin();
+  }
 
   ngOnInit(): void {
     this.viewMode = this.viewPreferenceService.getViewMode<'table' | 'cards'>('billing_view_mode', 'table', 'cards');

@@ -8,7 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 
 @RestController
 @RequestMapping("/api/v1/clinical-sessions")
@@ -20,9 +21,8 @@ public class ClinicalSessionController {
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<Page<ClinicalSessionDto>> getSessionsByPatientId(
             @PathVariable Long patientId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(sessionService.getSessionsByPatientId(patientId, PageRequest.of(page, size)));
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(sessionService.getSessionsByPatientId(patientId, pageable));
     }
 
     @GetMapping("/{id}")

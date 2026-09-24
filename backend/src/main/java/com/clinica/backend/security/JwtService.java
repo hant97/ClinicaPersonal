@@ -1,7 +1,10 @@
 package com.clinica.backend.security;
 
 import com.clinica.backend.model.User;
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
@@ -12,10 +15,11 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -23,6 +27,7 @@ import java.util.function.Function;
 public class JwtService {
 
     private static final Logger log = LoggerFactory.getLogger(JwtService.class);
+    private static final String TOKEN_VERSION_CLAIM = "tv";
 
     @Value("${jwt.secret}")
     private String secretKey;
@@ -41,16 +46,33 @@ public class JwtService {
         }
     }
 
+    /**
+     * Verifica firma y expiración una sola vez y devuelve los claims. Vacío si el token es
+     * inválido, fue manipulado o expiró.
+     */
+    public Optional<Claims> parseClaims(String token) {
+        try {
+            return Optional.of(Jwts.parser()
+                    .verifyWith(getSignInKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload());
+        } catch (ExpiredJwtException e) {
+            // Caso normal: el frontend renueva el token al recibir 401.
+            log.debug("Token JWT expirado");
+            return Optional.empty();
+        } catch (JwtException | IllegalArgumentException e) {
+            log.warn("Token JWT inválido o manipulado: {}", e.getMessage());
+            return Optional.empty();
+        }
+    }
+
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        if (claims == null) {
-            return null;
-        }
-        return claimsResolver.apply(claims);
+        return parseClaims(token).map(claimsResolver).orElse(null);
     }
 
     public String generateToken(UserDetails userDetails) {
@@ -68,27 +90,26 @@ public class JwtService {
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         if (userDetails instanceof User user) {
-            extraClaims.put("tv", user.getTokenVersion());
+            extraClaims.put(TOKEN_VERSION_CLAIM, user.getTokenVersion());
         }
+        long now = System.currentTimeMillis();
         return Jwts.builder()
-                .setClaims(extraClaims)
-                .setSubject(userDetails.getUsername())
-                .setId(UUID.randomUUID().toString())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
-                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .claims(extraClaims)
+                .subject(userDetails.getUsername())
+                .id(UUID.randomUUID().toString())
+                .issuedAt(new Date(now))
+                .expiration(new Date(now + jwtExpiration))
+                // Explícito: con una clave de más de 32 bytes jjwt elegiría HS384/HS512.
+                .signWith(getSignInKey(), Jwts.SIG.HS256)
                 .compact();
     }
 
     public long extractTokenVersion(String token) {
-        Number version = extractClaim(token, claims -> {
-            Object val = claims.get("tv");
-            if (val instanceof Number n) {
-                return n.longValue();
-            }
-            return null;
-        });
-        return version == null ? -1 : version.longValue();
+        return parseClaims(token).map(this::tokenVersion).orElse(-1L);
+    }
+
+    public long tokenVersion(Claims claims) {
+        return claims.get(TOKEN_VERSION_CLAIM) instanceof Number version ? version.longValue() : -1L;
     }
 
     public String extractTokenId(String token) {
@@ -96,39 +117,12 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        try {
-            final String username = extractUsername(token);
-            return (username != null && username.equals(userDetails.getUsername())) && !isTokenExpired(token);
-        } catch (JwtException | IllegalArgumentException e) {
-            log.warn("Token JWT inválido o manipulado: {}", e.getMessage());
-            return false;
-        }
+        return parseClaims(token)
+                .map(claims -> userDetails.getUsername().equals(claims.getSubject()))
+                .orElse(false);
     }
 
-    private boolean isTokenExpired(String token) {
-        Date expiration = extractExpiration(token);
-        return expiration != null && expiration.before(new Date());
-    }
-
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
-    }
-
-    private Claims extractAllClaims(String token) {
-        try {
-            return Jwts.parserBuilder()
-                    .setSigningKey(getSignInKey())
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-        } catch (JwtException | IllegalArgumentException e) {
-            log.warn("Fallo al procesar claims de token JWT: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    private Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        return Keys.hmacShaKeyFor(keyBytes);
+    private SecretKey getSignInKey() {
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
     }
 }

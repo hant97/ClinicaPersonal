@@ -2,7 +2,7 @@ package com.clinica.backend.controller;
 
 import com.clinica.backend.dto.SpecialtyDto;
 import com.clinica.backend.service.SpecialtyService;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

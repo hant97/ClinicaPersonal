@@ -32,7 +32,17 @@ public class Patient {
         if (this.uuid == null) {
             this.uuid = UUID.randomUUID();
         }
+        refreshSearchText();
     }
+
+    @PreUpdate
+    public void refreshSearchText() {
+        this.searchText = SearchText.of(firstName, lastName, identificationDocument);
+    }
+
+    /** Nombre, apellido y documento sin tildes ni mayúsculas, para la búsqueda de pacientes. */
+    @Column(name = "search_text")
+    private String searchText;
 
     @Column(name = "first_name", nullable = false)
     private String firstName;
@@ -79,8 +89,9 @@ public class Patient {
     @Column(name = "has_legal_guardian", nullable = false)
     private boolean hasLegalGuardian = false;
 
-    @Column(name = "photo_url")
-    private String photoUrl;
+    /** Clave en {@code ClinicalFileStorage}; la URL autenticada se calcula en el servicio. */
+    @Column(name = "photo_key")
+    private String photoKey;
 
     @Column(name = "active", nullable = false)
     private boolean active = true;

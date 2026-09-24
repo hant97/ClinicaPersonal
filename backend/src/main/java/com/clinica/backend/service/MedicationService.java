@@ -28,7 +28,7 @@ public class MedicationService {
 
     @Transactional(readOnly = true)
     public Page<MedicationDto> getMedications(Long patientId, Pageable pageable) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, user.getSpecialty())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
         Page<Medication> medications = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
@@ -39,7 +39,7 @@ public class MedicationService {
 
     @Transactional
     public MedicationDto createMedication(Long patientId, MedicationDto dto) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, user.getSpecialty())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
 
@@ -65,7 +65,7 @@ public class MedicationService {
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator(medication.getSpecialty(), medication.getProfessionalId());
         medication.setDeleted(true);
         medication.setDeletedAt(LocalDateTime.now());
-        medication.setDeletedBy(clinicalAuthorizationService.currentUser().getId());
+        medication.setDeletedBy(clinicalAuthorizationService.currentProfessional().getId());
         repository.save(medication);
     }
 

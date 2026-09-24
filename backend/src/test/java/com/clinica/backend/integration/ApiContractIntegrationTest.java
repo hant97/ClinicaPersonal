@@ -35,6 +35,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -92,7 +93,7 @@ class ApiContractIntegrationTest {
 
     @Test
     void authenticatesValidCredentialsAndRejectsInvalidCredentials() throws Exception {
-        createUser("integration.login", "correct-password", "PSICOLOGIA", "ROLE_STAFF");
+        createUser("integration.login", "correct-password", "PSICOLOGIA", "ROLE_PROFESIONAL");
 
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -115,8 +116,8 @@ class ApiContractIntegrationTest {
 
     @Test
     void protectsConfidentialClinicalSessionsWithTheAuthenticatedProfessional() throws Exception {
-        User owner = createUser("session.owner", "password", "PSICOLOGIA", "ROLE_STAFF");
-        User colleague = createUser("session.colleague", "password", "PSICOLOGIA", "ROLE_STAFF");
+        User owner = createUser("session.owner", "password", "PSICOLOGIA", "ROLE_PROFESIONAL");
+        User colleague = createUser("session.colleague", "password", "PSICOLOGIA", "ROLE_PROFESIONAL");
         Patient patient = createPatient();
 
         ClinicalSession session = new ClinicalSession();
@@ -147,7 +148,7 @@ class ApiContractIntegrationTest {
 
     @Test
     void returnsZeroBasedDermatologyPagesWithStableMetadata() throws Exception {
-        User dermatologist = createUser("dermatology.admin", "password", "DERMATOLOGIA", "ROLE_ADMIN");
+        User dermatologist = createUser("dermatology.admin", "password", "DERMATOLOGIA", "ROLE_PROFESIONAL", "ROLE_ADMIN");
         Patient patient = createPatient();
         saveEvaluation(patient, dermatologist, LocalDate.of(2026, 8, 10));
         saveEvaluation(patient, dermatologist, LocalDate.of(2026, 8, 11));
@@ -176,7 +177,7 @@ class ApiContractIntegrationTest {
 
     @Test
     void rejectsInvalidOrMassivePaginationParameters() throws Exception {
-        User professional = createUser("pagination.staff", "password", "PSICOLOGIA", "ROLE_STAFF");
+        User professional = createUser("pagination.staff", "password", "PSICOLOGIA", "ROLE_PROFESIONAL");
 
         mockMvc.perform(get("/api/v1/patients")
                         .param("page", "-1")
@@ -193,8 +194,8 @@ class ApiContractIntegrationTest {
 
     @Test
     void catalogScopeComesFromAuthenticatedUser() throws Exception {
-        User professional = createUser("catalog.professional", "password", "PSICOLOGIA", "ROLE_STAFF");
-        User clinicalAdmin = createUser("catalog.admin", "password", "DERMATOLOGIA", "ROLE_ADMIN");
+        User professional = createUser("catalog.professional", "password", "PSICOLOGIA", "ROLE_PROFESIONAL");
+        User clinicalAdmin = createUser("catalog.admin", "password", "DERMATOLOGIA", "ROLE_PROFESIONAL", "ROLE_ADMIN");
         User siteAdmin = createUser("catalog.site-admin", "password", "GENERAL", "ROLE_SITE_ADMIN");
         saveCatalog("CAT_GENERAL", "GENERAL");
         saveCatalog("CAT_PSYCHOLOGY", "PSICOLOGIA");
@@ -228,7 +229,7 @@ class ApiContractIntegrationTest {
 
     @Test
     void returnsStructuredValidationErrorsForInvalidPatientDto() throws Exception {
-        User professional = createUser("validation.staff", "password", "PSICOLOGIA", "ROLE_STAFF");
+        User professional = createUser("validation.staff", "password", "PSICOLOGIA", "ROLE_PROFESIONAL");
 
         mockMvc.perform(post("/api/v1/patients")
                         .header("Authorization", bearer(professional))
@@ -251,7 +252,7 @@ class ApiContractIntegrationTest {
 
     @Test
     void websiteEditorEndpointsRequireSiteAdminRole() throws Exception {
-        User staff = createUser("editor.staff", "password", "PSICOLOGIA", "ROLE_STAFF");
+        User staff = createUser("editor.staff", "password", "PSICOLOGIA", "ROLE_PROFESIONAL");
 
         mockMvc.perform(get("/api/v1/admin/website/editor")
                         .header("Authorization", bearer(staff)))
@@ -262,12 +263,94 @@ class ApiContractIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
-    private User createUser(String username, String password, String specialty, String role) {
+    @Test
+    void pageableEndpointsKeepDefaultsAndRejectUnknownSortProperties() throws Exception {
+        User professional = createUser("sort.professional", "password", "PSICOLOGIA", "ROLE_PROFESIONAL", "ROLE_ADMIN");
+        createPatient();
+
+        mockMvc.perform(get("/api/v1/patients").header("Authorization", bearer(professional)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.size").value(10));
+
+        mockMvc.perform(get("/api/v1/patients").param("sort", "lastName,asc").header("Authorization", bearer(professional)))
+                .andExpect(status().isOk());
+
+        // Consulta JPQL (@Query) y consulta derivada: ambas rechazan propiedades inexistentes con 400.
+        mockMvc.perform(get("/api/v1/patients").param("sort", "noExiste").header("Authorization", bearer(professional)))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/v1/supplies").param("sort", "noExiste").header("Authorization", bearer(professional)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void patientSearchIgnoresAccentsAndCase() throws Exception {
+        User professional = createUser("search.professional", "password", "PSICOLOGIA", "ROLE_PROFESIONAL");
+        createPatient(); // "Paciente Integración"
+
+        for (String query : new String[]{"integracion", "INTEGRACIÓN", "paciente integ"}) {
+            mockMvc.perform(get("/api/v1/patients/search").param("query", query).header("Authorization", bearer(professional)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content.length()").value(1));
+        }
+        mockMvc.perform(get("/api/v1/patients/search").param("query", "otro").header("Authorization", bearer(professional)))
+                .andExpect(jsonPath("$.content.length()").value(0));
+    }
+
+    @Test
+    void onlyAdministratorsCanDeletePatientsAndPayments() throws Exception {
+        User professional = createUser("delete.professional", "password", "PSICOLOGIA", "ROLE_PROFESIONAL");
+        User assistant = createUser("delete.assistant", "password", "PSICOLOGIA", "ROLE_ASISTENTE");
+        User administrator = createUser("delete.admin", "password", "PSICOLOGIA", "ROLE_PROFESIONAL", "ROLE_ADMIN");
+        Patient patient = createPatient();
+
+        for (User nonAdmin : new User[]{professional, assistant}) {
+            mockMvc.perform(delete("/api/v1/patients/{id}", patient.getId()).header("Authorization", bearer(nonAdmin)))
+                    .andExpect(status().isForbidden());
+            mockMvc.perform(delete("/api/v1/payments/{id}", 999).header("Authorization", bearer(nonAdmin)))
+                    .andExpect(status().isForbidden());
+            mockMvc.perform(delete("/api/v1/payments/{id}/transactions/{tx}", 999, 1).header("Authorization", bearer(nonAdmin)))
+                    .andExpect(status().isForbidden());
+        }
+
+        mockMvc.perform(delete("/api/v1/patients/{id}", patient.getId()).header("Authorization", bearer(administrator)))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void clinicalRecordsRequireTheProfessionalRole() throws Exception {
+        User assistant = createUser("clinical.assistant", "password", "PSICOLOGIA", "ROLE_ASISTENTE");
+        User managerWithoutClinicalRole = createUser("clinical.manager", "password", "PSICOLOGIA", "ROLE_ADMIN");
+        User professional = createUser("clinical.professional", "password", "PSICOLOGIA", "ROLE_PROFESIONAL");
+        Patient patient = createPatient();
+
+        for (User nonProfessional : new User[]{assistant, managerWithoutClinicalRole}) {
+            // Recepción y gestión ven la ficha administrativa del paciente, no su historia clínica.
+            mockMvc.perform(get("/api/v1/patients/{id}", patient.getId()).header("Authorization", bearer(nonProfessional)))
+                    .andExpect(status().isOk());
+            mockMvc.perform(get("/api/v1/patients/{id}/allergies", patient.getId()).header("Authorization", bearer(nonProfessional)))
+                    .andExpect(status().isForbidden());
+        }
+
+        mockMvc.perform(get("/api/v1/patients/{id}/allergies", patient.getId()).header("Authorization", bearer(professional)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void agendaProfessionalListExcludesUsersWithoutTheProfessionalRole() throws Exception {
+        User professional = createUser("agenda.professional", "password", "PSICOLOGIA", "ROLE_PROFESIONAL", "ROLE_ADMIN");
+        createUser("agenda.assistant", "password", "PSICOLOGIA", "ROLE_ASISTENTE");
+
+        mockMvc.perform(get("/api/v1/users/professionals").header("Authorization", bearer(professional)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].username", containsInAnyOrder("agenda.professional")));
+    }
+
+    private User createUser(String username, String password, String specialty, String... roles) {
         User user = new User();
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
         user.setSpecialty(specialty);
-        user.setRoles(Set.of(role));
+        user.setRoles(Set.of(roles));
         return userRepository.saveAndFlush(user);
     }
 

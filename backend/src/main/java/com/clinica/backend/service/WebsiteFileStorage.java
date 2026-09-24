@@ -3,9 +3,6 @@ package com.clinica.backend.service;
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.Duration;
-import java.util.Set;
-
 public interface WebsiteFileStorage {
     String store(MultipartFile file, String category, String previousKey);
     Resource load(String key);

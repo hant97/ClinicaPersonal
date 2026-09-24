@@ -3,6 +3,7 @@ import { MainLayoutComponent } from './layout/main-layout/main-layout.component'
 import { authGuard } from './core/guards/auth.guard';
 import { specialtyGuard } from './core/guards/specialty.guard';
 import { adminGuard } from './core/guards/admin.guard';
+import { professionalGuard } from './core/guards/professional.guard';
 import { siteAdminGuard } from './core/guards/site-admin.guard';
 
 export const routes: Routes = [
@@ -43,8 +44,8 @@ export const routes: Routes = [
       { path: 'patients/new', loadComponent: () => import('./features/patients/patient-form/patient-form.component').then(m => m.PatientFormComponent), title: 'Nuevo Paciente' },
       { path: 'patients/:identifier/edit', loadComponent: () => import('./features/patients/patient-form/patient-form.component').then(m => m.PatientFormComponent), title: 'Editar Paciente' },
       { path: 'patients/:id', loadComponent: () => import('./features/patients/patient-detail/patient-detail.component').then(m => m.PatientDetailComponent), title: 'Ficha del paciente' },
-      { path: 'patients/:id/sessions/new', loadComponent: () => import('./features/patients/clinical-session-page/clinical-session-page.component').then(m => m.ClinicalSessionPageComponent), title: 'Nueva Consulta Clínica' },
-      { path: 'patients/:id/sessions/:sessionId/edit', loadComponent: () => import('./features/patients/clinical-session-page/clinical-session-page.component').then(m => m.ClinicalSessionPageComponent), title: 'Editar Consulta Clínica' },
+      { path: 'patients/:id/sessions/new', loadComponent: () => import('./features/patients/clinical-session-page/clinical-session-page.component').then(m => m.ClinicalSessionPageComponent), canActivate: [professionalGuard], title: 'Nueva Consulta Clínica' },
+      { path: 'patients/:id/sessions/:sessionId/edit', loadComponent: () => import('./features/patients/clinical-session-page/clinical-session-page.component').then(m => m.ClinicalSessionPageComponent), canActivate: [professionalGuard], title: 'Editar Consulta Clínica' },
       { path: 'agenda', loadComponent: () => import('./features/agenda/agenda/agenda.component').then(m => m.AgendaComponent), title: 'Agenda' },
       { path: 'attentions', loadComponent: () => import('./features/attentions/attention-list/attention-list.component').then(m => m.AttentionListComponent), title: 'Atenciones' },
       { path: 'billing', loadComponent: () => import('./features/billing/billing/billing.component').then(m => m.BillingComponent), title: 'Cobros' },

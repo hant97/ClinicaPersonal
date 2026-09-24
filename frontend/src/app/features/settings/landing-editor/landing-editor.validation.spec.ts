@@ -17,19 +17,19 @@ describe('landing-editor.validation', () => {
 
   describe('isHttpUrl', () => {
     it('acepta URLs http y https', () => {
-      expect(isHttpUrl('https://example.com')).toBeTrue();
-      expect(isHttpUrl('http://example.com/path')).toBeTrue();
+      expect(isHttpUrl('https://example.com')).toBe(true);
+      expect(isHttpUrl('http://example.com/path')).toBe(true);
     });
 
     it('rechaza esquemas no http y textos inválidos', () => {
-      expect(isHttpUrl('ftp://example.com')).toBeFalse();
-      expect(isHttpUrl('javascript:alert(1)')).toBeFalse();
-      expect(isHttpUrl('no es una url')).toBeFalse();
+      expect(isHttpUrl('ftp://example.com')).toBe(false);
+      expect(isHttpUrl('javascript:alert(1)')).toBe(false);
+      expect(isHttpUrl('no es una url')).toBe(false);
     });
 
     it('permite valores vacíos', () => {
-      expect(isHttpUrl(undefined)).toBeTrue();
-      expect(isHttpUrl('')).toBeTrue();
+      expect(isHttpUrl(undefined)).toBe(true);
+      expect(isHttpUrl('')).toBe(true);
     });
   });
 

@@ -4,6 +4,7 @@ import com.clinica.backend.dto.AuditLogDto;
 import com.clinica.backend.model.AuditLog;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.AuditLogRepository;
+import com.clinica.backend.security.ClientIpResolver;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -171,32 +172,10 @@ public class AuditLogService {
         try {
             if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes) {
                 HttpServletRequest request = attributes.getRequest();
-                return extractClientIp(request);
+                return ClientIpResolver.resolve(request);
             }
         } catch (Exception ignored) {
         }
         return "127.0.0.1";
-    }
-
-    public String extractClientIp(HttpServletRequest request) {
-        if (request == null) {
-            return "127.0.0.1";
-        }
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isBlank()) {
-            String[] parts = xForwardedFor.split(",");
-            for (String part : parts) {
-                String trimmed = part.trim();
-                if (!trimmed.isEmpty() && !trimmed.equalsIgnoreCase("unknown")) {
-                    return trimmed;
-                }
-            }
-        }
-        String xRealIp = request.getHeader("X-Real-IP");
-        if (xRealIp != null && !xRealIp.isBlank() && !xRealIp.equalsIgnoreCase("unknown")) {
-            return xRealIp.trim();
-        }
-        String remoteAddr = request.getRemoteAddr();
-        return (remoteAddr != null && !remoteAddr.isBlank()) ? remoteAddr.trim() : "127.0.0.1";
     }
 }

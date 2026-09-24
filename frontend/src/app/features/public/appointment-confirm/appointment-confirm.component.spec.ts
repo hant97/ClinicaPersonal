@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of, Subject } from 'rxjs';
@@ -8,7 +9,7 @@ import { AppointmentConfirmComponent } from './appointment-confirm.component';
 describe('AppointmentConfirmComponent', () => {
   let fixture: ComponentFixture<AppointmentConfirmComponent>;
   let component: AppointmentConfirmComponent;
-  let appointmentService: jasmine.SpyObj<AppointmentService>;
+  let appointmentService: MockedObject<AppointmentService>;
 
   const preview: PublicAppointmentConfirmation = {
     confirmed: false,
@@ -22,11 +23,11 @@ describe('AppointmentConfirmComponent', () => {
   };
 
   beforeEach(async () => {
-    appointmentService = jasmine.createSpyObj<AppointmentService>(
-      'AppointmentService',
-      ['getConfirmation', 'confirm']
-    );
-    appointmentService.getConfirmation.and.returnValue(of(preview));
+    appointmentService = {
+      getConfirmation: vi.fn().mockName('AppointmentService.getConfirmation'),
+      confirm: vi.fn().mockName('AppointmentService.confirm')
+    } as unknown as MockedObject<AppointmentService>;
+    appointmentService.getConfirmation.mockReturnValue(of(preview));
 
     await TestBed.configureTestingModule({
       imports: [AppointmentConfirmComponent],
@@ -46,7 +47,9 @@ describe('AppointmentConfirmComponent', () => {
   it('solo consulta la cita al abrir la pantalla', () => {
     fixture.detectChanges();
 
-    expect(appointmentService.getConfirmation).toHaveBeenCalledOnceWith('token-123');
+    expect(appointmentService.getConfirmation).toHaveBeenCalledTimes(1);
+
+    expect(appointmentService.getConfirmation).toHaveBeenCalledWith('token-123');
     expect(appointmentService.confirm).not.toHaveBeenCalled();
     expect(component.result).toEqual(preview);
   });
@@ -58,25 +61,27 @@ describe('AppointmentConfirmComponent', () => {
       confirmable: false,
       message: 'Cita confirmada exitosamente.'
     };
-    appointmentService.confirm.and.returnValue(of(confirmed));
+    appointmentService.confirm.mockReturnValue(of(confirmed));
     fixture.detectChanges();
 
     component.confirm();
 
-    expect(appointmentService.confirm).toHaveBeenCalledOnceWith('token-123');
+    expect(appointmentService.confirm).toHaveBeenCalledTimes(1);
+
+    expect(appointmentService.confirm).toHaveBeenCalledWith('token-123');
     expect(component.result).toEqual(confirmed);
   });
 
   it('bloquea dobles confirmaciones mientras la solicitud está en curso', () => {
     const pending = new Subject<PublicAppointmentConfirmation>();
-    appointmentService.confirm.and.returnValue(pending.asObservable());
+    appointmentService.confirm.mockReturnValue(pending.asObservable());
     fixture.detectChanges();
 
     component.confirm();
     component.confirm();
 
     expect(appointmentService.confirm).toHaveBeenCalledTimes(1);
-    expect(component.submitting).toBeTrue();
+    expect(component.submitting).toBe(true);
     pending.complete();
   });
 });

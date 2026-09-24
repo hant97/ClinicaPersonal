@@ -66,6 +66,10 @@ public class User implements UserDetails {
                 .collect(Collectors.toList());
     }
 
+    public boolean hasRole(String role) {
+        return roles != null && roles.contains(role);
+    }
+
     @Override
     public boolean isAccountNonExpired() {
         return true;

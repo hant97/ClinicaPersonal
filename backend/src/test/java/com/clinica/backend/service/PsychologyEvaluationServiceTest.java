@@ -54,7 +54,7 @@ class PsychologyEvaluationServiceTest {
     void createEvaluationUsesAuthenticatedProfessionalInsteadOfClientValue() {
         Patient patient = new Patient();
         patient.setId(7L);
-        when(clinicalAuthorizationService.currentUser()).thenReturn(user);
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(user);
         when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(7L, "PSICOLOGIA")).thenReturn(Optional.of(patient));
         when(repository.save(any(PsychologyEvaluation.class))).thenAnswer(invocation -> {
             PsychologyEvaluation evaluation = invocation.getArgument(0);

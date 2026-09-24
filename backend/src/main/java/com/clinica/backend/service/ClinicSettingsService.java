@@ -3,31 +3,22 @@ package com.clinica.backend.service;
 import com.clinica.backend.mapper.ClinicSettingsMapper;
 
 import com.clinica.backend.dto.ClinicSettingsDto;
-import com.clinica.backend.exception.BusinessRuleException;
 import com.clinica.backend.model.ClinicSettings;
 import com.clinica.backend.repository.ClinicSettingsRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class ClinicSettingsService {
 
-    private static final List<String> ALLOWED_EXTENSIONS = List.of(".png", ".jpg", ".jpeg", ".webp");
-    private static final List<String> ALLOWED_CONTENT_TYPES = List.of("image/png", "image/jpeg", "image/webp");
-    private static final long MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+    private static final String LOGO_URL_PREFIX = "/api/v1/settings/clinic/logo/";
 
     private final ClinicSettingsRepository repository;
     private final ClinicSettingsMapper clinicSettingsMapper;
-    private final String UPLOAD_DIR = "uploads/logos/";
+    private final LogoFileStorage logoStorage;
 
     public ClinicSettingsDto getSettings(String specialty) {
         ClinicSettings settings = repository.findTopBySpecialtyAndDeletedFalseOrderByIdAsc(specialty)
@@ -51,51 +42,18 @@ public class ClinicSettingsService {
     }
 
     public ClinicSettingsDto uploadLogo(MultipartFile file, String specialty) {
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("El archivo del logo no puede estar vacío");
-        }
-        if (file.getSize() > MAX_FILE_SIZE) {
-            throw new IllegalArgumentException("El tamaño del archivo no debe exceder 2MB");
-        }
+        String filename = logoStorage.store(file);
 
-        String contentType = file.getContentType();
-        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
-            throw new IllegalArgumentException("Tipo de imagen no permitido. Solo se aceptan PNG, JPG y WEBP.");
-        }
+        ClinicSettings settings = repository.findTopBySpecialtyAndDeletedFalseOrderByIdAsc(specialty)
+                .orElseGet(() -> createDefaultSettings(specialty));
+        settings.setLogoUrl(LOGO_URL_PREFIX + filename);
+        repository.save(settings);
 
-        String originalFilename = file.getOriginalFilename();
-        String extension = "";
-        if (originalFilename != null && originalFilename.lastIndexOf('.') != -1) {
-            extension = originalFilename.substring(originalFilename.lastIndexOf('.')).toLowerCase();
-        }
-        if (!ALLOWED_EXTENSIONS.contains(extension)) {
-            throw new IllegalArgumentException("Extensión de archivo no permitida.");
-        }
+        return clinicSettingsMapper.toDto(settings);
+    }
 
-        try {
-            Path uploadPath = Paths.get(UPLOAD_DIR).toAbsolutePath().normalize();
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-
-            String filename = UUID.randomUUID() + extension;
-            Path filePath = uploadPath.resolve(filename).normalize();
-            if (!filePath.startsWith(uploadPath)) {
-                throw new IllegalArgumentException("Nombre de archivo inválido");
-            }
-            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
-            ClinicSettings settings = repository.findTopBySpecialtyAndDeletedFalseOrderByIdAsc(specialty)
-                    .orElseGet(() -> createDefaultSettings(specialty));
-            
-            String logoUrl = "/api/v1/settings/clinic/logo/" + filename;
-            settings.setLogoUrl(logoUrl);
-            repository.save(settings);
-            
-            return clinicSettingsMapper.toDto(settings);
-        } catch (IOException e) {
-            throw new BusinessRuleException("No se pudo almacenar el archivo del logo");
-        }
+    public Resource loadLogo(String filename) {
+        return logoStorage.load(filename);
     }
 
     private ClinicSettings createDefaultSettings(String specialty) {

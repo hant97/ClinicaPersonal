@@ -260,15 +260,17 @@
                       <lucide-icon [img]="Edit" [size]="14" class="text-slate-500"></lucide-icon>
                       <span>Editar</span>
                     </button>
-                    <div class="my-1 border-t border-line"></div>
-                    <button
-                      type="button"
-                      class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-danger hover:bg-red-50 transition text-left"
-                      (click)="deletePayment(payment.id!); closeMenu()"
-                    >
-                      <lucide-icon [img]="Trash2" [size]="14"></lucide-icon>
-                      <span>Eliminar</span>
-                    </button>
+                    @if (canDelete) {
+                      <div class="my-1 border-t border-line"></div>
+                      <button
+                        type="button"
+                        class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-danger hover:bg-red-50 transition text-left"
+                        (click)="deletePayment(payment.id!); closeMenu()"
+                      >
+                        <lucide-icon [img]="Trash2" [size]="14"></lucide-icon>
+                        <span>Eliminar</span>
+                      </button>
+                    }
                   </div>
                 }
               </div>
@@ -372,15 +374,17 @@
                           <lucide-icon [img]="Edit" [size]="14" class="text-slate-500"></lucide-icon>
                           <span>Editar</span>
                         </button>
-                        <div class="my-1 border-t border-line"></div>
-                        <button
-                          type="button"
-                          class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-danger hover:bg-red-50 transition text-left"
-                          (click)="deletePayment(payment.id!); closeMenu()"
-                        >
-                          <lucide-icon [img]="Trash2" [size]="14"></lucide-icon>
-                          <span>Eliminar</span>
-                        </button>
+                        @if (canDelete) {
+                          <div class="my-1 border-t border-line"></div>
+                          <button
+                            type="button"
+                            class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-danger hover:bg-red-50 transition text-left"
+                            (click)="deletePayment(payment.id!); closeMenu()"
+                          >
+                            <lucide-icon [img]="Trash2" [size]="14"></lucide-icon>
+                            <span>Eliminar</span>
+                          </button>
+                        }
                       </div>
                     }
                   </div>

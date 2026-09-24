@@ -7,14 +7,14 @@ import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.PsychometricTest;
 import com.clinica.backend.repository.AssessmentRepository;
 import com.clinica.backend.repository.PsychometricTestRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -108,7 +108,7 @@ public class PsychometricTestService {
         JsonNode array;
         try {
             array = OBJECT_MAPPER.readTree(interpretationJson);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalArgumentException("Las bandas de interpretación tienen un formato inválido.");
         }
         if (!array.isArray()) {
@@ -119,7 +119,7 @@ public class PsychometricTestService {
         for (JsonNode node : array) {
             int min = node.path("minScore").asInt();
             int max = node.path("maxScore").asInt();
-            String label = node.path("label").asText("");
+            String label = node.path("label").asString("");
             bands.add(new Band(min, max, label));
         }
 

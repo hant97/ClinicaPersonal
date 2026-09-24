@@ -37,7 +37,7 @@ public class AssessmentService {
 
     @Transactional(readOnly = true)
     public Page<AssessmentDto> getAssessmentsByPatientId(Long patientId, Pageable pageable) {
-        String specialty = clinicalAuthorizationService.currentUser().getSpecialty();
+        String specialty = clinicalAuthorizationService.currentProfessional().getSpecialty();
         if (!patientRepository.existsByIdAndSpecialtyAndDeletedFalse(patientId, specialty)) {
             throw new ResourceNotFoundException("Paciente no encontrado");
         }
@@ -46,7 +46,7 @@ public class AssessmentService {
 
     @Transactional(readOnly = true)
     public List<AssessmentDto> getPatientEvolution(Long patientId) {
-        String specialty = clinicalAuthorizationService.currentUser().getSpecialty();
+        String specialty = clinicalAuthorizationService.currentProfessional().getSpecialty();
         if (!patientRepository.existsByIdAndSpecialtyAndDeletedFalse(patientId, specialty)) {
             throw new ResourceNotFoundException("Paciente no encontrado");
         }
@@ -57,7 +57,7 @@ public class AssessmentService {
 
     @Transactional
     public AssessmentDto saveAssessment(AssessmentDto dto) {
-        String specialty = clinicalAuthorizationService.currentUser().getSpecialty();
+        String specialty = clinicalAuthorizationService.currentProfessional().getSpecialty();
         Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(dto.getPatientId(), specialty)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
 

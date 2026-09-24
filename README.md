@@ -1,6 +1,6 @@
 # Clínica Personal
 
-Aplicación clínica con backend Java 17/Spring Boot y frontend Angular 18. El entorno reproducible usa Node `20.20.2` (declarado en `.nvmrc`) y npm 10.
+Aplicación clínica con backend Java 17/Spring Boot 4.1 y frontend Angular 21. El entorno reproducible usa Node `24.21.0` LTS (declarado en `.nvmrc`) y npm 11. Las pruebas unitarias del frontend usan Vitest con jsdom; las E2E, Playwright.
 
 ## Configuración local segura
 
@@ -38,17 +38,19 @@ Set-Location backend
 
 Set-Location ..\frontend
 npm ci
-npm test -- --watch=false --browsers=ChromeHeadless
+npm run test:coverage
 npm run build
 ```
 
-La automatización equivalente está en `.github/workflows/ci.yml`, con Java 17 y Node 20.20.2 fijados.
+La automatización equivalente está en `.github/workflows/ci.yml`, con Java 17 y la versión de Node de `.nvmrc`. El CI además escanea vulnerabilidades conocidas de Maven y npm con OSV-Scanner y construye la imagen Docker del backend; Dependabot propone actualizaciones semanales (`.github/dependabot.yml`).
 
-## Limpieza de recursos del sitio
+## Almacenamiento de archivos
 
-El editor visual de la landing guarda las imágenes en dos espacios: los recursos de
-borrador (`draft/…`) y los publicados. Los archivos huérfanos (que ya no referencia ni el
-borrador ni la versión publicada) se eliminan mediante una tarea programada que corre con el
-cron `${website.asset-cleanup-cron:0 30 3 * * *}` (por defecto, a las 03:30, diario) y solo
-borra archivos con más de 7 días sin referencia. La limpieza nunca ocurre dentro de la
-transacción que reemplaza el contenido publicado.
+Fotos, documentos clínicos, logos e imágenes del sitio se guardan en disco
+(`STORAGE_PROVIDER=local`, por defecto) o en un bucket privado compatible con S3 como
+Cloudflare R2 (`STORAGE_PROVIDER=s3`, requerido en Render porque su disco se borra en cada
+deploy). Configuración, migración y respaldo: [docs/GUIA_ALMACENAMIENTO_ARCHIVOS.md](docs/GUIA_ALMACENAMIENTO_ARCHIVOS.md).
+
+El editor visual de la landing guarda las imágenes en dos espacios: borrador (`draft/…`) y
+publicado. Actualmente no hay una tarea automática que elimine los archivos huérfanos (los que
+ya no referencia ni el borrador ni la versión publicada).

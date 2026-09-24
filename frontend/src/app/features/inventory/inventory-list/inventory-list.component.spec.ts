@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 
@@ -11,43 +12,49 @@ import { ViewPreferenceService } from '../../../shared/services/view-preference/
 describe('InventoryListComponent', () => {
   let component: InventoryListComponent;
   let fixture: ComponentFixture<InventoryListComponent>;
-  let viewPreferenceService: jasmine.SpyObj<ViewPreferenceService>;
+  let viewPreferenceService: MockedObject<ViewPreferenceService>;
 
   beforeEach(async () => {
-    const inventoryService = jasmine.createSpyObj<InventoryService>('InventoryService', [
-      'getAllSupplies',
-      'getStats',
-      'getRecentTransactions'
-    ]);
-    inventoryService.getAllSupplies.and.returnValue(of({
+    const inventoryService = {
+      getAllSupplies: vi.fn().mockName('InventoryService.getAllSupplies'),
+      getStats: vi.fn().mockName('InventoryService.getStats'),
+      getRecentTransactions: vi.fn().mockName('InventoryService.getRecentTransactions')
+    };
+    inventoryService.getAllSupplies.mockReturnValue(of({
       content: [],
       page: { totalElements: 0, totalPages: 0, number: 0, size: 10 }
     }));
-    inventoryService.getStats.and.returnValue(of({
+    inventoryService.getStats.mockReturnValue(of({
       totalSupplies: 0,
       inventoryValue: 0,
       lowStockCount: 0,
       outOfStockCount: 0,
       expiringSoonCount: 0
     }));
-    inventoryService.getRecentTransactions.and.returnValue(of([]));
+    inventoryService.getRecentTransactions.mockReturnValue(of([]));
 
-    const specialtyService = jasmine.createSpyObj<SpecialtyService>('SpecialtyService', ['getActiveSpecialties']);
-    specialtyService.getActiveSpecialties.and.returnValue(of([]));
+    const specialtyService = {
+      getActiveSpecialties: vi.fn().mockName('SpecialtyService.getActiveSpecialties')
+    };
+    specialtyService.getActiveSpecialties.mockReturnValue(of([]));
 
-    viewPreferenceService = jasmine.createSpyObj<ViewPreferenceService>('ViewPreferenceService', [
-      'getViewMode',
-      'setViewMode'
-    ]);
-    viewPreferenceService.getViewMode.and.returnValue('cards');
+    viewPreferenceService = {
+      getViewMode: vi.fn().mockName('ViewPreferenceService.getViewMode'),
+      setViewMode: vi.fn().mockName('ViewPreferenceService.setViewMode')
+    } as unknown as MockedObject<ViewPreferenceService>;
+    viewPreferenceService.getViewMode.mockReturnValue('cards');
 
     await TestBed.configureTestingModule({
       imports: [InventoryListComponent],
       providers: [
         { provide: InventoryService, useValue: inventoryService },
         { provide: SpecialtyService, useValue: specialtyService },
-        { provide: ToastService, useValue: jasmine.createSpyObj<ToastService>('ToastService', ['show']) },
-        { provide: NotificationService, useValue: jasmine.createSpyObj<NotificationService>('NotificationService', ['confirm']) },
+        { provide: ToastService, useValue: {
+            show: vi.fn().mockName('ToastService.show')
+          } },
+        { provide: NotificationService, useValue: {
+            confirm: vi.fn().mockName('NotificationService.confirm')
+          } },
         { provide: ViewPreferenceService, useValue: viewPreferenceService }
       ]
     }).compileComponents();

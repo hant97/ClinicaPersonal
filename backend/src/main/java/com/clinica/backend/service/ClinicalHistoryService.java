@@ -29,7 +29,7 @@ public class ClinicalHistoryService {
 
     @Transactional(readOnly = true)
     public ClinicalHistoryDto getClinicalHistory(Long patientId) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, user.getSpecialty())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
         Pageable pageable = PageRequest.of(0, AGGREGATE_PAGE_SIZE);

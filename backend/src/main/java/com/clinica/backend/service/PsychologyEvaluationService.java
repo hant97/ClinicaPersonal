@@ -29,7 +29,7 @@ public class PsychologyEvaluationService {
 
     @Transactional(readOnly = true)
     public Page<PsychologyEvaluationDto> getEvaluationsByPatientId(Long patientId, Pageable pageable) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, user.getSpecialty())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
         Page<PsychologyEvaluation> evaluations = clinicalAuthorizationService.isSpecialtyAdministrator(user, user.getSpecialty())
@@ -48,7 +48,7 @@ public class PsychologyEvaluationService {
 
     @Transactional
     public PsychologyEvaluationDto createEvaluation(PsychologyEvaluationDto dto) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         clinicalAuthorizationService.ensureSameSpecialty("PSICOLOGIA");
         Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(dto.getPatientId(), user.getSpecialty())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
@@ -79,7 +79,7 @@ public class PsychologyEvaluationService {
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator("PSICOLOGIA", evaluation.getProfessionalId());
         evaluation.setDeleted(true);
         evaluation.setDeletedAt(LocalDateTime.now());
-        evaluation.setDeletedBy(clinicalAuthorizationService.currentUser().getId());
+        evaluation.setDeletedBy(clinicalAuthorizationService.currentProfessional().getId());
         repository.save(evaluation);
     }
 

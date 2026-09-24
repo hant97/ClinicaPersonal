@@ -10,6 +10,7 @@ import com.clinica.backend.exception.BusinessRuleException;
 import com.clinica.backend.exception.ConflictException;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.UserRepository;
+import com.clinica.backend.security.Roles;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -54,9 +55,7 @@ public class UserService {
         user.setLastName(request.getLastName());
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
-        user.setRoles(request.getRoles() != null && !request.getRoles().isEmpty() 
-                ? request.getRoles() 
-                : Set.of("ROLE_ADMIN"));
+        user.setRoles(validateRoles(request.getRoles()));
         user.setSpecialty(request.getSpecialty());
         user.setEnabled(true);
         User savedUser = userRepository.save(user);
@@ -111,8 +110,8 @@ public class UserService {
         user.setPhone(request.getPhone());
         user.setSpecialty(request.getSpecialty());
 
-        if (request.getRoles() != null && !request.getRoles().isEmpty()) {
-            user.setRoles(request.getRoles());
+        if (request.getRoles() != null) {
+            user.setRoles(validateRoles(request.getRoles()));
         }
 
         if (request.getEnabled() != null) {
@@ -206,8 +205,30 @@ public class UserService {
     public java.util.List<UserProfileDTO> getProfessionalsInSpecialty(String specialty) {
         return userRepository.findBySpecialtyAndEnabledTrueOrderByFirstNameAscLastNameAsc(specialty)
                 .stream()
+                .filter(user -> user.hasRole(Roles.PROFESIONAL))
                 .map(this::mapToDTO)
                 .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * Los roles son combinables (por ejemplo, Profesional + Administrador), pero al menos uno es
+     * obligatorio y Profesional no se combina con Asistente: un profesional ya gestiona
+     * pacientes, citas y cobros.
+     */
+    private Set<String> validateRoles(Set<String> roles) {
+        if (roles == null || roles.isEmpty()) {
+            throw new IllegalArgumentException("Debe asignar al menos un rol al usuario");
+        }
+        for (String role : roles) {
+            if (!Roles.ALL.contains(role)) {
+                throw new IllegalArgumentException("Rol no válido: " + role);
+            }
+        }
+        if (roles.contains(Roles.PROFESIONAL) && roles.contains(Roles.ASISTENTE)) {
+            throw new IllegalArgumentException(
+                    "Un profesional ya puede gestionar pacientes, citas y cobros: no combine Profesional con Asistente");
+        }
+        return new java.util.HashSet<>(roles);
     }
 
     private UserProfileDTO mapToDTO(User user) {

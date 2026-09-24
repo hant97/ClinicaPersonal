@@ -7,6 +7,7 @@ import { CatalogService } from '../../../core/services/catalog.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { Payment } from '../../../core/models/payment.model';
+import { AuthService } from '../../../core/services/auth.service';
 
 describe('PaymentDetailComponent', () => {
   let component: PaymentDetailComponent;
@@ -51,25 +52,25 @@ describe('PaymentDetailComponent', () => {
 
     clinicSettingsServiceMock = {
       settings$: settingsSubject.asObservable(),
-      loadSettings: jasmine.createSpy('loadSettings'),
-      getLogoUrl: jasmine.createSpy('getLogoUrl').and.callFake((path: string) => `http://localhost:8080${path}`)
+      loadSettings: vi.fn(),
+      getLogoUrl: vi.fn().mockImplementation((path: string) => `http://localhost:8080${path}`)
     };
 
     paymentServiceMock = {
-      addTransaction: jasmine.createSpy('addTransaction').and.returnValue(of({})),
-      deleteTransaction: jasmine.createSpy('deleteTransaction').and.returnValue(of(undefined))
+      addTransaction: vi.fn().mockReturnValue(of({})),
+      deleteTransaction: vi.fn().mockReturnValue(of(undefined))
     };
 
     catalogServiceMock = {
-      getActiveItemsByCatalogCode: jasmine.createSpy('getActiveItemsByCatalogCode').and.returnValue(of([]))
+      getActiveItemsByCatalogCode: vi.fn().mockReturnValue(of([]))
     };
 
     notificationServiceMock = {
-      confirm: jasmine.createSpy('confirm').and.returnValue(Promise.resolve(true))
+      confirm: vi.fn().mockReturnValue(Promise.resolve(true))
     };
 
     toastServiceMock = {
-      show: jasmine.createSpy('show')
+      show: vi.fn()
     };
 
     await TestBed.configureTestingModule({
@@ -79,7 +80,8 @@ describe('PaymentDetailComponent', () => {
         { provide: PaymentService, useValue: paymentServiceMock },
         { provide: CatalogService, useValue: catalogServiceMock },
         { provide: NotificationService, useValue: notificationServiceMock },
-        { provide: ToastService, useValue: toastServiceMock }
+        { provide: ToastService, useValue: toastServiceMock },
+        { provide: AuthService, useValue: { isClinicAdmin: () => true } }
       ]
     }).compileComponents();
 
@@ -130,13 +132,13 @@ describe('PaymentDetailComponent', () => {
   });
 
   it('should emit close event when onClose is called', () => {
-    spyOn(component.close, 'emit');
+    vi.spyOn(component.close, 'emit');
     component.onClose();
     expect(component.close.emit).toHaveBeenCalled();
   });
 
   it('should call window.print when printReceipt is called', () => {
-    spyOn(window, 'print');
+    vi.spyOn(window, 'print');
     component.printReceipt();
     expect(window.print).toHaveBeenCalled();
   });

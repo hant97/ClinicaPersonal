@@ -361,7 +361,7 @@ public class AttentionService {
 
     @Transactional
     public AttentionDto linkClinicalSession(Long attentionId, Long sessionId) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         String specialty = user.getSpecialty();
 
         Attention attention = attentionRepository.findByIdAndSpecialtyAndDeletedFalse(attentionId, specialty)
@@ -387,7 +387,7 @@ public class AttentionService {
 
     @Transactional
     public AttentionDto linkPrescription(Long attentionId, Long prescriptionId) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         String specialty = user.getSpecialty();
 
         Attention attention = attentionRepository.findByIdAndSpecialtyAndDeletedFalse(attentionId, specialty)

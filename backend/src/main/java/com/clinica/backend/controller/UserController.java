@@ -20,7 +20,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -57,9 +58,8 @@ public class UserController {
             @RequestParam(required = false) String query,
             @RequestParam(required = false) String specialty,
             @RequestParam(required = false) Boolean enabled,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(userService.getAllUsers(query, specialty, enabled, PageRequest.of(page, size)));
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(userService.getAllUsers(query, specialty, enabled, pageable));
     }
 
     @GetMapping("/{id}")

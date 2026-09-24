@@ -32,8 +32,11 @@ import { ClinicalHistoryService } from '../../../core/services/clinical-history.
 import { RiskAlertService } from '../../../core/services/risk-alert.service';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { SpecialtyService } from '../../../core/services/specialty.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { clinicalDraftKey } from '../../../core/utils/clinical-draft.util';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
+import { AuthImageSrcDirective } from '../../../shared/directives/auth-image-src.directive';
 import { Patient } from '../../../core/models/patient.model';
 import { ClinicalSession } from '../../../core/models/clinical-session.model';
 import { ClinicalHistory } from '../../../core/models/clinical-history.model';
@@ -45,7 +48,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-clinical-session-page',
   standalone: true,
-  imports: [...COMMON_STANDALONE_IMPORTS, RouterModule, LucideAngularModule],
+  imports: [...COMMON_STANDALONE_IMPORTS, RouterModule, LucideAngularModule, AuthImageSrcDirective],
   templateUrl: './clinical-session-page.component.html',
 })
 export class ClinicalSessionPageComponent implements OnInit, OnDestroy {
@@ -106,7 +109,8 @@ export class ClinicalSessionPageComponent implements OnInit, OnDestroy {
     private catalogService: CatalogService,
     private specialtyService: SpecialtyService,
     private toastService: ToastService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private authService: AuthService
   ) {}
 
   get isPsychology(): boolean {
@@ -123,7 +127,7 @@ export class ClinicalSessionPageComponent implements OnInit, OnDestroy {
   }
 
   get draftKey(): string {
-    return `flowgrid_draft_session_${this.patient?.id || this.patientIdentifier}`;
+    return clinicalDraftKey(this.authService.getUsername(), this.patient?.id || this.patientIdentifier);
   }
 
   get patientAge(): number | null {

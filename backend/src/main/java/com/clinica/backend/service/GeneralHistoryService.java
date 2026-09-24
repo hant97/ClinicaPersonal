@@ -24,7 +24,7 @@ public class GeneralHistoryService {
 
     @Transactional(readOnly = true)
     public GeneralHistoryDto getGeneralHistory(Long patientId) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, user.getSpecialty())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
         GeneralHistory history = repository.findByPatientIdAndSpecialtyAndDeletedFalse(patientId, user.getSpecialty())
@@ -41,7 +41,7 @@ public class GeneralHistoryService {
 
     @Transactional
     public GeneralHistoryDto upsertGeneralHistory(Long patientId, GeneralHistoryDto dto) {
-        User user = clinicalAuthorizationService.currentUser();
+        User user = clinicalAuthorizationService.currentProfessional();
         Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(patientId, user.getSpecialty())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
 

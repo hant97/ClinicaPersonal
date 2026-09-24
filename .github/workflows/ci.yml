@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Configurar Node 20
+      - name: Configurar Node 24 (LTS)
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -81,3 +81,26 @@ jobs:
       - name: Auditar dependencias de producción
         working-directory: frontend
         run: npm run audit:prod
+
+  dependency-scan:
+    runs-on: ubuntu-latest
+    env:
+      OSV_SCANNER_VERSION: v2.6.0
+      OSV_SCANNER_SHA256: ca69b3d3cd08f889a49dc0a383122f71cc528b83803671df5fd874d97485b108
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar OSV-Scanner
+        run: |
+          curl -sSL -o osv-scanner "https://github.com/google/osv-scanner/releases/download/${OSV_SCANNER_VERSION}/osv-scanner_linux_amd64"
+          echo "${OSV_SCANNER_SHA256}  osv-scanner" | sha256sum -c -
+          chmod +x osv-scanner
+      - name: Buscar vulnerabilidades conocidas en Maven y npm
+        # Incluye dependencias transitivas del backend (pom.xml) y todo el árbol npm.
+        run: ./osv-scanner scan source --lockfile=backend/pom.xml --lockfile=frontend/package-lock.json
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Construir la imagen del backend
+        run: docker build --tag clinica-backend:ci backend

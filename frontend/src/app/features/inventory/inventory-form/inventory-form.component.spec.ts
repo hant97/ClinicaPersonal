@@ -8,18 +8,15 @@ describe('InventoryFormComponent', () => {
   let component: InventoryFormComponent;
 
   beforeEach(() => {
-    component = new InventoryFormComponent(
-      new FormBuilder(),
-      {} as unknown as InventoryService,
-      {} as unknown as CatalogService,
-      jasmine.createSpyObj<ToastService>('ToastService', ['show'])
-    );
+    component = new InventoryFormComponent(new FormBuilder(), {} as unknown as InventoryService, {} as unknown as CatalogService, {
+      show: vi.fn().mockName('ToastService.show')
+    } as unknown as ToastService);
     component.initForm();
   });
 
   it('revoca la vista previa anterior al seleccionar otra imagen y al destruirse', () => {
-    const createObjectUrlSpy = spyOn(URL, 'createObjectURL').and.returnValue('blob:nueva');
-    const revokeObjectUrlSpy = spyOn(URL, 'revokeObjectURL');
+    const createObjectUrlSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:nueva');
+    const revokeObjectUrlSpy = vi.spyOn(URL, 'revokeObjectURL');
     component.imagePreviewUrl = 'blob:anterior';
     const file = new File(['image'], 'foto.png', { type: 'image/png' });
 
