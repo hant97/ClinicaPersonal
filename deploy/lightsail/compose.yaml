@@ -1,0 +1,20 @@
+services:
+  backend:
+    image: ghcr.io/hant97/clinicapersonal-backend:latest
+    restart: unless-stopped
+    mem_limit: 512m
+    env_file: .env
+    environment:
+      SERVER_PORT: 8080
+      STORAGE_PROVIDER: local
+      STORAGE_LOCAL_ROOT: /app/uploads
+      SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: 1
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 5
+      JAVA_TOOL_OPTIONS: -Xms128m -Xmx320m -XX:+ExitOnOutOfMemoryError
+    ports:
+      - "127.0.0.1:8081:8080"
+    volumes:
+      - uploads:/app/uploads
+
+volumes:
+  uploads:
