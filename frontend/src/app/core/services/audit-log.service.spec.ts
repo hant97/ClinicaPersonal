@@ -55,6 +55,8 @@ describe('AuditLogService', () => {
       action: 'CREATE',
       entityType: 'PATIENT',
       username: 'admin',
+      specialty: ' DERMATOLOGIA ',
+      query: ' login ',
       page: 0,
       size: 20
     }).subscribe(data => result = data);
@@ -63,7 +65,9 @@ describe('AuditLogService', () => {
       request.url.endsWith('/v1/audit-logs') &&
       request.params.get('action') === 'CREATE' &&
       request.params.get('entityType') === 'PATIENT' &&
-      request.params.get('username') === 'admin'
+      request.params.get('username') === 'admin' &&
+      request.params.get('specialty') === 'DERMATOLOGIA' &&
+      request.params.get('query') === 'login'
     );
     expect(req.request.method).toBe('GET');
     req.flush(mockResponse);

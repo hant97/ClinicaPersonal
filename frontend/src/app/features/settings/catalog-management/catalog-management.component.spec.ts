@@ -259,4 +259,8 @@ describe('CatalogManagementComponent', () => {
     expect(component.getSpecialtyLabel('DERMATOLOGIA')).toBe('Dermatología');
     expect(component.getSpecialtyLabel('NUTRICION')).toBe('Nutricion');
   });
+
+  it('usa el estilo alternativo para una especialidad no configurada', () => {
+    expect(component.getSpecialtyBadgeClass('NUTRICION')).toBe('bg-indigo-50 text-indigo-700 border-indigo-200');
+  });
 });
