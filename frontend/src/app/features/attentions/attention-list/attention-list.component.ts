@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, ElementRef, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -55,6 +55,21 @@ import { FocusTrapDirective } from '../../../shared/directives/focus-trap.direct
   templateUrl: './attention-list.component.html'
 })
 export class AttentionListComponent implements OnInit, OnDestroy {
+  private quickAttentionDialog: HTMLDialogElement | null = null;
+
+  @ViewChild('quickAttentionDialog')
+  set quickAttentionDialogElement(element: ElementRef<HTMLDialogElement> | undefined) {
+    this.quickAttentionDialog = element?.nativeElement ?? null;
+
+    if (this.quickAttentionDialog && !this.quickAttentionDialog.open) {
+      if (typeof this.quickAttentionDialog.showModal === 'function') {
+        this.quickAttentionDialog.showModal();
+      } else {
+        this.quickAttentionDialog.setAttribute('open', '');
+      }
+    }
+  }
+
   // Lucide Icons
   readonly Stethoscope = Stethoscope;
   readonly CalendarCheck = CalendarCheck;
@@ -398,6 +413,13 @@ export class AttentionListComponent implements OnInit, OnDestroy {
   }
 
   closeQuickModal(): void {
+    if (this.quickAttentionDialog?.open) {
+      if (typeof this.quickAttentionDialog.close === 'function') {
+        this.quickAttentionDialog.close();
+      } else {
+        this.quickAttentionDialog.removeAttribute('open');
+      }
+    }
     this.showQuickModal = false;
   }
 

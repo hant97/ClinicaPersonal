@@ -227,6 +227,30 @@ textarea.input-field { min-height: 5.5rem; resize: vertical; }
 select.input-field { cursor: pointer; }
 
 /* Modals & Dialogs */
+.quick-attention-dialog {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 1rem;
+  border: 0;
+  background: transparent;
+  overflow-y: auto;
+}
+
+.quick-attention-dialog::backdrop {
+  background-color: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+}
+
 .fixed.inset-0.z-50 {
   background-color: rgba(15, 23, 42, 0.45);
   backdrop-filter: blur(4px);
