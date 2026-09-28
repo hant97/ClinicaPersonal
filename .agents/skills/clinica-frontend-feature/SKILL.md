@@ -1,6 +1,6 @@
 ---
 name: clinica-frontend-feature
-description: Implementar, extender o revisar funcionalidades del frontend de ClinicaPersonal con Angular 18, TypeScript estricto, componentes standalone, formularios reactivos, RxJS y clientes HttpClient. Usar cuando se creen o modifiquen páginas, componentes, rutas, modelos, servicios API, guards, interceptores, formularios, catálogos, paginación, estilos o pruebas dentro de frontend/.
+description: Implementar, extender o revisar funcionalidades del frontend de ClinicaPersonal con Angular 21, TypeScript estricto, componentes standalone, formularios reactivos, RxJS y clientes HttpClient. Usar cuando se creen o modifiquen páginas, componentes, rutas, modelos, servicios API, guards, interceptores, formularios, catálogos, paginación, estilos o pruebas dentro de frontend/.
 ---
 
 # Implementar funcionalidades frontend
@@ -38,7 +38,8 @@ description: Implementar, extender o revisar funcionalidades del frontend de Cli
 2. Ejecutar desde `frontend/`:
 
 ```powershell
-npm test -- --watch=false
+npm run test:coverage
+npm run lint
 npm run build
 ```
 

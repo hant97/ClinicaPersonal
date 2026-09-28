@@ -2,7 +2,8 @@
 
 ## Plataforma
 
-- Angular 18.2, TypeScript 5.5, RxJS 7.8 y Zone.js.
+- Angular 21.2, TypeScript 5.9, RxJS 7.8 y Zone.js 0.15.
+- Node 24.21.0 y npm 11 para el entorno reproducible (`.nvmrc` y `package.json`).
 - Configuración standalone mediante `bootstrapApplication` y `ApplicationConfig`.
 - TypeScript estricto y plantillas estrictas.
 - Locale global `es-PE`.
@@ -32,8 +33,7 @@ catálogos, perfil, autenticación y dashboard.
 ## Componentes y estado
 
 - Todos los componentes observados son standalone.
-- Predominan formularios reactivos, inyección por constructor, propiedades locales y
-  `Observable.subscribe`.
+- Predominan formularios reactivos, estado local y `Observable.subscribe`.
 - No existe un store global ni una adopción consistente de signals. No introducirlos para un
   cambio aislado.
 - Importar en cada componente `CommonModule`, `ReactiveFormsModule`, `FormsModule`,
@@ -43,7 +43,7 @@ catálogos, perfil, autenticación y dashboard.
 ## API
 
 - `environment.apiUrl` vale `/api` sobre el host correspondiente.
-- Cada servicio agrega la ruta restante, por ejemplo `/v1/patients` o `/catalogs`.
+- Cada servicio agrega la ruta versionada restante, por ejemplo `/v1/patients`.
 - El interceptor funcional agrega el bearer token.
 - Los servicios retornan `Observable` tipado.
 - `PageResponse<T>` usa:
@@ -73,10 +73,8 @@ interface PageResponse<T> {
 
 ## Deuda que no debe convertirse en convención
 
-- Hay dos servicios de autenticación y dos interceptores en rutas diferentes.
 - Varias plantillas mezclan `*ngIf`/`*ngFor` con `@if`/`@for`.
-- Muchas pruebas solo verifican que el componente o servicio se cree.
-- Las rutas se importan de forma eager aunque Angular soporte carga diferida.
+- Los componentes más grandes necesitan dividirse con pruebas de comportamiento como apoyo.
 
-En código nuevo, reutilizar la ruta activa configurada en `app.config.ts`, usar control flow
-moderno y escribir al menos una prueba de comportamiento relevante.
+En código nuevo, usar las rutas con `loadComponent` de `app.routes.ts`, el interceptor de
+`app.config.ts`, control flow moderno y pruebas de comportamiento relevantes.

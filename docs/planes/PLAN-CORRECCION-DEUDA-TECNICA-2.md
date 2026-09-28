@@ -1,9 +1,9 @@
 # Plan de corrección de deuda técnica — Segunda auditoría
 
-> **Estado:** 🟡 Entregas 1 a 4 implementadas. Pendiente: verificaciones en Render (Entregas 1 y 2) y tres puntos de la Entrega 4 pospuestos a cambios propios (división de componentes grandes, migración de Lucide, manual a LFS).
-> **Última actualización:** 2026-09-24
+> **Estado:** 🟡 Entregas 1 a 4 implementadas. Pendiente: verificaciones en Render (Entregas 1 y 2), división de `agenda.component.ts`, migración de Lucide y manual a LFS. Los borradores clínicos ya se guardan en el servidor; los datos locales heredados se migran al volver a abrir la ficha.
+> **Última actualización:** 2026-09-28
 > **Base:** auditoría estática posterior al cierre de `PLAN-CORRECCION-DEUDA-TECNICA.md`
-> (backend Java 17/Spring Boot 4.1, frontend Angular 21).
+> (estado actual: backend Java 21/Spring Boot 4.1, frontend Angular 21).
 > **Alcance:** solo hallazgos que el plan anterior no cubrió o dejó a medias.
 > **Regla de trabajo:** completar una entrega, ejecutar su verificación y revisar el diff antes de iniciar la siguiente.
 
@@ -59,9 +59,10 @@ Verificación local: backend 311 pruebas sin fallos, frontend 181/181, lint y bu
 ## 1. Resumen ejecutivo
 
 El plan anterior resolvió concurrencia, paginación limitada, carga diferida, N+1, rutas
-canónicas y puertas de CI. Esta auditoría encontró riesgos vigentes en la identificación de
-clientes, la persistencia de archivos en producción, datos clínicos en el navegador y una
-plataforma cuyo runtime (Node 20) ya no tiene soporte.
+canónicas y puertas de CI. La auditoría original detectó riesgos en la identificación de
+clientes, la persistencia de archivos en producción, datos clínicos en el navegador y el uso
+de Node 20. Las correcciones implementadas y las verificaciones aún pendientes se registran
+en las secciones siguientes.
 
 1. **Entrega 1 — Correcciones rápidas de seguridad y configuración** (implementada).
 2. **Entrega 2 — Almacenamiento persistente de archivos** (bloqueante para producción real).
@@ -96,14 +97,17 @@ de solicitudes públicas; enviando `127.0.0.1` se activaba la exención de loopb
 - [ ] Revisar si el `backend/.env` local define `SERVER_FORWARD_HEADERS_STRATEGY=framework`
   (anularía el cambio).
 
-### 2.2 Borradores clínicos en `localStorage`
+### 2.2 Borradores clínicos
 
-- [x] Incluir el usuario autenticado en la clave del borrador.
-- [x] Eliminar todos los borradores (formato actual y anterior) en el logout explícito.
-- [x] Conservarlos cuando la sesión expira, para que el mismo usuario los recupere.
-- [x] Pruebas de `clinical-draft.util` y `AuthService`.
-- [ ] Decidir si los borradores deben pasar a `sessionStorage` o al servidor: siguen en
-  texto plano si el usuario cierra el navegador sin cerrar sesión.
+- [x] Los borradores nuevos se guardan mediante `ClinicalSessionDraftService` en el servidor,
+  asociados al profesional y al paciente (`V17__create_clinical_session_drafts.sql`).
+- [x] El frontend recupera y guarda el borrador mediante `/api/v1/clinical-drafts/patients/{patientId}`;
+  deja de escribir borradores clínicos nuevos en `localStorage`.
+- [x] Los borradores locales heredados se migran al servidor al volver a abrir la ficha y se
+  eliminan tras una migración correcta. El logout explícito también limpia borradores locales.
+- [x] Los borradores del servidor caducan y se eliminan periódicamente.
+- [ ] Verificar en cada entorno con usuarios existentes que los borradores locales heredados
+  se recuperan y migran correctamente; si falla la red, permanecen para un nuevo intento.
 
 ### 2.3 Configuración
 
@@ -238,10 +242,13 @@ se borra en cada deploy o reinicio.
   error de la auditoría:** `sweetalert2` no tiene 1 uso, es el motor de
   `NotificationService`, que muestra los 33 diálogos de confirmación; un toast no puede
   pedir confirmación. La librería está mantenida y cumple su función.
-- [ ] Dividir `patient-detail.component.html` (1084 líneas), `clinical-history-print`,
-  `agenda.component.ts` y `AttentionService`. **Pospuesto a un cambio propio:** es una
-  refactorización grande de pantallas sin pruebas unitarias propias; conviene hacerla
-  componente a componente, con E2E de apoyo.
+- [x] Extraídos el historial de sesiones y la barra lateral de `patient-detail` a componentes
+  con pruebas de interacción y visibilidad clínica.
+- [x] Extraídos los controles de configuración de `clinical-history-print`, con prueba del
+  flujo de modos y filtros; el cuerpo imprimible conserva sus estilos en el componente padre.
+- [x] Extraídas de `AttentionService` las reglas de reportes, cambios de estado y vínculos a
+  servicios especializados; las pruebas existentes de esos flujos siguen pasando.
+- [ ] Dividir `agenda.component.ts` en un cambio propio, con pruebas de los flujos afectados.
 - [x] Pruebas nuevas para `RiskAlertService`, `PaymentReportService` y `EmailService`.
   Umbrales de JaCoCo subidos a la nueva línea base: instrucciones 45→49 %, ramas
   37→42 %, líneas 50→53 %, métodos 43→51 % (medidos: 50,0 / 43,7 / 54,7 / 52,2 %).

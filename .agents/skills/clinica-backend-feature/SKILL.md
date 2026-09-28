@@ -1,6 +1,6 @@
 ---
 name: clinica-backend-feature
-description: Implementar, extender o revisar funcionalidades del backend de ClinicaPersonal con Java 17, Spring Boot 4, Maven, Spring MVC, JPA, PostgreSQL, Flyway y JWT. Usar cuando se creen o modifiquen entidades, DTOs, repositorios, servicios, controladores REST, reglas clínicas, seguridad, paginación, borrado lógico, migraciones o pruebas backend dentro de backend/.
+description: Implementar, extender o revisar funcionalidades del backend de ClinicaPersonal con Java 21, Spring Boot 4, Maven, Spring MVC, JPA, PostgreSQL, Flyway y JWT. Usar cuando se creen o modifiquen entidades, DTOs, repositorios, servicios, controladores REST, reglas clínicas, seguridad, paginación, borrado lógico, migraciones o pruebas backend dentro de backend/.
 ---
 
 # Implementar funcionalidades backend
@@ -18,7 +18,7 @@ description: Implementar, extender o revisar funcionalidades del backend de Clin
 1. Modelar persistencia en `model/` con JPA y nombres Java en inglés.
 2. Exponer datos mediante DTOs en `dto/`; no devolver entidades desde controladores.
 3. Crear consultas en una interfaz `repository/` que extienda `JpaRepository`.
-4. Mantener reglas, transacciones y mapeo manual entidad/DTO en `service/`.
+4. Mantener reglas y transacciones en `service/`; usar los mappers MapStruct de `mapper/` para campos directos y completar en el servicio los campos calculados cuando corresponda.
 5. Mantener el controlador delgado en `controller/`, devolver `ResponseEntity` y delegar la lógica.
 6. Usar inyección por constructor con `@RequiredArgsConstructor` y campos `private final`.
 7. Añadir una migración Flyway incremental cuando cambie el esquema; no editar migraciones aplicadas.

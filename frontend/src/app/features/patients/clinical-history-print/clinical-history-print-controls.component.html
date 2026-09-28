@@ -1,0 +1,169 @@
+    <div class="flex flex-col border-b border-line bg-slate-50 px-4 py-3 print:hidden gap-2.5">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <lucide-icon [img]="FileText" [size]="16" class="text-primary-600"></lucide-icon>
+            <span>Impresión de Historia Clínica</span>
+          </h2>
+          <p class="text-xs text-muted">Configure las secciones y filtros antes de emitir el documento impreso o PDF.</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="btn-secondary !text-xs !py-1.5 flex items-center gap-1.5"
+            (click)="configToggleRequested.emit()"
+            [ngClass]="showConfigPanel ? 'bg-primary-50 text-primary-700 border-primary-200' : ''"
+          >
+            <lucide-icon [img]="Settings2" [size]="14"></lucide-icon>
+            <span>Personalizar</span>
+            <lucide-icon [img]="showConfigPanel ? ChevronUp : ChevronDown" [size]="13"></lucide-icon>
+          </button>
+
+          <button class="btn-primary !text-xs !py-1.5 flex items-center gap-1.5 shadow-xs" (click)="printRequested.emit()">
+            <lucide-icon [img]="Printer" [size]="14"></lucide-icon>
+            <span>Imprimir / Guardar PDF</span>
+          </button>
+
+          <button class="btn-text !p-1.5 text-muted hover:text-danger" (click)="closeRequested.emit()" aria-label="Cerrar">
+            <lucide-icon [img]="X" [size]="18"></lucide-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Mode Presets -->
+      <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-line/60">
+        <div class="flex flex-wrap items-center gap-1.5 text-xs">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-muted mr-1">Modo:</span>
+          <button
+            type="button"
+            class="rounded-lg px-2.5 py-1 text-xs font-semibold transition border"
+            [ngClass]="printMode === 'completa' ? 'bg-primary-600 text-white border-primary-600 shadow-xs' : 'bg-surface text-slate-700 border-line hover:bg-slate-100'"
+            (click)="modeRequested.emit('completa')"
+          >
+            📄 Historia Completa
+          </button>
+
+          <button
+            type="button"
+            class="rounded-lg px-2.5 py-1 text-xs font-semibold transition border"
+            [ngClass]="printMode === 'resumen' ? 'bg-primary-600 text-white border-primary-600 shadow-xs' : 'bg-surface text-slate-700 border-line hover:bg-slate-100'"
+            (click)="modeRequested.emit('resumen')"
+          >
+            📋 Resumen / Epicrisis
+          </button>
+
+          <button
+            type="button"
+            class="rounded-lg px-2.5 py-1 text-xs font-semibold transition border"
+            [ngClass]="printMode === 'ultima' ? 'bg-primary-600 text-white border-primary-600 shadow-xs' : 'bg-surface text-slate-700 border-line hover:bg-slate-100'"
+            (click)="modeRequested.emit('ultima')"
+          >
+            🩺 Última Consulta
+          </button>
+
+          <button
+            type="button"
+            class="rounded-lg px-2.5 py-1 text-xs font-semibold transition border"
+            [ngClass]="printMode === 'personalizada' ? 'bg-primary-600 text-white border-primary-600 shadow-xs' : 'bg-surface text-slate-700 border-line hover:bg-slate-100'"
+            (click)="modeRequested.emit('personalizada')"
+          >
+            ⚙️ Personalizada
+          </button>
+        </div>
+
+        <div class="text-[11px] text-muted font-medium">
+          Incluyendo <strong class="text-ink">{{ filteredSessionsCount }}</strong> de {{ sessions.length }} sesiones
+        </div>
+      </div>
+
+      <!-- Expandable Configuration Panel -->
+      @if (showConfigPanel || printMode === 'personalizada') {
+        <div class="mt-1 rounded-xl bg-surface p-3.5 border border-line space-y-3 shadow-xs">
+          <!-- 1. Checkboxes for Sections -->
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-700 block mb-1.5">
+              Secciones del Documento a Imprimir
+            </span>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-xs">
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" [(ngModel)]="sections.patientInfo" class="rounded text-primary-600" />
+                <span>Datos del Paciente</span>
+              </label>
+
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" [(ngModel)]="sections.alertsBanner" class="rounded text-primary-600" />
+                <span>Alertas & Alergias</span>
+              </label>
+
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" [(ngModel)]="sections.generalHistory" class="rounded text-primary-600" />
+                <span>Antecedentes</span>
+              </label>
+
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" [(ngModel)]="sections.allergies" class="rounded text-primary-600" />
+                <span>Alergias ({{ history?.allergies?.length || 0 }})</span>
+              </label>
+
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" [(ngModel)]="sections.medications" class="rounded text-primary-600" />
+                <span>Medicación ({{ history?.medications?.length || 0 }})</span>
+              </label>
+
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" [(ngModel)]="sections.diagnoses" class="rounded text-primary-600" />
+                <span>Diagnósticos ({{ history?.diagnoses?.length || 0 }})</span>
+              </label>
+
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" [(ngModel)]="sections.specialtyModule" class="rounded text-primary-600" />
+                <span>Módulo Especialidad</span>
+              </label>
+
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" [(ngModel)]="sections.sessions" class="rounded text-primary-600" />
+                <span>Sesiones Clínicas</span>
+              </label>
+
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" [(ngModel)]="sections.signatureBlock" class="rounded text-primary-600" />
+                <span>Bloque de Firma</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 2. Session Filters and Confidentiality -->
+          @if (sections.sessions) {
+            <div class="border-t border-line pt-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="font-bold text-slate-700">Filtro de Sesiones:</span>
+                <select [ngModel]="sessionFilter" (ngModelChange)="sessionFilterChange.emit($event)" class="input-field !py-1 !text-xs !w-auto">
+                  <option value="all">Todas las sesiones ({{ sessions.length }})</option>
+                  <option value="last1">Solo la última sesión</option>
+                  <option value="last3">Últimas 3 sesiones</option>
+                  <option value="last5">Últimas 5 sesiones</option>
+                  <option value="custom">Rango de fechas específico…</option>
+                </select>
+
+                @if (sessionFilter === 'custom') {
+                  <div class="flex items-center gap-1.5">
+                    <input type="date" [ngModel]="sessionDateFrom" (ngModelChange)="sessionDateFromChange.emit($event)" class="input-field !py-1 !text-xs !w-auto" placeholder="Desde" />
+                    <span>—</span>
+                    <input type="date" [ngModel]="sessionDateTo" (ngModelChange)="sessionDateToChange.emit($event)" class="input-field !py-1 !text-xs !w-auto" placeholder="Hasta" />
+                  </div>
+                }
+              </div>
+
+              <label class="flex items-center gap-2 cursor-pointer select-none text-slate-700">
+                <input type="checkbox" [ngModel]="excludeConfidential" (ngModelChange)="excludeConfidentialChange.emit($event)" class="rounded text-primary-600" />
+                <span class="flex items-center gap-1">
+                  <lucide-icon [img]="Lock" [size]="13" class="text-amber-600"></lucide-icon>
+                  <span>Excluir sesiones confidenciales</span>
+                </span>
+              </label>
+            </div>
+          }
+        </div>
+      }
+    </div>

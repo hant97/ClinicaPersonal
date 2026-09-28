@@ -1,6 +1,6 @@
 ---
 name: buenas-practicas-proyecto-personalizado
-description: Aplicar reglas generales de coherencia y calidad al modificar ClinicaPersonal con Java 17, Spring Boot 4 y Angular 18. Usar en cambios que atraviesen varias áreas, revisiones generales de arquitectura, limpieza técnica o cuando se necesite decidir qué skill específica del backend, frontend o contrato full-stack debe guiar la implementación.
+description: Aplicar reglas generales de coherencia y calidad al modificar ClinicaPersonal con Java 21, Spring Boot 4 y Angular 21. Usar en cambios que atraviesen varias áreas, revisiones generales de arquitectura, limpieza técnica o cuando se necesite decidir qué skill específica del backend, frontend o contrato full-stack debe guiar la implementación.
 ---
 
 # Mantener la coherencia general

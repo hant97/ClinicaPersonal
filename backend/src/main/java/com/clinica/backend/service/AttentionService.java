@@ -5,24 +5,27 @@ import com.clinica.backend.dto.AttentionSummaryDto;
 import com.clinica.backend.dto.ProfessionalProductivityDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.mapper.AttentionMapper;
-import com.clinica.backend.model.*;
-import com.clinica.backend.repository.*;
+import com.clinica.backend.model.Appointment;
+import com.clinica.backend.model.Attention;
+import com.clinica.backend.model.Patient;
+import com.clinica.backend.model.User;
+import com.clinica.backend.repository.AppointmentRepository;
+import com.clinica.backend.repository.AttentionRepository;
+import com.clinica.backend.repository.ClinicalServiceRepository;
+import com.clinica.backend.repository.ClinicalSessionRepository;
+import com.clinica.backend.repository.PatientRepository;
+import com.clinica.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,9 +36,9 @@ public class AttentionService {
     private final UserRepository userRepository;
     private final AppointmentRepository appointmentRepository;
     private final ClinicalSessionRepository clinicalSessionRepository;
-    private final PrescriptionRepository prescriptionRepository;
-    private final PaymentRepository paymentRepository;
-    private final PaymentTransactionRepository paymentTransactionRepository;
+    private final AttentionReportService attentionReportService;
+    private final AttentionStatusService attentionStatusService;
+    private final AttentionLinkService attentionLinkService;
     private final ClinicalServiceRepository clinicalServiceRepository;
     private final ClinicalAuthorizationService clinicalAuthorizationService;
     private final AuditLogService auditLogService;
@@ -79,50 +82,8 @@ public class AttentionService {
         return attentionMapper.toDto(attention);
     }
 
-    @Transactional(readOnly = true)
     public AttentionSummaryDto getTodaySummary() {
-        User user = clinicalAuthorizationService.currentUser();
-        String specialty = user.getSpecialty();
-        LocalDate today = LocalDate.now();
-
-        List<Attention> todayAttentions = attentionRepository.findByAttentionDateAndSpecialtyAndDeletedFalse(today, specialty);
-
-        long total = todayAttentions.size();
-        long scheduled = 0;
-        long inProgress = 0;
-        long attended = 0;
-        long paid = 0;
-        long cancelled = 0;
-        BigDecimal pendingBilling = BigDecimal.ZERO;
-
-        for (Attention a : todayAttentions) {
-            switch (a.getStatus()) {
-                case Attention.STATUS_AGENDADA -> scheduled++;
-                case Attention.STATUS_EN_PROCESO -> inProgress++;
-                case Attention.STATUS_ATENDIDA, Attention.STATUS_COBRADA -> {
-                    Payment payment = a.getPayment();
-                    if (payment != null && !payment.isDeleted()
-                            && Payment.STATUS_PAGADO.equals(payment.getStatus())) {
-                        paid++;
-                    } else if (payment != null && !payment.isDeleted()) {
-                        attended++;
-                        BigDecimal paidAmount = payment.getTransactions().stream()
-                                .filter(t -> !t.isDeleted() && t.getAmount() != null)
-                                .map(PaymentTransaction::getAmount)
-                                .reduce(BigDecimal.ZERO, BigDecimal::add);
-                        pendingBilling = pendingBilling.add(payment.getAmount().subtract(paidAmount).max(BigDecimal.ZERO));
-                    } else {
-                        attended++;
-                        if (a.getClinicalService() != null && a.getClinicalService().getPrice() != null) {
-                            pendingBilling = pendingBilling.add(a.getClinicalService().getPrice());
-                        }
-                    }
-                }
-                case Attention.STATUS_CANCELADA -> cancelled++;
-            }
-        }
-
-        return new AttentionSummaryDto(total, scheduled, inProgress, attended, paid, cancelled, pendingBilling);
+        return attentionReportService.getTodaySummary();
     }
 
     @Transactional
@@ -297,155 +258,20 @@ public class AttentionService {
         return attentionMapper.toDto(updated);
     }
 
-    @Transactional
     public AttentionDto updateStatus(Long id, String newStatus, String notes) {
-        User user = clinicalAuthorizationService.currentUser();
-        String specialty = user.getSpecialty();
-
-        Attention attention = attentionRepository.findByIdAndSpecialtyAndDeletedFalse(id, specialty)
-                .orElseThrow(() -> new ResourceNotFoundException("Atención no encontrada con ID: " + id));
-
-        String oldStatus = attention.getStatus();
-        attention.setStatus(newStatus);
-
-        if (notes != null && !notes.isBlank()) {
-            if (attention.getNotes() != null && !attention.getNotes().isBlank()) {
-                attention.setNotes(attention.getNotes() + "\n" + notes);
-            } else {
-                attention.setNotes(notes);
-            }
-        }
-
-        LocalTime now = LocalTime.now().truncatedTo(ChronoUnit.MINUTES);
-
-        if (Attention.STATUS_EN_PROCESO.equals(newStatus)) {
-            if (attention.getStartTime() == null) {
-                attention.setStartTime(now);
-            }
-        } else if (Attention.STATUS_ATENDIDA.equals(newStatus)) {
-            if (attention.getEndTime() == null) {
-                attention.setEndTime(now);
-            }
-            if (attention.getStartTime() != null && attention.getDurationMinutes() == null) {
-                int minutes = (int) ChronoUnit.MINUTES.between(attention.getStartTime(), attention.getEndTime());
-                attention.setDurationMinutes(Math.max(1, minutes));
-            }
-            if (attention.getAppointment() != null) {
-                attention.getAppointment().setStatus("COMPLETADA");
-                appointmentRepository.save(attention.getAppointment());
-            }
-        } else if (Attention.STATUS_COBRADA.equals(newStatus)) {
-            if (attention.getEndTime() == null) {
-                attention.setEndTime(now);
-            }
-            if (attention.getStartTime() != null && attention.getDurationMinutes() == null) {
-                int minutes = (int) ChronoUnit.MINUTES.between(attention.getStartTime(), attention.getEndTime());
-                attention.setDurationMinutes(Math.max(1, minutes));
-            }
-            if (attention.getAppointment() != null) {
-                attention.getAppointment().setStatus("COMPLETADA");
-                appointmentRepository.save(attention.getAppointment());
-            }
-        } else if (Attention.STATUS_CANCELADA.equals(newStatus)) {
-            if (attention.getAppointment() != null && !"COMPLETADA".equals(attention.getAppointment().getStatus())) {
-                attention.getAppointment().setStatus("CANCELADA");
-                appointmentRepository.save(attention.getAppointment());
-            }
-        }
-
-        Attention updated = attentionRepository.save(attention);
-
-        auditLogService.record(
-                "UPDATE",
-                "ATTENTION",
-                updated.getId().toString(),
-                "Estado de atención cambiado de " + oldStatus + " a " + newStatus + " (ID: " + updated.getId() + ")"
-        );
-
-        return attentionMapper.toDto(updated);
+        return attentionStatusService.updateStatus(id, newStatus, notes);
     }
 
-    @Transactional
     public AttentionDto linkClinicalSession(Long attentionId, Long sessionId) {
-        User user = clinicalAuthorizationService.currentProfessional();
-        String specialty = user.getSpecialty();
-
-        Attention attention = attentionRepository.findByIdAndSpecialtyAndDeletedFalse(attentionId, specialty)
-                .orElseThrow(() -> new ResourceNotFoundException("Atención no encontrada con ID: " + attentionId));
-
-        ClinicalSession session = clinicalSessionRepository.findByIdAndDeletedFalse(sessionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Sesión clínica no encontrada con ID: " + sessionId));
-
-        attention.setClinicalSession(session);
-        session.setAttentionId(attention.getId());
-        clinicalSessionRepository.save(session);
-        Attention updated = attentionRepository.save(attention);
-
-        auditLogService.record(
-                "UPDATE",
-                "ATTENTION",
-                updated.getId().toString(),
-                "Sesión clínica ID: " + sessionId + " vinculada a Atención ID: " + attentionId
-        );
-
-        return attentionMapper.toDto(updated);
+        return attentionLinkService.linkClinicalSession(attentionId, sessionId);
     }
 
-    @Transactional
     public AttentionDto linkPrescription(Long attentionId, Long prescriptionId) {
-        User user = clinicalAuthorizationService.currentProfessional();
-        String specialty = user.getSpecialty();
-
-        Attention attention = attentionRepository.findByIdAndSpecialtyAndDeletedFalse(attentionId, specialty)
-                .orElseThrow(() -> new ResourceNotFoundException("Atención no encontrada con ID: " + attentionId));
-
-        Prescription prescription = prescriptionRepository.findByIdAndDeletedFalse(prescriptionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Receta no encontrada con ID: " + prescriptionId));
-
-        attention.setPrescription(prescription);
-        prescription.setAttentionId(attention.getId());
-        prescriptionRepository.save(prescription);
-        Attention updated = attentionRepository.save(attention);
-
-        auditLogService.record(
-                "UPDATE",
-                "ATTENTION",
-                updated.getId().toString(),
-                "Receta ID: " + prescriptionId + " vinculada a Atención ID: " + attentionId
-        );
-
-        return attentionMapper.toDto(updated);
+        return attentionLinkService.linkPrescription(attentionId, prescriptionId);
     }
 
-    @Transactional
     public AttentionDto linkPayment(Long attentionId, Long paymentId) {
-        User user = clinicalAuthorizationService.currentUser();
-        String specialty = user.getSpecialty();
-
-        Attention attention = attentionRepository.findByIdAndSpecialtyAndDeletedFalse(attentionId, specialty)
-                .orElseThrow(() -> new ResourceNotFoundException("Atención no encontrada con ID: " + attentionId));
-
-        Payment payment = paymentRepository.findByIdAndDeletedFalse(paymentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Pago no encontrado con ID: " + paymentId));
-
-        attention.setPayment(payment);
-        payment.setAttentionId(attention.getId());
-
-        if (Payment.STATUS_PAGADO.equals(payment.getStatus())) {
-            attention.setStatus(Attention.STATUS_COBRADA);
-        }
-
-        paymentRepository.save(payment);
-        Attention updated = attentionRepository.save(attention);
-
-        auditLogService.record(
-                "UPDATE",
-                "ATTENTION",
-                updated.getId().toString(),
-                "Pago ID: " + paymentId + " vinculado a Atención ID: " + attentionId
-        );
-
-        return attentionMapper.toDto(updated);
+        return attentionLinkService.linkPayment(attentionId, paymentId);
     }
 
     @Transactional
@@ -469,86 +295,9 @@ public class AttentionService {
         );
     }
 
-    /**
-     * Reporte gerencial de productividad por profesional dentro de la especialidad del
-     * administrador autenticado. Agrupa las atenciones del período por profesional,
-     * calculando volumen y tasa de finalización por fecha de atención, monto facturado
-     * desde el cobro vinculado y abonos recibidos por fecha de transacción.
-     * Solo debe exponerse a usuarios con rol ADMIN (restricción aplicada en el controlador).
-     */
-    @Transactional(readOnly = true)
+
     public List<ProfessionalProductivityDto> getProfessionalProductivity(LocalDate dateFrom, LocalDate dateTo) {
-        User admin = clinicalAuthorizationService.currentUser();
-        String specialty = admin.getSpecialty();
-
-        LocalDate today = LocalDate.now();
-        LocalDate from = dateFrom != null ? dateFrom : today.withDayOfMonth(1);
-        LocalDate to = dateTo != null ? dateTo : today;
-        if (to.isBefore(from)) {
-            throw new IllegalArgumentException("La fecha final no puede ser anterior a la fecha inicial");
-        }
-
-        List<Attention> attentions = attentionRepository
-                .findBySpecialtyAndAttentionDateBetweenAndDeletedFalse(specialty, from, to);
-
-        Map<Long, List<Attention>> byProfessional = attentions.stream()
-                .filter(a -> a.getProfessional() != null)
-                .collect(Collectors.groupingBy(a -> a.getProfessional().getId()));
-
-        Map<Long, ProfessionalProductivityDto> byProfessionalId = new HashMap<>();
-        for (Map.Entry<Long, List<Attention>> entry : byProfessional.entrySet()) {
-            List<Attention> list = entry.getValue();
-            User professional = list.get(0).getProfessional();
-
-            long total = list.size();
-            long attended = list.stream().filter(a -> Attention.STATUS_ATENDIDA.equals(a.getStatus()) || Attention.STATUS_COBRADA.equals(a.getStatus())).count();
-            long cancelled = list.stream().filter(a -> Attention.STATUS_CANCELADA.equals(a.getStatus())).count();
-            long paid = list.stream().filter(a -> (Attention.STATUS_ATENDIDA.equals(a.getStatus())
-                    || Attention.STATUS_COBRADA.equals(a.getStatus()))
-                    && a.getPayment() != null
-                    && !a.getPayment().isDeleted()
-                    && Payment.STATUS_PAGADO.equals(a.getPayment().getStatus())).count();
-
-            BigDecimal billed = list.stream()
-                    .filter(a -> Attention.STATUS_ATENDIDA.equals(a.getStatus()) || Attention.STATUS_COBRADA.equals(a.getStatus()))
-                    .map(a -> a.getPayment() != null && !a.getPayment().isDeleted() && a.getPayment().getAmount() != null
-                            ? a.getPayment().getAmount() : BigDecimal.ZERO)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-            long completionBase = total - cancelled;
-            int completionRate = completionBase > 0 ? (int) Math.round((attended * 100.0) / completionBase) : 0;
-
-            byProfessionalId.put(entry.getKey(), ProfessionalProductivityDto.builder()
-                    .professionalId(entry.getKey())
-                    .professionalName(professional.getFullName())
-                    .totalAttentions(total)
-                    .attendedAttentions(attended)
-                    .cancelledAttentions(cancelled)
-                    .paidAttentions(paid)
-                    .completionRate(completionRate)
-                    .billedAmount(billed)
-                    .collectedAmount(BigDecimal.ZERO)
-                    .build());
-        }
-
-        for (Object[] row : paymentTransactionRepository.sumReceivedByProfessionalBetween(
-                from.atStartOfDay(), to.plusDays(1).atStartOfDay(), specialty)) {
-            Long professionalId = ((Number) row[0]).longValue();
-            String firstName = row[1] != null ? row[1].toString().trim() : "";
-            String lastName = row[2] != null ? row[2].toString().trim() : "";
-            String fullName = (firstName + " " + lastName).trim();
-            ProfessionalProductivityDto productivity = byProfessionalId.computeIfAbsent(professionalId,
-                    id -> ProfessionalProductivityDto.builder()
-                            .professionalId(id)
-                            .professionalName(fullName.isEmpty() ? row[3].toString() : fullName)
-                            .billedAmount(BigDecimal.ZERO)
-                            .collectedAmount(BigDecimal.ZERO)
-                            .build());
-            productivity.setCollectedAmount((BigDecimal) row[4]);
-        }
-
-        List<ProfessionalProductivityDto> result = new ArrayList<>(byProfessionalId.values());
-        result.sort((a, b) -> b.getBilledAmount().compareTo(a.getBilledAmount()));
-        return result;
+        return attentionReportService.getProfessionalProductivity(dateFrom, dateTo);
     }
+
 }

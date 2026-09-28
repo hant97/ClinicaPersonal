@@ -1,0 +1,117 @@
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h2 class="text-sm font-bold uppercase tracking-wider text-slate-800">Historial Cronológico de Sesiones</h2>
+                  <p class="text-xs text-muted">Evoluciones clínicas y notas estructuradas S.O.A.P.</p>
+                </div>
+              </div>
+
+              <div class="relative space-y-3 pl-6">
+                <span class="absolute left-1.5 top-1 bottom-1 w-px bg-line" aria-hidden="true"></span>
+                @for (session of sessions; track session.id) {
+                  <div
+                    class="relative card !p-4 transition hover:shadow-raised cursor-pointer"
+                    (click)="expansionRequested.emit(session.id!)"
+                  >
+                    <span
+                      class="absolute -left-6 top-4 h-2.5 w-2.5 rounded-full border-2 border-white"
+                      [ngClass]="sessionStatusDot(session.status)"
+                      aria-hidden="true"
+                    ></span>
+                    <!-- Session Header Row -->
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                      <div class="flex flex-wrap items-center gap-3">
+                        <div class="flex flex-col">
+                          <span class="text-xs font-bold text-ink">{{ session.sessionDate | date:'fullDate' | titlecase }}</span>
+                          <span class="text-[11px] text-muted font-mono">{{ session.startTime }} - {{ session.endTime }}</span>
+                        </div>
+
+                        <span class="rounded border px-2 py-0.5 text-xs font-bold" [ngClass]="sessionStatusBadge(session.status)">
+                          {{ session.status || 'Completada' }}
+                        </span>
+
+                        <span class="flex items-center gap-1.5">
+                          <span class="rounded border border-line bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                            {{ session.sessionType | uppercase }}
+                          </span>
+
+                          <span class="rounded border border-line bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                            {{ session.modality }}
+                          </span>
+                        </span>
+
+                        @if (session.isConfidential || session.confidential) {
+                          <span class="rounded bg-amber-50 px-1.5 py-0.5 text-[11px] font-semibold text-amber-800 border border-amber-200" title="Sesión Confidencial">
+                            🔒 Confidencial
+                          </span>
+                        }
+                      </div>
+
+                      <!-- Inline Actions -->
+                      <div class="flex items-center gap-1" (click)="$event.stopPropagation()">
+                        <button
+                          type="button"
+                          class="btn-text !p-1.5"
+                          (click)="requestEdit(session.id!, $event)"
+                          title="Editar sesión"
+                          aria-label="Editar sesión"
+                        >
+                          <lucide-icon [img]="Edit" [size]="15"></lucide-icon>
+                        </button>
+                        <button
+                          type="button"
+                          class="btn-text !p-1.5 text-danger hover:bg-red-50"
+                          (click)="requestDelete(session.id!, $event)"
+                          title="Eliminar sesión"
+                          aria-label="Eliminar sesión"
+                        >
+                          <lucide-icon [img]="Trash2" [size]="15"></lucide-icon>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Accordion SOAP Expanded Content -->
+                    @if (expandedSessionId === session.id) {
+                      <div class="mt-4 border-t border-line pt-3.5 space-y-3">
+                        <div class="grid gap-3 sm:grid-cols-2">
+                          @if (session.subjective) {
+                            <div class="rounded-lg bg-slate-50 p-3 border border-line">
+                              <h4 class="text-xs font-bold uppercase tracking-wider text-primary-700">Subjetivo (S)</h4>
+                              <p class="mt-1 text-xs text-slate-700 leading-relaxed">{{ session.subjective }}</p>
+                            </div>
+                          }
+                          @if (session.objective) {
+                            <div class="rounded-lg bg-slate-50 p-3 border border-line">
+                              <h4 class="text-xs font-bold uppercase tracking-wider text-primary-700">Objetivo (O)</h4>
+                              <p class="mt-1 text-xs text-slate-700 leading-relaxed">{{ session.objective }}</p>
+                            </div>
+                          }
+                          @if (session.analysis) {
+                            <div class="rounded-lg bg-slate-50 p-3 border border-line">
+                              <h4 class="text-xs font-bold uppercase tracking-wider text-primary-700">Análisis / Evaluación (A)</h4>
+                              <p class="mt-1 text-xs text-slate-700 leading-relaxed">{{ session.analysis }}</p>
+                            </div>
+                          }
+                          @if (session.plan) {
+                            <div class="rounded-lg bg-slate-50 p-3 border border-line">
+                              <h4 class="text-xs font-bold uppercase tracking-wider text-primary-700">Plan Terapéutico (P)</h4>
+                              <p class="mt-1 text-xs text-slate-700 leading-relaxed">{{ session.plan }}</p>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                } @empty {
+                  <div class="list-state card">
+                    <lucide-icon [img]="FileText" [size]="28" class="text-muted mb-1"></lucide-icon>
+                    <p class="text-sm font-semibold text-ink">Aún no hay sesiones clínicas registradas</p>
+                    <p class="text-xs text-muted">Comienza registrando la primera atención clínica del paciente.</p>
+                    <button type="button" class="btn-primary !text-xs mt-2" (click)="createRequested.emit()">
+                      <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
+                      <span>Registrar Sesión</span>
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>

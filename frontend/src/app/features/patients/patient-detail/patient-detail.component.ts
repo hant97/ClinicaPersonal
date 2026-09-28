@@ -34,14 +34,12 @@ import { DermatologicalEvaluationListComponent } from '../dermatological-evaluat
 import { ClinicalHistoryPrintComponent } from '../clinical-history-print/clinical-history-print.component';
 import { PatientPaymentsSectionComponent } from '../patient-payments-section/patient-payments-section.component';
 import { PatientSummaryHeaderComponent } from '../patient-summary-header/patient-summary-header.component';
+import { PatientSessionTimelineComponent } from './patient-session-timeline.component';
+import { PatientClinicalSidebarComponent } from './patient-clinical-sidebar.component';
 import { OnboardingService } from '../../../shared/services/onboarding/onboarding.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { AuthImageSrcDirective } from '../../../shared/directives/auth-image-src.directive';
 import {
   calculatePatientAge,
-  sessionStatusBadgeClass,
-  sessionStatusDotClass,
-  getPatientInitials,
   computeSpecialtyElementsCount,
   computeExpedienteElementsCount
 } from './patient-detail.utils';
@@ -50,32 +48,20 @@ import {
   FileText,
   Pill,
   ClipboardList,
-  Activity,
-  Calendar,
   User,
-  Phone,
   AlertTriangle,
   Brain,
   Stethoscope,
-  Microscope,
-  Printer,
   Plus,
   ArrowLeft,
-  Mail,
   Clock,
-  Edit,
-  Trash2,
   CheckCircle2,
   FolderOpen,
   Sparkles,
-  ChevronRight,
   ChevronDown,
   ChevronUp,
   Receipt,
-  CalendarCheck,
-  ImagePlus,
-  Layers,
-  HeartPulse
+  Layers
 } from '../../../shared/icons/lucide-icons';
 
 export type MainTabType = 'timeline' | 'expediente' | 'especialidad' | 'cobros';
@@ -85,7 +71,6 @@ export type MainTabType = 'timeline' | 'expediente' | 'especialidad' | 'cobros';
   standalone: true,
   imports: [
     CommonModule,
-    AuthImageSrcDirective,
     AssessmentListComponent,
     RiskAlertFormComponent,
     GeneralHistorySectionComponent,
@@ -107,6 +92,8 @@ export type MainTabType = 'timeline' | 'expediente' | 'especialidad' | 'cobros';
     PatientPaymentsSectionComponent,
     RiskAlertBannerComponent,
     PatientSummaryHeaderComponent,
+    PatientSessionTimelineComponent,
+    PatientClinicalSidebarComponent,
     LucideAngularModule
   ],
   templateUrl: './patient-detail.component.html',
@@ -117,31 +104,19 @@ export class PatientDetailComponent implements OnInit {
   readonly Pill = Pill;
   readonly ClipboardList = ClipboardList;
   readonly User = User;
-  readonly Phone = Phone;
-  readonly Activity = Activity;
-  readonly Calendar = Calendar;
-  readonly Printer = Printer;
   readonly Plus = Plus;
   readonly ArrowLeft = ArrowLeft;
-  readonly Mail = Mail;
   readonly Clock = Clock;
-  readonly Edit = Edit;
-  readonly Trash2 = Trash2;
   readonly CheckCircle2 = CheckCircle2;
   readonly FolderOpen = FolderOpen;
   readonly Sparkles = Sparkles;
   readonly Brain = Brain;
   readonly Stethoscope = Stethoscope;
-  readonly Microscope = Microscope;
   readonly AlertTriangle = AlertTriangle;
-  readonly ChevronRight = ChevronRight;
   readonly ChevronDown = ChevronDown;
   readonly ChevronUp = ChevronUp;
   readonly Receipt = Receipt;
-  readonly CalendarCheck = CalendarCheck;
-  readonly ImagePlus = ImagePlus;
   readonly Layers = Layers;
-  readonly HeartPulse = HeartPulse;
 
   patient: Patient | null = null;
   sessions: ClinicalSession[] = [];
@@ -155,7 +130,6 @@ export class PatientDetailComponent implements OnInit {
   showPrint = false;
   expandedSessionId: number | null = null;
   showAlertsModal = false;
-  showContact = false;
   paymentsCount = 0;
   activeAlerts: RiskAlert[] = [];
   esMenorEdad = false;
@@ -302,10 +276,6 @@ export class PatientDetailComponent implements OnInit {
     this.showAlertsModal = false;
   }
 
-  toggleContact(): void {
-    this.showContact = !this.showContact;
-  }
-
   dismissFirstVisitBanner(): void {
     this.showFirstVisitBanner = false;
     this.onboardingService.markFirstPatientVisitSeen();
@@ -332,14 +302,6 @@ export class PatientDetailComponent implements OnInit {
       'recetas': true,
       'documentos': true
     };
-  }
-
-  sessionStatusBadge(status?: string): string {
-    return sessionStatusBadgeClass(status);
-  }
-
-  sessionStatusDot(status?: string): string {
-    return sessionStatusDotClass(status);
   }
 
   loadCounts(patientId: number): void {
@@ -497,8 +459,7 @@ export class PatientDetailComponent implements OnInit {
     this.expandedSessionId = this.expandedSessionId === sessionId ? null : sessionId;
   }
 
-  async deleteSession(id: number, event: Event): Promise<void> {
-    event.stopPropagation();
+  async deleteSession(id: number): Promise<void> {
     const confirmed = await this.notificationService.confirm(
       'Eliminar Sesión',
       '¿Está seguro de que desea eliminar esta sesión? Esta acción no se puede deshacer.',
@@ -521,8 +482,7 @@ export class PatientDetailComponent implements OnInit {
     }
   }
 
-  editSession(id: number, event: Event): void {
-    event.stopPropagation();
+  editSession(id: number): void {
     const key = this.patient?.uuid || this.patient?.id || this.currentIdentifier;
     this.router.navigate(['/patients', key, 'sessions', id, 'edit']);
   }
@@ -543,7 +503,4 @@ export class PatientDetailComponent implements OnInit {
     this.showPrint = false;
   }
 
-  getInitials(firstName?: string, lastName?: string): string {
-    return getPatientInitials(firstName, lastName);
-  }
 }

@@ -1,7 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
 
 import { ClinicalHistoryPrintComponent } from './clinical-history-print.component';
+import { ClinicalHistoryPrintControlsComponent } from './clinical-history-print-controls.component';
 import { ClinicalHistoryService } from '../../../core/services/clinical-history.service';
 import { PatientService } from '../../../core/services/patient/patient.service';
 import { ClinicalSessionService } from '../../../core/services/clinical-session.service';
@@ -157,5 +159,23 @@ describe('ClinicalHistoryPrintComponent', () => {
     component.onClose();
 
     expect(component.close.emit).toHaveBeenCalled();
+  });
+
+  it('applies print presets and session filters through the extracted controls', () => {
+    fixture.detectChanges();
+    const controls = fixture.debugElement.query(By.directive(ClinicalHistoryPrintControlsComponent));
+    controls.componentInstance.modeRequested.emit('ultima');
+    fixture.detectChanges();
+
+    expect(component.printMode).toBe('ultima');
+    expect(component.sessionFilter).toBe('last1');
+    expect(component.sections.sessions).toBe(true);
+    expect(component.sections.generalHistory).toBe(false);
+
+    controls.componentInstance.sessionFilterChange.emit('custom');
+    controls.componentInstance.sessionDateFromChange.emit('2026-09-01');
+    fixture.detectChanges();
+    expect(component.sessionFilter).toBe('custom');
+    expect(component.sessionDateFrom).toBe('2026-09-01');
   });
 });

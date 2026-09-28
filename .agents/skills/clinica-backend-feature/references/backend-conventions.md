@@ -2,8 +2,8 @@
 
 ## Plataforma
 
-- Java 17.
-- Spring Boot 4.1.0 y Maven Wrapper.
+- Java 21.
+- Spring Boot 4.1.1 y Maven Wrapper.
 - Spring MVC, Spring Data JPA, Spring Security, Bean Validation, PostgreSQL y Flyway.
 - JWT con `jjwt` y filtro `JwtAuthenticationFilter`.
 - Paquete base: `com.clinica.backend`.
@@ -61,25 +61,23 @@ Usar clases por capa y por concepto, por ejemplo `PatientController`, `PatientSe
 - Alertas se resuelven cambiando `active` y registrando `resolvedAt`.
 - Algunos módulos antiguos todavía borran físicamente. No usar eso como precedente para
   nuevos agregados sin analizar relaciones, auditoría y reglas del dominio.
-- El esquema tiene migraciones `V1` a `V5`. Crear siempre la siguiente versión libre y
-  verificar el número presente antes de nombrarla.
-- Aunque JPA está configurado actualmente con `ddl-auto: update`, tratar Flyway como fuente
-  explícita de evolución del esquema.
+- El esquema tiene migraciones hasta `V17`. Verificar la última versión presente antes de
+  nombrar una migración nueva.
+- JPA usa `ddl-auto: validate`; Flyway es la fuente de evolución del esquema.
 
 ## Contrato y seguridad
 
 - La base pública del entorno Angular termina en `/api`.
-- Existen rutas versionadas (`/api/v1/patients`, `/api/v1/appointments`, pagos, auth y
-  usuarios) y rutas heredadas sin versión. No cambiar una familia existente de forma
+- Las rutas de los controladores usan `/api/v1`. No cambiar un contrato existente de forma
   unilateral.
 - La autenticación usa `Authorization: Bearer <token>`.
 - Mantener públicos únicamente los endpoints que `SecurityConfig` declare como tales.
 
 ## Deuda que no debe convertirse en convención
 
-- DTOs y controladores tienen poca Bean Validation.
-- Se usa `orElseThrow()` o `RuntimeException` sin un contrato uniforme de errores.
-- La cobertura backend se limita casi por completo al arranque del contexto.
-- Hay rutas versionadas y no versionadas.
+- Algunos módulos antiguos todavía contienen validaciones incompletas o excepciones
+  genéricas. Revisar el contrato de errores de `GlobalExceptionHandler` al tocarlos.
+- Mantener pruebas de comportamiento para reglas clínicas, seguridad y persistencia;
+  no usar una prueba de arranque como sustituto.
 
 Al tocar estas áreas, mejorar de manera acotada y mantener sincronizado el consumidor Angular.

@@ -1,6 +1,5 @@
 import { Component, DestroyRef, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { forkJoin, Observable, of } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ClinicalHistoryService } from '../../../core/services/clinical-history.service';
@@ -17,27 +16,13 @@ import { UserService } from '../../../core/services/user.service';
 import { UserProfile } from '../../../core/models/user-profile.model';
 import { SpecialtyService } from '../../../core/services/specialty.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
+import { ClinicalHistoryPrintControlsComponent } from './clinical-history-print-controls.component';
 import { LucideAngularModule } from 'lucide-angular';
 import {
-  Printer,
-  X,
-  FileText,
-  Check,
-  Filter,
-  Calendar,
   AlertTriangle,
-  Lock,
-  User,
-  Layers,
-  Settings2,
-  ChevronDown,
-  ChevronUp,
   MapPin,
   Phone,
   Mail,
-  ShieldCheck,
-  Building2,
-  Stethoscope,
   RotateCw
 } from '../../../shared/icons/lucide-icons';
 
@@ -59,31 +44,16 @@ export interface PrintSectionsConfig {
 @Component({
   selector: 'app-clinical-history-print',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, ClinicalHistoryPrintControlsComponent, LucideAngularModule],
   templateUrl: './clinical-history-print.component.html',
   styleUrls: ['./clinical-history-print.component.css'],
 })
 export class ClinicalHistoryPrintComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
-  readonly Printer = Printer;
-  readonly X = X;
-  readonly FileText = FileText;
-  readonly Check = Check;
-  readonly Filter = Filter;
-  readonly Calendar = Calendar;
   readonly AlertTriangle = AlertTriangle;
-  readonly Lock = Lock;
-  readonly User = User;
-  readonly Layers = Layers;
-  readonly Settings2 = Settings2;
-  readonly ChevronDown = ChevronDown;
-  readonly ChevronUp = ChevronUp;
   readonly MapPin = MapPin;
   readonly Phone = Phone;
   readonly Mail = Mail;
-  readonly ShieldCheck = ShieldCheck;
-  readonly Building2 = Building2;
-  readonly Stethoscope = Stethoscope;
   readonly RotateCw = RotateCw;
 
   @Input() patientId!: number;
