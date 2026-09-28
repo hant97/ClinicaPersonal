@@ -1,6 +1,7 @@
 package com.clinica.backend.service;
 
 import com.clinica.backend.dto.AppointmentDto;
+import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.model.Appointment;
 import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.User;
@@ -21,6 +22,7 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
@@ -66,7 +68,7 @@ class AppointmentServiceTest {
         user.setId(1L);
         user.setUsername("doctor");
         user.setSpecialty("PSICOLOGIA");
-        user.setRoles(Set.of("ROLE_ADMIN"));
+        user.setRoles(Set.of("ROLE_ADMIN", "ROLE_PROFESIONAL"));
 
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities())
@@ -161,6 +163,71 @@ class AppointmentServiceTest {
 
         assertThrows(IllegalArgumentException.class, () -> appointmentService.create(dto));
         verify(appointmentRepository, never()).save(any());
+    }
+
+    @Test
+    void createAppointmentRejectsUnknownProfessional() {
+        AppointmentDto dto = appointmentInput(99L);
+        when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(5L, "PSICOLOGIA"))
+                .thenReturn(Optional.of(new Patient()));
+
+        assertThrows(ResourceNotFoundException.class, () -> appointmentService.create(dto));
+        verify(appointmentRepository, never()).save(any());
+    }
+
+    @Test
+    void createAppointmentRejectsProfessionalFromAnotherSpecialty() {
+        AppointmentDto dto = appointmentInput(20L);
+        when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(5L, "PSICOLOGIA"))
+                .thenReturn(Optional.of(new Patient()));
+        when(userRepository.findById(20L)).thenReturn(Optional.of(professional("DERMATOLOGIA", true, Set.of("ROLE_PROFESIONAL"))));
+
+        assertThrows(AccessDeniedException.class, () -> appointmentService.create(dto));
+        verify(appointmentRepository, never()).save(any());
+    }
+
+    @Test
+    void updateAppointmentRejectsInactiveProfessional() {
+        Appointment appointment = new Appointment();
+        appointment.setId(50L);
+        appointment.setSpecialty("PSICOLOGIA");
+        when(appointmentRepository.findById(50L)).thenReturn(Optional.of(appointment));
+        when(userRepository.findById(20L)).thenReturn(Optional.of(professional("PSICOLOGIA", false, Set.of("ROLE_PROFESIONAL"))));
+
+        assertThrows(IllegalArgumentException.class, () -> appointmentService.update(50L, appointmentInput(20L), false));
+        verify(appointmentRepository, never()).save(any());
+    }
+
+    @Test
+    void updateSeriesRejectsUserWithoutProfessionalRole() {
+        Appointment appointment = new Appointment();
+        appointment.setId(50L);
+        appointment.setSpecialty("PSICOLOGIA");
+        appointment.setRecurrenceGroupId("series-1");
+        when(appointmentRepository.findById(50L)).thenReturn(Optional.of(appointment));
+        when(userRepository.findById(20L)).thenReturn(Optional.of(professional("PSICOLOGIA", true, Set.of("ROLE_ADMIN"))));
+
+        assertThrows(IllegalArgumentException.class, () -> appointmentService.update(50L, appointmentInput(20L), true));
+        verify(appointmentRepository, never()).save(any());
+    }
+
+    private AppointmentDto appointmentInput(Long professionalId) {
+        AppointmentDto dto = new AppointmentDto();
+        dto.setPatientId(5L);
+        dto.setAppointmentDate(LocalDate.of(2026, 9, 1));
+        dto.setStartTime(LocalTime.of(10, 0));
+        dto.setEndTime(LocalTime.of(11, 0));
+        dto.setProfessionalId(professionalId);
+        return dto;
+    }
+
+    private User professional(String specialty, boolean enabled, Set<String> roles) {
+        User user = new User();
+        user.setId(20L);
+        user.setSpecialty(specialty);
+        user.setEnabled(enabled);
+        user.setRoles(roles);
+        return user;
     }
 
     @Test

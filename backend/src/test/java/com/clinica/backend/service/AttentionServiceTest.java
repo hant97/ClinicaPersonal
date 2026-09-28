@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
@@ -346,6 +347,76 @@ class AttentionServiceTest {
     }
 
     @Test
+    void create_rejectsUnknownProfessionalWithoutSaving() {
+        when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(100L, "PSICOLOGIA"))
+                .thenReturn(Optional.of(patient));
+        AttentionDto input = new AttentionDto();
+        input.setPatientId(100L);
+        input.setProfessionalId(99L);
+
+        assertThrows(ResourceNotFoundException.class, () -> attentionService.create(input));
+        verify(attentionRepository, never()).save(any());
+    }
+
+    @Test
+    void create_rejectsProfessionalFromAnotherSpecialty() {
+        when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(100L, "PSICOLOGIA"))
+                .thenReturn(Optional.of(patient));
+        User professional = professional(20L, "DERMATOLOGIA", true, Set.of("ROLE_PROFESIONAL"));
+        when(userRepository.findById(20L)).thenReturn(Optional.of(professional));
+        AttentionDto input = new AttentionDto();
+        input.setPatientId(100L);
+        input.setProfessionalId(20L);
+
+        assertThrows(AccessDeniedException.class, () -> attentionService.create(input));
+        verify(attentionRepository, never()).save(any());
+    }
+
+    @Test
+    void create_rejectsInactiveOrNonProfessionalUser() {
+        when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(100L, "PSICOLOGIA"))
+                .thenReturn(Optional.of(patient));
+        AttentionDto input = new AttentionDto();
+        input.setPatientId(100L);
+        input.setProfessionalId(20L);
+        when(userRepository.findById(20L)).thenReturn(Optional.of(
+                professional(20L, "PSICOLOGIA", false, Set.of("ROLE_PROFESIONAL"))));
+        assertThrows(IllegalArgumentException.class, () -> attentionService.create(input));
+
+        when(userRepository.findById(20L)).thenReturn(Optional.of(
+                professional(20L, "PSICOLOGIA", true, Set.of("ROLE_ADMIN"))));
+        assertThrows(IllegalArgumentException.class, () -> attentionService.create(input));
+        verify(attentionRepository, never()).save(any());
+    }
+
+    @Test
+    void create_assignsValidProfessionalFromSameSpecialty() {
+        when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(100L, "PSICOLOGIA"))
+                .thenReturn(Optional.of(patient));
+        User professional = professional(20L, "PSICOLOGIA", true, Set.of("ROLE_PROFESIONAL"));
+        when(userRepository.findById(20L)).thenReturn(Optional.of(professional));
+        when(attentionRepository.save(any(Attention.class))).thenAnswer(invocation -> {
+            Attention attention = invocation.getArgument(0);
+            attention.setId(5L);
+            return attention;
+        });
+        AttentionDto input = new AttentionDto();
+        input.setPatientId(100L);
+        input.setProfessionalId(20L);
+
+        assertEquals(20L, attentionService.create(input).getProfessionalId());
+    }
+
+    private User professional(Long id, String specialty, boolean enabled, Set<String> roles) {
+        User professional = new User();
+        professional.setId(id);
+        professional.setSpecialty(specialty);
+        professional.setEnabled(enabled);
+        professional.setRoles(roles);
+        return professional;
+    }
+
+    @Test
     void createFromAppointment_createsAndLinksAppointment() {
         Appointment appointment = new Appointment();
         appointment.setId(30L);
@@ -382,6 +453,18 @@ class AttentionServiceTest {
         assertEquals(7L, appointment.getAttentionId());
         verify(appointmentRepository).save(appointment);
         verify(auditLogService).record(eq("CREATE"), eq("ATTENTION"), eq("7"), anyString());
+    }
+
+    @Test
+    void createFromAppointment_rejectsUnknownProfessionalWithoutFallback() {
+        Appointment appointment = new Appointment();
+        appointment.setId(30L);
+        appointment.setProfessionalId(99L);
+        when(appointmentRepository.findByIdAndSpecialty(30L, "PSICOLOGIA"))
+                .thenReturn(Optional.of(appointment));
+
+        assertThrows(ResourceNotFoundException.class, () -> attentionService.createFromAppointment(30L));
+        verify(attentionRepository, never()).save(any());
     }
 
     @Test

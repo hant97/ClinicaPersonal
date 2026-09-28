@@ -71,7 +71,7 @@ class AppointmentRecurrenceTest {
         currentUser.setFirstName("Ana");
         currentUser.setLastName("Rivas");
         currentUser.setSpecialty("PSICOLOGIA");
-        currentUser.setRoles(Set.of("ROLE_ADMIN"));
+        currentUser.setRoles(Set.of("ROLE_ADMIN", "ROLE_PROFESIONAL"));
 
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(currentUser, null, currentUser.getAuthorities())

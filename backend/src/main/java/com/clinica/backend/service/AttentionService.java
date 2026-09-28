@@ -133,11 +133,7 @@ public class AttentionService {
         Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(dto.getPatientId(), specialty)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado con ID: " + dto.getPatientId()));
 
-        User professional = user;
-        if (dto.getProfessionalId() != null && !dto.getProfessionalId().equals(user.getId())) {
-            professional = userRepository.findById(dto.getProfessionalId())
-                    .orElse(user);
-        }
+        User professional = ProfessionalAssignmentValidator.resolve(dto.getProfessionalId(), user, userRepository);
 
         Attention attention = new Attention();
         attention.setPatient(patient);
@@ -225,10 +221,7 @@ public class AttentionService {
             return attentionMapper.toDto(att);
         }
 
-        User professional = user;
-        if (appointment.getProfessionalId() != null) {
-            professional = userRepository.findById(appointment.getProfessionalId()).orElse(user);
-        }
+        User professional = ProfessionalAssignmentValidator.resolve(appointment.getProfessionalId(), user, userRepository);
 
         Attention attention = new Attention();
         attention.setPatient(appointment.getPatient());

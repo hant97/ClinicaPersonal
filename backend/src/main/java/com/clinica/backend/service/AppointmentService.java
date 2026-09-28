@@ -82,10 +82,14 @@ public class AppointmentService {
 
     @Transactional
     public AppointmentDto create(AppointmentDto dto) {
-        String specialty = getCurrentUserSpecialty();
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String specialty = currentUser.getSpecialty();
         Patient patient = patientRepository.findByIdAndSpecialtyAndDeletedFalse(dto.getPatientId(), specialty)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
         ClinicalService clinicalService = resolveClinicalService(dto.getClinicalServiceId());
+        if (dto.getProfessionalId() != null) {
+            ProfessionalAssignmentValidator.resolve(dto.getProfessionalId(), currentUser, userRepository);
+        }
 
         int count = (dto.getRecurrenceCount() != null && dto.getRecurrenceCount() > 1)
                 ? Math.min(dto.getRecurrenceCount(), 52)
@@ -159,6 +163,10 @@ public class AppointmentService {
         }
 
         ClinicalService clinicalService = resolveClinicalService(dto.getClinicalServiceId());
+        if (dto.getProfessionalId() != null) {
+            User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            ProfessionalAssignmentValidator.resolve(dto.getProfessionalId(), currentUser, userRepository);
+        }
 
         if (updateSeries && appointment.getRecurrenceGroupId() != null) {
             List<Appointment> series = appointmentRepository
@@ -284,8 +292,9 @@ public class AppointmentService {
         var existing = attentionRepository.findByAppointmentIdAndDeletedFalse(appointment.getId());
         if (existing.isEmpty()) {
             User professional = null;
-            if (appointment.getProfessionalId() != null && userRepository != null) {
-                professional = userRepository.findById(appointment.getProfessionalId()).orElse(null);
+            if (appointment.getProfessionalId() != null) {
+                User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+                professional = ProfessionalAssignmentValidator.resolve(appointment.getProfessionalId(), currentUser, userRepository);
             }
             if (professional == null) {
                 try {
