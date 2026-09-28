@@ -1,5 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-@import './landing-global.css';
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --brand-sage-600: #4a5d4e;
+  --brand-sage-700: #3d4e41;
+  --brand-paper: #faf8f5;
+  --brand-ink: #151b19;
+  --brand-muted: #5e6862;
+  --brand-line: #e2ddd4;
+}
 
 @tailwind base;
 @tailwind components;
@@ -20,7 +28,7 @@
   }
 
   :where(button, a[href], input, select, textarea, [role='button'], [tabindex]):focus-visible {
-    outline: 2px solid #2563eb;
+    outline: 2px solid var(--brand-sage-600);
     outline-offset: 2px;
   }
 }
@@ -60,13 +68,13 @@
     @apply inline-flex items-center justify-center gap-2 rounded-md bg-primary-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-primary-700 active:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 disabled:pointer-events-none disabled:opacity-50 whitespace-nowrap select-none;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-md border border-line bg-surface px-3.5 py-2 text-sm font-medium text-ink shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 disabled:pointer-events-none disabled:opacity-50 whitespace-nowrap select-none;
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-line bg-surface px-3.5 py-2 text-sm font-medium text-ink shadow-sm transition hover:border-primary-200 hover:bg-canvas-subtle focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 disabled:pointer-events-none disabled:opacity-50 whitespace-nowrap select-none;
   }
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium text-muted transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 whitespace-nowrap select-none;
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium text-muted transition hover:bg-canvas-subtle hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 whitespace-nowrap select-none;
   }
   .btn-text {
-    @apply inline-flex items-center justify-center rounded-md p-1.5 text-muted transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 whitespace-nowrap select-none;
+    @apply inline-flex items-center justify-center rounded-md p-1.5 text-muted transition hover:bg-canvas-subtle hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 whitespace-nowrap select-none;
   }
   .btn-danger {
     @apply inline-flex items-center justify-center gap-2 rounded-md border border-red-200 bg-red-50 px-3.5 py-2 text-sm font-medium text-danger transition hover:bg-red-100 active:bg-red-200 focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-1 whitespace-nowrap select-none;
@@ -101,7 +109,7 @@
     @apply mb-4;
   }
   .form-label {
-    @apply mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-700;
+    @apply mb-1.5 block text-xs font-semibold uppercase tracking-wider text-ink-muted;
   }
 
   /* --- FlowGrid Tables --- */
@@ -112,13 +120,13 @@
     @apply w-full border-collapse text-left text-sm;
   }
   .minimal-table th {
-    @apply border-b border-line bg-slate-50/90 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted;
+    @apply border-b border-line bg-canvas-subtle px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted;
   }
   .minimal-table td {
     @apply border-b border-line px-4 py-3 text-ink transition-colors;
   }
   .minimal-table tbody tr {
-    @apply transition hover:bg-slate-50/70;
+    @apply transition hover:bg-canvas-subtle/70;
   }
   .minimal-table tbody tr:last-child td {
     @apply border-b-0;
@@ -175,7 +183,7 @@
     top: 0;
     z-index: 100;
     padding: .5rem 1rem;
-    background: #2563eb;
+    background: var(--brand-sage-600);
     color: #fff;
     font-size: .875rem;
     font-weight: 600;
@@ -189,15 +197,15 @@
 }
 
 /* --- FlowGrid Dashboard & Kanban Elements --- */
-.dashboard-page { color: #0f172a; }
+.dashboard-page { color: var(--brand-ink); }
 .dashboard-heading { padding: .25rem 0; }
-.dashboard-eyebrow { margin: 0 0 .25rem; color: #2563eb; font-size: .7rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.dashboard-eyebrow { margin: 0 0 .25rem; color: var(--brand-sage-700); font-size: .7rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 .dashboard-title { letter-spacing: -.03em; }
 
 .dashboard-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.dashboard-kpi { position: relative; min-height: 110px; overflow: hidden; padding: 1rem 1.25rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: .5rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); }
-.dashboard-kpi::before { position: absolute; inset: 0 auto 0 0; width: 3px; content: ''; background: #2563eb; }
-.dashboard-kpi-calendar::before { background: #3b82f6; }
+.dashboard-kpi { position: relative; min-height: 110px; overflow: hidden; padding: 1rem 1.25rem; background: #ffffff; border: 1px solid var(--brand-line); border-radius: .5rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); }
+.dashboard-kpi::before { position: absolute; inset: 0 auto 0 0; width: 3px; content: ''; background: var(--brand-sage-600); }
+.dashboard-kpi-calendar::before { background: #849b87; }
 .dashboard-kpi-finance::before { background: #10b981; }
 .dashboard-kpi-specialty::before { background: #8b5cf6; }
 .dashboard-kpi-label { letter-spacing: .01em; }
@@ -209,7 +217,7 @@
 .dashboard-panel-alerts { border-top: 3px solid #ef4444; }
 .dashboard-panel-header { min-height: 2.25rem; }
 .dashboard-panel-header h2 { letter-spacing: -.02em; }
-.dashboard-panel li { border-color: #e2e8f0; }
+.dashboard-panel li { border-color: var(--brand-line); }
 .dashboard-panel li > div { min-width: 0; }
 .dashboard-trend { border: 1px solid transparent; }
 .dashboard-trend:hover { border-color: #cbd5e1; }
@@ -229,7 +237,7 @@ select.input-field { cursor: pointer; }
 [role='dialog'] > section,
 [role='dialog'] > div.relative {
   background: #ffffff;
-  border-color: #e2e8f0;
+  border-color: var(--brand-line);
   border-radius: .5rem;
   box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.12), 0 1px 3px 0 rgba(0, 0, 0, 0.05);
 }
@@ -494,8 +502,8 @@ canvas {
   display: inline-block;
   width: 1.5rem;
   height: 1.5rem;
-  border: 2px solid #e2e8f0;
-  border-top-color: #2563eb;
+  border: 2px solid var(--brand-line);
+  border-top-color: var(--brand-sage-600);
   border-radius: 50%;
   animation: spin .7s linear infinite;
 }

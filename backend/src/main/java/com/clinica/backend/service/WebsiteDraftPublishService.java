@@ -274,7 +274,12 @@ public class WebsiteDraftPublishService {
 
     private String promote(String draftKey) {
         if (draftKey == null || draftKey.isBlank()) return null;
-        return fileStorage.promote(draftKey);
+        String publishedKey = fileStorage.promote(draftKey);
+        if (publishedKey != null && !draftKey.equals(publishedKey)) {
+            StorageTransactionSupport.deleteAfterRollback(fileStorage::delete, publishedKey, "el asset publicado");
+            StorageTransactionSupport.deleteAfterCommit(fileStorage::delete, draftKey, "el asset publicado desde el borrador");
+        }
+        return publishedKey;
     }
 
     private String trimToNull(String value) {

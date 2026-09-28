@@ -46,7 +46,7 @@ export class LandingEditorComponent implements OnInit {
   }
 
   get viewLanding(): PublicLanding | null {
-    return this.draft ? draftToViewLanding(this.draft, this.assetBase) : null;
+    return this.draft ? draftToViewLanding(this.draft, this.assetBase, this.servicesByCode) : null;
   }
 
   get dirty(): boolean {

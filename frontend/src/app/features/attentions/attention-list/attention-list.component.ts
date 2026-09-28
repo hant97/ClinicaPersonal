@@ -83,6 +83,7 @@ export class AttentionListComponent implements OnInit, OnDestroy {
   attentions: Attention[] = [];
   summary: AttentionSummary | null = null;
   loading = false;
+  loadError = false;
   loadingSummary = false;
 
   // Filters
@@ -153,6 +154,19 @@ export class AttentionListComponent implements OnInit, OnDestroy {
     this.searchSubscription?.unsubscribe();
   }
 
+  get hasNarrowingFilters(): boolean {
+    return this.searchTerm.trim().length > 0
+      || this.statusFilter !== 'ALL'
+      || this.selectedProfessionalId !== null
+      || this.dateFilter === 'YESTERDAY'
+      || this.dateFilter === 'WEEK'
+      || this.dateFilter === 'CUSTOM';
+  }
+
+  get isDefaultTodayView(): boolean {
+    return this.dateFilter === 'TODAY' && !this.hasNarrowingFilters;
+  }
+
   onSearchChange(): void {
     this.searchSubject.next(this.searchTerm);
   }
@@ -172,6 +186,7 @@ export class AttentionListComponent implements OnInit, OnDestroy {
 
   loadAttentions(): void {
     this.loading = true;
+    this.loadError = false;
 
     let startDate: string | undefined;
     let endDate: string | undefined;
@@ -213,11 +228,16 @@ export class AttentionListComponent implements OnInit, OnDestroy {
         this.totalPages = res.page?.totalPages || 0;
         this.loading = false;
       },
-      error: (err) => {
-        this.toastService.show('Error al cargar la lista de atenciones', 'error');
+      error: () => {
+        this.loadError = true;
         this.loading = false;
       }
     });
+  }
+
+  refreshData(): void {
+    this.loadAttentions();
+    this.loadTodaySummary();
   }
 
   loadClinicalServices(): void {

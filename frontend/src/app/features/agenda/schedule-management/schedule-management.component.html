@@ -4,7 +4,7 @@
     <!-- Modal Header -->
     <div class="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-4 sm:px-6">
       <div class="flex min-w-0 items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+        <div class="w-10 h-10 rounded-xl bg-primary-100 text-primary-700 flex items-center justify-center font-bold">
           <lucide-icon [img]="Clock" [size]="20"></lucide-icon>
         </div>
         <div class="min-w-0">
@@ -21,21 +21,21 @@
     <div class="scroll-region scroll-touch flex gap-2 overflow-x-auto border-b border-slate-200 bg-white px-4 sm:gap-6 sm:px-6" tabindex="0" aria-label="Secciones de disponibilidad">
       <button
         (click)="activeTab = 'schedules'"
-        [class.border-blue-600]="activeTab === 'schedules'"
-        [class.text-blue-600]="activeTab === 'schedules'"
+        [class.border-primary-600]="activeTab === 'schedules'"
+        [class.text-primary-600]="activeTab === 'schedules'"
         [class.border-transparent]="activeTab !== 'schedules'"
         [class.text-slate-500]="activeTab !== 'schedules'"
-        class="flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-2 py-3 text-sm font-semibold transition-colors hover:text-blue-600">
+        class="flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-2 py-3 text-sm font-semibold transition-colors hover:text-primary-600">
         <lucide-icon [img]="Clock" [size]="16"></lucide-icon>
         Horarios de Atención Semanales
       </button>
       <button
         (click)="activeTab = 'blocks'"
-        [class.border-blue-600]="activeTab === 'blocks'"
-        [class.text-blue-600]="activeTab === 'blocks'"
+        [class.border-primary-600]="activeTab === 'blocks'"
+        [class.text-primary-600]="activeTab === 'blocks'"
         [class.border-transparent]="activeTab !== 'blocks'"
         [class.text-slate-500]="activeTab !== 'blocks'"
-        class="flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-2 py-3 text-sm font-semibold transition-colors hover:text-blue-600">
+        class="flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-2 py-3 text-sm font-semibold transition-colors hover:text-primary-600">
         <lucide-icon [img]="CalendarOff" [size]="16"></lucide-icon>
         Bloqueos y Vacaciones ({{ blocks.length }})
       </button>
@@ -56,7 +56,7 @@
             <select
               (change)="onProfessionalChange($event)"
               [value]="selectedProfessionalId"
-              class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:w-auto sm:min-w-[240px]">
+              class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-500 sm:w-auto sm:min-w-[240px]">
               @for (prof of professionals; track prof.id) {
                 <option [value]="prof.id">{{ getProfessionalDisplayName(prof) }}</option>
               }
@@ -74,7 +74,7 @@
                       type="checkbox"
                       formControlName="active"
                       [id]="'day-check-' + $index"
-                      class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+                      class="w-4 h-4 text-primary-600 rounded border-slate-300 focus:ring-primary-500">
                     <label [for]="'day-check-' + $index" class="text-sm font-bold cursor-pointer" [class.text-slate-800]="dayGroup.get('active')?.value" [class.text-slate-400]="!dayGroup.get('active')?.value">
                       {{ dayGroup.get('name')?.value }}
                     </label>
@@ -88,7 +88,7 @@
                         <input
                           type="time"
                           formControlName="startTime"
-                          class="px-2.5 py-1.5 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                          class="px-2.5 py-1.5 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:outline-none">
                       </div>
                       <span class="text-slate-400 font-bold">–</span>
                       <div class="flex items-center gap-2">
@@ -96,7 +96,7 @@
                         <input
                           type="time"
                           formControlName="endTime"
-                          class="px-2.5 py-1.5 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                          class="px-2.5 py-1.5 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:outline-none">
                       </div>
                     </div>
                   } @else {
@@ -115,7 +115,7 @@
               type="button"
               (click)="saveSchedule()"
               [disabled]="isSaving || isLoading"
-              class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold rounded-xl flex items-center gap-2 shadow-sm transition-colors">
+              class="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-sm font-semibold rounded-xl flex items-center gap-2 shadow-sm transition-colors">
               <lucide-icon [img]="Save" [size]="16"></lucide-icon>
               {{ isSaving ? 'Guardando...' : 'Guardar Horario Semanal' }}
             </button>
@@ -133,7 +133,7 @@
             </div>
             <button
               (click)="toggleNewBlock()"
-              class="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors">
+              class="px-4 py-2 bg-primary-50 hover:bg-primary-100 text-primary-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors">
               <lucide-icon [img]="Plus" [size]="15"></lucide-icon>
               {{ showNewBlockForm ? 'Cancelar Registro' : 'Registrar Nuevo Bloqueo' }}
             </button>
@@ -141,8 +141,8 @@
 
           <!-- New Block Form Collapsible -->
           @if (showNewBlockForm) {
-            <form [formGroup]="blockForm" (ngSubmit)="submitBlock()" class="bg-white p-5 rounded-xl border border-blue-200 shadow-md space-y-4">
-              <h4 class="text-xs font-bold uppercase tracking-wider text-blue-800">Nuevo Bloqueo / Vacaciones</h4>
+            <form [formGroup]="blockForm" (ngSubmit)="submitBlock()" class="bg-white p-5 rounded-xl border border-primary-200 shadow-md space-y-4">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-primary-800">Nuevo Bloqueo / Vacaciones</h4>
               
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -151,14 +151,14 @@
                     type="text"
                     formControlName="title"
                     placeholder="Ej. Vacaciones, Congreso Médico, Permiso"
-                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none">
                 </div>
 
                 <div>
                   <label class="block text-xs font-bold text-slate-700 mb-1">Profesional Afectado</label>
                   <select
                     formControlName="professionalId"
-                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:outline-none">
                     <option [ngValue]="null">Toda la especialidad (Global)</option>
                     @for (p of professionals; track p.id) {
                       <option [value]="p.id">{{ p.firstName }} {{ p.lastName }}</option>
@@ -171,7 +171,7 @@
                   <input
                     type="date"
                     formControlName="startDate"
-                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none">
                 </div>
 
                 <div>
@@ -179,7 +179,7 @@
                   <input
                     type="date"
                     formControlName="endDate"
-                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none">
                 </div>
               </div>
 
@@ -189,7 +189,7 @@
                   type="checkbox"
                   id="isAllDayCheck"
                   formControlName="isAllDay"
-                  class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+                  class="w-4 h-4 text-primary-600 rounded border-slate-300 focus:ring-primary-500">
                 <label for="isAllDayCheck" class="text-xs font-semibold text-slate-700 cursor-pointer">
                   Bloquear todo el día (24 horas)
                 </label>
@@ -203,14 +203,14 @@
                     <input
                       type="time"
                       formControlName="startTime"
-                      class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                      class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:outline-none">
                   </div>
                   <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">Hora Fin *</label>
                     <input
                       type="time"
                       formControlName="endTime"
-                      class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                      class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:outline-none">
                   </div>
                 </div>
               }
@@ -221,7 +221,7 @@
                   type="text"
                   formControlName="reason"
                   placeholder="Detalles adicionales sobre el motivo de la ausencia"
-                  class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                  class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none">
               </div>
 
               <div class="flex justify-end gap-2 pt-2">
@@ -234,7 +234,7 @@
                 <button
                   type="submit"
                   [disabled]="isSavingBlock"
-                  class="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition-colors">
+                  class="px-5 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition-colors">
                   <lucide-icon [img]="CheckCircle2" [size]="14"></lucide-icon>
                   {{ isSavingBlock ? 'Guardando...' : 'Guardar Bloqueo' }}
                 </button>

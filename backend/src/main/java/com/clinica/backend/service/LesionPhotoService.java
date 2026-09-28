@@ -44,6 +44,7 @@ public class LesionPhotoService {
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator("DERMATOLOGIA", lesion.getProfessionalId());
 
         String key = fileStorage.store(file, "lesions");
+        StorageTransactionSupport.deleteAfterRollback(fileStorage::delete, key, "la foto de lesión");
         LesionPhoto photo = new LesionPhoto();
         photo.setLesion(lesion);
         photo.setFileUrl(key);
@@ -58,8 +59,8 @@ public class LesionPhotoService {
         LesionPhoto photo = repository.findById(photoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Fotografía no encontrada"));
         clinicalAuthorizationService.ensureOwnerOrSpecialtyAdministrator("DERMATOLOGIA", photo.getLesion().getProfessionalId());
-        fileStorage.delete(photo.getFileUrl());
         repository.delete(photo);
+        StorageTransactionSupport.deleteAfterCommit(fileStorage::delete, photo.getFileUrl(), "la foto de lesión");
     }
 
     @Transactional(readOnly = true)

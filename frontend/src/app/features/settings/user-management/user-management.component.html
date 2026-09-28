@@ -1,8 +1,8 @@
-<div class="space-y-6">
+<section class="card space-y-5" aria-labelledby="user-management-title">
   <!-- Header Title & Action -->
-  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <div class="flex flex-col gap-4 border-b border-line pb-4 sm:flex-row sm:items-center sm:justify-between">
     <div>
-      <h1 class="flex items-center gap-2.5 text-2xl font-bold tracking-tight text-ink">
+      <h1 id="user-management-title" class="flex items-center gap-2.5 text-2xl font-bold tracking-tight text-ink">
         <lucide-icon [img]="Users" [size]="24" class="text-primary-600"></lucide-icon>
         <span>Personal y Cuentas</span>
       </h1>
@@ -17,7 +17,7 @@
   </div>
 
   <!-- Filter & Search Rail -->
-  <div class="card p-4">
+  <div class="border-b border-line pb-4">
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-12">
       <!-- Search input -->
       <div class="sm:col-span-6 relative">
@@ -53,7 +53,7 @@
   </div>
 
   <!-- Users Table -->
-  <div class="card overflow-hidden">
+  <div class="overflow-hidden">
     @if (loading) {
       <div class="flex items-center justify-center gap-3 p-12 text-sm text-muted">
         <div class="h-6 w-6 animate-spin rounded-full border-2 border-primary-600 border-r-transparent"></div>
@@ -190,7 +190,7 @@
       </div>
     }
   </div>
-</div>
+</section>
 
 <!-- Modal Create / Edit User -->
 @if (showUserModal) {

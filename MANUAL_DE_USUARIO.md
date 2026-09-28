@@ -17,11 +17,11 @@
 10. [Recetas Médicas y Verificación Pública con QR](#10-recetas-médicas-y-verificación-pública-con-qr)
 11. [Gestión Documental Clínica y Archivos Adjuntos](#11-gestión-documental-clínica-y-archivos-adjuntos)
 12. [Impresión y Exportación de la Historia Clínica](#12-impresión-y-exportación-de-la-historia-clínica)
-13. [Agenda Médica y Gestión de Citas](#13-agenda-médica-y-gestión-de-citas)
+13. [Agenda, Atenciones Clínicas y Gestión de Citas](#13-agenda-atenciones-clínicas-y-gestión-de-citas)
 14. [Cobros, Caja y Facturación](#14-cobros-caja-y-facturación)
 15. [Catálogo de Servicios Clínicos](#15-catálogo-de-servicios-clínicos)
 16. [Control de Inventario y Suministros Médicos](#16-control-de-inventario-y-suministros-médicos)
-17. [Administración del Sistema: Personal, Cuentas y Catálogos](#17-administración-del-sistema-personal-cuentas-y-catálogos)
+17. [Administración del Sistema: Personal, Cuentas, Catálogos y Reportes](#17-administración-del-sistema-personal-cuentas-catálogos-y-reportes)
 18. [Editor Visual de la Página Web (Landing Page)](#18-editor-visual-de-la-página-web-landing-page)
 19. [Portal Público y Verificación de Documentos](#19-portal-público-y-verificación-de-documentos)
 20. [Guía de Solución de Problemas y Preguntas Frecuentes (FAQ)](#20-guía-de-solución-de-problemas-y-preguntas-frecuentes-faq)
@@ -37,7 +37,7 @@ El sistema cuenta con un motor **Multi-Especialidad Nativo** que adapta la exper
 - **Módulo de Dermatología**: Especializado en el cuidado de la piel, registro de fototipo **Fitzpatrick**, hábitos solares, registro y **mapeo fotográfico de lesiones cutáneas**, diagnósticos dermatológicos, exámenes auxiliares (biopsias, cultivos), procedimientos clínicos y seguimiento de tratamientos farmacológicos y tópicos.
 
 ### Principios Fundamentales del Sistema
-- **Privacidad y Aislamiento Clínico**: Cada profesional visualiza y gestiona la información clínica correspondiente a su especialidad asignada, garantizando confidencialidad médica según la política de autorización *owner-or-admin*.
+- **Privacidad y Aislamiento Clínico**: El acceso clínico requiere el rol `ROLE_PROFESIONAL` y se limita a la especialidad asignada. La edición de registros existentes puede limitarse a su profesional titular o a un administrador profesional de la misma especialidad.
 - **Trazabilidad y Auditoría**: El sistema utiliza borrado lógico (*soft-delete*) en registros médicos, preservando la autoría (`professional_id`), fechas de creación y actualización para cumplimiento médico-legal.
 - **Flujo de Atención Ágil**: Conexión directa entre Cita ➔ Atención Clínica / Consulta ➔ Receta Médica con QR ➔ Registro de Cobro.
 
@@ -49,9 +49,12 @@ El acceso a las funcionalidades y datos clínicos está estrictamente controlado
 
 | Rol | Especialidad | Alcance y Permisos |
 | :--- | :--- | :--- |
-| **`ROLE_USER`** *(Profesional Clínico)* | `PSICOLOGIA` o `DERMATOLOGIA` | • Registro y consulta de pacientes.<br>• Creación y edición de sus propias consultas, evaluaciones, notas clínicas, recetas y planes terapéuticos.<br>• Gestión de su Agenda de citas.<br>• Consulta de catálogo de servicios y visualización de inventario.<br>• Registro de cobros y pagos de pacientes. |
-| **`ROLE_ADMIN`** *(Director / Administrador Clínico)* | `PSICOLOGIA` o `DERMATOLOGIA` | • Todos los permisos de `ROLE_USER` en su especialidad.<br>• Supervisión y edición de registros clínicos de otros profesionales de su misma especialidad.<br>• Gestión de Personal y Cuentas de Usuario (crear usuarios, habilitar/deshabilitar, reset de contraseñas).<br>• Administración del Catálogo de Servicios (tarifas y precios).<br>• Gestión de Catálogos dinámicos del sistema.<br>• Ajustes de inventario médico.<br>• Acceso al Editor del Sitio Web. |
-| **`ROLE_SITE_ADMIN`** *(Administrador Web / Marketing)* | Transversal | • Acceso exclusivo al Editor Visual de la Landing Page pública (`/editar-sitio`).<br>• Configuración de contenidos, testimonios, profesionales y apariencia del portal web.<br>• **Sin acceso** a historias clínicas ni datos sensibles de pacientes (privacidad médica estricta). |
+| **`ROLE_PROFESIONAL`** *(Profesional de Salud)* | `PSICOLOGIA` o `DERMATOLOGIA` | • Atiende pacientes y consulta o registra información clínica dentro de su especialidad.<br>• Gestiona citas, sesiones y recetas según los permisos de su cuenta.<br>• Puede combinarse con `ROLE_ADMIN` para ejercer también funciones administrativas. |
+| **`ROLE_ASISTENTE`** *(Asistente / Recepción)* | Según la cuenta | • Apoya la operación de pacientes, citas y cobros.<br>• No tiene acceso a notas ni historias clínicas. No se combina con `ROLE_PROFESIONAL`. |
+| **`ROLE_ADMIN`** *(Administrador de Clínica)* | Asociada a la cuenta | • Administra usuarios, servicios clínicos, inventario, catálogos y tareas administrativas de la clínica.<br>• Puede realizar acciones administrativas sobre pacientes y cobros.<br>• Este rol por sí solo no concede acceso clínico; se combina con `ROLE_PROFESIONAL` cuando la persona también atiende pacientes. |
+| **`ROLE_SITE_ADMIN`** *(Administrador del Sitio Web)* | Transversal | • Administra el editor del sitio público (`/editar-sitio`).<br>• No equivale a `ROLE_PROFESIONAL` y no concede por sí solo acceso a historias clínicas.<br>• El acceso vigente a Catálogos y Auditoría también contempla este rol; consulta la nota de permisos en la sección 17.5. |
+
+Los roles pueden combinarse, excepto `ROLE_PROFESIONAL` con `ROLE_ASISTENTE`. La especialidad (`PSICOLOGIA` o `DERMATOLOGIA`) es un atributo independiente del rol.
 
 ---
 
@@ -93,9 +96,9 @@ La interfaz de Clínica Personal está diseñada para maximizar la productividad
   - 🟣 **Púrpura**: Módulo Activo de **Psicología**.
   - 🔵 **Cian**: Módulo Activo de **Dermatología**.
 - **Menú Agrupado**:
-  - **Principal**: Dashboard, Agenda, Pacientes, Cobros.
-  - **Operación & Recursos**: Servicios, Pruebas (Psicología), Inventario, Catálogos, Personal & Cuentas (Admin).
-  - **Sitio Web**: Acceso directo al Editor del Sitio Web (Admin/Site Admin).
+  - **Principal**: Dashboard, Agenda, Atenciones, Pacientes y Cobros.
+  - **Operación & Recursos**: Servicios, Pruebas (Psicología), Inventario, Catálogos, Personal & Cuentas, Auditoría y Productividad. Las opciones administrativas dependen del rol.
+  - **Sitio Web**: acceso al Editor del Sitio Web para administradores autorizados.
 - **Botón de Colapso**: Permite compactar la barra lateral a modo solo íconos para ganar mayor área de trabajo en pantallas medianas y grandes.
 
 ### 4.2 Paleta de Comandos Global — Omnibox (`Ctrl + K`)
@@ -110,20 +113,14 @@ Presione la combinación de teclas <kbd>Ctrl</kbd> + <kbd>K</kbd> (o haga clic e
 
 El Dashboard ofrece una vista panorámica del estado de la clínica y las prioridades del día, adaptada a la especialidad del usuario:
 
-### 5.1 Indicadores Clave de Rendimiento (KPIs)
-- **Pacientes Atendidos**: Total de pacientes activos y consultas registradas en el período.
-- **Citas Programadas para Hoy**: Conteo de atenciones agendadas para la jornada.
-- **Métricas Especializadas**:
-  - *Psicología*: Pruebas psicométricas aplicadas y sesiones de terapia en curso.
-  - *Dermatología*: Evaluaciones dermatológicas del mes y procedimientos realizados.
-- **Balance Financiero**: Resumen de ingresos generados y cobros pendientes del mes.
+### 5.1 Indicadores y prioridades del Dashboard
+El panel operativo muestra, entre otros datos, **Citas de Hoy**, **En Espera / Confirmadas**, **Cobros del Mes** y **Pacientes Activos**. También puede destacar la próxima atención y los pacientes nuevos del mes. Los valores dependen de los datos y la especialidad disponibles para la cuenta.
 
-### 5.2 Alertas de Riesgo Clínico Destacadas
-Sección visual prioritaria con alertas activas de pacientes que requieren atención inmediata (por ejemplo: ideación suicida, crisis de angustia severa, sospecha de melanoma o alergias graves a fármacos). Cada alerta permite acceder directamente a la ficha del paciente.
+### 5.2 Atención requerida
+El panel agrupa elementos que pueden requerir seguimiento, como alertas de riesgo activas, insumos y notas S.O.A.P. Cada pestaña muestra sus registros disponibles y puede ofrecer acceso a la ficha del paciente. La información clínica se limita por especialidad y permisos.
 
-### 5.3 Agenda del Día y Pacientes Recientes
-- Lista cronológica de las citas programadas para el día de hoy, con indicador de estado (Programada, Confirmada, En Consulta).
-- Accesos directos para iniciar la consulta o marcar asistencia con un solo clic.
+### 5.3 Agenda del día
+La sección **Agenda de Hoy** presenta las citas de la jornada y su estado actual. Desde sus accesos se puede abrir la agenda completa o la ficha relacionada, según la acción disponible.
 
 ---
 
@@ -345,9 +342,9 @@ La plataforma permite generar un reporte impreso o digital en formato PDF de la 
 
 ---
 
-## 13. Agenda Médica y Gestión de Citas
+## 13. Agenda, Atenciones Clínicas y Gestión de Citas
 
-El módulo de Agenda (`/agenda`) coordina los turnos, citas y horarios de atención de la clínica.
+Agenda (`/agenda`) coordina los turnos, citas y horarios. Atenciones Clínicas (`/attentions`) permite seguir el trabajo clínico y administrativo asociado a esas citas.
 
 ### 13.1 Visualización del Calendario
 - **Vistas Disponibles**: Vista Mensual, Vista Semanal y Vista Lista / Día.
@@ -388,6 +385,17 @@ Como apoyo adicional para la organización del profesional, la Agenda puede sinc
 - Al crear, reprogramar o cancelar una cita, el sistema crea, actualiza o elimina automáticamente el evento correspondiente en el calendario de Google configurado.
 - El evento incluye el nombre del paciente, teléfono y correo (si están disponibles), la especialidad, el servicio clínico, la modalidad (presencial o virtual) y, en caso de teleconsulta, el enlace de videollamada como ubicación del evento.
 - Esta integración es opcional y debe ser habilitada y configurada por el administrador del sistema (credenciales de Google, calendario de destino y zona horaria). Si no está habilitada, la Agenda funciona con total normalidad sin sincronizar eventos externos.
+
+### 13.6 Seguimiento de Atenciones Clínicas (`/attentions`)
+La pantalla de Atenciones organiza los encuentros por estado y permite consultar su evolución durante el día o en otros períodos.
+
+- **Resumen**: muestra los totales de hoy para atenciones, estados del flujo y montos pendientes. Estos indicadores se refieren a la jornada actual y no cambian al modificar los filtros de la lista.
+- **Búsqueda y filtros**: permite buscar por paciente, documento o motivo; filtrar por estado y elegir hoy, ayer, últimos siete días, todas las fechas o un rango personalizado.
+- **Registro rápido**: use **Nueva Atención Rápida** para asociar el encuentro con un paciente y, si corresponde, con un servicio clínico. Esta acción permite registrar un encuentro que no comenzó desde una cita.
+- **Flujo de estados**: `AGENDADA` → `EN_PROCESO` → `ATENDIDA` → `COBRADA`. Una atención también puede quedar `CANCELADA`.
+- **Acciones disponibles**: iniciar consulta, abrir o registrar la nota clínica, emitir una receta, finalizar la atención y continuar al cobro. Las acciones que aparecen dependen del estado y de los permisos de la cuenta.
+
+Si no hay atenciones para el período elegido, amplíe las fechas o limpie los filtros. La pantalla distingue este caso de un error de carga.
 
 ---
 
@@ -433,7 +441,7 @@ La sección de Cobros incluye un panel de reporte financiero con indicadores y g
 Disponible en `/services`. Permite definir el tarifario y la cartera de prestaciones de la clínica por especialidad.
 
 > [!IMPORTANT]
-> La creación, modificación de precios y eliminación de servicios clínicos está reservada exclusivamente a usuarios con rol **`ROLE_ADMIN`**. Los usuarios con `ROLE_USER` pueden consultar el catálogo para agendamiento y cobros.
+> La creación, modificación de precios y eliminación de servicios clínicos está reservada a usuarios con rol **`ROLE_ADMIN`**. Los profesionales y asistentes autorizados pueden consultar el catálogo para agendamiento y cobros.
 
 ### 15.1 Crear o Editar un Servicio Clínico
 1. En la lista de servicios, pulse **"Nuevo Servicio"**.
@@ -471,19 +479,21 @@ Para mantener el saldo real de suministros:
 
 ---
 
-## 17. Administración del Sistema: Personal, Cuentas y Catálogos
+## 17. Administración del Sistema: Personal, Cuentas, Catálogos, Auditoría y Productividad
 
 > [!IMPORTANT]
-> Este módulo es accesible únicamente para usuarios con rol **`ROLE_ADMIN`** desde la sección `/settings/users` y `/settings/catalogs`.
+> El acceso depende del rol. Personal y Cuentas y Productividad requieren `ROLE_ADMIN`; Catálogos y Auditoría admiten también `ROLE_SITE_ADMIN` en los servicios actuales. Consulta la nota de permisos de la sección 17.5.
 
 ### 17.1 Gestión de Personal y Cuentas de Usuario (`/settings/users`)
 - **Crear Nuevo Usuario**:
   1. Pulse **"Crear Usuario"**.
   2. Ingrese el Nombre de Usuario (*username*), Correo Electrónico, Nombre y Apellidos.
   3. Asigne la **Especialidad Médica**: `PSICOLOGIA` o `DERMATOLOGIA`.
-  4. Asigne el **Rol de Seguridad**: `ROLE_USER` o `ROLE_ADMIN`.
+  4. Asigne uno o más roles: `ROLE_PROFESIONAL`, `ROLE_ASISTENTE` o `ROLE_ADMIN`. La combinación de Profesional y Asistente no está permitida.
   5. Establezca la contraseña inicial temporal.
   6. Guardar.
+- **Especialidad**: `PSICOLOGIA` o `DERMATOLOGIA` es un atributo de la cuenta, independiente de sus roles.
+- **Administrador del sitio**: `ROLE_SITE_ADMIN` puede asignarlo un administrador principal autorizado.
 - **Habilitar / Deshabilitar Usuarios**: Conmutador para suspender temporalmente el acceso de un empleado sin eliminar sus registros históricos.
 - **Restablecimiento de Contraseña**: Permite al administrador asignar una nueva clave en caso de olvido por parte del profesional.
 
@@ -493,6 +503,15 @@ Permite personalizar las opciones de los menús desplegables del sistema para ad
 - Tipos de Piel, Lesiones y Áreas Corporales (Dermatología).
 - Tipos de Procedimientos y Tratamientos.
 - Categorías de Alertas de Riesgo.
+
+### 17.3 Registro de Auditoría (`/settings/audit`)
+Permite consultar eventos registrados por el sistema. Se puede buscar por detalle o identificador y filtrar por usuario, acción, módulo o entidad, especialidad y fechas. Seleccione un evento para revisar su detalle. El acceso vigente contempla `ROLE_ADMIN` y `ROLE_SITE_ADMIN`.
+
+### 17.4 Reporte de Productividad (`/settings/productivity`)
+Reporte gerencial por profesional para un período seleccionado. Presenta atenciones, finalización, cancelaciones, facturación y cobros; permite elegir períodos predefinidos o fechas personalizadas y exportar los resultados. Requiere `ROLE_ADMIN`.
+
+### 17.5 Nota sobre permisos vigentes
+El menú y las rutas no muestran exactamente los mismos permisos que los servicios del sistema. Por ejemplo, Catálogos puede aparecer en el menú de cuentas sin permiso administrativo; `ROLE_SITE_ADMIN` puede abrir Auditoría y gestionar Catálogos, pero el servicio de Personal y Cuentas exige `ROLE_ADMIN` para consultar y administrar usuarios. Productividad también requiere `ROLE_ADMIN` en el servicio. Si una opción aparece pero devuelve acceso restringido, solicite al administrador de la clínica que revise su rol. La especificación de rediseño registra estas diferencias para resolverlas antes de cambiar la navegación.
 
 ---
 
@@ -584,5 +603,5 @@ Cualquier farmacia, laboratorio o paciente puede verificar la validez de una rec
 ### 📞 Asistencia Técnica y Soporte
 Para soporte técnico interno, dudas operativas o solicitudes de mantenimiento, comuníquese con el Administrador del Sistema de la clínica o el equipo de soporte técnico designado.
 
-*Manual de Usuario — Clínica Personal · Versión de Documentación: 2026.2*
-*Cambios en 2026.2: se documentan los recordatorios automáticos de citas por correo (13.4), la sincronización con Google Calendar (13.5) y el resumen financiero de Cobros (14.3), funcionalidades ya presentes en el sistema que no estaban descritas en la versión anterior del manual.*
+*Manual de Usuario — Clínica Personal · Versión de Documentación: 2026.3*
+*Cambios en 2026.3: se actualizan los nombres de roles y la navegación, se corrigen los indicadores del Dashboard y se documentan Atenciones, Auditoría, Productividad y los permisos vigentes.*

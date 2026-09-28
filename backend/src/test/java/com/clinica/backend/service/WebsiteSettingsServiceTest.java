@@ -8,8 +8,7 @@ import com.clinica.backend.model.WebsiteSettings;
 import com.clinica.backend.repository.WebsiteLandingDraftRepository;
 import com.clinica.backend.repository.WebsiteSettingsRepository;
 import jakarta.validation.ConstraintViolationException;
-import org.springframework.web.multipart.MultipartFile;
-import tools.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +17,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.multipart.MultipartFile;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Optional;
 
@@ -58,6 +61,13 @@ class WebsiteSettingsServiceTest {
     private WebsiteLandingDraft draft;
     private WebsiteSettings settings;
     private WebsiteDraftDto dto;
+
+    @AfterEach
+    void clearSynchronization() {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
 
     @BeforeEach
     void setUp() throws Exception {
@@ -176,5 +186,80 @@ class WebsiteSettingsServiceTest {
 
         verify(fileStorage).delete("draft/hero/old.png");
         assertEquals("draft/hero/new.png", dto.getHeroAssetKey());
+    }
+
+    @Test
+    void replacingDraftAssetDeletesOldFileAfterCommitAndPreservesNewFile() {
+        dto.setHeroAssetKey("draft/hero/old.png");
+        when(fileStorage.isDraftKey("draft/hero/old.png")).thenReturn(true);
+        when(fileStorage.storeDraft(any(MultipartFile.class), eq("hero"))).thenReturn("draft/hero/new.png");
+        TransactionSynchronizationManager.initSynchronization();
+
+        service.uploadDraftAsset("hero", mock(MultipartFile.class));
+
+        verify(fileStorage, never()).delete(anyString());
+        completeSynchronization(TransactionSynchronization.STATUS_COMMITTED);
+
+        verify(fileStorage).delete("draft/hero/old.png");
+        verify(fileStorage, never()).delete("draft/hero/new.png");
+    }
+
+    @Test
+    void replacingDraftAssetDeletesNewFileAndPreservesOldFileOnRollback() {
+        dto.setHeroAssetKey("draft/hero/old.png");
+        when(fileStorage.isDraftKey("draft/hero/old.png")).thenReturn(true);
+        when(fileStorage.storeDraft(any(MultipartFile.class), eq("hero"))).thenReturn("draft/hero/new.png");
+        TransactionSynchronizationManager.initSynchronization();
+
+        service.uploadDraftAsset("hero", mock(MultipartFile.class));
+
+        verify(fileStorage, never()).delete(anyString());
+        completeSynchronization(TransactionSynchronization.STATUS_ROLLED_BACK);
+
+        verify(fileStorage).delete("draft/hero/new.png");
+        verify(fileStorage, never()).delete("draft/hero/old.png");
+    }
+
+    @Test
+    void deletingDraftAssetRemovesFileOnlyAfterCommit() {
+        dto.setHeroAssetKey("draft/hero/old.png");
+        when(fileStorage.isDraftKey("draft/hero/old.png")).thenReturn(true);
+        TransactionSynchronizationManager.initSynchronization();
+
+        service.deleteDraftAsset("hero");
+
+        verify(fileStorage, never()).delete(anyString());
+        completeSynchronization(TransactionSynchronization.STATUS_COMMITTED);
+
+        verify(fileStorage).delete("draft/hero/old.png");
+    }
+
+    @Test
+    void replacingProfessionalPhotoDeletesNewFileOnRollbackAndOldFileAfterCommit() {
+        WebsiteDraftDto.Professional professional = new WebsiteDraftDto.Professional();
+        professional.setDraftKey("professional-draft-key");
+        professional.setPhotoAssetKey("draft/professionals/old.png");
+        dto.getProfessionals().add(professional);
+        when(fileStorage.isDraftKey("draft/professionals/old.png")).thenReturn(true);
+        when(fileStorage.storeDraft(any(MultipartFile.class), eq("professionals")))
+                .thenReturn("draft/professionals/new.png");
+        TransactionSynchronizationManager.initSynchronization();
+
+        service.uploadDraftProfessionalPhoto("professional-draft-key", mock(MultipartFile.class));
+
+        verify(fileStorage, never()).delete(anyString());
+        completeSynchronization(TransactionSynchronization.STATUS_COMMITTED);
+
+        verify(fileStorage).delete("draft/professionals/old.png");
+        verify(fileStorage, never()).delete("draft/professionals/new.png");
+    }
+
+    private void completeSynchronization(int status) {
+        try {
+            TransactionSynchronizationManager.getSynchronizations()
+                    .forEach(synchronization -> synchronization.afterCompletion(status));
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
     }
 }

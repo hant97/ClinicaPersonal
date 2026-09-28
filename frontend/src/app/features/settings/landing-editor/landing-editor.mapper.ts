@@ -1,7 +1,11 @@
 import { PublicLanding } from '../../../core/models/public-landing.model';
 import { WebsiteDraft } from '../../../core/models/website-editor.model';
 
-export function draftToViewLanding(draft: WebsiteDraft, assetBase: string): PublicLanding {
+export function draftToViewLanding(
+  draft: WebsiteDraft,
+  assetBase: string,
+  servicesByCode: Record<string, string[]> = {}
+): PublicLanding {
   const resolve = (key?: string, external?: string): string | undefined =>
     key ? `${assetBase}/${key}` : external;
 
@@ -59,7 +63,7 @@ export function draftToViewLanding(draft: WebsiteDraft, assetBase: string): Publ
         title: specialty.title,
         subtitle: specialty.subtitle,
         iconCode: specialty.iconCode,
-        services: []
+        services: servicesByCode[specialty.code] ?? []
       })),
     benefits: (draft.benefits || [])
       .filter(benefit => benefit.active)

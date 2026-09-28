@@ -123,7 +123,10 @@ public class WebsiteSettingsService {
         ensureDraftKeys(dto);
         String previous = getDraftAssetKey(dto, category);
         String key = fileStorage.storeDraft(file, category);
-        if (previous != null && fileStorage.isDraftKey(previous)) fileStorage.delete(previous);
+        StorageTransactionSupport.deleteAfterRollback(fileStorage::delete, key, "el nuevo asset del borrador");
+        if (previous != null && fileStorage.isDraftKey(previous)) {
+            StorageTransactionSupport.deleteAfterCommit(fileStorage::delete, previous, "el asset reemplazado del borrador");
+        }
         setDraftAssetKey(dto, category, key);
         draft.setContent(serializeDraft(dto));
         draft.setRevision(draft.getRevision() + 1);
@@ -138,7 +141,9 @@ public class WebsiteSettingsService {
         WebsiteLandingDraft draft = requireDraft();
         WebsiteDraftDto dto = parseDraft(draft.getContent());
         String previous = getDraftAssetKey(dto, category);
-        if (previous != null && fileStorage.isDraftKey(previous)) fileStorage.delete(previous);
+        if (previous != null && fileStorage.isDraftKey(previous)) {
+            StorageTransactionSupport.deleteAfterCommit(fileStorage::delete, previous, "el asset eliminado del borrador");
+        }
         setDraftAssetKey(dto, category, null);
         draft.setContent(serializeDraft(dto));
         draft.setRevision(draft.getRevision() + 1);
@@ -156,8 +161,13 @@ public class WebsiteSettingsService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Profesional no encontrado en el borrador"));
         String key = fileStorage.storeDraft(file, "professionals");
+        StorageTransactionSupport.deleteAfterRollback(fileStorage::delete, key, "la nueva foto del profesional");
         if (professional.getPhotoAssetKey() != null && fileStorage.isDraftKey(professional.getPhotoAssetKey())) {
-            fileStorage.delete(professional.getPhotoAssetKey());
+            StorageTransactionSupport.deleteAfterCommit(
+                    fileStorage::delete,
+                    professional.getPhotoAssetKey(),
+                    "la foto reemplazada del profesional"
+            );
         }
         professional.setPhotoAssetKey(key);
         draft.setContent(serializeDraft(dto));

@@ -17,6 +17,8 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.Optional;
 import java.util.Set;
@@ -26,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -57,6 +60,9 @@ class ClinicalDocumentServiceTest {
     @AfterEach
     void clearSecurityContext() {
         SecurityContextHolder.clearContext();
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
     }
 
     @Test
@@ -86,6 +92,29 @@ class ClinicalDocumentServiceTest {
     }
 
     @Test
+    void uploadDocumentDeletesStoredFileWhenTransactionRollsBack() {
+        Patient patient = new Patient();
+        patient.setId(7L);
+        MockMultipartFile file = new MockMultipartFile("file", "consentimiento.pdf", "application/pdf", new byte[]{1, 2, 3});
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(user);
+        when(patientRepository.findByIdAndSpecialtyAndDeletedFalse(7L, "PSICOLOGIA")).thenReturn(Optional.of(patient));
+        when(fileStorage.store(any(), eq("documents"))).thenReturn("documents/abc.pdf");
+        when(repository.save(any(ClinicalDocument.class))).thenAnswer(invocation -> {
+            ClinicalDocument document = invocation.getArgument(0);
+            document.setId(9L);
+            return document;
+        });
+        TransactionSynchronizationManager.initSynchronization();
+
+        service.uploadDocument(7L, file, "consentimiento", null, null);
+
+        verify(fileStorage, never()).delete(any());
+        completeSynchronization(TransactionSynchronization.STATUS_ROLLED_BACK);
+
+        verify(fileStorage).delete("documents/abc.pdf");
+    }
+
+    @Test
     void deleteDocumentMarksDeletedAndRemovesFile() {
         ClinicalDocument document = new ClinicalDocument();
         document.setId(5L);
@@ -102,6 +131,53 @@ class ClinicalDocumentServiceTest {
         assertNotNull(document.getDeletedAt());
         assertEquals(10L, document.getDeletedBy());
         verify(fileStorage).delete("documents/abc.pdf");
+    }
+
+    @Test
+    void deleteDocumentRemovesStoredFileOnlyAfterCommit() {
+        ClinicalDocument document = new ClinicalDocument();
+        document.setId(5L);
+        document.setSpecialty("PSICOLOGIA");
+        document.setProfessionalId(10L);
+        document.setFileUrl("documents/abc.pdf");
+        when(repository.findByIdAndDeletedFalse(5L)).thenReturn(Optional.of(document));
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(user);
+        when(repository.save(any(ClinicalDocument.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        TransactionSynchronizationManager.initSynchronization();
+
+        service.deleteDocument(5L);
+
+        verify(fileStorage, never()).delete(any());
+        completeSynchronization(TransactionSynchronization.STATUS_COMMITTED);
+
+        verify(fileStorage).delete("documents/abc.pdf");
+    }
+
+    @Test
+    void deleteDocumentKeepsStoredFileWhenTransactionRollsBack() {
+        ClinicalDocument document = new ClinicalDocument();
+        document.setId(5L);
+        document.setSpecialty("PSICOLOGIA");
+        document.setProfessionalId(10L);
+        document.setFileUrl("documents/abc.pdf");
+        when(repository.findByIdAndDeletedFalse(5L)).thenReturn(Optional.of(document));
+        when(clinicalAuthorizationService.currentProfessional()).thenReturn(user);
+        when(repository.save(any(ClinicalDocument.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        TransactionSynchronizationManager.initSynchronization();
+
+        service.deleteDocument(5L);
+        completeSynchronization(TransactionSynchronization.STATUS_ROLLED_BACK);
+
+        verify(fileStorage, never()).delete(any());
+    }
+
+    private void completeSynchronization(int status) {
+        try {
+            TransactionSynchronizationManager.getSynchronizations()
+                    .forEach(synchronization -> synchronization.afterCompletion(status));
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
     }
 
     private User user(Long id, String specialty, String role) {

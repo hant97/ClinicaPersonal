@@ -76,7 +76,10 @@ export class EditorPanelComponent {
   }
 
   imageUrl(key?: string, external?: string): string | undefined {
-    return key ? `${this.assetBase}/${key}` : external;
+    if (key) return `${this.assetBase}/${key}`;
+    if (external?.includes('photo-1576091160399-112ba8d25d1d')) return '/images/landing-hero.jpg';
+    if (external?.includes('photo-1544168190-79c17527004f')) return '/images/landing-approach.jpg';
+    return external;
   }
 
   onFileSelected(event: Event, category: string): void {

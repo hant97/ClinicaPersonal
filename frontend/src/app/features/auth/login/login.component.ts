@@ -1,28 +1,30 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
 import { LucideAngularModule } from 'lucide-angular';
-import { Eye, EyeOff, HeartHandshake,
- ShieldCheck } from '../../../shared/icons/lucide-icons';
+import { ArrowLeft, ArrowRight, Eye, EyeOff, Lock, ShieldCheck } from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, LucideAngularModule],
+  imports: [ReactiveFormsModule, RouterLink, LucideAngularModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
 export class LoginComponent implements OnInit {
   static readonly REMEMBERED_USERNAME_KEY = 'clinica_remembered_username';
+  readonly currentYear = new Date().getFullYear();
 
   loginForm: FormGroup;
   errorMessage: string = '';
   isLoading: boolean = false;
   showPassword: boolean = false;
 
-  readonly HeartHandshake = HeartHandshake;
+  readonly ArrowLeft = ArrowLeft;
+  readonly ArrowRight = ArrowRight;
+  readonly Lock = Lock;
   readonly ShieldCheck = ShieldCheck;
   readonly Eye = Eye;
   readonly EyeOff = EyeOff;

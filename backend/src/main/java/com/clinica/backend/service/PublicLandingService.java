@@ -8,12 +8,14 @@ import com.clinica.backend.model.WebsiteProcessStep;
 import com.clinica.backend.model.WebsiteProfessional;
 import com.clinica.backend.model.WebsiteSettings;
 import com.clinica.backend.model.WebsiteSpecialty;
+import com.clinica.backend.model.WebsiteSpecialtyService;
 import com.clinica.backend.repository.ClinicalServiceRepository;
 import com.clinica.backend.repository.WebsiteBenefitRepository;
 import com.clinica.backend.repository.WebsiteProcessStepRepository;
 import com.clinica.backend.repository.WebsiteProfessionalRepository;
 import com.clinica.backend.repository.WebsiteSettingsRepository;
 import com.clinica.backend.repository.WebsiteSpecialtyRepository;
+import com.clinica.backend.repository.WebsiteSpecialtyServiceRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -37,6 +39,7 @@ public class PublicLandingService {
     private final WebsiteSettingsRepository settingsRepository;
     private final ClinicalServiceRepository clinicalServiceRepository;
     private final WebsiteSpecialtyRepository specialtyRepository;
+    private final WebsiteSpecialtyServiceRepository specialtyServiceRepository;
     private final WebsiteBenefitRepository benefitRepository;
     private final WebsiteProcessStepRepository processStepRepository;
     private final WebsiteProfessionalRepository professionalRepository;
@@ -53,11 +56,19 @@ public class PublicLandingService {
         PublicLandingDto.Social social = dto.getSocial(); social.setFacebook(settings.getFacebookUrl()); social.setInstagram(settings.getInstagramUrl()); social.setTiktok(settings.getTiktokUrl()); social.setLinkedin(settings.getLinkedinUrl());
         PublicLandingDto.Seo seo = dto.getSeo(); seo.setTitle(settings.getSeoTitle()); seo.setDescription(settings.getSeoDescription()); seo.setSiteName(settings.getSeoSiteName()); seo.setImageUrl(resolve(settings.getSeoAssetKey(), settings.getSeoExternalImageUrl()));
 
-        Map<String, List<String>> services = clinicalServiceRepository.findAllByDeletedFalseOrderBySpecialtyAscNameAsc().stream()
-                .collect(Collectors.groupingBy(ClinicalService::getSpecialty, Collectors.mapping(ClinicalService::getName, Collectors.toList())));
+        List<ClinicalService> clinicalServices = clinicalServiceRepository.findAllByDeletedFalseOrderBySpecialtyAscNameAsc();
+        Map<String, List<ClinicalService>> servicesBySpecialty = clinicalServices.stream()
+                .collect(Collectors.groupingBy(ClinicalService::getSpecialty));
+        Map<Long, List<String>> websiteServices = specialtyServiceRepository.findAllByActiveTrueOrderByDisplayOrderAscIdAsc().stream()
+                .collect(Collectors.groupingBy(WebsiteSpecialtyService::getSpecialtyId,
+                        Collectors.mapping(WebsiteSpecialtyService::getName, Collectors.toList())));
         specialtyRepository.findAllByOrderByDisplayOrderAscIdAsc().stream().filter(WebsiteSpecialty::isVisible).forEach(item -> {
             PublicLandingDto.Specialty specialty = new PublicLandingDto.Specialty(); specialty.setCode(item.getCode()); specialty.setLabel(item.getLabel()); specialty.setTitle(item.getTitle()); specialty.setSubtitle(item.getSubtitle()); specialty.setIconCode(item.getIconCode());
-            specialty.setServices(services.getOrDefault(item.getCode(), List.of())); dto.getSpecialties().add(specialty);
+            List<ClinicalService> catalogServices = servicesBySpecialty.getOrDefault(item.getCode(), List.of());
+            specialty.setServices(catalogServices.isEmpty()
+                    ? websiteServices.getOrDefault(item.getId(), List.of())
+                    : catalogServices.stream().filter(ClinicalService::isActive).map(ClinicalService::getName).toList());
+            dto.getSpecialties().add(specialty);
         });
         benefitRepository.findAllByOrderByDisplayOrderAscIdAsc().stream().filter(WebsiteBenefit::isActive).forEach(item -> { PublicLandingDto.Benefit b = new PublicLandingDto.Benefit(); b.setTitle(item.getTitle()); b.setDescription(item.getDescription()); b.setIconCode(item.getIconCode()); dto.getBenefits().add(b); });
         processStepRepository.findAllByOrderByDisplayOrderAscIdAsc().stream().filter(WebsiteProcessStep::isActive).forEach(item -> { PublicLandingDto.ProcessStep p = new PublicLandingDto.ProcessStep(); p.setStepNumber(item.getStepNumber()); p.setTitle(item.getTitle()); p.setDescription(item.getDescription()); dto.getProcessSteps().add(p); });

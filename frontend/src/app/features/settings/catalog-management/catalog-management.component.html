@@ -1,4 +1,4 @@
-<section class="space-y-6 animate-fade-in">
+<section class="card space-y-6 animate-fade-in" aria-labelledby="catalog-management-title">
   <!-- Header Principal -->
   <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-line pb-4">
     <div>
@@ -6,7 +6,7 @@
         <span class="h-2 w-2 rounded-full bg-primary-600 animate-pulse"></span>
         <p class="text-xs font-semibold uppercase tracking-wider text-muted">Configuración del Sistema</p>
       </div>
-      <h1 class="text-2xl font-bold text-ink mt-0.5">Administración de Catálogos</h1>
+      <h1 id="catalog-management-title" class="text-2xl font-bold text-ink mt-0.5">Administración de Catálogos</h1>
       <p class="text-xs text-muted mt-1">
         Gestiona las opciones maestras y diccionarios utilizados en historias clínicas, agenda, caja e inventario.
       </p>
@@ -68,7 +68,7 @@
     </div>
 
     <div class="card !p-3 sm:!p-3.5 flex items-center gap-2.5 sm:gap-3 min-w-0">
-      <div class="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
+      <div class="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600 border border-primary-100">
         <lucide-icon [img]="Globe" [size]="18"></lucide-icon>
       </div>
       <div class="min-w-0 flex-1">
@@ -82,7 +82,7 @@
   <div class="catalog-master-detail min-w-0 w-full">
     
     <!-- PANEL IZQUIERDO: Explorador de Catálogos -->
-    <aside class="card !p-3.5 sm:!p-4 space-y-3 min-w-0 w-full overflow-hidden">
+    <aside class="min-w-0 w-full overflow-hidden rounded-xl border border-line bg-slate-50/50 p-3.5 sm:p-4 space-y-3">
       <div class="flex items-center justify-between border-b border-line pb-2.5">
         <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
           <lucide-icon [img]="BookOpen" [size]="14" class="text-primary-600"></lucide-icon>
@@ -197,7 +197,7 @@
     <main class="space-y-4 min-w-0 w-full overflow-hidden">
       @if (selectedCatalog) {
         <!-- Cabecera del Catálogo -->
-        <section class="card !p-3.5 sm:!p-5 min-w-0 w-full overflow-hidden">
+        <section class="min-w-0 w-full overflow-hidden rounded-xl border border-line bg-surface p-3.5 sm:p-5">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between border-b border-line pb-4 min-w-0">
             <div class="space-y-1 min-w-0 flex-1">
               <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap">
@@ -236,7 +236,7 @@
           </div>
 
           <!-- SECCIÓN: Agregar Nueva Opción Rápida (Zero Friction) -->
-          <div class="mt-4 rounded-xl border border-primary-200/80 bg-gradient-to-r from-primary-50/60 to-blue-50/40 p-3.5 sm:p-4 shadow-sm min-w-0 w-full overflow-hidden">
+          <div class="mt-4 rounded-xl border border-primary-200/80 bg-gradient-to-r from-primary-50/60 to-primary-100/40 p-3.5 sm:p-4 shadow-sm min-w-0 w-full overflow-hidden">
             <div class="flex items-center justify-between mb-2.5">
               <div class="flex items-center gap-2">
                 <span class="flex h-5 w-5 items-center justify-center rounded-full bg-primary-600 text-white text-[11px] font-bold">⚡</span>
@@ -515,7 +515,7 @@
         </section>
       } @else {
         <!-- Estado sin selección -->
-        <div class="card flex min-h-[30rem] flex-col items-center justify-center p-8 text-center text-muted">
+        <div class="flex min-h-[30rem] flex-col items-center justify-center rounded-xl border border-dashed border-line bg-slate-50/50 p-8 text-center text-muted">
           <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-50 text-primary-600 mb-4 border border-primary-100">
             <lucide-icon [img]="FolderTree" [size]="32"></lucide-icon>
           </div>

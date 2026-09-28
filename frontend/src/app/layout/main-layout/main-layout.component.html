@@ -5,7 +5,7 @@
   @if (isSidebarOpen) {
     <button
       type="button"
-      class="fixed inset-0 z-30 bg-slate-950/40 backdrop-blur-sm md:hidden"
+      class="fixed inset-0 z-30 bg-ink/40 backdrop-blur-sm md:hidden"
       aria-label="Cerrar menú de navegación"
       (click)="closeSidebar()"
     ></button>
@@ -80,7 +80,7 @@
       [class.xl:px-3]="isSidebarExpanded"
     >
       <div
-        class="flex items-center gap-2 rounded-md bg-slate-50 px-2.5 py-1.5 border border-line text-xs font-medium text-slate-700 transition-all md:justify-center md:px-0 md:py-2"
+        class="flex items-center gap-2 rounded-md bg-canvas-subtle px-2.5 py-1.5 border border-line text-xs font-medium text-ink-muted transition-all md:justify-center md:px-0 md:py-2"
         [class.xl:justify-center]="!isSidebarExpanded"
         [class.xl:px-0]="!isSidebarExpanded"
         [class.xl:justify-start]="isSidebarExpanded"
@@ -138,7 +138,7 @@
           routerLink="/dashboard"
           routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
           [routerLinkActiveOptions]="{ exact: true }"
-          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-ink-muted transition hover:bg-canvas-subtle hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
           [class.xl:justify-center]="!isSidebarExpanded"
           [class.xl:px-0]="!isSidebarExpanded"
           [class.xl:justify-start]="isSidebarExpanded"
@@ -159,7 +159,7 @@
           routerLink="/agenda"
           routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
           [routerLinkActiveOptions]="{ exact: true }"
-          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-ink-muted transition hover:bg-canvas-subtle hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
           [class.xl:justify-center]="!isSidebarExpanded"
           [class.xl:px-0]="!isSidebarExpanded"
           [class.xl:justify-start]="isSidebarExpanded"
@@ -180,7 +180,7 @@
           routerLink="/attentions"
           routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
           [routerLinkActiveOptions]="{ exact: true }"
-          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-ink-muted transition hover:bg-canvas-subtle hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
           [class.xl:justify-center]="!isSidebarExpanded"
           [class.xl:px-0]="!isSidebarExpanded"
           [class.xl:justify-start]="isSidebarExpanded"
@@ -201,7 +201,7 @@
           routerLink="/patients"
           routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
           [routerLinkActiveOptions]="{ paths: 'subset', queryParams: 'exact', matrixParams: 'ignored', fragment: 'ignored' }"
-          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-ink-muted transition hover:bg-canvas-subtle hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
           [class.xl:justify-center]="!isSidebarExpanded"
           [class.xl:px-0]="!isSidebarExpanded"
           [class.xl:justify-start]="isSidebarExpanded"
@@ -222,7 +222,7 @@
           routerLink="/billing"
           routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
           [routerLinkActiveOptions]="{ exact: true }"
-          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-ink-muted transition hover:bg-canvas-subtle hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
           [class.xl:justify-center]="!isSidebarExpanded"
           [class.xl:px-0]="!isSidebarExpanded"
           [class.xl:justify-start]="isSidebarExpanded"
@@ -242,8 +242,8 @@
         <!-- Category: Operación & Recursos -->
         <button
           type="button"
-          class="mt-4 flex w-full items-center justify-between px-2.5 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted block md:hidden hover:text-slate-600 transition"
-          [class.xl:block]="isSidebarExpanded"
+          class="mt-4 flex w-full items-center justify-between px-2.5 pt-2 pb-1 text-left text-[10px] font-semibold uppercase tracking-wider text-muted block md:hidden hover:text-ink-muted transition"
+          [class.xl:flex]="isSidebarExpanded"
           [class.xl:hidden]="!isSidebarExpanded"
           [attr.aria-expanded]="!operationsSectionCollapsed"
           aria-controls="operations-section-items"
@@ -270,7 +270,7 @@
           routerLink="/services"
           routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
           [routerLinkActiveOptions]="{ exact: true }"
-          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-ink-muted transition hover:bg-canvas-subtle hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
           [class.xl:justify-center]="!isSidebarExpanded"
           [class.xl:px-0]="!isSidebarExpanded"
           [class.xl:justify-start]="isSidebarExpanded"
@@ -292,7 +292,7 @@
             routerLink="/tests-catalog"
             routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
             [routerLinkActiveOptions]="{ exact: true }"
-            class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+            class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-ink-muted transition hover:bg-canvas-subtle hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
             [class.xl:justify-center]="!isSidebarExpanded"
             [class.xl:px-0]="!isSidebarExpanded"
             [class.xl:justify-start]="isSidebarExpanded"
@@ -314,7 +314,7 @@
           routerLink="/inventory"
           routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
           [routerLinkActiveOptions]="{ exact: true }"
-          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-ink-muted transition hover:bg-canvas-subtle hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
           [class.xl:justify-center]="!isSidebarExpanded"
           [class.xl:px-0]="!isSidebarExpanded"
           [class.xl:justify-start]="isSidebarExpanded"
@@ -334,7 +334,7 @@
         <a
           routerLink="/settings/catalogs"
           routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
-          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-ink-muted transition hover:bg-canvas-subtle hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
           [class.xl:justify-center]="!isSidebarExpanded"
           [class.xl:px-0]="!isSidebarExpanded"
           [class.xl:justify-start]="isSidebarExpanded"
@@ -355,7 +355,7 @@
           <a
             routerLink="/settings/users"
             routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
-            class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+            class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-ink-muted transition hover:bg-canvas-subtle hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
             [class.xl:justify-center]="!isSidebarExpanded"
             [class.xl:px-0]="!isSidebarExpanded"
             [class.xl:justify-start]="isSidebarExpanded"
@@ -375,7 +375,7 @@
           <a
             routerLink="/settings/audit"
             routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
-            class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+            class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-ink-muted transition hover:bg-canvas-subtle hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
             [class.xl:justify-center]="!isSidebarExpanded"
             [class.xl:px-0]="!isSidebarExpanded"
             [class.xl:justify-start]="isSidebarExpanded"
@@ -397,7 +397,7 @@
           <a
             routerLink="/settings/productivity"
             routerLinkActive="bg-primary-50 text-primary-700 font-semibold shadow-xs"
-            class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+            class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-ink-muted transition hover:bg-canvas-subtle hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
             [class.xl:justify-center]="!isSidebarExpanded"
             [class.xl:px-0]="!isSidebarExpanded"
             [class.xl:justify-start]="isSidebarExpanded"
@@ -436,7 +436,7 @@
 
         <a
           routerLink="/editar-sitio"
-          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
+          class="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-ink-muted transition hover:bg-canvas-subtle hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 md:justify-center md:px-0"
           [class.xl:justify-center]="!isSidebarExpanded"
           [class.xl:px-0]="!isSidebarExpanded"
           [class.xl:justify-start]="isSidebarExpanded"
@@ -457,14 +457,14 @@
 
     <!-- Footer: Sidebar Collapse Toggle (Wide Desktop) -->
     <div
-      class="hidden xl:flex border-t border-line p-2 bg-slate-50/50 transition-all"
+      class="hidden xl:flex border-t border-line p-2 bg-canvas-subtle/50 transition-all"
       data-testid="sidebar-collapse"
       [class.justify-center]="!isSidebarExpanded"
       [class.justify-end]="isSidebarExpanded"
     >
       <button
         type="button"
-        class="flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500"
+        class="flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted transition hover:bg-canvas-subtle hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary-500"
         [class.w-full]="isSidebarExpanded"
         [class.justify-between]="isSidebarExpanded"
         (click)="toggleSidebarCollapse()"
@@ -472,13 +472,13 @@
         [attr.aria-label]="isSidebarExpanded ? 'Colapsar barra lateral' : 'Expandir barra lateral'"
       >
         <span
-          class="block md:hidden text-slate-600 font-medium"
+          class="block md:hidden text-ink-muted font-medium"
           [class.xl:inline]="isSidebarExpanded"
           [class.xl:hidden]="!isSidebarExpanded"
         >
           Colapsar menú
         </span>
-        <lucide-icon [img]="isSidebarExpanded ? ChevronLeft : ChevronRight" [size]="16" class="shrink-0 text-slate-500"></lucide-icon>
+        <lucide-icon [img]="isSidebarExpanded ? ChevronLeft : ChevronRight" [size]="16" class="shrink-0 text-muted"></lucide-icon>
       </button>
     </div>
   </aside>
@@ -503,7 +503,7 @@
 
         <div class="flex items-center gap-2 min-w-0 text-sm">
           <span class="hidden xl:inline font-medium text-muted">Clínica</span>
-          <lucide-icon [img]="ChevronRight" [size]="14" class="hidden xl:inline text-slate-300"></lucide-icon>
+          <lucide-icon [img]="ChevronRight" [size]="14" class="hidden xl:inline text-muted/50"></lucide-icon>
           <span class="font-semibold text-ink truncate">{{ currentRouteTitle }}</span>
         </div>
       </div>
@@ -516,7 +516,7 @@
             #profileMenuToggle
             type="button"
             (click)="toggleProfileMenu($event)"
-            class="touch-icon-target flex items-center gap-1.5 rounded-full p-0.5 text-slate-700 transition hover:ring-2 hover:ring-primary-400 hover:ring-offset-1 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            class="touch-icon-target flex items-center gap-1.5 rounded-full p-0.5 text-ink-muted transition hover:ring-2 hover:ring-primary-400 hover:ring-offset-1 focus:outline-none focus:ring-2 focus:ring-primary-500"
             [class.ring-2]="isProfileMenuOpen"
             [class.ring-primary-500]="isProfileMenuOpen"
             [attr.aria-expanded]="isProfileMenuOpen"
@@ -530,7 +530,7 @@
             <lucide-icon
               [img]="ChevronDown"
               [size]="14"
-              class="hidden sm:inline-block text-slate-400 transition-transform duration-150"
+              class="hidden sm:inline-block text-muted transition-transform duration-150"
               [class.rotate-180]="isProfileMenuOpen"
             ></lucide-icon>
           </button>
@@ -558,7 +558,7 @@
                   </div>
                 </div>
                 <div class="mt-2 flex items-center gap-1.5">
-                  <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">
+                  <span class="inline-flex items-center rounded-md bg-canvas-subtle px-2 py-0.5 text-[11px] font-medium text-ink-muted">
                     {{ roleLabel }}
                   </span>
                 </div>
@@ -569,10 +569,10 @@
                 <a
                   routerLink="/profile"
                   (click)="closeProfileMenu()"
-                  class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-ink transition"
+                  class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium text-ink-muted hover:bg-canvas-subtle hover:text-ink transition"
                   role="menuitem"
                 >
-                  <lucide-icon [img]="User" [size]="16" class="text-slate-500 shrink-0"></lucide-icon>
+                  <lucide-icon [img]="User" [size]="16" class="text-muted shrink-0"></lucide-icon>
                   <span>Mi Perfil</span>
                 </a>
 
@@ -580,10 +580,10 @@
                   <a
                     routerLink="/settings/users"
                     (click)="closeProfileMenu()"
-                    class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-ink transition"
+                    class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium text-ink-muted hover:bg-canvas-subtle hover:text-ink transition"
                     role="menuitem"
                   >
-                    <lucide-icon [img]="UserCog" [size]="16" class="text-slate-500 shrink-0"></lucide-icon>
+                    <lucide-icon [img]="UserCog" [size]="16" class="text-muted shrink-0"></lucide-icon>
                     <span>Personal & Cuentas</span>
                   </a>
                 }

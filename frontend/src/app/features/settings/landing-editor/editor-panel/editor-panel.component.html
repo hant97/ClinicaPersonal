@@ -78,7 +78,7 @@
           <div class="form-group">
             <label class="form-label">Imagen</label>
             <div class="image-preview">
-              @if (imageUrl(draft.heroAssetKey, draft.heroExternalImageUrl); as url) { <img [src]="url" alt="Vista previa de la imagen principal" /> } @else { <span class="image-empty">Sin imagen</span> }
+              <img [src]="imageUrl(draft.heroAssetKey, draft.heroExternalImageUrl) || '/images/landing-hero.jpg'" alt="Vista previa de la imagen principal" />
             </div>
             <div class="image-actions">
               <label class="btn-secondary btn-sm"><lucide-icon [img]="ImagePlus" [size]="15" /> Subir imagen<input type="file" class="sr-only" accept="image/*" (change)="onFileSelected($event, 'hero')" /></label>
@@ -116,7 +116,7 @@
           <div class="form-group">
             <label class="form-label">Imagen</label>
             <div class="image-preview">
-              @if (imageUrl(draft.approachAssetKey, draft.approachExternalImageUrl); as url) { <img [src]="url" alt="Vista previa de la imagen de enfoque" /> } @else { <span class="image-empty">Sin imagen</span> }
+              <img [src]="imageUrl(draft.approachAssetKey, draft.approachExternalImageUrl) || '/images/landing-approach.jpg'" alt="Vista previa de la imagen de enfoque" />
             </div>
             <div class="image-actions">
               <label class="btn-secondary btn-sm"><lucide-icon [img]="ImagePlus" [size]="15" /> Subir imagen<input type="file" class="sr-only" accept="image/*" (change)="onFileSelected($event, 'approach')" /></label>
@@ -339,6 +339,14 @@
               <div class="form-group">
                 <label class="form-label">Descripción</label>
                 <textarea class="input-field" [(ngModel)]="professional.description"></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Áreas de atención</label>
+                <textarea class="input-field" maxlength="500" [(ngModel)]="professional.careAreas"></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Experiencia</label>
+                <textarea class="input-field" maxlength="300" [(ngModel)]="professional.experience"></textarea>
               </div>
               <div class="form-group">
                 <label class="form-label">Foto</label>

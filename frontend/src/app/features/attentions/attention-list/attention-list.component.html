@@ -1,25 +1,26 @@
 <div class="space-y-6">
+  <section class="card space-y-5" aria-labelledby="attention-list-title">
   <!-- Page Header -->
-  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <div class="flex flex-col gap-4 border-b border-line pb-4 sm:flex-row sm:items-center sm:justify-between">
     <div>
-      <h1 class="text-2xl font-bold tracking-tight text-ink flex items-center gap-2.5">
+      <h1 id="attention-list-title" class="text-2xl font-bold tracking-tight text-ink flex items-center gap-2.5">
         <lucide-icon [img]="Stethoscope" [size]="28" class="text-primary-600"></lucide-icon>
         Atenciones Clínicas
       </h1>
-      <p class="text-sm text-muted">
+      <p class="mt-1 text-sm text-muted">
         Control y seguimiento en tiempo real del flujo de atención: Agendada → En Proceso → Atendida → Cobrada
       </p>
     </div>
 
-    <div class="flex items-center gap-3">
+    <div class="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
       <button
         type="button"
         class="inline-flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium text-slate-700 shadow-xs hover:bg-slate-50 transition"
-        (click)="resetFilters()"
-        title="Refrescar lista y filtros"
+        (click)="refreshData()"
+        title="Actualizar atenciones e indicadores"
       >
         <lucide-icon [img]="RefreshCw" [size]="16" [class.animate-spin]="loading"></lucide-icon>
-        <span class="hidden sm:inline">Refrescar</span>
+        <span>Actualizar</span>
       </button>
 
       <button
@@ -34,7 +35,12 @@
   </div>
 
   <!-- KPI Summary Banner (Today's Pulse) -->
-  <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6" data-testid="kpi-grid">
+  <section aria-labelledby="attention-summary-title" class="space-y-3">
+  <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+    <h2 id="attention-summary-title" class="text-sm font-semibold text-ink">Resumen de hoy</h2>
+    <p class="text-xs text-muted">Indicadores de la jornada; no cambian con los filtros</p>
+  </div>
+  <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-6" data-testid="kpi-grid">
     <!-- Total Hoy -->
     <div class="rounded-xl border border-line bg-surface p-3.5 shadow-xs">
       <div class="flex items-center justify-between">
@@ -107,9 +113,10 @@
       </p>
     </div>
   </div>
+  </section>
 
   <!-- Filters Toolbar -->
-  <div class="rounded-xl border border-line bg-surface p-4 shadow-xs space-y-4">
+  <div class="space-y-4 border-b border-line pb-4">
     <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
       <!-- Search Input -->
       <div class="relative flex-1 max-w-md">
@@ -119,6 +126,7 @@
           [(ngModel)]="searchTerm"
           (ngModelChange)="onSearchChange()"
           placeholder="Buscar por paciente, documento o motivo..."
+          aria-label="Buscar atenciones por paciente, documento o motivo"
           class="input-field input-with-leading-icon pr-10 py-2 text-sm bg-slate-50/50"
         />
         @if (searchTerm) {
@@ -126,6 +134,8 @@
             type="button"
             class="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink"
             (click)="searchTerm = ''; onSearchChange()"
+            aria-label="Limpiar búsqueda"
+            title="Limpiar búsqueda"
           >
             <lucide-icon [img]="X" [size]="16"></lucide-icon>
           </button>
@@ -291,27 +301,75 @@
   <!-- Attention List / Table -->
   <div class="rounded-xl border border-line bg-surface shadow-xs overflow-hidden">
     @if (loading) {
-      <div class="p-12 text-center text-muted flex flex-col items-center justify-center gap-3">
+      <div class="p-10 text-center text-muted flex flex-col items-center justify-center gap-3" role="status" aria-live="polite">
         <lucide-icon [img]="RefreshCw" [size]="28" class="animate-spin text-primary-600"></lucide-icon>
         <p class="text-sm font-medium">Cargando lista de atenciones...</p>
       </div>
+    } @else if (loadError) {
+      <div class="p-10 text-center text-muted flex flex-col items-center justify-center gap-3" role="alert">
+        <div class="flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-danger">
+          <lucide-icon [img]="AlertCircle" [size]="28"></lucide-icon>
+        </div>
+        <h3 class="text-base font-semibold text-ink">No se pudieron cargar las atenciones</h3>
+        <p class="text-sm max-w-md text-muted">Verifica tu conexión e inténtalo de nuevo.</p>
+        <button
+          type="button"
+          class="mt-1 inline-flex items-center gap-2 rounded-lg border border-line bg-surface px-4 py-2 text-sm font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition"
+          (click)="refreshData()"
+        >
+          <lucide-icon [img]="RefreshCw" [size]="16"></lucide-icon>
+          <span>Reintentar</span>
+        </button>
+      </div>
     } @else if (attentions.length === 0) {
-      <div class="p-12 text-center text-muted flex flex-col items-center justify-center gap-3">
+      <div class="p-10 text-center text-muted flex flex-col items-center justify-center gap-3">
         <div class="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400">
           <lucide-icon [img]="Stethoscope" [size]="28"></lucide-icon>
         </div>
-        <h3 class="text-base font-semibold text-ink">No hay atenciones registradas</h3>
-        <p class="text-sm max-w-md text-muted">
-          No se encontraron atenciones para los filtros seleccionados. Inicia una atención rápida o cambia el rango de fechas.
-        </p>
-        <button
-          type="button"
-          class="mt-2 inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-primary-700 transition"
-          (click)="openQuickModal()"
-        >
-          <lucide-icon [img]="Plus" [size]="16"></lucide-icon>
-          <span>Nueva Atención Rápida</span>
-        </button>
+        @if (isDefaultTodayView) {
+          <h3 class="text-base font-semibold text-ink">No hay atenciones para hoy</h3>
+          <p class="text-sm max-w-md text-muted">Puedes revisar el historial completo o registrar una atención nueva.</p>
+          <div class="mt-1 flex flex-wrap justify-center gap-2">
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-primary-700 transition"
+              (click)="openQuickModal()"
+            >
+              <lucide-icon [img]="Plus" [size]="16"></lucide-icon>
+              <span>Nueva Atención Rápida</span>
+            </button>
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 rounded-lg border border-line bg-surface px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+              (click)="setDateFilter('ALL')"
+            >
+              <span>Ver todas</span>
+              <lucide-icon [img]="ArrowRight" [size]="16"></lucide-icon>
+            </button>
+          </div>
+        } @else if (!hasNarrowingFilters) {
+          <h3 class="text-base font-semibold text-ink">Aún no hay atenciones registradas</h3>
+          <p class="text-sm max-w-md text-muted">Registra una atención para iniciar el seguimiento de la consulta.</p>
+          <button
+            type="button"
+            class="mt-1 inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-primary-700 transition"
+            (click)="openQuickModal()"
+          >
+            <lucide-icon [img]="Plus" [size]="16"></lucide-icon>
+            <span>Nueva Atención Rápida</span>
+          </button>
+        } @else {
+          <h3 class="text-base font-semibold text-ink">No hay resultados con estos filtros</h3>
+          <p class="text-sm max-w-md text-muted">Prueba con otro término de búsqueda o amplía el rango de fechas.</p>
+          <button
+            type="button"
+            class="mt-1 inline-flex items-center gap-2 rounded-lg border border-line bg-surface px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+            (click)="resetFilters()"
+          >
+            <lucide-icon [img]="FilterX" [size]="16"></lucide-icon>
+            <span>Limpiar filtros</span>
+          </button>
+        }
       </div>
     } @else {
       <div class="scroll-region overflow-x-auto scroll-touch" tabindex="0" aria-label="Atenciones clínicas en vista de tabla">
@@ -536,6 +594,8 @@
       </div>
     }
   </div>
+
+  </section>
 
   <!-- Modal: Nueva Atención Rápida -->
   @if (showQuickModal) {

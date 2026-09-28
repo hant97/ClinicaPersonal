@@ -47,6 +47,7 @@ public class ClinicalDocumentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
 
         String key = fileStorage.store(file, "documents");
+        StorageTransactionSupport.deleteAfterRollback(fileStorage::delete, key, "el documento clínico");
         ClinicalDocument document = new ClinicalDocument();
         document.setPatient(patient);
         document.setSpecialty(user.getSpecialty());
@@ -91,7 +92,7 @@ public class ClinicalDocumentService {
         document.setDeletedAt(LocalDateTime.now());
         document.setDeletedBy(clinicalAuthorizationService.currentProfessional().getId());
         repository.save(document);
-        fileStorage.delete(document.getFileUrl());
+        StorageTransactionSupport.deleteAfterCommit(fileStorage::delete, document.getFileUrl(), "el documento clínico");
 
         auditLogService.record(
                 "DELETE",

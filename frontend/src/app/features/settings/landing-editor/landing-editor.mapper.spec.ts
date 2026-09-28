@@ -50,6 +50,14 @@ describe('draftToViewLanding', () => {
     expect(view.professionals.map(p => p.name)).toEqual(['Dra. Pérez']);
   });
 
+  it('muestra en la vista previa los servicios publicados del catálogo', () => {
+    const view = draftToViewLanding(sampleDraft(), assetBase, {
+      DERMATOLOGIA: ['Consulta dermatológica', 'Evaluación de lesiones']
+    });
+
+    expect(view.specialties[0].services).toEqual(['Consulta dermatológica', 'Evaluación de lesiones']);
+  });
+
   it('resuelve la foto del profesional desde su asset de borrador', () => {
     const view = draftToViewLanding(sampleDraft(), assetBase);
 
