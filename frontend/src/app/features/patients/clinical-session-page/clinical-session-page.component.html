@@ -32,11 +32,19 @@
 
     <!-- Right Top Status / Draft Indicator -->
     <div class="flex items-center gap-2 self-start sm:self-auto">
+      @if (draftSaving && !isEditing) {
+        <span class="inline-flex items-center gap-1 rounded-full bg-sky-50 border border-sky-200 px-2.5 py-0.5 text-xs font-medium text-sky-700">
+          <span>Guardando borrador…</span>
+        </span>
+      }
       @if (draftSaved && !isEditing) {
         <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
           <lucide-icon [img]="Check" [size]="13"></lucide-icon>
-          <span>Borrador autoguardado</span>
+          <span>Borrador guardado en el servidor</span>
         </span>
+      }
+      @if (draftError && !isEditing) {
+        <span class="text-xs font-medium text-rose-700">No se pudo sincronizar el borrador</span>
       }
 
       <button

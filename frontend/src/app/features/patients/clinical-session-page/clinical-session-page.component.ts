@@ -33,7 +33,8 @@ import { RiskAlertService } from '../../../core/services/risk-alert.service';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { SpecialtyService } from '../../../core/services/specialty.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { clinicalDraftKey } from '../../../core/utils/clinical-draft.util';
+import { getLegacyClinicalDrafts, removeLegacyClinicalDraft } from '../../../core/utils/clinical-draft.util';
+import { ClinicalSessionDraftService } from '../../../core/services/clinical-session-draft.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { AuthImageSrcDirective } from '../../../shared/directives/auth-image-src.directive';
@@ -43,7 +44,7 @@ import { ClinicalHistory } from '../../../core/models/clinical-history.model';
 import { RiskAlert } from '../../../core/models/risk-alert.model';
 import { CatalogItem } from '../../../core/models/catalog.model';
 import { PageResponse } from '../../../core/models/page.model';
-import { Subscription } from 'rxjs';
+import { Subscription, catchError, debounceTime, of, retry, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-clinical-session-page',
@@ -94,9 +95,13 @@ export class ClinicalSessionPageComponent implements OnInit, OnDestroy {
   loadingHistory = true;
   savingSession = false;
   draftSaved = false;
+  draftSaving = false;
+  draftError = false;
   isEditing = false;
 
   private formSubscription?: Subscription;
+  private draftSaveSubscription?: Subscription;
+  private sessionSaved = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -110,7 +115,8 @@ export class ClinicalSessionPageComponent implements OnInit, OnDestroy {
     private specialtyService: SpecialtyService,
     private toastService: ToastService,
     private notificationService: NotificationService,
-    private authService: AuthService
+    private authService: AuthService,
+    private clinicalSessionDraftService: ClinicalSessionDraftService
   ) {}
 
   get isPsychology(): boolean {
@@ -124,10 +130,6 @@ export class ClinicalSessionPageComponent implements OnInit, OnDestroy {
   /** El paciente tiene una alerta de riesgo activa: se exige completar la evaluación de riesgo estructurada. */
   get requiresRiskAssessment(): boolean {
     return this.isPsychology && this.activeAlerts.length > 0;
-  }
-
-  get draftKey(): string {
-    return clinicalDraftKey(this.authService.getUsername(), this.patient?.id || this.patientIdentifier);
   }
 
   get patientAge(): number | null {
@@ -165,6 +167,9 @@ export class ClinicalSessionPageComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.formSubscription?.unsubscribe();
+    if (!this.isEditing && !this.sessionSaved && this.patient?.id && this.sessionForm?.dirty) {
+      this.persistDraft(this.sessionForm.getRawValue() as Record<string, unknown>);
+    }
   }
 
   @HostListener('window:beforeunload', ['$event'])
@@ -236,11 +241,10 @@ export class ClinicalSessionPageComponent implements OnInit, OnDestroy {
       })
     });
 
-    // Escuchar cambios para guardar borrador en localStorage
-    this.formSubscription = this.sessionForm.valueChanges.subscribe(val => {
+    // Guardar en el servidor después de una pausa breve al escribir.
+    this.formSubscription = this.sessionForm.valueChanges.pipe(debounceTime(700)).subscribe(val => {
       if (!this.isEditing && this.patient) {
-        localStorage.setItem(this.draftKey, JSON.stringify(val));
-        this.draftSaved = true;
+        this.persistDraft(val as Record<string, unknown>);
       }
     });
   }
@@ -369,18 +373,78 @@ export class ClinicalSessionPageComponent implements OnInit, OnDestroy {
   }
 
   private restoreDraftIfApplicable(): void {
-    if (!this.appointmentId) {
-      const savedDraft = localStorage.getItem(this.draftKey);
-      if (savedDraft) {
-        try {
-          const parsed = JSON.parse(savedDraft);
-          this.sessionForm.patchValue(parsed, { emitEvent: false });
-          this.draftSaved = true;
-        } catch {
-          // Ignorar borrador corrupto
-        }
+    if (this.appointmentId || !this.patient?.id) return;
+
+    const patientId = this.patient.id;
+    const username = this.authService.getUsername();
+    this.clinicalSessionDraftService.migrateLegacyDrafts(username).pipe(
+      switchMap(() => this.clinicalSessionDraftService.getDraft(patientId)),
+      catchError(() => {
+        this.draftError = true;
+        return of(null);
+      })
+    ).subscribe(draft => {
+      if (this.sessionSaved || this.sessionForm.dirty) return;
+
+      if (draft) {
+        this.sessionForm.patchValue(draft.content, { emitEvent: false });
+        this.draftSaved = true;
+        this.draftError = false;
+        return;
       }
+
+      const legacyDraft = username
+        ? getLegacyClinicalDrafts(username).find(item => item.patientId === patientId)
+        : undefined;
+      if (legacyDraft) {
+        this.sessionForm.patchValue(legacyDraft.content, { emitEvent: false });
+        this.persistDraft(legacyDraft.content, legacyDraft.storageKey);
+      }
+    });
+  }
+
+  private persistDraft(content: Record<string, unknown>, legacyStorageKey?: string): void {
+    if (!this.patient?.id || this.isEditing || this.savingSession || this.sessionSaved) return;
+
+    this.draftSaveSubscription?.unsubscribe();
+    this.draftSaved = false;
+    this.draftSaving = true;
+    this.draftError = false;
+    this.draftSaveSubscription = this.clinicalSessionDraftService.saveDraft(this.patient.id, content).subscribe({
+      next: () => {
+        this.draftSaving = false;
+        this.draftSaved = true;
+        this.draftError = false;
+        if (legacyStorageKey) removeLegacyClinicalDraft(legacyStorageKey);
+      },
+      error: () => {
+        this.draftSaving = false;
+        this.draftSaved = false;
+        this.draftError = true;
+      }
+    });
+  }
+
+  private deleteDraftAndReturn(successMessage: string): void {
+    this.sessionSaved = true;
+    this.draftSaveSubscription?.unsubscribe();
+    if (!this.patient?.id) {
+      this.toastService.success(successMessage);
+      this.navigateBackToPatient();
+      return;
     }
+
+    this.clinicalSessionDraftService.deleteDraft(this.patient.id).pipe(retry(1)).subscribe({
+      next: () => {
+        this.draftSaved = false;
+        this.toastService.success(successMessage);
+        this.navigateBackToPatient();
+      },
+      error: () => {
+        this.toastService.warning('La consulta se guardó, pero no se pudo eliminar el borrador.');
+        this.navigateBackToPatient();
+      }
+    });
   }
 
   // --- Herramientas de Edición Rápida ---
@@ -452,9 +516,7 @@ export class ClinicalSessionPageComponent implements OnInit, OnDestroy {
       this.sessionService.updateSession(this.sessionId, payload).subscribe({
         next: () => {
           this.savingSession = false;
-          localStorage.removeItem(this.draftKey);
-          this.toastService.success('Consulta clínica actualizada correctamente');
-          this.navigateBackToPatient();
+          this.deleteDraftAndReturn('Consulta clínica actualizada correctamente');
         },
         error: (err) => {
           console.error('Error updating session', err);
@@ -466,9 +528,7 @@ export class ClinicalSessionPageComponent implements OnInit, OnDestroy {
       this.sessionService.createSession(payload).subscribe({
         next: () => {
           this.savingSession = false;
-          localStorage.removeItem(this.draftKey);
-          this.toastService.success('Consulta clínica registrada exitosamente');
-          this.navigateBackToPatient();
+          this.deleteDraftAndReturn('Consulta clínica registrada exitosamente');
         },
         error: (err) => {
           console.error('Error creating session', err);

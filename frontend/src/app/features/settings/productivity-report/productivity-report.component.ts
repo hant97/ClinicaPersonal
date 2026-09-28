@@ -118,8 +118,8 @@ export class ProductivityReportComponent implements OnInit {
       'Canceladas': r.cancelledAttentions,
       'Cobradas': r.paidAttentions,
       'Tasa de Finalización (%)': r.completionRate,
-      'Facturado (S/)': r.billedAmount.toFixed(2),
-      'Cobrado (S/)': r.collectedAmount.toFixed(2)
+      'Facturado por atenciones del período (S/)': r.billedAmount.toFixed(2),
+      'Abonos recibidos en el período (S/)': r.collectedAmount.toFixed(2)
     }));
     this.exportService.exportToCsv(dataToExport, 'Reporte_Productividad_Profesionales');
     this.toastService.show(`${this.rows.length} profesionales exportados`, 'success');

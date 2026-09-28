@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -30,10 +31,13 @@ public class AppointmentReminderService {
     @Value("${appointment.reminder-lead-days:1}")
     private int reminderLeadDays;
 
+    @Value("${appointment.timezone:America/Lima}")
+    private String appointmentTimezone = "America/Lima";
+
     @Value("${appointment.public-base-url:http://localhost:4200}")
     private String publicBaseUrl;
 
-    @Scheduled(cron = "${appointment.reminder-cron:0 30 9 * * *}")
+    @Scheduled(cron = "${appointment.reminder-cron:0 30 9 * * *}", zone = "${appointment.timezone:America/Lima}")
     @Transactional
     public void sendDueReminders() {
         if (!emailService.isConfigured()) {
@@ -41,7 +45,8 @@ public class AppointmentReminderService {
             return;
         }
 
-        LocalDate targetDate = LocalDate.now().plusDays(reminderLeadDays);
+        ZoneId clinicZone = ZoneId.of(appointmentTimezone);
+        LocalDate targetDate = LocalDate.now(clinicZone).plusDays(reminderLeadDays);
         List<Appointment> appointments = appointmentRepository.findPendingRemindersForDate(targetDate);
         int sent = 0;
 
@@ -60,7 +65,7 @@ public class AppointmentReminderService {
                     buildReminderHtml(appointment)
             );
             if (delivered) {
-                appointment.setReminderSentAt(LocalDateTime.now());
+                appointment.setReminderSentAt(LocalDateTime.now(clinicZone));
                 appointmentRepository.save(appointment);
                 sent++;
             }

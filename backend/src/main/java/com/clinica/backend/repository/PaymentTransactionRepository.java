@@ -53,4 +53,16 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
            "AND t.payment.specialty = :specialty AND t.payment.patient.id = :patientId")
     BigDecimal sumReceivedByPatientAndSpecialty(@Param("patientId") Long patientId,
                                                 @Param("specialty") String specialty);
+
+    @Query("SELECT a.professional.id, a.professional.firstName, a.professional.lastName, " +
+           "a.professional.username, SUM(t.amount) " +
+           "FROM PaymentTransaction t JOIN Attention a ON a.id = t.payment.attentionId " +
+           "WHERE t.deleted = false AND t.payment.deleted = false AND a.deleted = false " +
+           "AND t.payment.specialty = :specialty AND a.specialty = :specialty " +
+           "AND t.transactionDate >= :startDate AND t.transactionDate < :endDate " +
+           "GROUP BY a.professional.id, a.professional.firstName, a.professional.lastName, a.professional.username")
+    List<Object[]> sumReceivedByProfessionalBetween(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            @Param("specialty") String specialty);
 }

@@ -2,6 +2,7 @@ package com.clinica.backend.service;
 
 import com.clinica.backend.dto.AttentionDto;
 import com.clinica.backend.dto.AttentionSummaryDto;
+import com.clinica.backend.dto.ProfessionalProductivityDto;
 import com.clinica.backend.exception.ResourceNotFoundException;
 import com.clinica.backend.mapper.AttentionMapperImpl;
 import com.clinica.backend.model.*;
@@ -18,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +39,7 @@ class AttentionServiceTest {
     private ClinicalSessionRepository clinicalSessionRepository;
     private PrescriptionRepository prescriptionRepository;
     private PaymentRepository paymentRepository;
+    private PaymentTransactionRepository paymentTransactionRepository;
     private ClinicalServiceRepository clinicalServiceRepository;
     private ClinicalAuthorizationService clinicalAuthorizationService;
     private AuditLogService auditLogService;
@@ -54,6 +57,7 @@ class AttentionServiceTest {
         clinicalSessionRepository = mock(ClinicalSessionRepository.class);
         prescriptionRepository = mock(PrescriptionRepository.class);
         paymentRepository = mock(PaymentRepository.class);
+        paymentTransactionRepository = mock(PaymentTransactionRepository.class);
         clinicalServiceRepository = mock(ClinicalServiceRepository.class);
         clinicalAuthorizationService = mock(ClinicalAuthorizationService.class);
         auditLogService = mock(AuditLogService.class);
@@ -66,6 +70,7 @@ class AttentionServiceTest {
                 clinicalSessionRepository,
                 prescriptionRepository,
                 paymentRepository,
+                paymentTransactionRepository,
                 clinicalServiceRepository,
                 clinicalAuthorizationService,
                 auditLogService,
@@ -197,7 +202,14 @@ class AttentionServiceTest {
         a3.setClinicalService(service);
 
         Attention a4 = new Attention();
-        a4.setStatus(Attention.STATUS_COBRADA);
+        a4.setStatus(Attention.STATUS_ATENDIDA);
+        Payment fullyPaid = new Payment();
+        fullyPaid.setAmount(new BigDecimal("100.00"));
+        fullyPaid.setStatus(Payment.STATUS_PAGADO);
+        PaymentTransaction fullPayment = new PaymentTransaction();
+        fullPayment.setAmount(new BigDecimal("100.00"));
+        fullyPaid.setTransactions(List.of(fullPayment));
+        a4.setPayment(fullyPaid);
 
         when(attentionRepository.findByAttentionDateAndSpecialtyAndDeletedFalse(LocalDate.now(), "PSICOLOGIA"))
                 .thenReturn(List.of(a1, a2, a3, a4));
@@ -211,6 +223,96 @@ class AttentionServiceTest {
         assertEquals(1, summary.getPaidToday());
         assertEquals(0, summary.getCancelledToday());
         assertEquals(new BigDecimal("150.00"), summary.getPendingBillingAmount());
+    }
+
+    @Test
+    void getTodaySummary_subtractsPartialPaymentsFromOutstandingAmount() {
+        Payment payment = new Payment();
+        payment.setAmount(new BigDecimal("200.00"));
+        PaymentTransaction transaction = new PaymentTransaction();
+        transaction.setAmount(new BigDecimal("65.00"));
+        payment.setTransactions(List.of(transaction));
+
+        Attention attention = new Attention();
+        attention.setStatus(Attention.STATUS_ATENDIDA);
+        attention.setPayment(payment);
+        when(attentionRepository.findByAttentionDateAndSpecialtyAndDeletedFalse(LocalDate.now(), "PSICOLOGIA"))
+                .thenReturn(List.of(attention));
+
+        assertEquals(new BigDecimal("135.00"), attentionService.getTodaySummary().getPendingBillingAmount());
+    }
+
+    @Test
+    void getProfessionalProductivity_usesInvoiceAmountAndPaymentsInSelectedDates() {
+        LocalDate from = LocalDate.of(2026, 9, 1);
+        LocalDate to = LocalDate.of(2026, 9, 30);
+        ClinicalService service = new ClinicalService();
+        service.setPrice(new BigDecimal("300.00"));
+        Payment payment = new Payment();
+        payment.setAmount(new BigDecimal("200.00"));
+        payment.setStatus(Payment.STATUS_PARCIAL);
+        Attention attention = new Attention();
+        attention.setProfessional(currentUser);
+        attention.setStatus(Attention.STATUS_ATENDIDA);
+        attention.setClinicalService(service);
+        attention.setPayment(payment);
+        when(attentionRepository.findBySpecialtyAndAttentionDateBetweenAndDeletedFalse("PSICOLOGIA", from, to))
+                .thenReturn(List.of(attention));
+        when(paymentTransactionRepository.sumReceivedByProfessionalBetween(
+                LocalDateTime.of(2026, 9, 1, 0, 0), LocalDateTime.of(2026, 10, 1, 0, 0), "PSICOLOGIA"))
+                .thenReturn(List.<Object[]>of(new Object[]{10L, "Juan", "Perez", "psicologo1", new BigDecimal("65.00")}));
+
+        List<ProfessionalProductivityDto> report = attentionService.getProfessionalProductivity(from, to);
+
+        assertEquals(1, report.size());
+        assertEquals(new BigDecimal("200.00"), report.get(0).getBilledAmount());
+        assertEquals(new BigDecimal("65.00"), report.get(0).getCollectedAmount());
+        assertEquals(1, report.get(0).getAttendedAttentions());
+        assertEquals(0, report.get(0).getPaidAttentions());
+    }
+
+    @Test
+    void getProfessionalProductivity_includesCollectionsForOlderAttentions() {
+        LocalDate from = LocalDate.of(2026, 9, 1);
+        LocalDate to = LocalDate.of(2026, 9, 30);
+        when(attentionRepository.findBySpecialtyAndAttentionDateBetweenAndDeletedFalse("PSICOLOGIA", from, to))
+                .thenReturn(List.of());
+        when(paymentTransactionRepository.sumReceivedByProfessionalBetween(any(), any(), eq("PSICOLOGIA")))
+                .thenReturn(List.<Object[]>of(new Object[]{10L, "Juan", "Perez", "psicologo1", new BigDecimal("80.00")}));
+
+        ProfessionalProductivityDto row = attentionService.getProfessionalProductivity(from, to).get(0);
+
+        assertEquals(0, row.getTotalAttentions());
+        assertEquals(BigDecimal.ZERO, row.getBilledAmount());
+        assertEquals(new BigDecimal("80.00"), row.getCollectedAmount());
+    }
+
+    @Test
+    void getProfessionalProductivity_countsFullyPaidPaymentsEvenWhenAttentionStatusIsStale() {
+        LocalDate day = LocalDate.of(2026, 9, 15);
+        Payment paidPayment = new Payment();
+        paidPayment.setAmount(new BigDecimal("100.00"));
+        paidPayment.setStatus(Payment.STATUS_PAGADO);
+        Attention paidAttention = new Attention();
+        paidAttention.setProfessional(currentUser);
+        paidAttention.setStatus(Attention.STATUS_ATENDIDA);
+        paidAttention.setPayment(paidPayment);
+
+        Payment deletedPayment = new Payment();
+        deletedPayment.setAmount(new BigDecimal("100.00"));
+        deletedPayment.setStatus(Payment.STATUS_PAGADO);
+        deletedPayment.setDeleted(true);
+        Attention deletedPaymentAttention = new Attention();
+        deletedPaymentAttention.setProfessional(currentUser);
+        deletedPaymentAttention.setStatus(Attention.STATUS_COBRADA);
+        deletedPaymentAttention.setPayment(deletedPayment);
+        when(attentionRepository.findBySpecialtyAndAttentionDateBetweenAndDeletedFalse("PSICOLOGIA", day, day))
+                .thenReturn(List.of(paidAttention, deletedPaymentAttention));
+
+        ProfessionalProductivityDto row = attentionService.getProfessionalProductivity(day, day).get(0);
+
+        assertEquals(1, row.getPaidAttentions());
+        assertEquals(new BigDecimal("100.00"), row.getBilledAmount());
     }
 
     @Test

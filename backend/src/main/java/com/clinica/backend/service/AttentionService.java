@@ -18,6 +18,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,6 +35,7 @@ public class AttentionService {
     private final ClinicalSessionRepository clinicalSessionRepository;
     private final PrescriptionRepository prescriptionRepository;
     private final PaymentRepository paymentRepository;
+    private final PaymentTransactionRepository paymentTransactionRepository;
     private final ClinicalServiceRepository clinicalServiceRepository;
     private final ClinicalAuthorizationService clinicalAuthorizationService;
     private final AuditLogService auditLogService;
@@ -96,15 +99,25 @@ public class AttentionService {
             switch (a.getStatus()) {
                 case Attention.STATUS_AGENDADA -> scheduled++;
                 case Attention.STATUS_EN_PROCESO -> inProgress++;
-                case Attention.STATUS_ATENDIDA -> {
-                    attended++;
-                    if (a.getPayment() == null || !Payment.STATUS_PAGADO.equals(a.getPayment().getStatus())) {
+                case Attention.STATUS_ATENDIDA, Attention.STATUS_COBRADA -> {
+                    Payment payment = a.getPayment();
+                    if (payment != null && !payment.isDeleted()
+                            && Payment.STATUS_PAGADO.equals(payment.getStatus())) {
+                        paid++;
+                    } else if (payment != null && !payment.isDeleted()) {
+                        attended++;
+                        BigDecimal paidAmount = payment.getTransactions().stream()
+                                .filter(t -> !t.isDeleted() && t.getAmount() != null)
+                                .map(PaymentTransaction::getAmount)
+                                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                        pendingBilling = pendingBilling.add(payment.getAmount().subtract(paidAmount).max(BigDecimal.ZERO));
+                    } else {
+                        attended++;
                         if (a.getClinicalService() != null && a.getClinicalService().getPrice() != null) {
                             pendingBilling = pendingBilling.add(a.getClinicalService().getPrice());
                         }
                     }
                 }
-                case Attention.STATUS_COBRADA -> paid++;
                 case Attention.STATUS_CANCELADA -> cancelled++;
             }
         }
@@ -466,7 +479,8 @@ public class AttentionService {
     /**
      * Reporte gerencial de productividad por profesional dentro de la especialidad del
      * administrador autenticado. Agrupa las atenciones del período por profesional,
-     * calculando volumen, tasa de finalización y montos facturados/cobrados.
+     * calculando volumen y tasa de finalización por fecha de atención, monto facturado
+     * desde el cobro vinculado y abonos recibidos por fecha de transacción.
      * Solo debe exponerse a usuarios con rol ADMIN (restricción aplicada en el controlador).
      */
     @Transactional(readOnly = true)
@@ -488,7 +502,7 @@ public class AttentionService {
                 .filter(a -> a.getProfessional() != null)
                 .collect(Collectors.groupingBy(a -> a.getProfessional().getId()));
 
-        List<ProfessionalProductivityDto> result = new java.util.ArrayList<>();
+        Map<Long, ProfessionalProductivityDto> byProfessionalId = new HashMap<>();
         for (Map.Entry<Long, List<Attention>> entry : byProfessional.entrySet()) {
             List<Attention> list = entry.getValue();
             User professional = list.get(0).getProfessional();
@@ -496,23 +510,22 @@ public class AttentionService {
             long total = list.size();
             long attended = list.stream().filter(a -> Attention.STATUS_ATENDIDA.equals(a.getStatus()) || Attention.STATUS_COBRADA.equals(a.getStatus())).count();
             long cancelled = list.stream().filter(a -> Attention.STATUS_CANCELADA.equals(a.getStatus())).count();
-            long paid = list.stream().filter(a -> Attention.STATUS_COBRADA.equals(a.getStatus())).count();
+            long paid = list.stream().filter(a -> (Attention.STATUS_ATENDIDA.equals(a.getStatus())
+                    || Attention.STATUS_COBRADA.equals(a.getStatus()))
+                    && a.getPayment() != null
+                    && !a.getPayment().isDeleted()
+                    && Payment.STATUS_PAGADO.equals(a.getPayment().getStatus())).count();
 
             BigDecimal billed = list.stream()
                     .filter(a -> Attention.STATUS_ATENDIDA.equals(a.getStatus()) || Attention.STATUS_COBRADA.equals(a.getStatus()))
-                    .map(a -> a.getClinicalService() != null && a.getClinicalService().getPrice() != null
-                            ? a.getClinicalService().getPrice() : BigDecimal.ZERO)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-            BigDecimal collected = list.stream()
-                    .filter(a -> a.getPayment() != null && Payment.STATUS_PAGADO.equals(a.getPayment().getStatus()))
-                    .map(a -> a.getPayment().getAmount() != null ? a.getPayment().getAmount() : BigDecimal.ZERO)
+                    .map(a -> a.getPayment() != null && !a.getPayment().isDeleted() && a.getPayment().getAmount() != null
+                            ? a.getPayment().getAmount() : BigDecimal.ZERO)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
             long completionBase = total - cancelled;
             int completionRate = completionBase > 0 ? (int) Math.round((attended * 100.0) / completionBase) : 0;
 
-            result.add(ProfessionalProductivityDto.builder()
+            byProfessionalId.put(entry.getKey(), ProfessionalProductivityDto.builder()
                     .professionalId(entry.getKey())
                     .professionalName(professional.getFullName())
                     .totalAttentions(total)
@@ -521,10 +534,27 @@ public class AttentionService {
                     .paidAttentions(paid)
                     .completionRate(completionRate)
                     .billedAmount(billed)
-                    .collectedAmount(collected)
+                    .collectedAmount(BigDecimal.ZERO)
                     .build());
         }
 
+        for (Object[] row : paymentTransactionRepository.sumReceivedByProfessionalBetween(
+                from.atStartOfDay(), to.plusDays(1).atStartOfDay(), specialty)) {
+            Long professionalId = ((Number) row[0]).longValue();
+            String firstName = row[1] != null ? row[1].toString().trim() : "";
+            String lastName = row[2] != null ? row[2].toString().trim() : "";
+            String fullName = (firstName + " " + lastName).trim();
+            ProfessionalProductivityDto productivity = byProfessionalId.computeIfAbsent(professionalId,
+                    id -> ProfessionalProductivityDto.builder()
+                            .professionalId(id)
+                            .professionalName(fullName.isEmpty() ? row[3].toString() : fullName)
+                            .billedAmount(BigDecimal.ZERO)
+                            .collectedAmount(BigDecimal.ZERO)
+                            .build());
+            productivity.setCollectedAmount((BigDecimal) row[4]);
+        }
+
+        List<ProfessionalProductivityDto> result = new ArrayList<>(byProfessionalId.values());
         result.sort((a, b) -> b.getBilledAmount().compareTo(a.getBilledAmount()));
         return result;
     }
