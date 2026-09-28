@@ -1,6 +1,6 @@
 # Clínica Personal
 
-Aplicación clínica con backend Java 17/Spring Boot 4.1 y frontend Angular 21. El entorno reproducible usa Node `24.21.0` LTS (declarado en `.nvmrc`) y npm 11. Las pruebas unitarias del frontend usan Vitest con jsdom; las E2E, Playwright.
+Aplicación clínica con backend compilado y ejecutado con Java 21/Spring Boot 4.1, y frontend Angular 21. El entorno reproducible usa Node `24.21.0` LTS (declarado en `.nvmrc`) y npm 11. Las pruebas unitarias del frontend usan Vitest con jsdom; las E2E, Playwright.
 
 ## Configuración local segura
 
@@ -14,6 +14,8 @@ Los datos mock solo se crean al activar explícitamente el perfil `dev`. Los tes
 
 ```powershell
 $env:SPRING_PROFILES_ACTIVE = 'dev'
+$env:JAVA_HOME = (Resolve-Path '..\jdk-21.0.12.1+1').Path
+$env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
 Set-Location backend
 .\mvnw.cmd spring-boot:run
 ```
@@ -33,6 +35,8 @@ npm start
 Estos comandos no requieren secretos de desarrollo ni producción. El backend toma su configuración aislada de `src/test/resources/application-test.yml` y el frontend no contiene credenciales:
 
 ```powershell
+$env:JAVA_HOME = (Resolve-Path '..\jdk-21.0.12.1+1').Path
+$env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
 Set-Location backend
 .\mvnw.cmd test
 
@@ -42,7 +46,7 @@ npm run test:coverage
 npm run build
 ```
 
-La automatización equivalente está en `.github/workflows/ci.yml`, con Java 17 y la versión de Node de `.nvmrc`. El CI además escanea vulnerabilidades conocidas de Maven y npm con OSV-Scanner y construye la imagen Docker del backend; Dependabot propone actualizaciones semanales (`.github/dependabot.yml`).
+La automatización equivalente está en `.github/workflows/ci.yml`, con Java 21 para compilar y ejecutar las pruebas y la versión de Node de `.nvmrc`. El backend requiere Java 21 para ejecutarse; la imagen Docker compila con JDK 21 y ejecuta con JRE 21. El CI además escanea vulnerabilidades conocidas de Maven y npm con OSV-Scanner y construye la imagen Docker del backend; Dependabot propone actualizaciones semanales (`.github/dependabot.yml`).
 
 ## Almacenamiento de archivos
 

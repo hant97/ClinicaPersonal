@@ -8,13 +8,13 @@ echo   VidaSaludable - Clinica Personal
 echo ===================================================
 echo.
 
-java -version >nul 2>&1
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Java no esta instalado o no esta en el PATH. Instala JDK 17+: https://adoptium.net/
-    echo         Si usas el JDK portable junto al proyecto, ejecuta primero prueba.bat.
+set "JAVA_HOME=%~dp0..\jdk-21.0.12.1+1"
+if not exist "%JAVA_HOME%\bin\javac.exe" (
+    echo [ERROR] No se encontro el JDK 21 portable en "%JAVA_HOME%".
     pause
     exit /b 1
 )
+set "PATH=%JAVA_HOME%\bin;%PATH%"
 
 node -v >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
@@ -31,7 +31,7 @@ if !NODE_MAJOR! LSS 24 (
     echo.
 )
 
-echo [OK] Java y Node.js detectados.
+echo [OK] JDK 21 portable y Node.js detectados.
 echo.
 
 set "LOCAL_IP="
