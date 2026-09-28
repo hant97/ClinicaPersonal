@@ -29,7 +29,7 @@ class ClinicalAuditMigrationTest {
                 .locations("classpath:db/migration")
                 .load();
 
-        assertEquals(16, flyway.migrate().migrationsExecuted);
+        assertEquals(17, flyway.migrate().migrationsExecuted);
         assertAuditColumns("clinical_sessions");
         assertAuditColumns("dermatological_evaluations");
         assertAuditColumns("general_history");

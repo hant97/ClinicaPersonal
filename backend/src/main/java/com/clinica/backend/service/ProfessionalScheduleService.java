@@ -9,7 +9,9 @@ import com.clinica.backend.model.ProfessionalSchedule;
 import com.clinica.backend.model.User;
 import com.clinica.backend.repository.ProfessionalScheduleRepository;
 import com.clinica.backend.repository.UserRepository;
+import com.clinica.backend.security.Roles;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,10 +57,20 @@ public class ProfessionalScheduleService {
 
     @Transactional
     public WeeklyScheduleDto saveWeeklySchedule(WeeklyScheduleDto dto) {
-        String specialty = getCurrentUserSpecialty();
+        User currentUser = getCurrentUser();
+        String specialty = currentUser.getSpecialty();
         Long professionalId = dto.getProfessionalId();
+        if (!currentUser.getId().equals(professionalId) && !currentUser.hasRole(Roles.ADMIN)) {
+            throw new AccessDeniedException("No tiene permiso para modificar el horario de otro profesional");
+        }
         User professional = userRepository.findById(professionalId)
                 .orElseThrow(() -> new ResourceNotFoundException("Profesional no encontrado"));
+        if (!specialty.equals(professional.getSpecialty())) {
+            throw new AccessDeniedException("Profesional fuera de la especialidad del usuario");
+        }
+        if (!professional.isEnabled() || !professional.hasRole(Roles.PROFESIONAL)) {
+            throw new IllegalArgumentException("El destinatario debe ser un profesional activo");
+        }
 
         // Validar cada franja
         if (dto.getSchedules() != null) {

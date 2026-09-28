@@ -47,7 +47,10 @@
       <!-- TAB 1: HORARIOS SEMANALES -->
       @if (activeTab === 'schedules') {
         <div class="space-y-6">
-          <!-- Professional Selector -->
+          @if (professionals.length === 0) {
+            <p class="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-600">No tienes horarios profesionales disponibles para editar.</p>
+          } @else {
+            <!-- Professional Selector -->
           <div class="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex items-center gap-2">
               <lucide-icon [img]="User" [size]="18" class="text-slate-400"></lucide-icon>
@@ -114,12 +117,13 @@
             <button
               type="button"
               (click)="saveSchedule()"
-              [disabled]="isSaving || isLoading"
+              [disabled]="isSaving || isLoading || !selectedProfessionalId"
               class="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-sm font-semibold rounded-xl flex items-center gap-2 shadow-sm transition-colors">
               <lucide-icon [img]="Save" [size]="16"></lucide-icon>
               {{ isSaving ? 'Guardando...' : 'Guardar Horario Semanal' }}
             </button>
           </div>
+          }
         </div>
       }
 

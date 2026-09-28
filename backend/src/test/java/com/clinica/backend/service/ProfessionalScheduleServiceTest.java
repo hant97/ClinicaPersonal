@@ -7,6 +7,7 @@ import com.clinica.backend.model.User;
 import com.clinica.backend.repository.ProfessionalScheduleRepository;
 import com.clinica.backend.repository.UserRepository;
 import com.clinica.backend.mapper.ProfessionalScheduleMapperImpl;
+import com.clinica.backend.security.Roles;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -53,7 +55,7 @@ class ProfessionalScheduleServiceTest {
         currentUser.setFirstName("Carlos");
         currentUser.setLastName("Gómez");
         currentUser.setSpecialty("PSICOLOGIA");
-        currentUser.setRoles(Set.of("ROLE_ADMIN"));
+        currentUser.setRoles(Set.of(Roles.ADMIN, Roles.PROFESIONAL));
 
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(currentUser, null, currentUser.getAuthorities())
@@ -116,6 +118,71 @@ class ProfessionalScheduleServiceTest {
 
         assertThrows(IllegalArgumentException.class, () -> scheduleService.saveWeeklySchedule(weeklyDto));
         verify(scheduleRepository, never()).saveAll(any());
+    }
+
+    @Test
+    void professionalCanSaveOwnSchedule() {
+        currentUser.setRoles(Set.of(Roles.PROFESIONAL));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(currentUser));
+        when(scheduleRepository.saveAll(anyList())).thenReturn(List.of());
+
+        scheduleService.saveWeeklySchedule(new WeeklyScheduleDto(1L, null, null, List.of()));
+
+        verify(scheduleRepository).deleteByProfessionalIdAndSpecialty(1L, "PSICOLOGIA");
+    }
+
+    @Test
+    void professionalCannotSaveAnotherSchedule() {
+        currentUser.setRoles(Set.of(Roles.PROFESIONAL));
+
+        assertThrows(AccessDeniedException.class,
+                () -> scheduleService.saveWeeklySchedule(new WeeklyScheduleDto(2L, null, null, List.of())));
+
+        verifyNoInteractions(userRepository, scheduleRepository);
+    }
+
+    @Test
+    void administratorCanSaveSameSpecialtyProfessionalSchedule() {
+        User colleague = professional(2L, "PSICOLOGIA", true, Set.of(Roles.PROFESIONAL));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(colleague));
+        when(scheduleRepository.saveAll(anyList())).thenReturn(List.of());
+
+        scheduleService.saveWeeklySchedule(new WeeklyScheduleDto(2L, null, null, List.of()));
+
+        verify(scheduleRepository).deleteByProfessionalIdAndSpecialty(2L, "PSICOLOGIA");
+    }
+
+    @Test
+    void administratorCannotSaveProfessionalFromAnotherSpecialty() {
+        when(userRepository.findById(2L)).thenReturn(Optional.of(
+                professional(2L, "DERMATOLOGIA", true, Set.of(Roles.PROFESIONAL))));
+
+        assertThrows(AccessDeniedException.class,
+                () -> scheduleService.saveWeeklySchedule(new WeeklyScheduleDto(2L, null, null, List.of())));
+
+        verifyNoInteractions(scheduleRepository);
+    }
+
+    @Test
+    void administratorCannotSaveDisabledOrNonProfessionalSchedule() {
+        when(userRepository.findById(2L))
+                .thenReturn(Optional.of(professional(2L, "PSICOLOGIA", false, Set.of(Roles.PROFESIONAL))))
+                .thenReturn(Optional.of(professional(2L, "PSICOLOGIA", true, Set.of(Roles.ASISTENTE))));
+        WeeklyScheduleDto dto = new WeeklyScheduleDto(2L, null, null, List.of());
+
+        assertThrows(IllegalArgumentException.class, () -> scheduleService.saveWeeklySchedule(dto));
+        assertThrows(IllegalArgumentException.class, () -> scheduleService.saveWeeklySchedule(dto));
+
+        verifyNoInteractions(scheduleRepository);
+    }
+
+    private User professional(Long id, String specialty, boolean enabled, Set<String> roles) {
+        User user = new User();
+        user.setId(id);
+        user.setSpecialty(specialty);
+        user.setEnabled(enabled);
+        user.setRoles(roles);
+        return user;
     }
 
     @Test

@@ -155,14 +155,21 @@ export class ScheduleManagementComponent implements OnInit {
       currentUser: this.userService.getCurrentUserProfile().pipe(catchError(() => of(null)))
     }).subscribe({
       next: ({ profs, currentUser }) => {
-        this.professionals = profs;
-        if (profs.length > 0) {
-          const defaultProf = currentUser && profs.some(p => p.id === currentUser.id)
+        const isAdmin = currentUser?.roles?.includes('ROLE_ADMIN') ?? false;
+        this.professionals = currentUser
+          ? profs.filter(prof => prof.enabled !== false && prof.roles?.includes('ROLE_PROFESIONAL')
+              && prof.specialty === currentUser.specialty
+              && (isAdmin || prof.id === currentUser.id))
+          : [];
+        if (this.professionals.length > 0) {
+          const defaultProf = currentUser && this.professionals.some(p => p.id === currentUser.id)
             ? currentUser.id
-            : profs[0].id;
+            : this.professionals[0].id;
           this.selectedProfessionalId = defaultProf;
           this.scheduleForm.patchValue({ professionalId: defaultProf });
           this.loadScheduleForProfessional(defaultProf);
+        } else {
+          this.selectedProfessionalId = null;
         }
       },
       error: (err) => console.error('Error loading professionals', err)

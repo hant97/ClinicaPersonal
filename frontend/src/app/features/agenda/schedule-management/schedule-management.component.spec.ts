@@ -46,7 +46,7 @@ describe('ScheduleManagementComponent', () => {
       getCurrentUserProfile: vi.fn().mockName('UserService.getCurrentUserProfile')
     };
     userSpy.getProfessionals.mockReturnValue(of([
-      { id: 1, username: 'dr1', firstName: 'Juan', lastName: 'Pérez', specialty: 'PSICOLOGIA', enabled: true, roles: ['ROLE_ADMIN'] }
+      { id: 1, username: 'dr1', firstName: 'Juan', lastName: 'Pérez', specialty: 'PSICOLOGIA', enabled: true, roles: ['ROLE_ADMIN', 'ROLE_PROFESIONAL'] }
     ]));
     userSpy.getCurrentUserProfile.mockReturnValue(of({
       id: 1,
@@ -54,7 +54,7 @@ describe('ScheduleManagementComponent', () => {
       firstName: 'Juan',
       lastName: 'Pérez',
       specialty: 'PSICOLOGIA',
-      roles: ['ROLE_ADMIN'],
+      roles: ['ROLE_ADMIN', 'ROLE_PROFESIONAL'],
       enabled: true
     }));
 
@@ -92,5 +92,19 @@ describe('ScheduleManagementComponent', () => {
   it('should save weekly schedule when valid', () => {
     component.saveSchedule();
     expect(scheduleService.saveWeeklySchedule).toHaveBeenCalled();
+  });
+
+  it('should show only the own schedule to a professional without admin role', () => {
+    userService.getProfessionals.mockReturnValue(of([
+      { id: 1, username: 'dr1', specialty: 'PSICOLOGIA', enabled: true, roles: ['ROLE_PROFESIONAL'] },
+      { id: 2, username: 'dr2', specialty: 'PSICOLOGIA', enabled: true, roles: ['ROLE_PROFESIONAL'] }
+    ]));
+    userService.getCurrentUserProfile.mockReturnValue(of({
+      id: 1, username: 'dr1', specialty: 'PSICOLOGIA', enabled: true, roles: ['ROLE_PROFESIONAL']
+    }));
+
+    component.loadProfessionals();
+
+    expect(component.professionals.map(prof => prof.id)).toEqual([1]);
   });
 });
