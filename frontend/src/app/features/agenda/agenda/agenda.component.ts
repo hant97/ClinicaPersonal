@@ -32,7 +32,7 @@ import {
   mapAppointmentsForExport,
   StatusPillVariant
 } from './agenda.utils';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Plus,
   Calendar,
@@ -71,7 +71,7 @@ import {
     RouterModule,
     AppointmentFormComponent,
     ScheduleManagementComponent,
-    LucideAngularModule,
+    LucideDynamicIcon,
     StatusPillComponent,
     DrawerSheetComponent,
     AgendaToolbarComponent

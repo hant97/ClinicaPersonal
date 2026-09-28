@@ -5,7 +5,7 @@
     <div class="flex items-center justify-between border-b border-line px-6 py-4 bg-slate-50/90">
       <div class="space-y-0.5">
         <div class="flex items-center gap-2">
-          <lucide-icon [img]="Sparkles" [size]="16" class="text-cyan-600"></lucide-icon>
+          <svg [lucideIcon]="Sparkles" [size]="16" class="text-cyan-600"></svg>
           <h2 class="text-base font-bold text-ink">Comparador Fotográfico y Evolución de Lesión</h2>
         </div>
         <p class="text-xs text-muted">
@@ -25,7 +25,7 @@
             [ngClass]="compareMode === 'side-by-side' ? 'bg-surface text-cyan-800 shadow-xs font-bold' : 'text-muted hover:text-ink'"
             (click)="setMode('side-by-side')"
           >
-            <lucide-icon [img]="Layers" [size]="13"></lucide-icon>
+            <svg [lucideIcon]="Layers" [size]="13"></svg>
             <span>Lado a Lado</span>
           </button>
           <button
@@ -34,14 +34,14 @@
             [ngClass]="compareMode === 'slider' ? 'bg-surface text-cyan-800 shadow-xs font-bold' : 'text-muted hover:text-ink'"
             (click)="setMode('slider')"
           >
-            <lucide-icon [img]="Activity" [size]="13"></lucide-icon>
+            <svg [lucideIcon]="Activity" [size]="13"></svg>
             <span>Split Slider</span>
           </button>
         </div>
 
         <!-- Close button -->
         <button type="button" class="btn-text !p-1 text-muted hover:text-ink" (click)="closeModal()" aria-label="Cerrar modal">
-          <lucide-icon [img]="X" [size]="18"></lucide-icon>
+          <svg [lucideIcon]="X" [size]="18"></svg>
         </button>
       </div>
     </div>
@@ -50,7 +50,7 @@
     <div class="overflow-y-auto p-6 space-y-5 flex-1">
       @if (photoItems.length < 2) {
         <div class="list-state py-12">
-          <lucide-icon [img]="Activity" [size]="32" class="text-cyan-400 mx-auto mb-2"></lucide-icon>
+          <svg [lucideIcon]="Activity" [size]="32" class="text-cyan-400 mx-auto mb-2"></svg>
           <p class="text-sm font-semibold text-ink">Se requieren al menos 2 fotografías para la comparativa</p>
           <p class="text-xs text-muted max-w-sm mx-auto mt-1">
             Esta lesión cuenta actualmente con {{ photoItems.length }} foto(s). Sube capturas en distintas fechas para realizar seguimiento temporal de la evolución morfológica.
@@ -82,7 +82,7 @@
             (click)="swapPhotos()"
             title="Intercambiar orden (Foto A <-> Foto B)"
           >
-            <lucide-icon [img]="ArrowLeftRight" [size]="15"></lucide-icon>
+            <svg [lucideIcon]="ArrowLeftRight" [size]="15"></svg>
           </button>
 
           <!-- Photo B Selector -->
@@ -104,7 +104,7 @@
           <!-- Days Elapsed Badge -->
           @if (daysBetween !== null) {
             <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-50 border border-cyan-200 text-xs font-bold text-cyan-800">
-              <lucide-icon [img]="Clock" [size]="14" class="text-cyan-600"></lucide-icon>
+              <svg [lucideIcon]="Clock" [size]="14" class="text-cyan-600"></svg>
               <span>{{ daysBetween }} días entre tomas</span>
             </div>
           }
@@ -183,7 +183,7 @@
                 [style.left.%]="sliderPosition"
               >
                 <div class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md text-slate-800 text-[10px] font-bold border border-slate-300">
-                  <lucide-icon [img]="ArrowLeftRight" [size]="14"></lucide-icon>
+                  <svg [lucideIcon]="ArrowLeftRight" [size]="14"></svg>
                 </div>
               </div>
 

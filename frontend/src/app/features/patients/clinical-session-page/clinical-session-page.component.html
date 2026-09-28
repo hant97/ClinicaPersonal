@@ -8,7 +8,7 @@
         class="btn-secondary !text-xs !py-1.5 !px-2.5 flex items-center gap-1.5 shrink-0"
         title="Volver a la ficha del paciente"
       >
-        <lucide-icon [img]="ArrowLeft" [size]="15"></lucide-icon>
+        <svg [lucideIcon]="ArrowLeft" [size]="15"></svg>
         <span class="hidden sm:inline">Volver a la Ficha</span>
       </button>
 
@@ -39,7 +39,7 @@
       }
       @if (draftSaved && !isEditing) {
         <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
-          <lucide-icon [img]="Check" [size]="13"></lucide-icon>
+          <svg [lucideIcon]="Check" [size]="13"></svg>
           <span>Borrador guardado en el servidor</span>
         </span>
       }
@@ -65,7 +65,7 @@
           <span class="spinner spinner-sm"></span>
           <span>Guardando...</span>
         } @else {
-          <lucide-icon [img]="Check" [size]="14"></lucide-icon>
+          <svg [lucideIcon]="Check" [size]="14"></svg>
           <span>{{ isEditing ? 'Actualizar Consulta' : 'Guardar y Registrar Atención' }}</span>
         }
       </button>
@@ -77,7 +77,7 @@
     <div class="flex items-center justify-between gap-3 rounded-xl border border-primary-200 bg-gradient-to-r from-primary-50 to-primary-100/50 p-3.5 shadow-xs">
       <div class="flex items-center gap-2.5 min-w-0">
         <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-600 text-white shadow-xs">
-          <lucide-icon [img]="CalendarDays" [size]="18"></lucide-icon>
+          <svg [lucideIcon]="CalendarDays" [size]="18"></svg>
         </div>
         <div class="min-w-0">
           <div class="flex items-center gap-2 flex-wrap">
@@ -96,7 +96,7 @@
       </div>
 
       <span class="hidden md:inline-flex items-center gap-1 text-[11px] font-semibold text-primary-700 bg-white/80 border border-primary-200 rounded-lg px-2.5 py-1 shrink-0">
-        <lucide-icon [img]="ShieldCheck" [size]="14" class="text-emerald-600"></lucide-icon>
+        <svg [lucideIcon]="ShieldCheck" [size]="14" class="text-emerald-600"></svg>
         <span>Horario sincronizado</span>
       </span>
     </div>
@@ -213,7 +213,7 @@
           <div class="space-y-4 rounded-xl border border-line bg-slate-50/60 p-4 sm:p-5">
             <div class="flex items-center justify-between border-b border-line pb-2.5">
               <div class="flex items-center gap-2">
-                <lucide-icon [img]="Sparkles" [size]="16" class="text-primary-600"></lucide-icon>
+                <svg [lucideIcon]="Sparkles" [size]="16" class="text-primary-600"></svg>
                 <span class="text-xs font-bold uppercase tracking-wider text-slate-800">
                   {{ isPsychology ? 'Notas Estructuradas S.O.A.P.' : 'Notas de Evolución Clínica' }}
                 </span>
@@ -313,7 +313,7 @@
             <div class="space-y-4 rounded-xl border border-red-200 bg-red-50/50 p-4 sm:p-5" formGroupName="riskAssessment">
               <div class="flex items-center justify-between border-b border-red-200 pb-2.5 flex-wrap gap-1">
                 <div class="flex items-center gap-2">
-                  <lucide-icon [img]="AlertTriangle" [size]="16" class="text-red-600"></lucide-icon>
+                  <svg [lucideIcon]="AlertTriangle" [size]="16" class="text-red-600"></svg>
                   <span class="text-xs font-bold uppercase tracking-wider text-red-900">
                     Evaluación de Riesgo Estructurada
                   </span>
@@ -431,7 +431,7 @@
               />
               <div>
                 <span class="text-xs font-bold text-amber-950 flex items-center gap-1.5">
-                  <lucide-icon [img]="Lock" [size]="14" class="text-amber-700"></lucide-icon>
+                  <svg [lucideIcon]="Lock" [size]="14" class="text-amber-700"></svg>
                   <span>Marcar como Sesión Confidencial</span>
                 </span>
                 <p class="text-[11px] text-amber-800 mt-0.5">
@@ -461,7 +461,7 @@
                   <span class="spinner spinner-sm"></span>
                   <span>Guardando registro...</span>
                 } @else {
-                  <lucide-icon [img]="Check" [size]="15"></lucide-icon>
+                  <svg [lucideIcon]="Check" [size]="15"></svg>
                   <span>{{ isEditing ? 'Guardar Cambios' : 'Guardar y Completar Atención' }}</span>
                 }
               </button>
@@ -503,13 +503,13 @@
               <div class="border-t border-line pt-2.5 space-y-1 text-xs text-muted">
                 @if (patient.contactNumber) {
                   <p class="flex items-center gap-1.5 truncate">
-                    <lucide-icon [img]="Phone" [size]="12" class="text-slate-500 shrink-0"></lucide-icon>
+                    <svg [lucideIcon]="Phone" [size]="12" class="text-slate-500 shrink-0"></svg>
                     <span>{{ patient.contactNumber }}</span>
                   </p>
                 }
                 @if (patient.email) {
                   <p class="flex items-center gap-1.5 truncate">
-                    <lucide-icon [img]="Mail" [size]="12" class="text-slate-500 shrink-0"></lucide-icon>
+                    <svg [lucideIcon]="Mail" [size]="12" class="text-slate-500 shrink-0"></svg>
                     <span>{{ patient.email }}</span>
                   </p>
                 }
@@ -521,7 +521,7 @@
         <!-- Alertas Médicas y Alergias -->
         <div class="card !p-4 space-y-3">
           <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-            <lucide-icon [img]="AlertTriangle" [size]="14" class="text-amber-600"></lucide-icon>
+            <svg [lucideIcon]="AlertTriangle" [size]="14" class="text-amber-600"></svg>
             <span>Alertas Clínicas y Alergias</span>
           </h4>
 
@@ -568,7 +568,7 @@
         <!-- Diagnósticos y Medicación -->
         <div class="card !p-4 space-y-3">
           <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-            <lucide-icon [img]="Pill" [size]="14" class="text-primary-600"></lucide-icon>
+            <svg [lucideIcon]="Pill" [size]="14" class="text-primary-600"></svg>
             <span>Diagnósticos y Medicación</span>
           </h4>
 
@@ -617,7 +617,7 @@
           <div class="card !p-4 space-y-2.5">
             <div class="flex items-center justify-between">
               <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-                <lucide-icon [img]="History" [size]="14" class="text-slate-600"></lucide-icon>
+                <svg [lucideIcon]="History" [size]="14" class="text-slate-600"></svg>
                 <span>Última Sesión</span>
               </h4>
               <span class="text-[11px] font-mono text-muted">

@@ -6,7 +6,7 @@ import { UserProfile, CreateUserRequest, AdminUpdateUserRequest } from '../../..
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Users,
   UserPlus,
@@ -36,7 +36,7 @@ const rolesValidator = (control: AbstractControl): ValidationErrors | null => {
 @Component({
   selector: 'app-user-management',
   standalone: true,
-  imports: [ReactiveFormsModule, PaginationComponent, LucideAngularModule],
+  imports: [ReactiveFormsModule, PaginationComponent, LucideDynamicIcon],
   templateUrl: './user-management.component.html',
   styleUrls: ['./user-management.component.css'],
 })

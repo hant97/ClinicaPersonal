@@ -8,7 +8,7 @@ import { CatalogService } from '../../../core/services/catalog.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { SpecialtyService } from '../../../core/services/specialty.service';
 import { CatalogItem } from '../../../core/models/catalog.model';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   User,
   Phone,
@@ -32,7 +32,7 @@ import {
 @Component({
   selector: 'app-patient-form',
   standalone: true,
-  imports: [ReactiveFormsModule, LucideAngularModule],
+  imports: [ReactiveFormsModule, LucideDynamicIcon],
   templateUrl: './patient-form.component.html',
 })
 export class PatientFormComponent implements OnInit {

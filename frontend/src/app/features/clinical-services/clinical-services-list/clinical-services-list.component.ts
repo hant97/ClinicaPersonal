@@ -9,7 +9,7 @@ import { CatalogItem } from '../../../core/models/catalog.model';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Plus, Edit, Trash2, Search, Activity, Clock, Eye,
   LayoutGrid, List, TrendingUp, Package, Wallet, X
@@ -25,7 +25,7 @@ import { CLINICAL_SERVICE_CATEGORY_CATALOG_CODE } from '../clinical-service-cata
 @Component({
   selector: 'app-clinical-services-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, PaginationComponent, ClinicalServicesFormComponent, DecimalPipe],
+  imports: [CommonModule, FormsModule, LucideDynamicIcon, PaginationComponent, ClinicalServicesFormComponent, DecimalPipe],
   templateUrl: './clinical-services-list.component.html'
 })
 export class ClinicalServicesListComponent implements OnInit, OnDestroy {

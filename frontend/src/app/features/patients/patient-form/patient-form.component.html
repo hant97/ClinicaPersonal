@@ -8,7 +8,7 @@
           (click)="cancel()"
           class="hover:text-ink inline-flex items-center gap-1 transition"
         >
-          <lucide-icon [img]="ArrowLeft" [size]="14"></lucide-icon>
+          <svg [lucideIcon]="ArrowLeft" [size]="14"></svg>
           <span>Pacientes</span>
         </button>
         <span>/</span>
@@ -41,7 +41,7 @@
           <span class="spinner !h-3.5 !w-3.5 !border-2 mr-1.5 shrink-0" role="status"></span>
           <span>Guardando...</span>
         } @else {
-          <lucide-icon [img]="Save" [size]="14" class="mr-1.5 shrink-0"></lucide-icon>
+          <svg [lucideIcon]="Save" [size]="14" class="mr-1.5 shrink-0"></svg>
           <span>{{ isEditMode ? 'Guardar Cambios' : 'Guardar Paciente' }}</span>
         }
       </button>
@@ -56,7 +56,7 @@
   } @else {
     <!-- Informative Banner for Required Fields -->
     <div class="flex items-center gap-3 rounded-xl border border-primary-100 bg-primary-50/60 p-3.5 text-xs text-primary-900 shadow-xs">
-      <lucide-icon [img]="Info" [size]="18" class="shrink-0 text-primary-600"></lucide-icon>
+      <svg [lucideIcon]="Info" [size]="18" class="shrink-0 text-primary-600"></svg>
       <div>
         <span class="font-bold">Información de llenado:</span>
         Los campos marcados con asterisco rojo (<span class="text-danger font-bold text-sm leading-none">*</span>) son <strong>obligatorios</strong> para registrar al paciente en la clínica.
@@ -68,7 +68,7 @@
       <div class="card p-5 md:p-6 space-y-5 bg-surface border border-line shadow-xs">
         <div class="flex items-center gap-2.5 border-b border-line pb-3">
           <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-50 text-primary-700">
-            <lucide-icon [img]="User" [size]="18"></lucide-icon>
+            <svg [lucideIcon]="User" [size]="18"></svg>
           </div>
           <div>
             <h2 class="text-sm font-bold text-ink">1. Identificación y Datos Personales</h2>
@@ -269,7 +269,7 @@
       <div class="card p-5 md:p-6 space-y-5 bg-surface border border-line shadow-xs">
         <div class="flex items-center gap-2.5 border-b border-line pb-3">
           <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
-            <lucide-icon [img]="Phone" [size]="18"></lucide-icon>
+            <svg [lucideIcon]="Phone" [size]="18"></svg>
           </div>
           <div>
             <h2 class="text-sm font-bold text-ink">2. Contacto y Ubicación</h2>
@@ -380,7 +380,7 @@
       <div class="card p-5 md:p-6 space-y-5 bg-surface border border-line shadow-xs">
         <div class="flex items-center gap-2.5 border-b border-line pb-3">
           <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-700">
-            <lucide-icon [img]="FileText" [size]="18"></lucide-icon>
+            <svg [lucideIcon]="FileText" [size]="18"></svg>
           </div>
           <div>
             <h2 class="text-sm font-bold text-ink">3. Motivo de Consulta e Información de Tutor</h2>
@@ -427,7 +427,7 @@
 
           @if (esMenorEdad) {
             <div class="flex items-center gap-2.5 rounded-xl border border-amber-200 bg-amber-50/80 p-3.5 text-xs text-amber-900">
-              <lucide-icon [img]="AlertCircle" [size]="16" class="shrink-0 text-amber-600"></lucide-icon>
+              <svg [lucideIcon]="AlertCircle" [size]="16" class="shrink-0 text-amber-600"></svg>
               <span><strong>Paciente menor de edad detectado:</strong> Complete los datos del padre, madre o apoderado legal.</span>
             </div>
           }
@@ -517,7 +517,7 @@
               <span class="spinner !h-3.5 !w-3.5 !border-2 mr-1.5" role="status"></span>
               <span>Guardando...</span>
             } @else {
-              <lucide-icon [img]="Save" [size]="14" class="mr-1.5"></lucide-icon>
+              <svg [lucideIcon]="Save" [size]="14" class="mr-1.5"></svg>
               <span>{{ isEditMode ? 'Guardar Cambios' : 'Guardar Paciente' }}</span>
             }
           </button>

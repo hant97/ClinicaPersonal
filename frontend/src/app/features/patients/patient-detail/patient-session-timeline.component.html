@@ -56,7 +56,7 @@
                           title="Editar sesión"
                           aria-label="Editar sesión"
                         >
-                          <lucide-icon [img]="Edit" [size]="15"></lucide-icon>
+                          <svg [lucideIcon]="Edit" [size]="15"></svg>
                         </button>
                         <button
                           type="button"
@@ -65,7 +65,7 @@
                           title="Eliminar sesión"
                           aria-label="Eliminar sesión"
                         >
-                          <lucide-icon [img]="Trash2" [size]="15"></lucide-icon>
+                          <svg [lucideIcon]="Trash2" [size]="15"></svg>
                         </button>
                       </div>
                     </div>
@@ -104,11 +104,11 @@
                   </div>
                 } @empty {
                   <div class="list-state card">
-                    <lucide-icon [img]="FileText" [size]="28" class="text-muted mb-1"></lucide-icon>
+                    <svg [lucideIcon]="FileText" [size]="28" class="text-muted mb-1"></svg>
                     <p class="text-sm font-semibold text-ink">Aún no hay sesiones clínicas registradas</p>
                     <p class="text-xs text-muted">Comienza registrando la primera atención clínica del paciente.</p>
                     <button type="button" class="btn-primary !text-xs mt-2" (click)="createRequested.emit()">
-                      <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
+                      <svg [lucideIcon]="Plus" [size]="14"></svg>
                       <span>Registrar Sesión</span>
                     </button>
                   </div>

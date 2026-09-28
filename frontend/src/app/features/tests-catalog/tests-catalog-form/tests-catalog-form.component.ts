@@ -6,7 +6,7 @@ import { AssessmentService } from '../../../core/services/assessment.service';
 import { PsychometricTest, Question, Option, InterpretationBand, BAND_COLOR_PALETTE } from '../../../core/models/assessment.model';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Plus, Eye, ChevronUp, ChevronDown, ClipboardList, X } from '../../../shared/icons/lucide-icons';
 
@@ -20,7 +20,7 @@ interface TestCatalogFormValue {
 @Component({
   selector: 'app-tests-catalog-form',
   standalone: true,
-  imports: [ReactiveFormsModule, LucideAngularModule],
+  imports: [ReactiveFormsModule, LucideDynamicIcon],
   templateUrl: './tests-catalog-form.component.html'
 })
 export class TestsCatalogFormComponent implements OnInit {

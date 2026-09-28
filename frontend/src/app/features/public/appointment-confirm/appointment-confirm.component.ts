@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AppointmentService } from '../../../core/services/appointment.service';
 import { PublicAppointmentConfirmation } from '../../../core/models/appointment.model';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   ShieldCheck,
   AlertTriangle,
@@ -17,7 +17,7 @@ import {
 @Component({
   selector: 'app-appointment-confirm',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule],
+  imports: [CommonModule, RouterModule, LucideDynamicIcon],
   templateUrl: './appointment-confirm.component.html'
 })
 export class AppointmentConfirmComponent implements OnInit {

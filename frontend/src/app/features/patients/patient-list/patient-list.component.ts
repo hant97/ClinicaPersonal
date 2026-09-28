@@ -13,7 +13,7 @@ import { ViewPreferenceService } from '../../../shared/services/view-preference/
 import { fetchAllPages } from '../../../core/utils/pagination.util';
 import { AuthService } from '../../../core/services/auth.service';
 import { AuthImageSrcDirective } from '../../../shared/directives/auth-image-src.directive';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Search,
   Eye,
@@ -50,7 +50,7 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
     FormsModule,
     PaginationComponent,
     RouterLink,
-    LucideAngularModule,
+    LucideDynamicIcon,
     AuthImageSrcDirective
   ],
   templateUrl: './patient-list.component.html',

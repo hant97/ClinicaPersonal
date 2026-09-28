@@ -7,7 +7,7 @@
         <p class="text-xs font-semibold uppercase tracking-wider text-indigo-700">Reporte Gerencial</p>
       </div>
       <div class="flex items-center gap-2 mt-0.5">
-        <lucide-icon [img]="BarChart3" [size]="20" class="text-indigo-600"></lucide-icon>
+        <svg [lucideIcon]="BarChart3" [size]="20" class="text-indigo-600"></svg>
         <h1 class="text-xl sm:text-2xl font-bold text-ink">Productividad por Profesional</h1>
       </div>
       <p class="text-xs text-muted mt-1">Atenciones y cobros registrados por profesional de tu especialidad en el período seleccionado.</p>
@@ -19,7 +19,7 @@
       (click)="exportReport()"
       title="Exportar a Excel"
     >
-      <lucide-icon [img]="Download" [size]="14"></lucide-icon>
+      <svg [lucideIcon]="Download" [size]="14"></svg>
       <span>Exportar</span>
     </button>
   </div>
@@ -50,7 +50,7 @@
     </div>
 
     <div class="flex items-center gap-1.5 text-xs">
-      <lucide-icon [img]="CalendarRange" [size]="14" class="text-muted"></lucide-icon>
+      <svg [lucideIcon]="CalendarRange" [size]="14" class="text-muted"></svg>
       <input type="date" class="form-input !text-xs !py-1.5" [(ngModel)]="dateFrom" (change)="onCustomDateChange()">
       <span class="text-muted">–</span>
       <input type="date" class="form-input !text-xs !py-1.5" [(ngModel)]="dateTo" (change)="onCustomDateChange()">
@@ -62,7 +62,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
       <div class="rounded-lg border border-line p-3.5 flex items-center gap-3">
         <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 shrink-0">
-          <lucide-icon [img]="Users" [size]="18"></lucide-icon>
+          <svg [lucideIcon]="Users" [size]="18"></svg>
         </div>
         <div>
           <p class="text-[11px] text-muted uppercase tracking-wide">Profesionales con actividad</p>
@@ -71,7 +71,7 @@
       </div>
       <div class="rounded-lg border border-line p-3.5 flex items-center gap-3">
         <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 shrink-0">
-          <lucide-icon [img]="CheckCircle2" [size]="18"></lucide-icon>
+          <svg [lucideIcon]="CheckCircle2" [size]="18"></svg>
         </div>
         <div>
           <p class="text-[11px] text-muted uppercase tracking-wide">Atenciones totales</p>
@@ -80,7 +80,7 @@
       </div>
       <div class="rounded-lg border border-line p-3.5 flex items-center gap-3">
         <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 text-amber-600 shrink-0">
-          <lucide-icon [img]="Wallet" [size]="18"></lucide-icon>
+          <svg [lucideIcon]="Wallet" [size]="18"></svg>
         </div>
         <div>
           <p class="text-[11px] text-muted uppercase tracking-wide">Facturado por atenciones del período</p>

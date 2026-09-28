@@ -45,7 +45,7 @@
               [ngClass]="activeTab === 'timeline' ? 'border-primary-600 text-primary-700 bg-primary-50/70' : 'border-transparent text-muted hover:text-ink hover:border-slate-300 hover:bg-slate-50'"
               (click)="setTab('timeline')"
             >
-              <lucide-icon [img]="Clock" [size]="15" [ngClass]="activeTab === 'timeline' ? 'text-primary-600' : 'text-muted'"></lucide-icon>
+              <svg [lucideIcon]="Clock" [size]="15" [ngClass]="activeTab === 'timeline' ? 'text-primary-600' : 'text-muted'"></svg>
               <span>1. Historial & Timeline</span>
               @if (sessions.length > 0) {
                 <span class="rounded-full bg-slate-100 px-1.5 py-0.2 text-[10px] font-bold text-slate-700 border border-slate-200">
@@ -61,7 +61,7 @@
               [ngClass]="activeTab === 'expediente' ? 'border-primary-600 text-primary-700 bg-primary-50/70' : 'border-transparent text-muted hover:text-ink hover:border-slate-300 hover:bg-slate-50'"
               (click)="setTab('expediente')"
             >
-              <lucide-icon [img]="FileText" [size]="15" [ngClass]="activeTab === 'expediente' ? 'text-primary-600' : 'text-muted'"></lucide-icon>
+              <svg [lucideIcon]="FileText" [size]="15" [ngClass]="activeTab === 'expediente' ? 'text-primary-600' : 'text-muted'"></svg>
               <span>2. Expediente Médico Base</span>
               @if (expedienteElementsCount > 0) {
                 <span class="rounded-full bg-blue-50 px-1.5 py-0.2 text-[10px] font-bold text-blue-700 border border-blue-200">
@@ -78,13 +78,13 @@
               (click)="setTab('especialidad')"
             >
               @if (isPsychology) {
-                <lucide-icon [img]="Brain" [size]="15" class="text-purple-600"></lucide-icon>
+                <svg [lucideIcon]="Brain" [size]="15" class="text-purple-600"></svg>
                 <span>3. Módulo Psicología</span>
               } @else if (isDermatology) {
-                <lucide-icon [img]="Sparkles" [size]="15" class="text-cyan-600"></lucide-icon>
+                <svg [lucideIcon]="Sparkles" [size]="15" class="text-cyan-600"></svg>
                 <span>3. Módulo Dermatología</span>
               } @else {
-                <lucide-icon [img]="Stethoscope" [size]="15"></lucide-icon>
+                <svg [lucideIcon]="Stethoscope" [size]="15"></svg>
                 <span>3. Atención Especializada</span>
               }
               @if (specialtyElementsCount > 0) {
@@ -104,7 +104,7 @@
               [ngClass]="activeTab === 'cobros' ? 'border-primary-600 text-primary-700 bg-primary-50/70' : 'border-transparent text-muted hover:text-ink hover:border-slate-300 hover:bg-slate-50'"
               (click)="setTab('cobros')"
             >
-              <lucide-icon [img]="Receipt" [size]="15" [ngClass]="activeTab === 'cobros' ? 'text-primary-600' : 'text-muted'"></lucide-icon>
+              <svg [lucideIcon]="Receipt" [size]="15" [ngClass]="activeTab === 'cobros' ? 'text-primary-600' : 'text-muted'"></svg>
               <span>4. Cobros</span>
               @if (paymentsCount > 0) {
                 <span class="rounded-full bg-slate-100 px-1.5 py-0.2 text-[10px] font-bold text-slate-700 border border-slate-200">
@@ -133,7 +133,7 @@
           @if (activeTab === 'expediente') {
             @if (showFirstVisitBanner) {
               <div class="mb-4 flex items-start gap-3 rounded-xl border border-primary-200 bg-primary-50/70 px-4 py-3">
-                <lucide-icon [img]="Sparkles" [size]="16" class="mt-0.5 shrink-0 text-primary-600"></lucide-icon>
+                <svg [lucideIcon]="Sparkles" [size]="16" class="mt-0.5 shrink-0 text-primary-600"></svg>
                 <p class="flex-1 text-xs text-primary-800">
                   Toca el título de cada sección para expandirla o colapsarla. Empezamos con solo "Datos Personales" abierto para que sea más fácil de leer.
                 </p>
@@ -164,7 +164,7 @@
                   (click)="setExpedienteSubTab('todo')"
                 >
                   <span class="flex items-center gap-1.5">
-                    <lucide-icon [img]="Layers" [size]="14"></lucide-icon>
+                    <svg [lucideIcon]="Layers" [size]="14"></svg>
                     <span>Ficha Completa</span>
                   </span>
                   @if (expedienteElementsCount > 0) {
@@ -249,7 +249,7 @@
                   <div class="flex flex-wrap items-center justify-between gap-3 bg-surface p-3.5 rounded-xl border border-line shadow-xs">
                     <div>
                       <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                        <lucide-icon [img]="Layers" [size]="16" class="text-primary-600"></lucide-icon>
+                        <svg [lucideIcon]="Layers" [size]="16" class="text-primary-600"></svg>
                         Ficha Clínica Integral del Paciente
                       </h3>
                       <p class="text-xs text-muted">Todos los bloques del expediente base consolidados para consulta rápida.</p>
@@ -262,7 +262,7 @@
                         (click)="expandAllSections()"
                         title="Expandir todas las secciones"
                       >
-                        <lucide-icon [img]="ChevronDown" [size]="13"></lucide-icon>
+                        <svg [lucideIcon]="ChevronDown" [size]="13"></svg>
                         <span>Expandir Todo</span>
                       </button>
                       <button
@@ -271,7 +271,7 @@
                         (click)="collapseAllSections()"
                         title="Colapsar todas las secciones"
                       >
-                        <lucide-icon [img]="ChevronUp" [size]="13"></lucide-icon>
+                        <svg [lucideIcon]="ChevronUp" [size]="13"></svg>
                         <span>Colapsar Todo</span>
                       </button>
                     </div>
@@ -285,10 +285,10 @@
                       (click)="toggleSectionCollapse('datos-personales')"
                     >
                       <span class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-800">
-                        <lucide-icon [img]="User" [size]="14" class="text-primary-600"></lucide-icon>
+                        <svg [lucideIcon]="User" [size]="14" class="text-primary-600"></svg>
                         1. Información Personal y Residencia
                       </span>
-                      <lucide-icon [img]="isSectionCollapsed('datos-personales') ? ChevronDown : ChevronUp" [size]="16" class="text-muted"></lucide-icon>
+                      <svg [lucideIcon]="isSectionCollapsed('datos-personales') ? ChevronDown : ChevronUp" [size]="16" class="text-muted"></svg>
                     </button>
 
                     @if (!isSectionCollapsed('datos-personales')) {
@@ -328,14 +328,14 @@
                     >
                       <div class="flex items-center gap-2">
                         <span class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-800">
-                          <lucide-icon [img]="FileText" [size]="14" class="text-primary-600"></lucide-icon>
+                          <svg [lucideIcon]="FileText" [size]="14" class="text-primary-600"></svg>
                           2. Antecedentes Generales
                         </span>
                         @if (counts['antecedentes-generales'] > 0) {
                           <span class="rounded-full bg-slate-200 px-1.5 py-0.2 text-[10px] font-bold text-slate-700">✓ Registrado</span>
                         }
                       </div>
-                      <lucide-icon [img]="isSectionCollapsed('antecedentes') ? ChevronDown : ChevronUp" [size]="16" class="text-muted"></lucide-icon>
+                      <svg [lucideIcon]="isSectionCollapsed('antecedentes') ? ChevronDown : ChevronUp" [size]="16" class="text-muted"></svg>
                     </button>
 
                     @if (!isSectionCollapsed('antecedentes')) {
@@ -354,7 +354,7 @@
                     >
                       <div class="flex items-center gap-2">
                         <span class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-800">
-                          <lucide-icon [img]="AlertTriangle" [size]="14" class="text-amber-500"></lucide-icon>
+                          <svg [lucideIcon]="AlertTriangle" [size]="14" class="text-amber-500"></svg>
                           3. Alergias y Reacciones Adversas
                         </span>
                         @if (counts['alergias'] > 0) {
@@ -367,7 +367,7 @@
                           </span>
                         }
                       </div>
-                      <lucide-icon [img]="isSectionCollapsed('alergias') ? ChevronDown : ChevronUp" [size]="16" class="text-muted"></lucide-icon>
+                      <svg [lucideIcon]="isSectionCollapsed('alergias') ? ChevronDown : ChevronUp" [size]="16" class="text-muted"></svg>
                     </button>
 
                     @if (!isSectionCollapsed('alergias')) {
@@ -386,7 +386,7 @@
                     >
                       <div class="flex items-center gap-2">
                         <span class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-800">
-                          <lucide-icon [img]="Pill" [size]="14" class="text-primary-600"></lucide-icon>
+                          <svg [lucideIcon]="Pill" [size]="14" class="text-primary-600"></svg>
                           4. Medicamentos & Tratamientos Farmacológicos
                         </span>
                         @if (counts['medicamentos'] > 0) {
@@ -395,7 +395,7 @@
                           </span>
                         }
                       </div>
-                      <lucide-icon [img]="isSectionCollapsed('medicamentos') ? ChevronDown : ChevronUp" [size]="16" class="text-muted"></lucide-icon>
+                      <svg [lucideIcon]="isSectionCollapsed('medicamentos') ? ChevronDown : ChevronUp" [size]="16" class="text-muted"></svg>
                     </button>
 
                     @if (!isSectionCollapsed('medicamentos')) {
@@ -413,10 +413,10 @@
                       (click)="toggleSectionCollapse('recetas')"
                     >
                       <span class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-800">
-                        <lucide-icon [img]="ClipboardList" [size]="14" class="text-primary-600"></lucide-icon>
+                        <svg [lucideIcon]="ClipboardList" [size]="14" class="text-primary-600"></svg>
                         5. Recetas Médicas Emitidas
                       </span>
-                      <lucide-icon [img]="isSectionCollapsed('recetas') ? ChevronDown : ChevronUp" [size]="16" class="text-muted"></lucide-icon>
+                      <svg [lucideIcon]="isSectionCollapsed('recetas') ? ChevronDown : ChevronUp" [size]="16" class="text-muted"></svg>
                     </button>
 
                     @if (!isSectionCollapsed('recetas')) {
@@ -434,10 +434,10 @@
                       (click)="toggleSectionCollapse('documentos')"
                     >
                       <span class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-800">
-                        <lucide-icon [img]="FolderOpen" [size]="14" class="text-primary-600"></lucide-icon>
+                        <svg [lucideIcon]="FolderOpen" [size]="14" class="text-primary-600"></svg>
                         6. Documentos y Archivos Clínicos
                       </span>
-                      <lucide-icon [img]="isSectionCollapsed('documentos') ? ChevronDown : ChevronUp" [size]="16" class="text-muted"></lucide-icon>
+                      <svg [lucideIcon]="isSectionCollapsed('documentos') ? ChevronDown : ChevronUp" [size]="16" class="text-muted"></svg>
                     </button>
 
                     @if (!isSectionCollapsed('documentos')) {
@@ -723,7 +723,7 @@
               class="btn-primary !text-xs !py-1.5 !bg-red-600 hover:!bg-red-700"
               (click)="openAlertForm()"
             >
-              <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
+              <svg [lucideIcon]="Plus" [size]="14"></svg>
               <span>Nueva Alerta</span>
             </button>
           </div>
@@ -754,7 +754,7 @@
             </div>
           } @else {
             <div class="list-state card">
-              <lucide-icon [img]="CheckCircle2" [size]="28" class="text-emerald-500 mb-1"></lucide-icon>
+              <svg [lucideIcon]="CheckCircle2" [size]="28" class="text-emerald-500 mb-1"></svg>
               <p class="text-sm font-semibold text-ink">No hay alertas de riesgo activas</p>
               <p class="text-xs text-muted">El paciente no registra alertas críticas ni factores de riesgo vigentes.</p>
             </div>
@@ -787,14 +787,14 @@
   </div>
 } @else {
   <div class="card flex flex-col items-center justify-center gap-3 p-8 text-center border-red-200 bg-red-50/50">
-    <lucide-icon [img]="AlertTriangle" [size]="28" class="text-danger"></lucide-icon>
+    <svg [lucideIcon]="AlertTriangle" [size]="28" class="text-danger"></svg>
     <div>
       <h2 class="text-base font-bold text-danger">No se pudo cargar el expediente clínico</h2>
       <p class="text-xs text-slate-600 mt-0.5">{{ errorMessage || 'El paciente no existe o no pertenece a la especialidad activa.' }}</p>
     </div>
     <div class="flex items-center gap-2 mt-2">
       <button type="button" class="btn-secondary !text-xs" (click)="goBack()">
-        <lucide-icon [img]="ArrowLeft" [size]="14"></lucide-icon>
+        <svg [lucideIcon]="ArrowLeft" [size]="14"></svg>
         <span>Volver al directorio</span>
       </button>
       @if (currentIdentifier) {

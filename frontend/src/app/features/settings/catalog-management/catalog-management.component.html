@@ -20,7 +20,7 @@
         class="btn-secondary !text-xs !py-2 flex items-center justify-center gap-1.5 flex-1 sm:flex-initial"
         title="Recargar catálogos"
       >
-        <lucide-icon [img]="RefreshCw" [size]="14" [class.animate-spin]="loadingCatalogs"></lucide-icon>
+        <svg [lucideIcon]="RefreshCw" [size]="14" [class.animate-spin]="loadingCatalogs"></svg>
         <span>Refrescar</span>
       </button>
 
@@ -29,7 +29,7 @@
         (click)="openCreateCatalogModal()"
         class="btn-primary !text-xs !py-2 flex items-center justify-center gap-1.5 shadow-sm flex-1 sm:flex-initial"
       >
-        <lucide-icon [img]="Plus" [size]="15"></lucide-icon>
+        <svg [lucideIcon]="Plus" [size]="15"></svg>
         <span>Nuevo Catálogo</span>
       </button>
     </div>
@@ -39,7 +39,7 @@
   <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
     <div class="card !p-3 sm:!p-3.5 flex items-center gap-2.5 sm:gap-3 min-w-0">
       <div class="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600 border border-primary-100">
-        <lucide-icon [img]="FolderTree" [size]="18"></lucide-icon>
+        <svg [lucideIcon]="FolderTree" [size]="18"></svg>
       </div>
       <div class="min-w-0 flex-1">
         <p class="text-[10px] sm:text-[11px] font-semibold text-muted uppercase truncate">Catálogos</p>
@@ -49,7 +49,7 @@
 
     <div class="card !p-3 sm:!p-3.5 flex items-center gap-2.5 sm:gap-3 min-w-0">
       <div class="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100">
-        <lucide-icon [img]="Layers" [size]="18"></lucide-icon>
+        <svg [lucideIcon]="Layers" [size]="18"></svg>
       </div>
       <div class="min-w-0 flex-1">
         <p class="text-[10px] sm:text-[11px] font-semibold text-muted uppercase truncate">Opciones Totales</p>
@@ -59,7 +59,7 @@
 
     <div class="card !p-3 sm:!p-3.5 flex items-center gap-2.5 sm:gap-3 min-w-0">
       <div class="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg bg-purple-50 text-purple-600 border border-purple-100">
-        <lucide-icon [img]="Sparkles" [size]="18"></lucide-icon>
+        <svg [lucideIcon]="Sparkles" [size]="18"></svg>
       </div>
       <div class="min-w-0 flex-1">
         <p class="text-[10px] sm:text-[11px] font-semibold text-muted uppercase truncate">En Catálogo</p>
@@ -69,7 +69,7 @@
 
     <div class="card !p-3 sm:!p-3.5 flex items-center gap-2.5 sm:gap-3 min-w-0">
       <div class="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600 border border-primary-100">
-        <lucide-icon [img]="Globe" [size]="18"></lucide-icon>
+        <svg [lucideIcon]="Globe" [size]="18"></svg>
       </div>
       <div class="min-w-0 flex-1">
         <p class="text-[10px] sm:text-[11px] font-semibold text-muted uppercase truncate">Ámbito</p>
@@ -85,7 +85,7 @@
     <aside class="min-w-0 w-full overflow-hidden rounded-xl border border-line bg-slate-50/50 p-3.5 sm:p-4 space-y-3">
       <div class="flex items-center justify-between border-b border-line pb-2.5">
         <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-          <lucide-icon [img]="BookOpen" [size]="14" class="text-primary-600"></lucide-icon>
+          <svg [lucideIcon]="BookOpen" [size]="14" class="text-primary-600"></svg>
           <span>Catálogos Maestros</span>
         </h2>
         <span class="text-[11px] font-medium text-muted">
@@ -129,7 +129,7 @@
 
       <!-- Buscador de Catálogos -->
       <div class="relative">
-        <lucide-icon [img]="Search" [size]="14" class="input-leading-icon text-muted"></lucide-icon>
+        <svg [lucideIcon]="Search" [size]="14" class="input-leading-icon text-muted"></svg>
         <input
           type="text"
           [(ngModel)]="catalogSearchQuery"
@@ -142,7 +142,7 @@
             (click)="catalogSearchQuery = ''"
             class="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-ink"
           >
-            <lucide-icon [img]="X" [size]="12"></lucide-icon>
+            <svg [lucideIcon]="X" [size]="12"></svg>
           </button>
         }
       </div>
@@ -185,7 +185,7 @@
           </button>
         } @empty {
           <div class="rounded-xl border border-dashed border-line bg-slate-50 px-4 py-10 text-center text-xs text-muted">
-            <lucide-icon [img]="FolderTree" [size]="28" class="mx-auto mb-2 text-slate-400"></lucide-icon>
+            <svg [lucideIcon]="FolderTree" [size]="28" class="mx-auto mb-2 text-slate-400"></svg>
             <p class="font-semibold text-slate-700">No se encontraron catálogos</p>
             <p class="text-[11px] text-muted mt-0.5">Prueba con otro término de búsqueda o cambia de filtro.</p>
           </div>
@@ -218,7 +218,7 @@
                     class="text-muted hover:text-ink transition ml-1"
                     [title]="copiedCode ? '¡Copiado!' : 'Copiar código'"
                   >
-                    <lucide-icon [img]="copiedCode ? CheckCheck : Copy" [size]="12" [class.text-emerald-600]="copiedCode"></lucide-icon>
+                    <svg [lucideIcon]="copiedCode ? CheckCheck : Copy" [size]="12" [class.text-emerald-600]="copiedCode"></svg>
                   </button>
                 </div>
               </div>
@@ -230,7 +230,7 @@
               (click)="openEditCatalogModal(selectedCatalog)"
               class="btn-secondary !text-xs !py-1.5 px-3 flex items-center justify-center gap-1.5 shrink-0 self-start w-full sm:w-auto"
             >
-              <lucide-icon [img]="Edit2" [size]="13"></lucide-icon>
+              <svg [lucideIcon]="Edit2" [size]="13"></svg>
               <span>Editar Catálogo</span>
             </button>
           </div>
@@ -247,7 +247,7 @@
                 (click)="toggleCustomItemCode()"
                 class="text-[11px] font-medium text-primary-700 hover:text-primary-900 underline flex items-center gap-1"
               >
-                <lucide-icon [img]="SlidersHorizontal" [size]="11"></lucide-icon>
+                <svg [lucideIcon]="SlidersHorizontal" [size]="11"></svg>
                 <span>{{ isCustomItemCodeExpanded ? 'Ocultar código' : 'Personalizar código' }}</span>
               </button>
             </div>
@@ -287,7 +287,7 @@
                   [disabled]="!newItemName.trim() || savingItem"
                   class="btn-primary !text-xs !py-2 px-4 w-full sm:w-auto flex items-center justify-center gap-1.5 shadow-sm min-h-[38px] whitespace-nowrap"
                 >
-                  <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
+                  <svg [lucideIcon]="Plus" [size]="14"></svg>
                   <span>{{ savingItem ? 'Guardando...' : 'Agregar Opción' }}</span>
                 </button>
               </div>
@@ -337,7 +337,7 @@
 
               <!-- Buscador de items dentro del catálogo -->
               <div class="relative w-full sm:w-64">
-                <lucide-icon [img]="Search" [size]="13" class="input-leading-icon text-muted"></lucide-icon>
+                <svg [lucideIcon]="Search" [size]="13" class="input-leading-icon text-muted"></svg>
                 <input
                   type="text"
                   [(ngModel)]="itemSearchQuery"
@@ -350,7 +350,7 @@
                     (click)="itemSearchQuery = ''"
                     class="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-ink"
                   >
-                    <lucide-icon [img]="X" [size]="12"></lucide-icon>
+                    <svg [lucideIcon]="X" [size]="12"></svg>
                   </button>
                 }
               </div>
@@ -391,7 +391,7 @@
                             class="touch-icon-target rounded p-1 text-muted hover:bg-slate-200 hover:text-ink disabled:opacity-30 disabled:cursor-not-allowed transition"
                             title="Mover arriba"
                           >
-                            <lucide-icon [img]="ArrowUp" [size]="13"></lucide-icon>
+                            <svg [lucideIcon]="ArrowUp" [size]="13"></svg>
                           </button>
                           <button
                             type="button"
@@ -400,7 +400,7 @@
                             class="touch-icon-target rounded p-1 text-muted hover:bg-slate-200 hover:text-ink disabled:opacity-30 disabled:cursor-not-allowed transition"
                             title="Mover abajo"
                           >
-                            <lucide-icon [img]="ArrowDown" [size]="13"></lucide-icon>
+                            <svg [lucideIcon]="ArrowDown" [size]="13"></svg>
                           </button>
                         </div>
                       </td>
@@ -423,7 +423,7 @@
                               class="touch-icon-target rounded bg-emerald-600 text-white p-1 hover:bg-emerald-700 shadow-sm transition"
                               title="Guardar (Enter)"
                             >
-                              <lucide-icon [img]="Check" [size]="14"></lucide-icon>
+                              <svg [lucideIcon]="Check" [size]="14"></svg>
                             </button>
                             <button
                               type="button"
@@ -431,7 +431,7 @@
                               class="touch-icon-target rounded bg-slate-200 text-slate-700 p-1 hover:bg-slate-300 transition"
                               title="Cancelar (Esc)"
                             >
-                              <lucide-icon [img]="X" [size]="14"></lucide-icon>
+                              <svg [lucideIcon]="X" [size]="14"></svg>
                             </button>
                           </div>
                         } @else {
@@ -447,7 +447,7 @@
                               class="touch-icon-target touch-always-visible opacity-0 group-hover/edit:opacity-100 focus:opacity-100 text-muted hover:text-primary-600 transition"
                               title="Editar nombre"
                             >
-                              <lucide-icon [img]="Edit2" [size]="12"></lucide-icon>
+                              <svg [lucideIcon]="Edit2" [size]="12"></svg>
                             </button>
                           </div>
                         }
@@ -494,7 +494,7 @@
                             class="touch-icon-target text-muted hover:text-danger rounded p-1 hover:bg-red-50 transition"
                             title="Eliminar opción"
                           >
-                            <lucide-icon [img]="Trash2" [size]="14"></lucide-icon>
+                            <svg [lucideIcon]="Trash2" [size]="14"></svg>
                           </button>
                         </div>
                       </td>
@@ -502,7 +502,7 @@
                   } @empty {
                     <tr>
                       <td colspan="6" class="px-4 py-10 text-center text-xs text-muted">
-                        <lucide-icon [img]="Layers" [size]="26" class="mx-auto mb-2 text-slate-300"></lucide-icon>
+                        <svg [lucideIcon]="Layers" [size]="26" class="mx-auto mb-2 text-slate-300"></svg>
                         <p class="font-semibold text-slate-700">No hay opciones registradas</p>
                         <p class="text-[11px] text-muted mt-0.5">Usa la barra superior para agregar la primera opción a este catálogo.</p>
                       </td>
@@ -517,7 +517,7 @@
         <!-- Estado sin selección -->
         <div class="flex min-h-[30rem] flex-col items-center justify-center rounded-xl border border-dashed border-line bg-slate-50/50 p-8 text-center text-muted">
           <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-50 text-primary-600 mb-4 border border-primary-100">
-            <lucide-icon [img]="FolderTree" [size]="32"></lucide-icon>
+            <svg [lucideIcon]="FolderTree" [size]="32"></svg>
           </div>
           <h3 class="text-base font-bold text-ink">Selecciona un catálogo</h3>
           <p class="text-xs text-muted mt-1 max-w-sm">
@@ -528,7 +528,7 @@
             (click)="openCreateCatalogModal()"
             class="btn-primary !text-xs !py-2 mt-4 flex items-center gap-1.5 shadow-sm"
           >
-            <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
+            <svg [lucideIcon]="Plus" [size]="14"></svg>
             <span>Crear Nuevo Catálogo</span>
           </button>
         </div>
@@ -543,7 +543,7 @@
         <div class="flex items-center justify-between border-b border-line pb-3">
           <div class="flex items-center gap-2">
             <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-50 text-primary-600">
-              <lucide-icon [img]="FolderTree" [size]="18"></lucide-icon>
+              <svg [lucideIcon]="FolderTree" [size]="18"></svg>
             </div>
             <h3 class="text-base font-bold text-ink">
               {{ isEditingCatalog ? 'Editar Catálogo Maestro' : 'Nuevo Catálogo Maestro' }}
@@ -554,7 +554,7 @@
             (click)="closeCatalogModal()"
             class="rounded-lg p-1 text-muted hover:bg-slate-100 hover:text-ink transition"
           >
-            <lucide-icon [img]="X" [size]="18"></lucide-icon>
+            <svg [lucideIcon]="X" [size]="18"></svg>
           </button>
         </div>
 
@@ -642,7 +642,7 @@
               [disabled]="!catalogFormName.trim() || savingCatalog"
               class="btn-primary !text-xs !py-2 flex items-center gap-1.5 shadow-sm"
             >
-              <lucide-icon [img]="Check" [size]="14"></lucide-icon>
+              <svg [lucideIcon]="Check" [size]="14"></svg>
               <span>{{ savingCatalog ? 'Guardando...' : (isEditingCatalog ? 'Guardar Cambios' : 'Crear Catálogo') }}</span>
             </button>
           </div>
@@ -656,7 +656,7 @@
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-fade-in">
       <div class="card !p-6 w-full max-w-sm shadow-2xl space-y-4 animate-scale-in text-center">
         <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-danger">
-          <lucide-icon [img]="AlertCircle" [size]="24"></lucide-icon>
+          <svg [lucideIcon]="AlertCircle" [size]="24"></svg>
         </div>
 
         <div>
@@ -683,7 +683,7 @@
             [disabled]="isDeletingItem"
             class="btn-danger !text-xs !py-2 flex-1 flex items-center justify-center gap-1 shadow-sm"
           >
-            <lucide-icon [img]="Trash2" [size]="13"></lucide-icon>
+            <svg [lucideIcon]="Trash2" [size]="13"></svg>
             <span>{{ isDeletingItem ? 'Eliminando...' : 'Eliminar' }}</span>
           </button>
         </div>

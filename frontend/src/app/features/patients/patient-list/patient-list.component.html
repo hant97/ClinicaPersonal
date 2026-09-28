@@ -25,7 +25,7 @@
           (click)="setViewMode('cards')"
           title="Vista de tarjetas"
         >
-          <lucide-icon [img]="LayoutGrid" [size]="14"></lucide-icon>
+          <svg [lucideIcon]="LayoutGrid" [size]="14"></svg>
           <span>Tarjetas</span>
         </button>
         <button
@@ -35,7 +35,7 @@
           (click)="setViewMode('table')"
           title="Vista de tabla"
         >
-          <lucide-icon [img]="List" [size]="14"></lucide-icon>
+          <svg [lucideIcon]="List" [size]="14"></svg>
           <span>Tabla</span>
         </button>
       </div>
@@ -46,7 +46,7 @@
         (click)="exportPatients()"
         title="Exportar a Excel"
       >
-        <lucide-icon [img]="Download" [size]="14"></lucide-icon>
+        <svg [lucideIcon]="Download" [size]="14"></svg>
         <span>Exportar</span>
       </button>
 
@@ -54,7 +54,7 @@
         routerLink="/patients/new"
         class="btn-primary !text-xs !py-1.5 shadow-sm"
       >
-        <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
+        <svg [lucideIcon]="Plus" [size]="14"></svg>
         <span>Nuevo Paciente</span>
       </a>
     </div>
@@ -67,7 +67,7 @@
         <div class="flex items-center justify-between">
           <span class="text-[11px] font-semibold uppercase tracking-wider text-muted">Pacientes Activos</span>
           <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-50 text-primary-600">
-            <lucide-icon [img]="Users" [size]="15"></lucide-icon>
+            <svg [lucideIcon]="Users" [size]="15"></svg>
           </span>
         </div>
         <p class="mt-1.5 text-xl font-bold text-ink">{{ stats.totalPatients }}</p>
@@ -77,7 +77,7 @@
         <div class="flex items-center justify-between">
           <span class="text-[11px] font-semibold uppercase tracking-wider text-muted">Nuevos este mes</span>
           <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-            <lucide-icon [img]="UserPlus" [size]="15"></lucide-icon>
+            <svg [lucideIcon]="UserPlus" [size]="15"></svg>
           </span>
         </div>
         <p class="mt-1.5 text-xl font-bold text-emerald-700">+{{ stats.newThisMonth }}</p>
@@ -87,7 +87,7 @@
         <div class="flex items-center justify-between">
           <span class="text-[11px] font-semibold uppercase tracking-wider text-muted">Con Alertas Activas</span>
           <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-600">
-            <lucide-icon [img]="AlertTriangle" [size]="15"></lucide-icon>
+            <svg [lucideIcon]="AlertTriangle" [size]="15"></svg>
           </span>
         </div>
         <p class="mt-1.5 text-xl font-bold text-danger">{{ stats.withActiveAlerts }}</p>
@@ -97,7 +97,7 @@
         <div class="flex items-center justify-between">
           <span class="text-[11px] font-semibold uppercase tracking-wider text-muted">Menores de Edad</span>
           <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-50 text-violet-600">
-            <lucide-icon [img]="UserRound" [size]="15"></lucide-icon>
+            <svg [lucideIcon]="UserRound" [size]="15"></svg>
           </span>
         </div>
         <p class="mt-1.5 text-xl font-bold text-violet-700">{{ stats.minors }}</p>
@@ -109,7 +109,7 @@
   <div class="flex flex-wrap items-end gap-2">
     <div class="w-full sm:w-auto sm:flex-1 sm:max-w-md">
       <div class="relative">
-        <lucide-icon [img]="Search" [size]="16" class="input-leading-icon"></lucide-icon>
+        <svg [lucideIcon]="Search" [size]="16" class="input-leading-icon"></svg>
         <input
           type="search"
           class="input-field input-with-leading-icon !py-1.5 text-xs"
@@ -140,7 +140,7 @@
       </div>
       @if (hasActiveFilters) {
         <button type="button" class="btn-text !text-xs !py-1.5 text-muted" (click)="clearFilters()" title="Limpiar filtros">
-          <lucide-icon [img]="X" [size]="14"></lucide-icon>
+          <svg [lucideIcon]="X" [size]="14"></svg>
           <span>Limpiar</span>
         </button>
       }
@@ -155,13 +155,13 @@
     </div>
   } @else if (loadError) {
     <div class="list-state">
-      <lucide-icon [img]="AlertTriangle" [size]="28" class="text-danger mb-1"></lucide-icon>
+      <svg [lucideIcon]="AlertTriangle" [size]="28" class="text-danger mb-1"></svg>
       <p class="text-sm font-semibold text-danger">No se pudo cargar el directorio de pacientes</p>
       <button type="button" class="btn-secondary !text-xs mt-2" (click)="loadPatients()">Reintentar</button>
     </div>
   } @else if (patients.length === 0) {
     <div class="list-state">
-      <lucide-icon [img]="Users" [size]="28" class="text-muted mb-1"></lucide-icon>
+      <svg [lucideIcon]="Users" [size]="28" class="text-muted mb-1"></svg>
       <p class="text-sm font-medium text-ink">No hay pacientes registrados</p>
       <p class="text-xs text-muted">Comienza registrando un nuevo paciente en el sistema.</p>
     </div>
@@ -198,18 +198,18 @@
             <div class="mt-3.5 space-y-1.5 text-xs text-muted">
               @if (patient.contactNumber) {
                 <p class="flex items-center gap-2">
-                  <lucide-icon [img]="Phone" [size]="14" class="text-slate-400 shrink-0"></lucide-icon>
+                  <svg [lucideIcon]="Phone" [size]="14" class="text-slate-400 shrink-0"></svg>
                   <span class="truncate">{{ patient.contactNumber }}</span>
                 </p>
               }
               @if (patient.email) {
                 <p class="flex items-center gap-2 truncate">
-                  <lucide-icon [img]="Mail" [size]="14" class="text-slate-400 shrink-0"></lucide-icon>
+                  <svg [lucideIcon]="Mail" [size]="14" class="text-slate-400 shrink-0"></svg>
                   <span class="truncate">{{ patient.email }}</span>
                 </p>
               }
               <p class="flex items-center gap-2">
-                <lucide-icon [img]="Calendar" [size]="14" class="text-slate-400 shrink-0"></lucide-icon>
+                <svg [lucideIcon]="Calendar" [size]="14" class="text-slate-400 shrink-0"></svg>
                 <span>{{ getAge(patient) !== null ? getAge(patient) + ' años' : 'Sin edad' }} · {{ patient.active === false ? 'Inactivo' : 'Activo' }}</span>
               </p>
             </div>
@@ -218,7 +218,7 @@
           <!-- Footer: [ 👁 Ficha ] & [ ··· ] -->
           <div class="mt-3.5 flex items-center justify-between gap-2 border-t border-line pt-3" (click)="$event.stopPropagation()">
             <a class="btn-secondary !text-xs !py-1.5 !px-3 shadow-sm inline-flex items-center gap-1.5" [routerLink]="['/patients', patient.uuid || patient.id]">
-              <lucide-icon [img]="Eye" [size]="13"></lucide-icon>
+              <svg [lucideIcon]="Eye" [size]="13"></svg>
               <span>Ficha</span>
             </a>
 
@@ -232,7 +232,7 @@
                 title="Más opciones"
                 aria-label="Más opciones"
               >
-                <lucide-icon [img]="MoreHorizontal" [size]="16"></lucide-icon>
+                <svg [lucideIcon]="MoreHorizontal" [size]="16"></svg>
               </button>
 
               @if (openMenuPatientId === patient.id) {
@@ -242,7 +242,7 @@
                     class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-ink hover:bg-slate-50 transition text-left"
                     (click)="scheduleAppointment(patient.id, $event); closeMenu()"
                   >
-                    <lucide-icon [img]="Calendar" [size]="14" class="text-primary-600"></lucide-icon>
+                    <svg [lucideIcon]="Calendar" [size]="14" class="text-primary-600"></svg>
                     <span>Agendar Cita</span>
                   </button>
                   <a
@@ -250,7 +250,7 @@
                     class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-ink hover:bg-slate-50 transition text-left"
                     (click)="$event.stopPropagation(); closeMenu()"
                   >
-                    <lucide-icon [img]="Edit" [size]="14" class="text-slate-500"></lucide-icon>
+                    <svg [lucideIcon]="Edit" [size]="14" class="text-slate-500"></svg>
                     <span>Editar Datos</span>
                   </a>
                   <button
@@ -258,7 +258,7 @@
                     class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-ink hover:bg-slate-50 transition text-left"
                     (click)="toggleActive(patient, $event); closeMenu()"
                   >
-                    <lucide-icon [img]="patient.active === false ? CheckCircle2 : XCircle" [size]="14" [class]="patient.active === false ? 'text-emerald-600' : 'text-amber-600'"></lucide-icon>
+                    <svg [lucideIcon]="patient.active === false ? CheckCircle2 : XCircle" [size]="14" [class]="patient.active === false ? 'text-emerald-600' : 'text-amber-600'"></svg>
                     <span>{{ patient.active === false ? 'Reactivar' : 'Dar de Baja' }}</span>
                   </button>
                   @if (canDelete) {
@@ -268,7 +268,7 @@
                       class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-danger hover:bg-red-50 transition text-left"
                       (click)="deletePatient(patient.id!, $event); closeMenu()"
                     >
-                      <lucide-icon [img]="Trash2" [size]="14"></lucide-icon>
+                      <svg [lucideIcon]="Trash2" [size]="14"></svg>
                       <span>Eliminar</span>
                     </button>
                   }
@@ -338,10 +338,10 @@
               <td class="text-right" (click)="$event.stopPropagation()">
                 <div class="flex items-center justify-end gap-1">
                   <a class="btn-text !p-1.5" [routerLink]="['/patients', patient.uuid || patient.id]" title="Ver Ficha Clínica">
-                    <lucide-icon [img]="Eye" [size]="16"></lucide-icon>
+                    <svg [lucideIcon]="Eye" [size]="16"></svg>
                   </a>
                   <button type="button" class="btn-text !p-1.5 text-primary-600" (click)="scheduleAppointment(patient.id, $event)" title="Agendar Cita">
-                    <lucide-icon [img]="Calendar" [size]="16"></lucide-icon>
+                    <svg [lucideIcon]="Calendar" [size]="16"></svg>
                   </button>
                   <button
                     type="button"
@@ -349,14 +349,14 @@
                     [title]="patient.active === false ? 'Reactivar' : 'Dar de baja'"
                     (click)="toggleActive(patient, $event)"
                   >
-                    <lucide-icon [img]="patient.active === false ? CheckCircle2 : XCircle" [size]="16"></lucide-icon>
+                    <svg [lucideIcon]="patient.active === false ? CheckCircle2 : XCircle" [size]="16"></svg>
                   </button>
                   <a class="btn-text !p-1.5" [routerLink]="['/patients', patient.uuid || patient.id, 'edit']" (click)="$event.stopPropagation()" title="Editar Datos">
-                    <lucide-icon [img]="Edit" [size]="16"></lucide-icon>
+                    <svg [lucideIcon]="Edit" [size]="16"></svg>
                   </a>
                   @if (canDelete) {
                     <button type="button" class="btn-text !p-1.5 text-danger hover:bg-red-50" (click)="deletePatient(patient.id!, $event)" title="Eliminar">
-                      <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
+                      <svg [lucideIcon]="Trash2" [size]="16"></svg>
                     </button>
                   }
                 </div>

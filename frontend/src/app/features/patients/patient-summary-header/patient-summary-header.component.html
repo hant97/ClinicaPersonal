@@ -2,25 +2,25 @@
   <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-line/70">
     <div class="flex items-center gap-3">
       <button type="button" class="btn-secondary !text-xs !py-1.5" (click)="backRequested.emit()">
-        <lucide-icon [img]="ArrowLeft" [size]="14"></lucide-icon><span>Volver al directorio</span>
+        <svg [lucideIcon]="ArrowLeft" [size]="14"></svg><span>Volver al directorio</span>
       </button>
       <span class="text-slate-300">|</span><span class="text-xs font-semibold text-muted">Ficha Clínica de Paciente</span>
     </div>
     <div class="flex flex-wrap items-center gap-2">
       <a [routerLink]="['/patients', patient.uuid || patient.id, 'edit']" class="btn-secondary !text-xs !py-1.5">
-        <lucide-icon [img]="Edit" [size]="14"></lucide-icon><span>Editar Datos</span>
+        <svg [lucideIcon]="Edit" [size]="14"></svg><span>Editar Datos</span>
       </a>
       @if (clinicalAccess) {
         <button type="button" class="btn-secondary !text-xs !py-1.5" (click)="printRequested.emit()">
-          <lucide-icon [img]="Printer" [size]="14"></lucide-icon><span class="hidden sm:inline">Imprimir Historia</span>
+          <svg [lucideIcon]="Printer" [size]="14"></svg><span class="hidden sm:inline">Imprimir Historia</span>
         </button>
       }
       <button type="button" class="btn-secondary !text-xs !py-1.5" (click)="appointmentRequested.emit()">
-        <lucide-icon [img]="Calendar" [size]="14"></lucide-icon><span>Agendar Cita</span>
+        <svg [lucideIcon]="Calendar" [size]="14"></svg><span>Agendar Cita</span>
       </button>
       @if (clinicalAccess) {
         <button type="button" class="btn-primary !text-xs !py-1.5" (click)="sessionRequested.emit()">
-          <lucide-icon [img]="Plus" [size]="14"></lucide-icon><span>Nueva Sesión Clínica</span>
+          <svg [lucideIcon]="Plus" [size]="14"></svg><span>Nueva Sesión Clínica</span>
         </button>
       }
     </div>
@@ -34,7 +34,7 @@
           <span class="avatar-initials !h-12 !w-12 !text-sm font-bold bg-primary-100 text-primary-700 flex">{{ initials }}</span>
         }
         <span class="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary-600 text-white border-2 border-surface">
-          <lucide-icon [img]="ImagePlus" [size]="10"></lucide-icon>
+          <svg [lucideIcon]="ImagePlus" [size]="10"></svg>
         </span>
         <input type="file" accept="image/*" class="hidden" (change)="photoSelected.emit($event)">
       </label>
@@ -51,8 +51,8 @@
       </div>
     </div>
     <div class="flex flex-wrap items-center gap-3 text-xs border-t md:border-t-0 md:border-l border-line pt-2 md:pt-0 md:pl-4">
-      @if (patient.contactNumber) { <a [href]="'tel:' + patient.contactNumber" class="inline-flex items-center gap-1.5 rounded-md bg-slate-50 px-2.5 py-1.5 border border-line"><lucide-icon [img]="Phone" [size]="13"></lucide-icon>{{ patient.contactNumber }}</a> }
-      @if (patient.email) { <a [href]="'mailto:' + patient.email" class="inline-flex items-center gap-1.5 rounded-md bg-slate-50 px-2.5 py-1.5 border border-line"><lucide-icon [img]="Mail" [size]="13"></lucide-icon>{{ patient.email }}</a> }
+      @if (patient.contactNumber) { <a [href]="'tel:' + patient.contactNumber" class="inline-flex items-center gap-1.5 rounded-md bg-slate-50 px-2.5 py-1.5 border border-line"><svg [lucideIcon]="Phone" [size]="13"></svg>{{ patient.contactNumber }}</a> }
+      @if (patient.email) { <a [href]="'mailto:' + patient.email" class="inline-flex items-center gap-1.5 rounded-md bg-slate-50 px-2.5 py-1.5 border border-line"><svg [lucideIcon]="Mail" [size]="13"></svg>{{ patient.email }}</a> }
       @if (patient.emergencyContact) { <span class="text-[11px] text-muted hidden lg:inline">Emergencia: <strong>{{ patient.emergencyContact }}</strong></span> }
     </div>
   </div>

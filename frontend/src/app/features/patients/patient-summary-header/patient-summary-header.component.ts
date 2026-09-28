@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { ArrowLeft, Calendar, Edit, ImagePlus,
  Mail, Phone, Plus, Printer } from '../../../shared/icons/lucide-icons';
 import { Patient } from '../../../core/models/patient.model';
@@ -10,7 +10,7 @@ import { AuthImageSrcDirective } from '../../../shared/directives/auth-image-src
 @Component({
   selector: 'app-patient-summary-header',
   standalone: true,
-  imports: [CommonModule, RouterLink, LucideAngularModule, AuthImageSrcDirective],
+  imports: [CommonModule, RouterLink, LucideDynamicIcon, AuthImageSrcDirective],
   templateUrl: './patient-summary-header.component.html'
 })
 export class PatientSummaryHeaderComponent {

@@ -54,7 +54,7 @@
 .benefits-section { background: var(--paper-deep); border-bottom: 1px solid var(--line); }
 .benefits-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(225px, 1fr)); }
 .benefit-item { display: flex; gap: 14px; padding: 28px 25px; border-right: 1px solid var(--line); }
-.benefit-item lucide-icon { flex: none; color: var(--sage); }
+.benefit-item svg { flex: none; color: var(--sage); }
 .benefit-item h2 { margin: 0 0 5px; font: 600 13px/1.4 'Plus Jakarta Sans', sans-serif; letter-spacing: 0; }
 .benefit-item p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .section-padding { padding: 94px 0; border-bottom: 1px solid var(--line); }

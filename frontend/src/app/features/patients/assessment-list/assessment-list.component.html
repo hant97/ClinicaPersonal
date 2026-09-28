@@ -3,7 +3,7 @@
   <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-line pb-3">
     <div>
       <h3 class="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-slate-800">
-        <lucide-icon [img]="Brain" [size]="16" class="text-purple-600"></lucide-icon>
+        <svg [lucideIcon]="Brain" [size]="16" class="text-purple-600"></svg>
         Reporte de Evolución Psicométrica
       </h3>
       <p class="text-xs text-muted">Seguimiento longitudinal de puntajes clínicos estandarizados y respuesta terapéutica</p>
@@ -11,7 +11,7 @@
     <div class="flex items-center gap-2">
       @if (availableTestNames.length > 1) {
         <div class="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-lg border border-line text-xs">
-          <lucide-icon [img]="Filter" [size]="13" class="text-muted"></lucide-icon>
+          <svg [lucideIcon]="Filter" [size]="13" class="text-muted"></svg>
           <select [(ngModel)]="selectedTestFilter" (ngModelChange)="onFilterChange()" class="bg-transparent border-0 font-medium text-xs text-ink focus:ring-0 cursor-pointer">
             <option value="ALL">Todas las pruebas</option>
             @for (name of availableTestNames; track name) {
@@ -21,7 +21,7 @@
         </div>
       }
       <button type="button" class="btn-primary !text-xs !py-1.5 !bg-purple-600 hover:!bg-purple-700" (click)="openForm()">
-        <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
+        <svg [lucideIcon]="Plus" [size]="14"></svg>
         <span>Nueva Evaluación</span>
       </button>
     </div>
@@ -34,7 +34,7 @@
         <!-- Card 1: Test & Total Evaluations -->
         <div class="rounded-xl border border-line bg-gradient-to-br from-purple-50/50 to-surface p-3.5 space-y-1 shadow-xs">
           <span class="text-[11px] font-semibold uppercase tracking-wider text-muted flex items-center gap-1.5">
-            <lucide-icon [img]="Activity" [size]="13" class="text-purple-600"></lucide-icon>
+            <svg [lucideIcon]="Activity" [size]="13" class="text-purple-600"></svg>
             Prueba Activa
           </span>
           <p class="text-sm font-bold text-ink truncate" [title]="activeSummary.testName">{{ activeSummary.testName }}</p>
@@ -46,7 +46,7 @@
         <!-- Card 2: Initial Baseline Score -->
         <div class="rounded-xl border border-line bg-surface p-3.5 space-y-1 shadow-xs">
           <span class="text-[11px] font-semibold uppercase tracking-wider text-muted flex items-center gap-1.5">
-            <lucide-icon [img]="Calendar" [size]="13" class="text-slate-500"></lucide-icon>
+            <svg [lucideIcon]="Calendar" [size]="13" class="text-slate-500"></svg>
             Línea Base (Inicial)
           </span>
           <div class="flex items-baseline gap-2">
@@ -59,7 +59,7 @@
         <!-- Card 3: Latest Score & Severity -->
         <div class="rounded-xl border border-line bg-surface p-3.5 space-y-1 shadow-xs">
           <span class="text-[11px] font-semibold uppercase tracking-wider text-muted flex items-center gap-1.5">
-            <lucide-icon [img]="Sparkles" [size]="13" class="text-amber-500"></lucide-icon>
+            <svg [lucideIcon]="Sparkles" [size]="13" class="text-amber-500"></svg>
             Puntaje Actual
           </span>
           <div class="flex items-baseline gap-2">
@@ -80,13 +80,13 @@
           <span class="text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1.5"
                 [ngClass]="activeSummary.trend === 'improvement' ? 'text-emerald-800' : (activeSummary.trend === 'worsened' ? 'text-red-800' : 'text-slate-600')">
             @if (activeSummary.trend === 'improvement') {
-              <lucide-icon [img]="TrendingDown" [size]="14" class="text-emerald-600"></lucide-icon>
+              <svg [lucideIcon]="TrendingDown" [size]="14" class="text-emerald-600"></svg>
               Evolución Favorable
             } @else if (activeSummary.trend === 'worsened') {
-              <lucide-icon [img]="TrendingUp" [size]="14" class="text-red-600"></lucide-icon>
+              <svg [lucideIcon]="TrendingUp" [size]="14" class="text-red-600"></svg>
               Alerta de Variación
             } @else {
-              <lucide-icon [img]="Minus" [size]="14" class="text-slate-500"></lucide-icon>
+              <svg [lucideIcon]="Minus" [size]="14" class="text-slate-500"></svg>
               Respuesta Estable
             }
           </span>
@@ -170,7 +170,7 @@
     </div>
   } @else {
     <div class="list-state">
-      <lucide-icon [img]="Brain" [size]="28" class="text-purple-300 mx-auto mb-2"></lucide-icon>
+      <svg [lucideIcon]="Brain" [size]="28" class="text-purple-300 mx-auto mb-2"></svg>
       <p class="text-sm font-medium text-ink">No hay evaluaciones psicométricas registradas</p>
       <p class="text-xs text-muted">Aplica un test del catálogo para comenzar el seguimiento psicométrico longitudinal.</p>
     </div>

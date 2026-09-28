@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Plus, Receipt, Banknote, Wallet, CreditCard, Landmark, Smartphone } from '../../../shared/icons/lucide-icons';
 import { PaymentService } from '../../../core/services/payment.service';
@@ -11,7 +11,7 @@ import { Payment, PatientBalance } from '../../../core/models/payment.model';
 @Component({
   selector: 'app-patient-payments-section',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideDynamicIcon],
   templateUrl: './patient-payments-section.component.html'
 })
 export class PatientPaymentsSectionComponent implements OnInit {

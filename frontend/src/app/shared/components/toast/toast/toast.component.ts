@@ -2,7 +2,7 @@ import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ToastService, ToastMessage } from '../../../services/toast/toast.service';
 import { Subscription } from 'rxjs';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   CheckCircle2,
   AlertCircle,
@@ -14,7 +14,7 @@ import {
 @Component({
   selector: 'app-toast',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideDynamicIcon],
   templateUrl: './toast.component.html',
 })
 export class ToastComponent implements OnDestroy {

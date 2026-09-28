@@ -86,7 +86,7 @@
   .header-inner { min-height: 72px; }
   .login-brand span { font-size: 23px; }
   .back-link { font-size: 0; gap: 0; }
-  .back-link lucide-icon { display: block; }
+  .back-link svg { display: block; }
   .login-story { display: none; }
   .login-main { align-items: start; padding: 58px 0; }
   .login-intro h1 { font-size: 39px; }

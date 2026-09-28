@@ -22,7 +22,7 @@
       <div class="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-line bg-canvas/90 backdrop-blur-sm shrink-0">
         <div class="min-w-0 pr-3">
           <div class="flex items-center gap-1.5 text-xs font-semibold text-primary-600 mb-0.5">
-            <lucide-icon [img]="Calendar" [size]="14"></lucide-icon>
+            <svg [lucideIcon]="Calendar" [size]="14"></svg>
             <span>Agenda Médica</span>
           </div>
           <h2 id="appointment-form-title" class="text-base font-bold text-ink truncate">
@@ -35,7 +35,7 @@
           aria-label="Cerrar panel"
           (click)="onCancel()"
         >
-          <lucide-icon [img]="X" [size]="18"></lucide-icon>
+          <svg [lucideIcon]="X" [size]="18"></svg>
         </button>
       </div>
 
@@ -113,7 +113,7 @@
           <div class="rounded-xl border border-line bg-canvas/70 p-3.5 space-y-2">
             <div class="flex items-center justify-between">
               <span class="flex items-center gap-1.5 text-xs font-semibold text-ink">
-                <lucide-icon [img]="Clock" [size]="14" class="text-primary-600"></lucide-icon>
+                <svg [lucideIcon]="Clock" [size]="14" class="text-primary-600"></svg>
                 <span>Duración calculada</span>
               </span>
               <span
@@ -147,7 +147,7 @@
             <div class="rounded-xl border border-indigo-200 bg-indigo-50/50 p-3.5 space-y-3">
               <label class="flex cursor-pointer items-center justify-between">
                 <span class="flex items-center gap-2 text-xs font-bold text-indigo-950">
-                  <lucide-icon [img]="Repeat" [size]="15" class="text-indigo-600"></lucide-icon>
+                  <svg [lucideIcon]="Repeat" [size]="15" class="text-indigo-600"></svg>
                   <span>¿Es una cita recurrente? (Serie semanal)</span>
                 </span>
                 <input
@@ -187,7 +187,7 @@
             <!-- Edición de cita recurrente: Opciones de actualización -->
             <div class="rounded-xl border border-indigo-200 bg-indigo-50/70 p-3 space-y-2">
               <div class="flex items-center gap-2 text-xs font-bold text-indigo-900">
-                <lucide-icon [img]="Repeat" [size]="15" class="text-indigo-600"></lucide-icon>
+                <svg [lucideIcon]="Repeat" [size]="15" class="text-indigo-600"></svg>
                 <span>Esta cita forma parte de una serie recurrente</span>
               </div>
               <label class="flex items-center gap-2 text-xs text-indigo-950 font-medium cursor-pointer">
@@ -205,7 +205,7 @@
           @if (conflicts.length > 0) {
             <div class="rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-amber-900 shadow-xs animate-fadeIn">
               <div class="flex items-start gap-2.5">
-                <lucide-icon [img]="AlertTriangle" [size]="18" class="text-amber-600 shrink-0 mt-0.5"></lucide-icon>
+                <svg [lucideIcon]="AlertTriangle" [size]="18" class="text-amber-600 shrink-0 mt-0.5"></svg>
                 <div class="space-y-1 min-w-0">
                   <p class="text-xs font-bold text-amber-950">Conflicto de horario detectado</p>
                   <p class="text-[11px] text-amber-800">El horario seleccionado coincide con las siguientes citas registradas:</p>
@@ -276,7 +276,7 @@
           @if (appointmentForm.get('modality')?.value === 'VIRTUAL') {
             <div class="rounded-xl border border-blue-100 bg-blue-50/50 p-3 space-y-1.5">
               <label for="videoCallLink" class="form-label flex items-center gap-1.5 text-xs text-blue-900 font-semibold mb-1">
-                <lucide-icon [img]="Video" [size]="14" class="text-blue-600"></lucide-icon>
+                <svg [lucideIcon]="Video" [size]="14" class="text-blue-600"></svg>
                 <span>Enlace de Videollamada</span>
               </label>
               <input
@@ -339,7 +339,7 @@
             <span class="spinner !h-3.5 !w-3.5 !border-2 mr-1.5" role="status"></span>
             <span>Guardando...</span>
           } @else {
-            <lucide-icon [img]="Save" [size]="14" class="mr-1.5"></lucide-icon>
+            <svg [lucideIcon]="Save" [size]="14" class="mr-1.5"></svg>
             <span>{{ appointment ? 'Guardar Cambios' : 'Confirmar Cita' }}</span>
           }
         </button>

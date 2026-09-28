@@ -12,7 +12,7 @@ import { ProfessionalSchedule, WeeklySchedule } from '../../../core/models/profe
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   X,
   Clock,
@@ -40,7 +40,7 @@ interface DayConfig {
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    LucideAngularModule,
+    LucideDynamicIcon,
     FocusTrapDirective
 ],
   templateUrl: './schedule-management.component.html'

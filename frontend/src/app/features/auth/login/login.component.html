@@ -6,7 +6,7 @@
         <small>Dermatología · Psicología</small>
       </a>
       <div class="header-context"><span class="header-divider" aria-hidden="true"></span>Acceso al sistema clínico</div>
-      <a class="back-link" routerLink="/"><lucide-icon [img]="ArrowLeft" [size]="17" /> Volver al inicio</a>
+      <a class="back-link" routerLink="/"><svg [lucideIcon]="ArrowLeft" [size]="17" /> Volver al inicio</a>
     </div>
   </header>
 
@@ -54,7 +54,7 @@
               <label for="password">Contraseña</label>
               <div class="input-wrap password-wrap">
                 <input id="password" [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="Ingresa tu contraseña" autocomplete="current-password" [attr.aria-invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" />
-                <button type="button" class="password-toggle" (click)="togglePasswordVisibility()" [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'" [attr.title]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"><lucide-icon [img]="showPassword ? EyeOff : Eye" [size]="19" /></button>
+                <button type="button" class="password-toggle" (click)="togglePasswordVisibility()" [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'" [attr.title]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"><svg [lucideIcon]="showPassword ? EyeOff : Eye" [size]="19" /></button>
               </div>
               @if (loginForm.get('password')?.invalid && (loginForm.get('password')?.dirty || loginForm.get('password')?.touched)) {
                 <div class="login-validation">
@@ -74,15 +74,15 @@
                 <span class="submit-spinner" role="status" aria-label="Verificando credenciales"></span>
                 Verificando credenciales...
               } @else {
-                <lucide-icon [img]="Lock" [size]="17" />
+                <svg [lucideIcon]="Lock" [size]="17" />
                 Ingresar al sistema
-                <lucide-icon [img]="ArrowRight" [size]="17" />
+                <svg [lucideIcon]="ArrowRight" [size]="17" />
               }
             </button>
           </form>
 
           <div class="login-assistance">
-            <span class="assistance-icon"><lucide-icon [img]="ShieldCheck" [size]="20" /></span>
+            <span class="assistance-icon"><svg [lucideIcon]="ShieldCheck" [size]="20" /></span>
             <div><strong>Acceso para personal autorizado</strong><p>Si aún no tienes credenciales o necesitas ayuda para ingresar, comunícate con la administración de la clínica.</p></div>
           </div>
         </div>

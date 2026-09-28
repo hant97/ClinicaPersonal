@@ -1,7 +1,7 @@
 import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PaymentSummary } from '../../../core/models/payment.model';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Banknote, Wallet, Receipt, Coins, TrendingUp, TrendingDown,
   CreditCard, AlertCircle, Sparkles, Check, Clock
@@ -15,7 +15,7 @@ const METHOD_CHART_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#64748
 @Component({
   selector: 'app-billing-summary',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideDynamicIcon],
   templateUrl: './billing-summary.component.html',
   host: {
     class: 'block'

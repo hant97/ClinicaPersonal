@@ -2,7 +2,7 @@ import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { COMMON_STANDALONE_IMPORTS } from '../../../shared/common-standalone-imports';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   ArrowLeft,
   Calendar,
@@ -49,7 +49,7 @@ import { Subscription, catchError, debounceTime, of, retry, switchMap } from 'rx
 @Component({
   selector: 'app-clinical-session-page',
   standalone: true,
-  imports: [...COMMON_STANDALONE_IMPORTS, RouterModule, LucideAngularModule, AuthImageSrcDirective],
+  imports: [...COMMON_STANDALONE_IMPORTS, RouterModule, LucideDynamicIcon, AuthImageSrcDirective],
   templateUrl: './clinical-session-page.component.html',
 })
 export class ClinicalSessionPageComponent implements OnInit, OnDestroy {

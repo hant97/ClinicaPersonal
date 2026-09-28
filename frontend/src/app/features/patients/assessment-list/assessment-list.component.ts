@@ -5,7 +5,7 @@ import { AssessmentService } from '../../../core/services/assessment.service';
 import { Assessment, InterpretationBand, interpretScore, bandColorClasses } from '../../../core/models/assessment.model';
 import { AssessmentFormComponent } from '../assessment-form/assessment-form.component';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Brain,
   TrendingDown,
@@ -44,7 +44,7 @@ export interface EvolutionSummary {
     FormsModule,
     AssessmentFormComponent,
     PaginationComponent,
-    LucideAngularModule
+    LucideDynamicIcon
   ],
   templateUrl: './assessment-list.component.html',
 })

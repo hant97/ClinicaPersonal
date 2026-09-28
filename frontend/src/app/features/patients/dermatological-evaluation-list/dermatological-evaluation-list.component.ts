@@ -6,14 +6,14 @@ import { DermatologicalEvaluationFormComponent } from '../dermatological-evaluat
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Activity, Stethoscope, Edit, Trash2 } from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-dermatological-evaluation-list',
   standalone: true,
-  imports: [CommonModule, DermatologicalEvaluationFormComponent, PaginationComponent, LucideAngularModule],
+  imports: [CommonModule, DermatologicalEvaluationFormComponent, PaginationComponent, LucideDynamicIcon],
   templateUrl: './dermatological-evaluation-list.component.html',
 })
 export class DermatologicalEvaluationListComponent implements OnInit {

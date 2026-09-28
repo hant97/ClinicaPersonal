@@ -6,14 +6,14 @@ import { Treatment } from '../../../core/models/treatment.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Pill, Edit, Trash2 } from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-treatments-section',
   standalone: true,
-  imports: [...COMMON_STANDALONE_IMPORTS, PaginationComponent, LucideAngularModule],
+  imports: [...COMMON_STANDALONE_IMPORTS, PaginationComponent, LucideDynamicIcon],
   templateUrl: './treatments-section.component.html',
 })
 export class TreatmentsSectionComponent implements OnInit {

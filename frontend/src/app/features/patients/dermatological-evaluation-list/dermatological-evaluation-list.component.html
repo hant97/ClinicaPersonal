@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-line pb-3">
     <div>
       <h3 class="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-slate-800">
-        <lucide-icon [img]="Stethoscope" [size]="16" class="text-cyan-600"></lucide-icon>
+        <svg [lucideIcon]="Stethoscope" [size]="16" class="text-cyan-600"></svg>
         Evaluaciones Clínicas Dermatológicas
       </h3>
       <p class="text-xs text-muted">{{ totalElements }} evaluaciones registradas en el historial</p>
@@ -55,10 +55,10 @@
               <td class="text-right">
                 <div class="flex items-center justify-end gap-1">
                   <button type="button" class="btn-text !p-1.5" (click)="openForm(evaluation)" title="Editar" aria-label="Editar">
-                    <lucide-icon [img]="Edit" [size]="16"></lucide-icon>
+                    <svg [lucideIcon]="Edit" [size]="16"></svg>
                   </button>
                   <button type="button" class="btn-text !p-1.5 text-danger hover:bg-red-50" (click)="deleteEvaluation(evaluation.id!)" title="Eliminar" aria-label="Eliminar">
-                    <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
+                    <svg [lucideIcon]="Trash2" [size]="16"></svg>
                   </button>
                 </div>
               </td>

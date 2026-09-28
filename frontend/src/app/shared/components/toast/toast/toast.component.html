@@ -12,13 +12,13 @@
     >
       <div class="flex items-center gap-2.5 min-w-0">
         @if (msg.type === 'success') {
-          <lucide-icon [img]="CheckCircle2" [size]="18" class="shrink-0 text-white"></lucide-icon>
+          <svg [lucideIcon]="CheckCircle2" [size]="18" class="shrink-0 text-white"></svg>
         } @else if (msg.type === 'error') {
-          <lucide-icon [img]="AlertCircle" [size]="18" class="shrink-0 text-white"></lucide-icon>
+          <svg [lucideIcon]="AlertCircle" [size]="18" class="shrink-0 text-white"></svg>
         } @else if (msg.type === 'warning') {
-          <lucide-icon [img]="AlertTriangle" [size]="18" class="shrink-0 text-white"></lucide-icon>
+          <svg [lucideIcon]="AlertTriangle" [size]="18" class="shrink-0 text-white"></svg>
         } @else {
-          <lucide-icon [img]="Info" [size]="18" class="shrink-0 text-white"></lucide-icon>
+          <svg [lucideIcon]="Info" [size]="18" class="shrink-0 text-white"></svg>
         }
         <span class="flex-1 break-words leading-snug">{{ msg.text }}</span>
       </div>
@@ -28,7 +28,7 @@
         aria-label="Cerrar aviso"
         (click)="dismiss(msg.id)"
       >
-        <lucide-icon [img]="X" [size]="15"></lucide-icon>
+        <svg [lucideIcon]="X" [size]="15"></svg>
       </button>
     </div>
   }

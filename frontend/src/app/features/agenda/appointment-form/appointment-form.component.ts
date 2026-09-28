@@ -14,7 +14,7 @@ import { UserProfile } from '../../../core/models/user-profile.model';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { PatientAutocompleteComponent } from '../../../shared/components/patient-autocomplete/patient-autocomplete.component';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Clock, AlertTriangle, X, Calendar, User, Save, Video, Repeat, CheckCircle2 } from '../../../shared/icons/lucide-icons';
 import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
@@ -40,7 +40,7 @@ export function timeOrderValidator(): ValidatorFn {
 @Component({
   selector: 'app-appointment-form',
   standalone: true,
-  imports: [...COMMON_STANDALONE_IMPORTS, PatientAutocompleteComponent, LucideAngularModule, FocusTrapDirective],
+  imports: [...COMMON_STANDALONE_IMPORTS, PatientAutocompleteComponent, LucideDynamicIcon, FocusTrapDirective],
   templateUrl: './appointment-form.component.html',
 })
 export class AppointmentFormComponent implements OnInit {

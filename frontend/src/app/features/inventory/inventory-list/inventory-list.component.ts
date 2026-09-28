@@ -12,7 +12,7 @@ import { NotificationService } from '../../../shared/services/notification/notif
 import { ViewPreferenceService } from '../../../shared/services/view-preference/view-preference.service';
 import { ExportService } from '../../../shared/services/export/export.service';
 import { fetchAllPages } from '../../../core/utils/pagination.util';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Search, Edit, Trash2, Plus, AlertTriangle, Package, Eye, X,
   History, LayoutGrid, List, CalendarClock, Wallet, TrendingUp, SlidersHorizontal, Download
@@ -22,7 +22,7 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 @Component({
   selector: 'app-inventory-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, InventoryFormComponent, LucideAngularModule, PaginationComponent],
+  imports: [CommonModule, FormsModule, InventoryFormComponent, LucideDynamicIcon, PaginationComponent],
   templateUrl: './inventory-list.component.html'
 })
 export class InventoryListComponent implements OnInit, OnDestroy {

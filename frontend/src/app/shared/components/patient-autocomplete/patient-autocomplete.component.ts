@@ -6,7 +6,7 @@ import { Patient } from '../../../core/models/patient.model';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { CatalogItem } from '../../../core/models/catalog.model';
 import { ToastService } from '../../../shared/services/toast/toast.service';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   UserPlus, X, User, Phone, Mail, FileText } from '../../icons/lucide-icons';
 import { debounceTime, distinctUntilChanged, Subject, switchMap, takeUntil, tap, of, map } from 'rxjs';
@@ -14,7 +14,7 @@ import { debounceTime, distinctUntilChanged, Subject, switchMap, takeUntil, tap,
 @Component({
   selector: 'app-patient-autocomplete',
   standalone: true,
-  imports: [ReactiveFormsModule, LucideAngularModule],
+  imports: [ReactiveFormsModule, LucideDynamicIcon],
   templateUrl: './patient-autocomplete.component.html',
   providers: [
     {

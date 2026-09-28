@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Allergy } from '../../../core/models/allergy.model';
 import { RiskAlert } from '../../../core/models/risk-alert.model';
 import { Appointment } from '../../../core/models/appointment.model';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   AlertTriangle,
   Pill,
@@ -19,7 +19,7 @@ import {
 @Component({
   selector: 'app-risk-alert-banner',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideDynamicIcon],
   templateUrl: './risk-alert-banner.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

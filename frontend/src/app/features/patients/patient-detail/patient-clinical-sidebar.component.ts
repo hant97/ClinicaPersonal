@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { Appointment } from '../../../core/models/appointment.model';
 import { Diagnosis } from '../../../core/models/diagnosis.model';
 import { Medication } from '../../../core/models/medication.model';
@@ -16,7 +16,7 @@ import { getPatientInitials } from './patient-detail.utils';
 @Component({
   selector: 'app-patient-clinical-sidebar',
   standalone: true,
-  imports: [CommonModule, AuthImageSrcDirective, LucideAngularModule],
+  imports: [CommonModule, AuthImageSrcDirective, LucideDynamicIcon],
   host: { class: 'block sticky top-20' },
   templateUrl: './patient-clinical-sidebar.component.html'
 })

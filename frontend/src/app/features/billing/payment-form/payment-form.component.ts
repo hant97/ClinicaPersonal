@@ -19,7 +19,7 @@ import {
   buildInitialTransactions,
   buildPaymentPayload
 } from './payment-form.utils';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Receipt,
   Plus,
@@ -56,7 +56,7 @@ interface PaymentFormValue {
 @Component({
   selector: 'app-payment-form',
   standalone: true,
-  imports: [...COMMON_STANDALONE_IMPORTS, PatientAutocompleteComponent, FocusTrapDirective, LucideAngularModule],
+  imports: [...COMMON_STANDALONE_IMPORTS, PatientAutocompleteComponent, FocusTrapDirective, LucideDynamicIcon],
   templateUrl: './payment-form.component.html'
 })
 export class PaymentFormComponent implements OnInit, OnChanges {

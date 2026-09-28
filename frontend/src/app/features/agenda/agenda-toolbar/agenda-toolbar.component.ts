@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { COMMON_STANDALONE_IMPORTS } from '../../../shared/common-standalone-imports';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Calendar,
   CalendarDays,
@@ -20,7 +20,7 @@ export type AgendaView = 'calendar' | 'list';
 @Component({
   selector: 'app-agenda-toolbar',
   standalone: true,
-  imports: [...COMMON_STANDALONE_IMPORTS, LucideAngularModule],
+  imports: [...COMMON_STANDALONE_IMPORTS, LucideDynamicIcon],
   templateUrl: './agenda-toolbar.component.html'
 })
 export class AgendaToolbarComponent {

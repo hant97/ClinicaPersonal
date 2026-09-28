@@ -6,14 +6,14 @@ import { Evolution } from '../../../core/models/evolution.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Calendar, Edit, Trash2 } from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-evolutions-section',
   standalone: true,
-  imports: [...COMMON_STANDALONE_IMPORTS, PaginationComponent, LucideAngularModule],
+  imports: [...COMMON_STANDALONE_IMPORTS, PaginationComponent, LucideDynamicIcon],
   templateUrl: './evolutions-section.component.html',
 })
 export class EvolutionsSectionComponent implements OnInit {

@@ -4,14 +4,14 @@ import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { DermatologicalHistoryService } from '../../../core/services/dermatological-history.service';
 import { DermatologicalHistory } from '../../../core/models/dermatological-history.model';
 import { ToastService } from '../../../shared/services/toast/toast.service';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   FileText } from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-dermatological-history-section',
   standalone: true,
-  imports: [ReactiveFormsModule, LucideAngularModule],
+  imports: [ReactiveFormsModule, LucideDynamicIcon],
   templateUrl: './dermatological-history-section.component.html',
 })
 export class DermatologicalHistorySectionComponent implements OnInit {

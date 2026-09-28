@@ -5,7 +5,7 @@ import { AttentionService } from '../../../core/services/attention.service';
 import { ExportService } from '../../../shared/services/export/export.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { ProfessionalProductivity } from '../../../core/models/attention.model';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   BarChart3,
   CalendarRange,
@@ -20,7 +20,7 @@ type Preset = 'MONTH' | 'LAST_MONTH' | 'YEAR' | 'CUSTOM';
 @Component({
   selector: 'app-productivity-report',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideDynamicIcon],
   templateUrl: './productivity-report.component.html'
 })
 export class ProductivityReportComponent implements OnInit {

@@ -1,12 +1,12 @@
 <div class="card">
   <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
     <h3 class="flex items-center gap-2 text-lg font-semibold">
-      <lucide-icon [img]="FolderOpen" [size]="20" class="text-clinic-600"></lucide-icon>
+      <svg [lucideIcon]="FolderOpen" [size]="20" class="text-clinic-600"></svg>
       Documentos
     </h3>
     <p class="mt-1 text-sm text-muted">{{ totalElements }} registrados</p>
     <button class="btn btn-primary" (click)="openUpload()">
-      <lucide-icon [img]="Upload" [size]="16"></lucide-icon>
+      <svg [lucideIcon]="Upload" [size]="16"></svg>
       Subir documento
     </button>
   </div>
@@ -19,7 +19,7 @@
         <div class="flex items-start justify-between gap-4 rounded-lg border border-line bg-surface p-4">
           <div class="flex items-start gap-3 min-w-0">
             <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
-              <lucide-icon [img]="isImage(document.mimeType) ? Image : FileText" [size]="20"></lucide-icon>
+              <svg [lucideIcon]="isImage(document.mimeType) ? Image : FileText" [size]="20"></svg>
             </div>
             <div class="min-w-0">
               <p class="truncate text-sm font-semibold text-ink">{{ document.name }}</p>
@@ -34,15 +34,15 @@
           </div>
           <div class="flex shrink-0 gap-1">
             <button class="btn-text" (click)="openPreview(document)" title="Ver">
-              <lucide-icon [img]="Eye" [size]="16"></lucide-icon>
+              <svg [lucideIcon]="Eye" [size]="16"></svg>
               Ver
             </button>
             <button class="btn-text" (click)="download(document)" title="Descargar">
-              <lucide-icon [img]="Download" [size]="16"></lucide-icon>
+              <svg [lucideIcon]="Download" [size]="16"></svg>
               Descargar
             </button>
             <button class="btn-text text-danger hover:bg-red-50" (click)="delete(document.id!)" title="Eliminar">
-              <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
+              <svg [lucideIcon]="Trash2" [size]="16"></svg>
             </button>
           </div>
         </div>
@@ -52,7 +52,7 @@
   } @else {
     <div class="rounded-[10px] border border-dashed border-line bg-canvas px-6 py-[34px] text-center">
       <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-500">
-        <lucide-icon [img]="FolderOpen" [size]="24"></lucide-icon>
+        <svg [lucideIcon]="FolderOpen" [size]="24"></svg>
       </div>
       <h4 class="text-sm font-semibold text-ink">Aún no hay documentos para {{ patientName || 'este paciente' }}</h4>
       <p class="mx-auto mt-1 max-w-md text-xs text-muted leading-relaxed">
@@ -112,11 +112,11 @@
         <h2 class="truncate text-sm font-semibold text-clinic-900">{{ previewDoc.name }}</h2>
         <div class="flex gap-2">
           <button class="btn btn-primary" (click)="download(previewDoc)">
-            <lucide-icon [img]="Download" [size]="16"></lucide-icon>
+            <svg [lucideIcon]="Download" [size]="16"></svg>
             Descargar
           </button>
           <button class="btn-text" (click)="closePreview()" aria-label="Cerrar">
-            <lucide-icon [img]="X" [size]="20"></lucide-icon>
+            <svg [lucideIcon]="X" [size]="20"></svg>
           </button>
         </div>
       </div>

@@ -9,7 +9,7 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { LesionPhotoCompareComponent } from '../lesion-photo-compare/lesion-photo-compare.component';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Activity,
   ImagePlus,
@@ -30,7 +30,7 @@ interface PhotoView {
   imports: [
     ...COMMON_STANDALONE_IMPORTS,
     PaginationComponent,
-    LucideAngularModule,
+    LucideDynamicIcon,
     LesionPhotoCompareComponent
   ],
   templateUrl: './lesions-section.component.html',

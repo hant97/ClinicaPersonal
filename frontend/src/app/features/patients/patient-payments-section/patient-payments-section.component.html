@@ -9,7 +9,7 @@
       class="btn-primary !text-xs !py-1.5 !bg-emerald-600 hover:!bg-emerald-700"
       (click)="registerPayment()"
     >
-      <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
+      <svg [lucideIcon]="Plus" [size]="14"></svg>
       <span>Registrar Cobro</span>
     </button>
   </div>
@@ -36,7 +36,7 @@
 
   @if (payments.length === 0) {
     <div class="list-state">
-      <lucide-icon [img]="Receipt" [size]="32" class="text-muted mb-1"></lucide-icon>
+      <svg [lucideIcon]="Receipt" [size]="32" class="text-muted mb-1"></svg>
       <p class="text-sm font-medium text-ink">Sin cobros registrados</p>
       <p class="text-xs text-muted">Este paciente aún no tiene pagos asociados.</p>
     </div>
@@ -75,7 +75,7 @@
                   class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold border"
                   [ngClass]="getPaymentMethodVisual(payment.paymentMethod).classes"
                 >
-                  <lucide-icon [img]="getPaymentMethodVisual(payment.paymentMethod).icon" [size]="11"></lucide-icon>
+                  <svg [lucideIcon]="getPaymentMethodVisual(payment.paymentMethod).icon" [size]="11"></svg>
                   {{ getPaymentMethodText(payment.paymentMethod) }}
                 </span>
               </td>

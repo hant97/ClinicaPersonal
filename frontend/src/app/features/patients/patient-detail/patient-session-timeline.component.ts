@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { ClinicalSession } from '../../../core/models/clinical-session.model';
 import { Edit, FileText, Plus, Trash2 } from '../../../shared/icons/lucide-icons';
 import { sessionStatusBadgeClass, sessionStatusDotClass } from './patient-detail.utils';
@@ -8,7 +8,7 @@ import { sessionStatusBadgeClass, sessionStatusDotClass } from './patient-detail
 @Component({
   selector: 'app-patient-session-timeline',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideDynamicIcon],
   templateUrl: './patient-session-timeline.component.html'
 })
 export class PatientSessionTimelineComponent {

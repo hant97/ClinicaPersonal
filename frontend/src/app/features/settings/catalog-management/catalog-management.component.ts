@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   FolderTree,
   BookOpen,
@@ -41,7 +41,7 @@ import {
 @Component({
   selector: 'app-catalog-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideDynamicIcon],
   templateUrl: './catalog-management.component.html',
   styleUrls: ['./catalog-management.component.css'],
 })

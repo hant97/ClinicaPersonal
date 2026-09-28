@@ -7,7 +7,7 @@ import { Appointment } from '../../../core/models/appointment.model';
 import { StatusPillComponent, StatusPillVariant } from '../../../shared/components/status-pill/status-pill.component';
 import { GettingStartedChecklistComponent } from '../../../shared/components/getting-started-checklist/getting-started-checklist.component';
 import { OnboardingService } from '../../../shared/services/onboarding/onboarding.service';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Users,
   Calendar,
@@ -27,7 +27,7 @@ import {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule, StatusPillComponent, GettingStartedChecklistComponent],
+  imports: [CommonModule, RouterModule, LucideDynamicIcon, StatusPillComponent, GettingStartedChecklistComponent],
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit {

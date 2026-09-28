@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Lesion } from '../../../core/models/lesion.model';
 import { LesionPhoto } from '../../../core/models/lesion-photo.model';
 import { LesionPhotoService } from '../../../core/services/lesion-photo.service';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Calendar,
   Activity,
@@ -23,7 +23,7 @@ export interface PhotoWithUrl {
 @Component({
   selector: 'app-lesion-photo-compare',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideDynamicIcon],
   templateUrl: './lesion-photo-compare.component.html',
 })
 export class LesionPhotoCompareComponent implements OnInit, OnDestroy {

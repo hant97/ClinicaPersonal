@@ -4,14 +4,14 @@ import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { GeneralHistoryService } from '../../../core/services/general-history.service';
 import { GeneralHistory } from '../../../core/models/general-history.model';
 import { ToastService } from '../../../shared/services/toast/toast.service';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   FileText } from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-general-history-section',
   standalone: true,
-  imports: [ReactiveFormsModule, LucideAngularModule],
+  imports: [ReactiveFormsModule, LucideDynamicIcon],
   templateUrl: './general-history-section.component.html',
 })
 export class GeneralHistorySectionComponent implements OnInit {

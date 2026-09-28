@@ -6,14 +6,14 @@ import { Allergy } from '../../../core/models/allergy.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   AlertTriangle, Edit, Trash2 } from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-allergies-section',
   standalone: true,
-  imports: [ReactiveFormsModule, PaginationComponent, LucideAngularModule],
+  imports: [ReactiveFormsModule, PaginationComponent, LucideDynamicIcon],
   templateUrl: './allergies-section.component.html',
 })
 export class AllergiesSectionComponent implements OnInit {

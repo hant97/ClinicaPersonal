@@ -48,7 +48,7 @@
             [attr.title]="clinicSettings?.shortName || 'Clínica'"
             aria-hidden="true"
           >
-            <lucide-icon [img]="HeartHandshake" [size]="18"></lucide-icon>
+            <svg [lucideIcon]="HeartHandshake" [size]="18"></svg>
           </div>
         }
         <div
@@ -69,7 +69,7 @@
         aria-label="Cerrar menú"
         (click)="closeSidebar()"
       >
-        <lucide-icon [img]="X" [size]="18"></lucide-icon>
+        <svg [lucideIcon]="X" [size]="18"></svg>
       </button>
     </div>
 
@@ -147,7 +147,7 @@
           aria-label="Dashboard"
           (click)="closeSidebar()"
         >
-          <lucide-icon [img]="LayoutDashboard" [size]="18" class="shrink-0"></lucide-icon>
+          <svg [lucideIcon]="LayoutDashboard" [size]="18" class="shrink-0"></svg>
           <span
             class="truncate block md:hidden"
             [class.xl:inline]="isSidebarExpanded"
@@ -168,7 +168,7 @@
           aria-label="Agenda"
           (click)="closeSidebar()"
         >
-          <lucide-icon [img]="CalendarDays" [size]="18" class="shrink-0"></lucide-icon>
+          <svg [lucideIcon]="CalendarDays" [size]="18" class="shrink-0"></svg>
           <span
             class="truncate block md:hidden"
             [class.xl:inline]="isSidebarExpanded"
@@ -189,7 +189,7 @@
           aria-label="Atenciones"
           (click)="closeSidebar()"
         >
-          <lucide-icon [img]="Stethoscope" [size]="18" class="shrink-0"></lucide-icon>
+          <svg [lucideIcon]="Stethoscope" [size]="18" class="shrink-0"></svg>
           <span
             class="truncate block md:hidden"
             [class.xl:inline]="isSidebarExpanded"
@@ -210,7 +210,7 @@
           aria-label="Pacientes"
           (click)="closeSidebar()"
         >
-          <lucide-icon [img]="Users" [size]="18" class="shrink-0"></lucide-icon>
+          <svg [lucideIcon]="Users" [size]="18" class="shrink-0"></svg>
           <span
             class="truncate block md:hidden"
             [class.xl:inline]="isSidebarExpanded"
@@ -231,7 +231,7 @@
           aria-label="Cobros"
           (click)="closeSidebar()"
         >
-          <lucide-icon [img]="Receipt" [size]="18" class="shrink-0"></lucide-icon>
+          <svg [lucideIcon]="Receipt" [size]="18" class="shrink-0"></svg>
           <span
             class="truncate block md:hidden"
             [class.xl:inline]="isSidebarExpanded"
@@ -250,12 +250,12 @@
           (click)="toggleOperationsSection()"
         >
           <span>Operación & Recursos</span>
-          <lucide-icon
-            [img]="ChevronDown"
+          <svg
+            [lucideIcon]="ChevronDown"
             [size]="12"
             class="transition-transform duration-150"
             [class.rotate-180]="!operationsSectionCollapsed"
-          ></lucide-icon>
+          ></svg>
         </button>
         <div
           class="my-1.5 border-t border-line/60 hidden md:block"
@@ -279,7 +279,7 @@
           aria-label="Servicios"
           (click)="closeSidebar()"
         >
-          <lucide-icon [img]="Activity" [size]="18" class="shrink-0"></lucide-icon>
+          <svg [lucideIcon]="Activity" [size]="18" class="shrink-0"></svg>
           <span
             class="truncate block md:hidden"
             [class.xl:inline]="isSidebarExpanded"
@@ -301,7 +301,7 @@
             aria-label="Pruebas"
             (click)="closeSidebar()"
           >
-            <lucide-icon [img]="ClipboardList" [size]="18" class="shrink-0"></lucide-icon>
+            <svg [lucideIcon]="ClipboardList" [size]="18" class="shrink-0"></svg>
             <span
               class="truncate block md:hidden"
               [class.xl:inline]="isSidebarExpanded"
@@ -323,7 +323,7 @@
           aria-label="Inventario"
           (click)="closeSidebar()"
         >
-          <lucide-icon [img]="Package" [size]="18" class="shrink-0"></lucide-icon>
+          <svg [lucideIcon]="Package" [size]="18" class="shrink-0"></svg>
           <span
             class="truncate block md:hidden"
             [class.xl:inline]="isSidebarExpanded"
@@ -343,7 +343,7 @@
           aria-label="Catálogos"
           (click)="closeSidebar()"
         >
-          <lucide-icon [img]="Settings" [size]="18" class="shrink-0"></lucide-icon>
+          <svg [lucideIcon]="Settings" [size]="18" class="shrink-0"></svg>
           <span
             class="truncate block md:hidden"
             [class.xl:inline]="isSidebarExpanded"
@@ -364,7 +364,7 @@
             aria-label="Personal & Cuentas"
             (click)="closeSidebar()"
           >
-            <lucide-icon [img]="UserCog" [size]="18" class="shrink-0"></lucide-icon>
+            <svg [lucideIcon]="UserCog" [size]="18" class="shrink-0"></svg>
             <span
               class="truncate block md:hidden"
               [class.xl:inline]="isSidebarExpanded"
@@ -384,7 +384,7 @@
             aria-label="Auditoría"
             (click)="closeSidebar()"
           >
-            <lucide-icon [img]="Shield" [size]="18" class="shrink-0"></lucide-icon>
+            <svg [lucideIcon]="Shield" [size]="18" class="shrink-0"></svg>
             <span
               class="truncate block md:hidden"
               [class.xl:inline]="isSidebarExpanded"
@@ -406,7 +406,7 @@
             aria-label="Reporte de Productividad"
             (click)="closeSidebar()"
           >
-            <lucide-icon [img]="BarChart3" [size]="18" class="shrink-0"></lucide-icon>
+            <svg [lucideIcon]="BarChart3" [size]="18" class="shrink-0"></svg>
             <span
               class="truncate block md:hidden"
               [class.xl:inline]="isSidebarExpanded"
@@ -445,7 +445,7 @@
           aria-label="Editar Sitio Web"
           (click)="closeSidebar()"
         >
-          <lucide-icon [img]="Sparkles" [size]="18" class="shrink-0"></lucide-icon>
+          <svg [lucideIcon]="Sparkles" [size]="18" class="shrink-0"></svg>
           <span
             class="truncate block md:hidden"
             [class.xl:inline]="isSidebarExpanded"
@@ -478,7 +478,7 @@
         >
           Colapsar menú
         </span>
-        <lucide-icon [img]="isSidebarExpanded ? ChevronLeft : ChevronRight" [size]="16" class="shrink-0 text-muted"></lucide-icon>
+        <svg [lucideIcon]="isSidebarExpanded ? ChevronLeft : ChevronRight" [size]="16" class="shrink-0 text-muted"></svg>
       </button>
     </div>
   </aside>
@@ -498,12 +498,12 @@
           [attr.aria-label]="isSidebarOpen ? 'Cerrar menú' : 'Abrir menú'"
           (click)="toggleSidebar()"
         >
-          <lucide-icon [img]="Menu" [size]="20"></lucide-icon>
+          <svg [lucideIcon]="Menu" [size]="20"></svg>
         </button>
 
         <div class="flex items-center gap-2 min-w-0 text-sm">
           <span class="hidden xl:inline font-medium text-muted">Clínica</span>
-          <lucide-icon [img]="ChevronRight" [size]="14" class="hidden xl:inline text-muted/50"></lucide-icon>
+          <svg [lucideIcon]="ChevronRight" [size]="14" class="hidden xl:inline text-muted/50"></svg>
           <span class="font-semibold text-ink truncate">{{ currentRouteTitle }}</span>
         </div>
       </div>
@@ -527,12 +527,12 @@
             <span class="avatar-initials !h-8 !w-8 text-xs font-semibold shadow-xs">
               {{ avatarLetter }}
             </span>
-            <lucide-icon
-              [img]="ChevronDown"
+            <svg
+              [lucideIcon]="ChevronDown"
               [size]="14"
               class="hidden sm:inline-block text-muted transition-transform duration-150"
               [class.rotate-180]="isProfileMenuOpen"
-            ></lucide-icon>
+            ></svg>
           </button>
 
           @if (isProfileMenuOpen) {
@@ -572,7 +572,7 @@
                   class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium text-ink-muted hover:bg-canvas-subtle hover:text-ink transition"
                   role="menuitem"
                 >
-                  <lucide-icon [img]="User" [size]="16" class="text-muted shrink-0"></lucide-icon>
+                  <svg [lucideIcon]="User" [size]="16" class="text-muted shrink-0"></svg>
                   <span>Mi Perfil</span>
                 </a>
 
@@ -583,7 +583,7 @@
                     class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium text-ink-muted hover:bg-canvas-subtle hover:text-ink transition"
                     role="menuitem"
                   >
-                    <lucide-icon [img]="UserCog" [size]="16" class="text-muted shrink-0"></lucide-icon>
+                    <svg [lucideIcon]="UserCog" [size]="16" class="text-muted shrink-0"></svg>
                     <span>Personal & Cuentas</span>
                   </a>
                 }
@@ -599,7 +599,7 @@
                 class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs font-medium text-danger hover:bg-red-50 transition focus:outline-none focus:bg-red-50"
                 role="menuitem"
               >
-                <lucide-icon [img]="LogOut" [size]="16" class="text-danger shrink-0"></lucide-icon>
+                <svg [lucideIcon]="LogOut" [size]="16" class="text-danger shrink-0"></svg>
                 <span>Cerrar sesión</span>
               </button>
             </div>

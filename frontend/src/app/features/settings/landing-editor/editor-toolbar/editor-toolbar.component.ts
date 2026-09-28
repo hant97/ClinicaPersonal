@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Eye,
   Monitor,
@@ -17,7 +17,7 @@ export type EditorViewport = 'desktop' | 'tablet' | 'mobile';
 @Component({
   selector: 'app-editor-toolbar',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideDynamicIcon],
   templateUrl: './editor-toolbar.component.html',
   styleUrl: './editor-toolbar.component.css'
 })

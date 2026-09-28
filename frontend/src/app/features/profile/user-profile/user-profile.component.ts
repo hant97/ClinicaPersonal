@@ -7,7 +7,7 @@ import { ROLES, describeRoles } from '../../../core/models/roles';
 import { ClinicSettingsService } from '../../../core/services/clinic-settings.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { UserProfile } from '../../../core/models/user-profile.model';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   User,
   KeyRound,
@@ -36,7 +36,7 @@ import {
 @Component({
   selector: 'app-user-profile',
   standalone: true,
-  imports: [ReactiveFormsModule, LucideAngularModule],
+  imports: [ReactiveFormsModule, LucideDynamicIcon],
   templateUrl: './user-profile.component.html',
 })
 export class UserProfileComponent implements OnInit {

@@ -3,13 +3,13 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { ArrowLeft, ArrowRight, Eye, EyeOff, Lock, ShieldCheck } from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, LucideAngularModule],
+  imports: [ReactiveFormsModule, RouterLink, LucideDynamicIcon],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })

@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { ClinicalHistory } from '../../../core/models/clinical-history.model';
 import { ClinicalSession } from '../../../core/models/clinical-session.model';
 import { ChevronDown, ChevronUp, FileText, Lock, Printer, Settings2, X } from '../../../shared/icons/lucide-icons';
@@ -10,7 +10,7 @@ import type { PrintMode, PrintSectionsConfig, SessionFilterType } from './clinic
 @Component({
   selector: 'app-clinical-history-print-controls',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideDynamicIcon],
   templateUrl: './clinical-history-print-controls.component.html'
 })
 export class ClinicalHistoryPrintControlsComponent {

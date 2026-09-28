@@ -6,14 +6,14 @@ import { Medication } from '../../../core/models/medication.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Pill, Edit, Trash2 } from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-medications-section',
   standalone: true,
-  imports: [ReactiveFormsModule, PaginationComponent, LucideAngularModule],
+  imports: [ReactiveFormsModule, PaginationComponent, LucideDynamicIcon],
   templateUrl: './medications-section.component.html',
 })
 export class MedicationsSectionComponent implements OnInit {

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { PrescriptionService } from '../../../core/services/prescription.service';
 import { PublicPrescriptionVerification } from '../../../core/models/prescription.model';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   ShieldCheck,
   AlertTriangle,
@@ -20,7 +20,7 @@ import {
 @Component({
   selector: 'app-prescription-verify',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule],
+  imports: [CommonModule, RouterModule, LucideDynamicIcon],
   templateUrl: './prescription-verify.component.html',
   styleUrls: ['./prescription-verify.component.css'],
 })

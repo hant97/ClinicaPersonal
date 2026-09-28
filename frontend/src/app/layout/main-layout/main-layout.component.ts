@@ -1,7 +1,7 @@
 import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   LayoutDashboard,
   Users,
@@ -39,7 +39,7 @@ import { OnboardingService } from '../../shared/services/onboarding/onboarding.s
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [RouterModule, LucideAngularModule],
+  imports: [RouterModule, LucideDynamicIcon],
   templateUrl: './main-layout.component.html',
 })
 export class MainLayoutComponent implements OnInit, OnDestroy {

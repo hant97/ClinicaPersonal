@@ -6,14 +6,14 @@ import { AuxiliaryExam } from '../../../core/models/auxiliary-exam.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Microscope, Edit, Trash2 } from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-auxiliary-exams-section',
   standalone: true,
-  imports: [...COMMON_STANDALONE_IMPORTS, PaginationComponent, LucideAngularModule],
+  imports: [...COMMON_STANDALONE_IMPORTS, PaginationComponent, LucideDynamicIcon],
   templateUrl: './auxiliary-exams-section.component.html',
 })
 export class AuxiliaryExamsSectionComponent implements OnInit {

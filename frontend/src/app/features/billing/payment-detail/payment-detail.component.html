@@ -2,10 +2,10 @@
   <section class="w-full max-w-lg overflow-hidden rounded-xl border border-line bg-surface shadow-raised" (click)="$event.stopPropagation()">
     <div class="flex justify-end gap-2 border-b border-line bg-clinic-50 p-3 print:hidden">
       <button class="btn-text" (click)="printReceipt()" title="Imprimir recibo / estado de cuenta">
-        <lucide-icon [img]="Printer" [size]="20"></lucide-icon>
+        <svg [lucideIcon]="Printer" [size]="20"></svg>
       </button>
       <button class="inline-flex items-center justify-center rounded-lg p-2 text-danger hover:bg-red-50" (click)="onClose()" title="Cerrar">
-        <lucide-icon [img]="X" [size]="20"></lucide-icon>
+        <svg [lucideIcon]="X" [size]="20"></svg>
       </button>
     </div>
 
@@ -140,7 +140,7 @@
                         (click)="deleteTransaction(transaction)"
                         title="Eliminar abono"
                       >
-                        <lucide-icon [img]="Trash2" [size]="14"></lucide-icon>
+                        <svg [lucideIcon]="Trash2" [size]="14"></svg>
                       </button>
                     }
                   </td>
@@ -173,7 +173,7 @@
       @if (canAddTransaction) {
         <div class="mt-6 rounded-lg border border-line bg-canvas/60 p-4 print:hidden">
           <h3 class="mb-3 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink">
-            <lucide-icon [img]="Plus" [size]="14" class="text-emerald-600"></lucide-icon>
+            <svg [lucideIcon]="Plus" [size]="14" class="text-emerald-600"></svg>
             Registrar Abono
           </h3>
           <div class="grid grid-cols-2 gap-3">
@@ -209,7 +209,7 @@
               <span class="spinner !h-3.5 !w-3.5 !border-2 shrink-0" role="status"></span>
               <span>Registrando...</span>
             } @else {
-              <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
+              <svg [lucideIcon]="Plus" [size]="14"></svg>
               <span>Registrar Abono</span>
             }
           </button>

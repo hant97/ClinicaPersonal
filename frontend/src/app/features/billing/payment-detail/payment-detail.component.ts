@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angu
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Payment, PaymentTransaction } from '../../../core/models/payment.model';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Printer, X, Plus, Trash2 } from '../../../shared/icons/lucide-icons';
 import { ClinicSettingsService, ClinicSettings } from '../../../core/services/clinic-settings.service';
@@ -18,7 +18,7 @@ import { AuthService } from '../../../core/services/auth.service';
 @Component({
   selector: 'app-payment-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, FocusTrapDirective],
+  imports: [CommonModule, FormsModule, LucideDynamicIcon, FocusTrapDirective],
   templateUrl: './payment-detail.component.html'
 })
 export class PaymentDetailComponent implements OnInit, OnDestroy {

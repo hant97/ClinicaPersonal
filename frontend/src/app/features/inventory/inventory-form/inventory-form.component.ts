@@ -5,7 +5,7 @@ import { InventoryService } from '../../../core/services/inventory.service';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { CatalogItem } from '../../../core/models/catalog.model';
 import { ToastService } from '../../../shared/services/toast/toast.service';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   X,
   Package,
@@ -24,7 +24,7 @@ import { FocusTrapDirective } from '../../../shared/directives/focus-trap.direct
 @Component({
   selector: 'app-inventory-form',
   standalone: true,
-  imports: [ReactiveFormsModule, LucideAngularModule, FocusTrapDirective],
+  imports: [ReactiveFormsModule, LucideDynamicIcon, FocusTrapDirective],
   templateUrl: './inventory-form.component.html'
 })
 export class InventoryFormComponent implements OnInit, OnDestroy {

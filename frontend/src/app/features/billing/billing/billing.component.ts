@@ -9,7 +9,7 @@ import { PaymentDetailComponent } from '../payment-detail/payment-detail.compone
 import { BillingSummaryComponent } from '../billing-summary/billing-summary.component';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Plus, Edit, Trash2, Download, Eye, Search, FilterX, CalendarCheck, CalendarRange,
   LayoutGrid, List, Banknote, Wallet, CreditCard, Landmark, Smartphone, MoreHorizontal, BarChart3
@@ -28,7 +28,7 @@ type DatePreset = 'TODAY' | 'WEEK' | 'MONTH' | 'LAST_MONTH' | 'YEAR' | 'CUSTOM';
 @Component({
   selector: 'app-billing',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaymentFormComponent, PaymentDetailComponent, BillingSummaryComponent, LucideAngularModule, PaginationComponent],
+  imports: [CommonModule, FormsModule, PaymentFormComponent, PaymentDetailComponent, BillingSummaryComponent, LucideDynamicIcon, PaginationComponent],
   templateUrl: './billing.component.html'
 })
 export class BillingComponent implements OnInit, OnDestroy {

@@ -1,18 +1,18 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon, type LucideIconInput } from '@lucide/angular';
 import {
   Brain, HeartHandshake, Microscope, ShieldCheck, Sparkles, Stethoscope } from '../../icons/lucide-icons';
 
 interface IconOption {
   code: string;
   label: string;
-  icon: any;
+  icon: LucideIconInput;
 }
 
 @Component({
   selector: 'app-icon-picker',
   standalone: true,
-  imports: [LucideAngularModule],
+  imports: [LucideDynamicIcon],
   templateUrl: './icon-picker.component.html',
   styleUrl: './icon-picker.component.css'
 })

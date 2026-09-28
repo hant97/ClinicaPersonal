@@ -43,7 +43,7 @@ import {
   computeSpecialtyElementsCount,
   computeExpedienteElementsCount
 } from './patient-detail.utils';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   FileText,
   Pill,
@@ -94,7 +94,7 @@ export type MainTabType = 'timeline' | 'expediente' | 'especialidad' | 'cobros';
     PatientSummaryHeaderComponent,
     PatientSessionTimelineComponent,
     PatientClinicalSidebarComponent,
-    LucideAngularModule
+    LucideDynamicIcon
   ],
   templateUrl: './patient-detail.component.html',
 })

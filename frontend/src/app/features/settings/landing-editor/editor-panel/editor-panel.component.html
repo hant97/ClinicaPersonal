@@ -6,8 +6,8 @@
         <p class="panel-subtitle">Los cambios se aplican al instante en la vista previa.</p>
       </div>
       <div class="panel-header-actions">
-        <button type="button" class="panel-icon-btn" title="Deshacer cambios de este bloque" aria-label="Deshacer cambios de este bloque" (click)="revert.emit()"><lucide-icon [img]="RotateCcw" [size]="17" /></button>
-        <button type="button" class="panel-icon-btn" aria-label="Cerrar panel" (click)="close.emit()"><lucide-icon [img]="X" [size]="19" /></button>
+        <button type="button" class="panel-icon-btn" title="Deshacer cambios de este bloque" aria-label="Deshacer cambios de este bloque" (click)="revert.emit()"><svg [lucideIcon]="RotateCcw" [size]="17" /></button>
+        <button type="button" class="panel-icon-btn" aria-label="Cerrar panel" (click)="close.emit()"><svg [lucideIcon]="X" [size]="19" /></button>
       </div>
     </header>
 
@@ -38,8 +38,8 @@
               @if (imageUrl(draft.logoAssetKey, draft.logoExternalImageUrl); as url) { <img [src]="url" alt="Vista previa del logo" /> } @else { <span class="image-empty">Sin logo</span> }
             </div>
             <div class="image-actions">
-              <label class="btn-secondary btn-sm"><lucide-icon [img]="ImagePlus" [size]="15" /> Subir<input type="file" class="sr-only" accept="image/*" (change)="onFileSelected($event, 'logo')" /></label>
-              @if (draft.logoAssetKey) { <button type="button" class="btn-danger btn-sm" (click)="removeImage.emit({ category: 'logo' })"><lucide-icon [img]="Trash2" [size]="15" /> Quitar</button> }
+              <label class="btn-secondary btn-sm"><svg [lucideIcon]="ImagePlus" [size]="15" /> Subir<input type="file" class="sr-only" accept="image/*" (change)="onFileSelected($event, 'logo')" /></label>
+              @if (draft.logoAssetKey) { <button type="button" class="btn-danger btn-sm" (click)="removeImage.emit({ category: 'logo' })"><svg [lucideIcon]="Trash2" [size]="15" /> Quitar</button> }
             </div>
           </div>
         }
@@ -81,8 +81,8 @@
               <img [src]="imageUrl(draft.heroAssetKey, draft.heroExternalImageUrl) || '/images/landing-hero.jpg'" alt="Vista previa de la imagen principal" />
             </div>
             <div class="image-actions">
-              <label class="btn-secondary btn-sm"><lucide-icon [img]="ImagePlus" [size]="15" /> Subir imagen<input type="file" class="sr-only" accept="image/*" (change)="onFileSelected($event, 'hero')" /></label>
-              @if (draft.heroAssetKey) { <button type="button" class="btn-danger btn-sm" (click)="removeImage.emit({ category: 'hero' })"><lucide-icon [img]="Trash2" [size]="15" /> Quitar</button> }
+              <label class="btn-secondary btn-sm"><svg [lucideIcon]="ImagePlus" [size]="15" /> Subir imagen<input type="file" class="sr-only" accept="image/*" (change)="onFileSelected($event, 'hero')" /></label>
+              @if (draft.heroAssetKey) { <button type="button" class="btn-danger btn-sm" (click)="removeImage.emit({ category: 'hero' })"><svg [lucideIcon]="Trash2" [size]="15" /> Quitar</button> }
             </div>
           </div>
         }
@@ -119,8 +119,8 @@
               <img [src]="imageUrl(draft.approachAssetKey, draft.approachExternalImageUrl) || '/images/landing-approach.jpg'" alt="Vista previa de la imagen de enfoque" />
             </div>
             <div class="image-actions">
-              <label class="btn-secondary btn-sm"><lucide-icon [img]="ImagePlus" [size]="15" /> Subir imagen<input type="file" class="sr-only" accept="image/*" (change)="onFileSelected($event, 'approach')" /></label>
-              @if (draft.approachAssetKey) { <button type="button" class="btn-danger btn-sm" (click)="removeImage.emit({ category: 'approach' })"><lucide-icon [img]="Trash2" [size]="15" /> Quitar</button> }
+              <label class="btn-secondary btn-sm"><svg [lucideIcon]="ImagePlus" [size]="15" /> Subir imagen<input type="file" class="sr-only" accept="image/*" (change)="onFileSelected($event, 'approach')" /></label>
+              @if (draft.approachAssetKey) { <button type="button" class="btn-danger btn-sm" (click)="removeImage.emit({ category: 'approach' })"><svg [lucideIcon]="Trash2" [size]="15" /> Quitar</button> }
             </div>
           </div>
         }
@@ -209,8 +209,8 @@
               @if (imageUrl(draft.seoAssetKey, draft.seoExternalImageUrl); as url) { <img [src]="url" alt="Vista previa de la imagen SEO" /> } @else { <span class="image-empty">Sin imagen</span> }
             </div>
             <div class="image-actions">
-              <label class="btn-secondary btn-sm"><lucide-icon [img]="ImagePlus" [size]="15" /> Subir<input type="file" class="sr-only" accept="image/*" (change)="onFileSelected($event, 'seo')" /></label>
-              @if (draft.seoAssetKey) { <button type="button" class="btn-danger btn-sm" (click)="removeImage.emit({ category: 'seo' })"><lucide-icon [img]="Trash2" [size]="15" /> Quitar</button> }
+              <label class="btn-secondary btn-sm"><svg [lucideIcon]="ImagePlus" [size]="15" /> Subir<input type="file" class="sr-only" accept="image/*" (change)="onFileSelected($event, 'seo')" /></label>
+              @if (draft.seoAssetKey) { <button type="button" class="btn-danger btn-sm" (click)="removeImage.emit({ category: 'seo' })"><svg [lucideIcon]="Trash2" [size]="15" /> Quitar</button> }
             </div>
           </div>
         }
@@ -222,9 +222,9 @@
               <div class="collection-card-header">
                 <span class="collection-index">{{ i + 1 }}</span>
                 <div class="collection-card-actions">
-                  <button type="button" class="panel-icon-btn" [disabled]="i === 0" (click)="moveAt(draft.specialties, i, -1)" aria-label="Subir"><lucide-icon [img]="ArrowUp" [size]="15" /></button>
-                  <button type="button" class="panel-icon-btn" [disabled]="i === draft.specialties.length - 1" (click)="moveAt(draft.specialties, i, 1)" aria-label="Bajar"><lucide-icon [img]="ArrowDown" [size]="15" /></button>
-                  <button type="button" class="panel-icon-btn" [title]="specialty.visible ? 'Ocultar' : 'Mostrar'" (click)="specialty.visible = !specialty.visible"><lucide-icon [img]="specialty.visible ? Eye : EyeOff" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn" [disabled]="i === 0" (click)="moveAt(draft.specialties, i, -1)" aria-label="Subir"><svg [lucideIcon]="ArrowUp" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn" [disabled]="i === draft.specialties.length - 1" (click)="moveAt(draft.specialties, i, 1)" aria-label="Bajar"><svg [lucideIcon]="ArrowDown" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn" [title]="specialty.visible ? 'Ocultar' : 'Mostrar'" (click)="specialty.visible = !specialty.visible"><svg [lucideIcon]="specialty.visible ? Eye : EyeOff" [size]="15" /></button>
                 </div>
               </div>
               <div class="form-group">
@@ -264,10 +264,10 @@
               <div class="collection-card-header">
                 <span class="collection-index">{{ i + 1 }}</span>
                 <div class="collection-card-actions">
-                  <button type="button" class="panel-icon-btn" [disabled]="i === 0" (click)="moveAt(draft.benefits, i, -1)" aria-label="Subir"><lucide-icon [img]="ArrowUp" [size]="15" /></button>
-                  <button type="button" class="panel-icon-btn" [disabled]="i === draft.benefits.length - 1" (click)="moveAt(draft.benefits, i, 1)" aria-label="Bajar"><lucide-icon [img]="ArrowDown" [size]="15" /></button>
-                  <button type="button" class="panel-icon-btn" [title]="benefit.active ? 'Ocultar' : 'Mostrar'" (click)="benefit.active = !benefit.active"><lucide-icon [img]="benefit.active ? Eye : EyeOff" [size]="15" /></button>
-                  <button type="button" class="panel-icon-btn panel-icon-btn-danger" aria-label="Eliminar" (click)="removeAt(draft.benefits, i)"><lucide-icon [img]="Trash2" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn" [disabled]="i === 0" (click)="moveAt(draft.benefits, i, -1)" aria-label="Subir"><svg [lucideIcon]="ArrowUp" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn" [disabled]="i === draft.benefits.length - 1" (click)="moveAt(draft.benefits, i, 1)" aria-label="Bajar"><svg [lucideIcon]="ArrowDown" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn" [title]="benefit.active ? 'Ocultar' : 'Mostrar'" (click)="benefit.active = !benefit.active"><svg [lucideIcon]="benefit.active ? Eye : EyeOff" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn panel-icon-btn-danger" aria-label="Eliminar" (click)="removeAt(draft.benefits, i)"><svg [lucideIcon]="Trash2" [size]="15" /></button>
                 </div>
               </div>
               <div class="form-group">
@@ -284,7 +284,7 @@
               </div>
             </div>
           }
-          <button type="button" class="btn-secondary add-button" (click)="addBenefit()"><lucide-icon [img]="Plus" [size]="16" /> Añadir beneficio</button>
+          <button type="button" class="btn-secondary add-button" (click)="addBenefit()"><svg [lucideIcon]="Plus" [size]="16" /> Añadir beneficio</button>
         }
 
         @case ('processSteps') {
@@ -293,10 +293,10 @@
               <div class="collection-card-header">
                 <span class="collection-index">{{ i + 1 }}</span>
                 <div class="collection-card-actions">
-                  <button type="button" class="panel-icon-btn" [disabled]="i === 0" (click)="moveAt(draft.processSteps, i, -1)" aria-label="Subir"><lucide-icon [img]="ArrowUp" [size]="15" /></button>
-                  <button type="button" class="panel-icon-btn" [disabled]="i === draft.processSteps.length - 1" (click)="moveAt(draft.processSteps, i, 1)" aria-label="Bajar"><lucide-icon [img]="ArrowDown" [size]="15" /></button>
-                  <button type="button" class="panel-icon-btn" [title]="step.active ? 'Ocultar' : 'Mostrar'" (click)="step.active = !step.active"><lucide-icon [img]="step.active ? Eye : EyeOff" [size]="15" /></button>
-                  <button type="button" class="panel-icon-btn panel-icon-btn-danger" aria-label="Eliminar" (click)="removeAt(draft.processSteps, i)"><lucide-icon [img]="Trash2" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn" [disabled]="i === 0" (click)="moveAt(draft.processSteps, i, -1)" aria-label="Subir"><svg [lucideIcon]="ArrowUp" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn" [disabled]="i === draft.processSteps.length - 1" (click)="moveAt(draft.processSteps, i, 1)" aria-label="Bajar"><svg [lucideIcon]="ArrowDown" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn" [title]="step.active ? 'Ocultar' : 'Mostrar'" (click)="step.active = !step.active"><svg [lucideIcon]="step.active ? Eye : EyeOff" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn panel-icon-btn-danger" aria-label="Eliminar" (click)="removeAt(draft.processSteps, i)"><svg [lucideIcon]="Trash2" [size]="15" /></button>
                 </div>
               </div>
               <div class="form-group">
@@ -309,7 +309,7 @@
               </div>
             </div>
           }
-          <button type="button" class="btn-secondary add-button" (click)="addProcessStep()"><lucide-icon [img]="Plus" [size]="16" /> Añadir paso</button>
+          <button type="button" class="btn-secondary add-button" (click)="addProcessStep()"><svg [lucideIcon]="Plus" [size]="16" /> Añadir paso</button>
         }
 
         @case ('professionals') {
@@ -318,10 +318,10 @@
               <div class="collection-card-header">
                 <span class="collection-index">{{ i + 1 }}</span>
                 <div class="collection-card-actions">
-                  <button type="button" class="panel-icon-btn" [disabled]="i === 0" (click)="moveAt(draft.professionals, i, -1)" aria-label="Subir"><lucide-icon [img]="ArrowUp" [size]="15" /></button>
-                  <button type="button" class="panel-icon-btn" [disabled]="i === draft.professionals.length - 1" (click)="moveAt(draft.professionals, i, 1)" aria-label="Bajar"><lucide-icon [img]="ArrowDown" [size]="15" /></button>
-                  <button type="button" class="panel-icon-btn" [title]="professional.active ? 'Ocultar' : 'Mostrar'" (click)="professional.active = !professional.active"><lucide-icon [img]="professional.active ? Eye : EyeOff" [size]="15" /></button>
-                  <button type="button" class="panel-icon-btn panel-icon-btn-danger" aria-label="Eliminar" (click)="removeAt(draft.professionals, i)"><lucide-icon [img]="Trash2" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn" [disabled]="i === 0" (click)="moveAt(draft.professionals, i, -1)" aria-label="Subir"><svg [lucideIcon]="ArrowUp" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn" [disabled]="i === draft.professionals.length - 1" (click)="moveAt(draft.professionals, i, 1)" aria-label="Bajar"><svg [lucideIcon]="ArrowDown" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn" [title]="professional.active ? 'Ocultar' : 'Mostrar'" (click)="professional.active = !professional.active"><svg [lucideIcon]="professional.active ? Eye : EyeOff" [size]="15" /></button>
+                  <button type="button" class="panel-icon-btn panel-icon-btn-danger" aria-label="Eliminar" (click)="removeAt(draft.professionals, i)"><svg [lucideIcon]="Trash2" [size]="15" /></button>
                 </div>
               </div>
               <div class="form-group">
@@ -354,13 +354,13 @@
                   @if (imageUrl(professional.photoAssetKey, professional.photoExternalUrl); as url) { <img [src]="url" alt="Vista previa de la foto" /> } @else { <span class="image-empty">Sin foto</span> }
                 </div>
                 <div class="image-actions">
-                  <label class="btn-secondary btn-sm"><lucide-icon [img]="ImagePlus" [size]="15" /> Subir foto<input type="file" class="sr-only" accept="image/*" (change)="onProfessionalFileSelected($event, professional.draftKey!)" /></label>
-                  @if (professional.photoAssetKey || professional.photoExternalUrl) { <button type="button" class="btn-danger btn-sm" (click)="removeProfessionalPhoto(i)"><lucide-icon [img]="Trash2" [size]="15" /> Quitar</button> }
+                  <label class="btn-secondary btn-sm"><svg [lucideIcon]="ImagePlus" [size]="15" /> Subir foto<input type="file" class="sr-only" accept="image/*" (change)="onProfessionalFileSelected($event, professional.draftKey!)" /></label>
+                  @if (professional.photoAssetKey || professional.photoExternalUrl) { <button type="button" class="btn-danger btn-sm" (click)="removeProfessionalPhoto(i)"><svg [lucideIcon]="Trash2" [size]="15" /> Quitar</button> }
                 </div>
               </div>
             </div>
           }
-          <button type="button" class="btn-secondary add-button" (click)="addProfessional()"><lucide-icon [img]="Plus" [size]="16" /> Añadir profesional</button>
+          <button type="button" class="btn-secondary add-button" (click)="addProfessional()"><svg [lucideIcon]="Plus" [size]="16" /> Añadir profesional</button>
         }
       }
     </div>

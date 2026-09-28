@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { DashboardStats } from '../../../core/services/dashboard.service';
 import { OnboardingService } from '../../services/onboarding/onboarding.service';
 import { CheckCircle2, Circle, X } from '../../icons/lucide-icons';
@@ -22,7 +22,7 @@ interface GettingStartedStep {
 @Component({
   selector: 'app-getting-started-checklist',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule],
+  imports: [CommonModule, RouterModule, LucideDynamicIcon],
   templateUrl: './getting-started-checklist.component.html',
 })
 export class GettingStartedChecklistComponent {

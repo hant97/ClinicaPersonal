@@ -1,6 +1,6 @@
 import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   X } from '../../icons/lucide-icons';
 import { FocusTrapDirective } from '../../directives/focus-trap.directive';
@@ -8,7 +8,7 @@ import { FocusTrapDirective } from '../../directives/focus-trap.directive';
 @Component({
   selector: 'app-drawer-sheet',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, FocusTrapDirective],
+  imports: [CommonModule, LucideDynamicIcon, FocusTrapDirective],
   template: `
     @if (isOpen) {
       <div
@@ -47,7 +47,7 @@ import { FocusTrapDirective } from '../../directives/focus-trap.directive';
                   aria-label="Cerrar panel"
                   (click)="close()"
                 >
-                  <lucide-icon [img]="X" [size]="18"></lucide-icon>
+                  <svg [lucideIcon]="X" [size]="18"></svg>
                 </button>
               </div>
             </div>

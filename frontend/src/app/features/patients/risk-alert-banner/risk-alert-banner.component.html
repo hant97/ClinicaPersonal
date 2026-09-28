@@ -13,13 +13,13 @@
           (click)="openAllergies.emit()"
           title="Ver detalle de alergias registradas"
         >
-          <lucide-icon [img]="AlertTriangle" [size]="14" [ngClass]="hasSevereAllergy ? 'text-danger' : 'text-amber-600'"></lucide-icon>
+          <svg [lucideIcon]="AlertTriangle" [size]="14" [ngClass]="hasSevereAllergy ? 'text-danger' : 'text-amber-600'"></svg>
           <span class="font-bold">Alergias ({{ activeAllergiesList.length }}):</span>
           <span class="truncate max-w-[180px] sm:max-w-[240px]">{{ allergiesSummary }}</span>
         </button>
       } @else {
         <span class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50/70 px-2.5 py-1 text-[11px] font-medium text-emerald-800">
-          <lucide-icon [img]="CheckCircle2" [size]="13" class="text-emerald-600"></lucide-icon>
+          <svg [lucideIcon]="CheckCircle2" [size]="13" class="text-emerald-600"></svg>
           <span>Sin alergias conocidas</span>
         </span>
       }
@@ -35,7 +35,7 @@
           (click)="openAlerts.emit()"
           [title]="hasHighRiskAlert ? 'Riesgo ALTO: requiere evaluación de riesgo estructurada' : 'Ver alertas de riesgo activas'"
         >
-          <lucide-icon [img]="ShieldAlert" [size]="14" class="text-danger"></lucide-icon>
+          <svg [lucideIcon]="ShieldAlert" [size]="14" class="text-danger"></svg>
           <span class="font-bold">Alertas de Riesgo ({{ activeAlerts.length }})</span>
           @if (hasHighRiskAlert) {
             <span class="rounded bg-red-600 text-white text-[10px] font-bold uppercase px-1.5 py-0.2">Alto</span>
@@ -43,7 +43,7 @@
         </button>
       } @else {
         <span class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-600">
-          <lucide-icon [img]="CheckCircle2" [size]="13" class="text-slate-400"></lucide-icon>
+          <svg [lucideIcon]="CheckCircle2" [size]="13" class="text-slate-400"></svg>
           <span>Sin alertas activas</span>
         </span>
       }
@@ -56,7 +56,7 @@
           (click)="openMedications.emit()"
           title="Ver detalle de medicación activa"
         >
-          <lucide-icon [img]="Pill" [size]="14" class="text-blue-600"></lucide-icon>
+          <svg [lucideIcon]="Pill" [size]="14" class="text-blue-600"></svg>
           <span class="font-bold">Medicación ({{ activeMedicationsList.length }}):</span>
           <span class="truncate max-w-[160px] sm:max-w-[200px]">{{ medicationsSummary }}</span>
         </button>
@@ -70,7 +70,7 @@
           (click)="openDiagnoses.emit()"
           title="Ver diagnósticos activos"
         >
-          <lucide-icon [img]="Stethoscope" [size]="14" class="text-cyan-600"></lucide-icon>
+          <svg [lucideIcon]="Stethoscope" [size]="14" class="text-cyan-600"></svg>
           <span class="font-bold">Dx:</span>
           <span class="truncate max-w-[160px] sm:max-w-[220px]">{{ primaryDiagnosis.description }}</span>
         </button>
@@ -87,7 +87,7 @@
           (click)="scheduleAppointment.emit()"
           title="Ver o gestionar cita"
         >
-          <lucide-icon [img]="CalendarCheck" [size]="14" class="text-emerald-600"></lucide-icon>
+          <svg [lucideIcon]="CalendarCheck" [size]="14" class="text-emerald-600"></svg>
           <span>Próx. Cita: {{ upcomingAppointment.appointmentDate | date:'dd/MM' }} · {{ upcomingAppointment.startTime.substring(0, 5) }}</span>
         </button>
       } @else {
@@ -96,7 +96,7 @@
           class="inline-flex items-center gap-1 text-[11px] text-muted hover:text-primary-700 hover:underline transition"
           (click)="scheduleAppointment.emit()"
         >
-          <lucide-icon [img]="Calendar" [size]="12"></lucide-icon>
+          <svg [lucideIcon]="Calendar" [size]="12"></svg>
           <span>Sin cita programada · Agendar</span>
         </button>
       }

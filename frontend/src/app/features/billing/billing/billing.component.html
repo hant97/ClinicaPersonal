@@ -25,7 +25,7 @@
           (click)="setViewMode('cards')"
           title="Vista de tarjetas"
         >
-          <lucide-icon [img]="LayoutGrid" [size]="14"></lucide-icon>
+          <svg [lucideIcon]="LayoutGrid" [size]="14"></svg>
           <span>Tarjetas</span>
         </button>
         <button
@@ -35,7 +35,7 @@
           (click)="setViewMode('table')"
           title="Vista de tabla"
         >
-          <lucide-icon [img]="List" [size]="14"></lucide-icon>
+          <svg [lucideIcon]="List" [size]="14"></svg>
           <span>Tabla</span>
         </button>
       </div>
@@ -46,7 +46,7 @@
         (click)="toggleCharts()"
         [title]="showCharts ? 'Ocultar gráficos' : 'Ver gráficos'"
       >
-        <lucide-icon [img]="BarChart3" [size]="14"></lucide-icon>
+        <svg [lucideIcon]="BarChart3" [size]="14"></svg>
         <span>{{ showCharts ? 'Ocultar Gráficos' : 'Ver Gráficos' }}</span>
       </button>
 
@@ -56,7 +56,7 @@
         (click)="exportPayments()"
         title="Exportar a Excel"
       >
-        <lucide-icon [img]="Download" [size]="14"></lucide-icon>
+        <svg [lucideIcon]="Download" [size]="14"></svg>
         <span>Exportar</span>
       </button>
 
@@ -65,7 +65,7 @@
         class="btn-primary !text-xs !py-1.5 !bg-emerald-600 hover:!bg-emerald-700"
         (click)="openForm()"
       >
-        <lucide-icon [img]="Plus" [size]="14"></lucide-icon>
+        <svg [lucideIcon]="Plus" [size]="14"></svg>
         <span>Registrar Cobro</span>
       </button>
     </div>
@@ -76,7 +76,7 @@
     <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
       <div class="flex flex-wrap items-center gap-1.5">
         <div class="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-600 mr-1.5">
-          <lucide-icon [img]="CalendarRange" [size]="15" class="text-primary-600"></lucide-icon>
+          <svg [lucideIcon]="CalendarRange" [size]="15" class="text-primary-600"></svg>
           <span>Período:</span>
         </div>
         @for (preset of datePresets; track preset.code) {
@@ -103,7 +103,7 @@
       <div class="sm:col-span-2 xl:col-span-4">
         <label class="form-label !mb-1 !text-[10px]">Buscar</label>
         <div class="relative">
-          <lucide-icon [img]="Search" [size]="16" class="input-leading-icon"></lucide-icon>
+          <svg [lucideIcon]="Search" [size]="16" class="input-leading-icon"></svg>
           <input
             type="search"
             class="input-field input-with-leading-icon !py-1.5 text-xs"
@@ -167,7 +167,7 @@
         </p>
       } @else if (hasActiveFilters) {
         <button type="button" class="btn-text !text-xs !py-1 text-muted" (click)="clearFilters()" title="Restablecer filtros">
-          <lucide-icon [img]="FilterX" [size]="14"></lucide-icon>
+          <svg [lucideIcon]="FilterX" [size]="14"></svg>
           <span>Limpiar filtros</span>
         </button>
       }
@@ -194,7 +194,7 @@
     </div>
   } @else if (payments.length === 0) {
     <div class="list-state">
-      <lucide-icon [img]="Wallet" [size]="32" class="text-muted mb-1"></lucide-icon>
+      <svg [lucideIcon]="Wallet" [size]="32" class="text-muted mb-1"></svg>
       <p class="text-sm font-medium text-ink">No hay cobros registrados</p>
       <p class="text-xs text-muted">Registra el primer pago o cobro de atención clínica.</p>
     </div>
@@ -239,7 +239,7 @@
                   title="Más opciones"
                   aria-label="Más opciones"
                 >
-                  <lucide-icon [img]="MoreHorizontal" [size]="16"></lucide-icon>
+                  <svg [lucideIcon]="MoreHorizontal" [size]="16"></svg>
                 </button>
 
                 @if (openMenuPaymentId === payment.id) {
@@ -249,7 +249,7 @@
                       class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-ink hover:bg-slate-50 transition text-left"
                       (click)="viewPayment(payment); closeMenu()"
                     >
-                      <lucide-icon [img]="Eye" [size]="14" class="text-muted"></lucide-icon>
+                      <svg [lucideIcon]="Eye" [size]="14" class="text-muted"></svg>
                       <span>Ver Detalle</span>
                     </button>
                     <button
@@ -257,7 +257,7 @@
                       class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-ink hover:bg-slate-50 transition text-left"
                       (click)="openForm(payment); closeMenu()"
                     >
-                      <lucide-icon [img]="Edit" [size]="14" class="text-slate-500"></lucide-icon>
+                      <svg [lucideIcon]="Edit" [size]="14" class="text-slate-500"></svg>
                       <span>Editar</span>
                     </button>
                     @if (canDelete) {
@@ -267,7 +267,7 @@
                         class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-danger hover:bg-red-50 transition text-left"
                         (click)="deletePayment(payment.id!); closeMenu()"
                       >
-                        <lucide-icon [img]="Trash2" [size]="14"></lucide-icon>
+                        <svg [lucideIcon]="Trash2" [size]="14"></svg>
                         <span>Eliminar</span>
                       </button>
                     }
@@ -315,7 +315,7 @@
                         class="inline-flex shrink-0 items-center gap-0.5 rounded bg-sky-50 px-1.5 py-0.5 text-[10px] font-semibold text-sky-700 border border-sky-200"
                         title="Cobro vinculado a la cita #{{ payment.appointmentId }}"
                       >
-                        <lucide-icon [img]="CalendarCheck" [size]="10"></lucide-icon>
+                        <svg [lucideIcon]="CalendarCheck" [size]="10"></svg>
                         Cita
                       </span>
                     }
@@ -336,7 +336,7 @@
                 </td>
                 <td>
                   <span class="inline-flex items-center gap-1.5 text-xs text-ink font-medium">
-                    <lucide-icon [img]="getPaymentMethodVisual(payment.paymentMethod).icon" [size]="14" class="text-slate-500 shrink-0"></lucide-icon>
+                    <svg [lucideIcon]="getPaymentMethodVisual(payment.paymentMethod).icon" [size]="14" class="text-slate-500 shrink-0"></svg>
                     <span>{{ getPaymentMethodText(payment.paymentMethod) }}</span>
                   </span>
                 </td>
@@ -350,7 +350,7 @@
                       title="Más opciones"
                       aria-label="Más opciones"
                     >
-                      <lucide-icon [img]="MoreHorizontal" [size]="16"></lucide-icon>
+                      <svg [lucideIcon]="MoreHorizontal" [size]="16"></svg>
                     </button>
 
                     @if (openMenuPaymentId === payment.id) {
@@ -363,7 +363,7 @@
                           class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-ink hover:bg-slate-50 transition text-left"
                           (click)="viewPayment(payment); closeMenu()"
                         >
-                          <lucide-icon [img]="Eye" [size]="14" class="text-muted"></lucide-icon>
+                          <svg [lucideIcon]="Eye" [size]="14" class="text-muted"></svg>
                           <span>Ver Detalle</span>
                         </button>
                         <button
@@ -371,7 +371,7 @@
                           class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-ink hover:bg-slate-50 transition text-left"
                           (click)="openForm(payment); closeMenu()"
                         >
-                          <lucide-icon [img]="Edit" [size]="14" class="text-slate-500"></lucide-icon>
+                          <svg [lucideIcon]="Edit" [size]="14" class="text-slate-500"></svg>
                           <span>Editar</span>
                         </button>
                         @if (canDelete) {
@@ -381,7 +381,7 @@
                             class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-danger hover:bg-red-50 transition text-left"
                             (click)="deletePayment(payment.id!); closeMenu()"
                           >
-                            <lucide-icon [img]="Trash2" [size]="14"></lucide-icon>
+                            <svg [lucideIcon]="Trash2" [size]="14"></svg>
                             <span>Eliminar</span>
                           </button>
                         }

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Stethoscope,
   CalendarCheck,
@@ -48,7 +48,7 @@ import { FocusTrapDirective } from '../../../shared/directives/focus-trap.direct
     CommonModule,
     FormsModule,
     RouterModule,
-    LucideAngularModule,
+    LucideDynamicIcon,
     PaginationComponent,
     FocusTrapDirective
   ],

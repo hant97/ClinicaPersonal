@@ -13,22 +13,22 @@
       <button type="button" class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition"
         [ngClass]="currentView === 'calendar' ? 'bg-surface text-primary-700 shadow-sm' : 'text-muted hover:text-ink'"
         (click)="viewChange.emit('calendar')">
-        <lucide-icon [img]="CalendarDays" [size]="14"></lucide-icon><span>Semana</span>
+        <svg [lucideIcon]="CalendarDays" [size]="14"></svg><span>Semana</span>
       </button>
       <button type="button" class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition"
         [ngClass]="currentView === 'list' ? 'bg-surface text-primary-700 shadow-sm' : 'text-muted hover:text-ink'"
         (click)="viewChange.emit('list')">
-        <lucide-icon [img]="LayoutList" [size]="14"></lucide-icon><span>Lista</span>
+        <svg [lucideIcon]="LayoutList" [size]="14"></svg><span>Lista</span>
       </button>
     </div>
     <button type="button" class="btn-secondary !text-xs !py-1.5" (click)="manageSchedule.emit()">
-      <lucide-icon [img]="Clock" [size]="14"></lucide-icon><span>Disponibilidad y Bloqueos</span>
+      <svg [lucideIcon]="Clock" [size]="14"></svg><span>Disponibilidad y Bloqueos</span>
     </button>
     <button type="button" class="btn-secondary !text-xs !py-1.5" (click)="exportRequested.emit()">
-      <lucide-icon [img]="Download" [size]="14"></lucide-icon><span>Exportar</span>
+      <svg [lucideIcon]="Download" [size]="14"></svg><span>Exportar</span>
     </button>
     <button type="button" class="btn-primary !text-xs !py-1.5" (click)="createRequested.emit()">
-      <lucide-icon [img]="Plus" [size]="14"></lucide-icon><span>Agendar Cita</span>
+      <svg [lucideIcon]="Plus" [size]="14"></svg><span>Agendar Cita</span>
     </button>
   </div>
 </header>
@@ -36,12 +36,12 @@
 <div class="responsive-filter-grid mt-4" [formGroup]="filterForm">
   <label class="relative">
     <span class="sr-only">Buscar por paciente</span>
-    <lucide-icon [img]="Search" [size]="16" class="input-leading-icon"></lucide-icon>
+    <svg [lucideIcon]="Search" [size]="16" class="input-leading-icon"></svg>
     <input type="search" formControlName="searchTerm" placeholder="Buscar por paciente..." class="input-field input-with-leading-icon !py-2 text-sm" />
   </label>
   <label class="relative">
     <span class="sr-only">Filtrar por profesional</span>
-    <lucide-icon [img]="User" [size]="16" class="input-leading-icon"></lucide-icon>
+    <svg [lucideIcon]="User" [size]="16" class="input-leading-icon"></svg>
     <select formControlName="professionalId" class="input-field input-with-leading-icon !py-2 text-sm">
       <option value="ALL">Todos los profesionales</option>
       @for (professional of professionals; track professional.id) {
@@ -51,7 +51,7 @@
   </label>
   <label class="relative">
     <span class="sr-only">Filtrar por estado</span>
-    <lucide-icon [img]="Filter" [size]="16" class="input-leading-icon"></lucide-icon>
+    <svg [lucideIcon]="Filter" [size]="16" class="input-leading-icon"></svg>
     <select formControlName="status" class="input-field input-with-leading-icon !py-2 text-sm">
       <option value="ALL">Todos los estados</option><option value="PROGRAMADA">Programada</option>
       <option value="CONFIRMADA">Confirmada</option><option value="COMPLETADA">Completada</option>
@@ -61,7 +61,7 @@
   @if (currentView === 'list') {
     <label class="relative">
       <span class="sr-only">Filtrar por fecha</span>
-      <lucide-icon [img]="Calendar" [size]="16" class="input-leading-icon"></lucide-icon>
+      <svg [lucideIcon]="Calendar" [size]="16" class="input-leading-icon"></svg>
       <select formControlName="dateRange" class="input-field input-with-leading-icon !py-2 text-sm">
         <option value="ALL">Cualquier fecha</option><option value="TODAY">Hoy</option>
         <option value="WEEK">Esta semana</option><option value="MONTH">Este mes</option>

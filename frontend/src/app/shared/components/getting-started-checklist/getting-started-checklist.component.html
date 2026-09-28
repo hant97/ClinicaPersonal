@@ -11,7 +11,7 @@
       aria-label="Ocultar guía de primeros pasos"
       (click)="dismiss()"
     >
-      <lucide-icon [img]="X" [size]="16"></lucide-icon>
+      <svg [lucideIcon]="X" [size]="16"></svg>
     </button>
   </div>
 
@@ -22,12 +22,12 @@
           [routerLink]="step.routerLink"
           class="flex items-center gap-3.5 px-5 py-3.5 hover:bg-slate-50 transition"
         >
-          <lucide-icon
-            [img]="step.done ? CheckCircle2 : Circle"
+          <svg
+            [lucideIcon]="step.done ? CheckCircle2 : Circle"
             [size]="20"
             [ngClass]="step.done ? 'text-emerald-600' : 'text-slate-300'"
             class="shrink-0"
-          ></lucide-icon>
+          ></svg>
           <div class="min-w-0 flex-1">
             <p
               class="text-sm font-semibold truncate"

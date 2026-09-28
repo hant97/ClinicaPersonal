@@ -1,7 +1,7 @@
 <div class="card">
   <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
     <h3 class="flex items-center gap-2 text-lg font-semibold">
-      <lucide-icon [img]="Pill" [size]="20" class="text-clinic-600"></lucide-icon>
+      <svg [lucideIcon]="Pill" [size]="20" class="text-clinic-600"></svg>
       Medicamentos
     </h3>
     <p class="mt-1 text-sm text-muted">{{ totalElements }} registrados</p>
@@ -38,10 +38,10 @@
           </div>
           <div class="flex shrink-0 gap-1">
             <button type="button" class="btn-text !p-1.5" (click)="openForm(medication)" title="Editar" aria-label="Editar">
-              <lucide-icon [img]="Edit" [size]="16"></lucide-icon>
+              <svg [lucideIcon]="Edit" [size]="16"></svg>
             </button>
             <button type="button" class="btn-text !p-1.5 text-danger hover:bg-red-50" (click)="delete(medication.id!)" title="Eliminar" aria-label="Eliminar">
-              <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
+              <svg [lucideIcon]="Trash2" [size]="16"></svg>
             </button>
           </div>
         </div>

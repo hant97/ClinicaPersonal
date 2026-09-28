@@ -6,7 +6,7 @@ import { ClinicalDocument } from '../../../core/models/clinical-document.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   FileText, Image, Upload, Download, Eye, Trash2, X, FolderOpen } from '../../../shared/icons/lucide-icons';
 
@@ -21,7 +21,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-documents-section',
   standalone: true,
-  imports: [...COMMON_STANDALONE_IMPORTS, PaginationComponent, LucideAngularModule],
+  imports: [...COMMON_STANDALONE_IMPORTS, PaginationComponent, LucideDynamicIcon],
   templateUrl: './documents-section.component.html',
 })
 export class DocumentsSectionComponent implements OnInit {

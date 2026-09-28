@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   ArrowDown,
   ArrowUp,
@@ -21,7 +21,7 @@ import { FIELD_LIMITS, ICON_LABELS } from '../landing-editor.validation';
 @Component({
   selector: 'app-editor-panel',
   standalone: true,
-  imports: [FormsModule, RouterLink, LucideAngularModule, IconPickerComponent],
+  imports: [FormsModule, RouterLink, LucideDynamicIcon, IconPickerComponent],
   templateUrl: './editor-panel.component.html',
   styleUrl: './editor-panel.component.css'
 })

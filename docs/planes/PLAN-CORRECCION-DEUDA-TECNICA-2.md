@@ -1,6 +1,6 @@
 # Plan de corrección de deuda técnica — Segunda auditoría
 
-> **Estado:** 🟡 Entregas 1 a 4 implementadas. Pendiente: verificaciones en Render (Entregas 1 y 2), división de `agenda.component.ts`, migración de Lucide y manual a LFS. Los borradores clínicos ya se guardan en el servidor; los datos locales heredados se migran al volver a abrir la ficha.
+> **Estado:** 🟡 Entregas 1 a 4 implementadas. Pendiente: verificaciones en Render (Entregas 1 y 2), división de `agenda.component.ts` y manual a LFS. Los borradores clínicos ya se guardan en el servidor; los datos locales heredados se migran al volver a abrir la ficha.
 > **Última actualización:** 2026-09-28
 > **Base:** auditoría estática posterior al cierre de `PLAN-CORRECCION-DEUDA-TECNICA.md`
 > (estado actual: backend Java 21/Spring Boot 4.1, frontend Angular 21).
@@ -253,9 +253,13 @@ se borra en cada deploy o reinicio.
   Umbrales de JaCoCo subidos a la nueva línea base: instrucciones 45→49 %, ramas
   37→42 %, líneas 50→53 %, métodos 43→51 % (medidos: 50,0 / 43,7 / 54,7 / 52,2 %).
   Los de Vitest se mantienen (41/34/31/47 %).
-- [ ] `lucide-angular` está deprecado: migrar a `@lucide/angular`. **Pospuesto a un
-  cambio propio:** afecta a 58 plantillas y cambia la API de los iconos; el paquete
-  actual sigue funcionando.
+- [x] `lucide-angular` migrado a `@lucide/angular` (2026-09-28): componentes standalone
+  y SVG dinámicos en las plantillas; retirado el paquete anterior. El layout privado
+  se carga por ruta y el contenedor de avisos se carga con el primer mensaje para
+  mantener los iconos fuera del bundle inicial. Bajó de 905,99 a 493,17 kB sin
+  comprimir (118,65 kB de transferencia estimada), por debajo del aviso de 750 kB.
+  Verificación: 206 pruebas frontend y cobertura en verde, lint sin errores y
+  E2E Playwright 44 correctas / 2 omitidas.
 - [x] Auditoría de pacientes (alta, edición, baja y foto): registra el ID, no el nombre
   ni el documento.
 - [x] Planes movidos a `docs/planes/`; `start-clinica.bat` unifica el arranque (comprueba

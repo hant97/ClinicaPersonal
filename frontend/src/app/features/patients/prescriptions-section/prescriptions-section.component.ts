@@ -13,14 +13,14 @@ import { Patient } from '../../../core/models/patient.model';
 import { ClinicSettingsService, ClinicSettings } from '../../../core/services/clinic-settings.service';
 import { UserService } from '../../../core/services/user.service';
 import { UserProfile } from '../../../core/models/user-profile.model';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   FileText, Printer, Plus, Trash2, X, Edit, QrCode, ShieldCheck } from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-prescriptions-section',
   standalone: true,
-  imports: [...COMMON_STANDALONE_IMPORTS, PaginationComponent, QrCodeComponent, LucideAngularModule],
+  imports: [...COMMON_STANDALONE_IMPORTS, PaginationComponent, QrCodeComponent, LucideDynamicIcon],
   templateUrl: './prescriptions-section.component.html',
   styleUrls: ['./prescriptions-section.component.css'],
 })

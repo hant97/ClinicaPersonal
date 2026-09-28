@@ -6,7 +6,7 @@ import { SpecialtyService } from '../../../core/services/specialty.service';
 import { AuditLog, AuditLogFilter } from '../../../core/models/audit-log.model';
 import { SpecialtyItem } from '../../../core/models/specialty.model';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   ClipboardList,
   Search,
@@ -34,7 +34,7 @@ import {
     CommonModule,
     FormsModule,
     PaginationComponent,
-    LucideAngularModule
+    LucideDynamicIcon
   ],
   templateUrl: './audit-log.component.html',
   styleUrls: ['./audit-log.component.css']

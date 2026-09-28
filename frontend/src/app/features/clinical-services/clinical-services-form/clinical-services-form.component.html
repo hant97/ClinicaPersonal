@@ -3,7 +3,7 @@
     <div class="mb-6 flex items-center justify-between border-b border-line pb-4">
       <h2 class="text-xl font-semibold">{{ isEditMode ? 'Editar' : 'Nuevo' }} servicio clínico</h2>
       <button class="btn-text text-muted hover:text-danger" (click)="close()" title="Cerrar">
-        <lucide-icon [img]="X" [size]="20"></lucide-icon>
+        <svg [lucideIcon]="X" [size]="20"></svg>
       </button>
     </div>
 

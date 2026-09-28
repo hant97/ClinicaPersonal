@@ -8,7 +8,7 @@ import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
 import { ViewPreferenceService } from '../../../shared/services/view-preference/view-preference.service';
 
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Plus, Edit, Trash2, Eye, Brain, ClipboardList, LayoutGrid, List, X, Activity, Clock
 } from '../../../shared/icons/lucide-icons';
@@ -16,7 +16,7 @@ import {
 @Component({
   selector: 'app-tests-catalog-list',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, PaginationComponent],
+  imports: [CommonModule, LucideDynamicIcon, PaginationComponent],
   templateUrl: './tests-catalog-list.component.html'
 })
 export class TestsCatalogListComponent implements OnInit {

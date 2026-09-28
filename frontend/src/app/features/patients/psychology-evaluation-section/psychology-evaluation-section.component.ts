@@ -6,14 +6,14 @@ import { PsychologyEvaluation } from '../../../core/models/psychology-evaluation
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { NotificationService } from '../../../shared/services/notification/notification.service';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   Brain, Edit, Trash2 } from '../../../shared/icons/lucide-icons';
 
 @Component({
   selector: 'app-psychology-evaluation-section',
   standalone: true,
-  imports: [...COMMON_STANDALONE_IMPORTS, PaginationComponent, LucideAngularModule],
+  imports: [...COMMON_STANDALONE_IMPORTS, PaginationComponent, LucideDynamicIcon],
   templateUrl: './psychology-evaluation-section.component.html',
 })
 export class PsychologyEvaluationSectionComponent implements OnInit {

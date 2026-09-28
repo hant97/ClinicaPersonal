@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { LucideAngularModule, type LucideIconData } from 'lucide-angular';
+import { LucideDynamicIcon, type LucideIconInput } from '@lucide/angular';
 import {
   ArrowRight,
   Brain,
@@ -17,7 +17,7 @@ import { LandingBlockRef, LandingBlockType } from '../../../core/models/website-
 @Component({
   selector: 'app-landing-view',
   standalone: true,
-  imports: [LucideAngularModule],
+  imports: [LucideDynamicIcon],
   templateUrl: './landing-view.component.html',
   styleUrl: './landing-view.component.css'
 })
@@ -42,7 +42,7 @@ export class LandingViewComponent {
   readonly Stethoscope = Stethoscope;
   readonly X = X;
 
-  getIcon(code?: string): LucideIconData {
+  getIcon(code?: string): LucideIconInput {
     switch (code) {
       case 'BRAIN': return this.Brain;
       case 'MICROSCOPE': return this.Microscope;

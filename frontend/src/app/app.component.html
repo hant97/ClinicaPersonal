@@ -1,2 +1,4 @@
 <router-outlet></router-outlet>
-<app-toast></app-toast>
+@defer (when hasToasts()) {
+  <app-toast></app-toast>
+}

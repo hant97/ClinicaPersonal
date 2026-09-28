@@ -5,7 +5,7 @@ import { ClinicalServiceService } from '../../../core/services/clinical-service.
 import { CatalogService } from '../../../core/services/catalog.service';
 import { CatalogItem } from '../../../core/models/catalog.model';
 import { ToastService } from '../../../shared/services/toast/toast.service';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   X } from '../../../shared/icons/lucide-icons';
 import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
@@ -14,7 +14,7 @@ import { CLINICAL_SERVICE_CATEGORY_CATALOG_CODE } from '../clinical-service-cata
 @Component({
   selector: 'app-clinical-services-form',
   standalone: true,
-  imports: [ReactiveFormsModule, LucideAngularModule, FocusTrapDirective],
+  imports: [ReactiveFormsModule, LucideDynamicIcon, FocusTrapDirective],
   templateUrl: './clinical-services-form.component.html'
 })
 export class ClinicalServicesFormComponent implements OnInit {

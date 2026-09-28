@@ -17,7 +17,7 @@ import { UserProfile } from '../../../core/models/user-profile.model';
 import { SpecialtyService } from '../../../core/services/specialty.service';
 import { ToastService } from '../../../shared/services/toast/toast.service';
 import { ClinicalHistoryPrintControlsComponent } from './clinical-history-print-controls.component';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideDynamicIcon } from '@lucide/angular';
 import {
   AlertTriangle,
   MapPin,
@@ -44,7 +44,7 @@ export interface PrintSectionsConfig {
 @Component({
   selector: 'app-clinical-history-print',
   standalone: true,
-  imports: [CommonModule, ClinicalHistoryPrintControlsComponent, LucideAngularModule],
+  imports: [CommonModule, ClinicalHistoryPrintControlsComponent, LucideDynamicIcon],
   templateUrl: './clinical-history-print.component.html',
   styleUrls: ['./clinical-history-print.component.css'],
 })
