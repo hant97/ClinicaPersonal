@@ -235,7 +235,7 @@
                         }
                       </span>
                     } @else {
-                      <span class="text-slate-600 italic">Sin alergias conocidas</span>
+                      <span class="text-slate-600 italic">{{ history?.allergies?.length ? 'Sin alergias activas registradas' : 'Alergias no registradas' }}</span>
                     }
                   </div>
                   <div>

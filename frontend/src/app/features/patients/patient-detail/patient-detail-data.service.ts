@@ -17,7 +17,6 @@ import { ClinicalHistory } from '../../../core/models/clinical-history.model';
 export interface PatientAppointmentsSummary {
   upcoming: Appointment[];
   recent: Appointment[];
-  next?: Appointment;
 }
 
 export interface PatientHistorySummary {
@@ -68,7 +67,12 @@ export class PatientDetailDataService {
   loadAppointmentsSummary(patientId: number): Observable<PatientAppointmentsSummary> {
     return this.appointmentService.getByPatientId(patientId, 0, 10).pipe(
       map(page => {
-        const today = new Date().toISOString().split('T')[0];
+        const now = new Date();
+        const today = [
+          now.getFullYear(),
+          String(now.getMonth() + 1).padStart(2, '0'),
+          String(now.getDate()).padStart(2, '0')
+        ].join('-');
         const all = page.content;
         const upcoming = all
           .filter(a => a.appointmentDate >= today && a.status !== 'CANCELADA' && a.status !== 'NO_ASISTIO' && a.status !== 'COMPLETADA')
@@ -77,7 +81,7 @@ export class PatientDetailDataService {
           .filter(a => a.appointmentDate < today || a.status === 'COMPLETADA')
           .sort((a, b) => b.appointmentDate.localeCompare(a.appointmentDate))
           .slice(0, 3);
-        return { upcoming, recent, next: upcoming.length > 0 ? upcoming[0] : undefined };
+        return { upcoming, recent };
       })
     );
   }

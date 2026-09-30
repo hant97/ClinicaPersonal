@@ -45,7 +45,7 @@ module.exports = {
         line: '#e2ddd4',
         'line-subtle': '#f3efe9',
         success: '#10b981',
-        danger: '#ef4444',
+        danger: '#b91c1c',
         warning: '#f59e0b',
         info: '#3b82f6',
         // FlowGrid alias mapping for existing clinic-* classes

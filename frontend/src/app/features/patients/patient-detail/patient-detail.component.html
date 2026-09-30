@@ -8,7 +8,6 @@
       (backRequested)="goBack()"
       (printRequested)="openPrint()"
       (appointmentRequested)="scheduleAppointment()"
-      (sessionRequested)="openForm()"
       (photoSelected)="onPhotoSelected($event)"
     ></app-patient-summary-header>
 
@@ -19,12 +18,10 @@
       [activeAlerts]="activeAlerts"
       [medications]="medications"
       [diagnoses]="diagnoses"
-      [upcomingAppointment]="nextUpcomingAppointment"
       (openAllergies)="openAllergiesSection()"
       (openAlerts)="openAlertsModal()"
       (openMedications)="openMedicationsSection()"
       (openDiagnoses)="openDiagnosesSection()"
-      (scheduleAppointment)="scheduleAppointment()"
     ></app-risk-alert-banner>
     }
 
@@ -41,8 +38,9 @@
             <!-- Tab 1: Timeline -->
             <button
               type="button"
-              class="inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-semibold transition whitespace-nowrap rounded-t-lg"
+              class="inline-flex min-h-11 items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition whitespace-nowrap rounded-t-lg"
               [ngClass]="activeTab === 'timeline' ? 'border-primary-600 text-primary-700 bg-primary-50/70' : 'border-transparent text-muted hover:text-ink hover:border-slate-300 hover:bg-slate-50'"
+              [attr.aria-pressed]="activeTab === 'timeline'"
               (click)="setTab('timeline')"
             >
               <svg [lucideIcon]="Clock" [size]="15" [ngClass]="activeTab === 'timeline' ? 'text-primary-600' : 'text-muted'"></svg>
@@ -57,8 +55,9 @@
             <!-- Tab 2: Expediente Médico Base -->
             <button
               type="button"
-              class="inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-semibold transition whitespace-nowrap rounded-t-lg"
+              class="inline-flex min-h-11 items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition whitespace-nowrap rounded-t-lg"
               [ngClass]="activeTab === 'expediente' ? 'border-primary-600 text-primary-700 bg-primary-50/70' : 'border-transparent text-muted hover:text-ink hover:border-slate-300 hover:bg-slate-50'"
+              [attr.aria-pressed]="activeTab === 'expediente'"
               (click)="setTab('expediente')"
             >
               <svg [lucideIcon]="FileText" [size]="15" [ngClass]="activeTab === 'expediente' ? 'text-primary-600' : 'text-muted'"></svg>
@@ -73,8 +72,9 @@
             <!-- Tab 3: Módulo de Especialidad -->
             <button
               type="button"
-              class="inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-semibold transition whitespace-nowrap rounded-t-lg"
+              class="inline-flex min-h-11 items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition whitespace-nowrap rounded-t-lg"
               [ngClass]="activeTab === 'especialidad' ? 'border-primary-600 text-primary-700 bg-primary-50/70' : 'border-transparent text-muted hover:text-ink hover:border-slate-300 hover:bg-slate-50'"
+              [attr.aria-pressed]="activeTab === 'especialidad'"
               (click)="setTab('especialidad')"
             >
               @if (isPsychology) {
@@ -100,8 +100,9 @@
             <!-- Tab 4: Cobros & Facturación -->
             <button
               type="button"
-              class="inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-semibold transition whitespace-nowrap rounded-t-lg"
+              class="inline-flex min-h-11 items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition whitespace-nowrap rounded-t-lg"
               [ngClass]="activeTab === 'cobros' ? 'border-primary-600 text-primary-700 bg-primary-50/70' : 'border-transparent text-muted hover:text-ink hover:border-slate-300 hover:bg-slate-50'"
+              [attr.aria-pressed]="activeTab === 'cobros'"
               (click)="setTab('cobros')"
             >
               <svg [lucideIcon]="Receipt" [size]="15" [ngClass]="activeTab === 'cobros' ? 'text-primary-600' : 'text-muted'"></svg>
@@ -134,12 +135,12 @@
             @if (showFirstVisitBanner) {
               <div class="mb-4 flex items-start gap-3 rounded-xl border border-primary-200 bg-primary-50/70 px-4 py-3">
                 <svg [lucideIcon]="Sparkles" [size]="16" class="mt-0.5 shrink-0 text-primary-600"></svg>
-                <p class="flex-1 text-xs text-primary-800">
+                <p class="flex-1 text-sm text-primary-800">
                   Toca el título de cada sección para expandirla o colapsarla. Empezamos con solo "Datos Personales" abierto para que sea más fácil de leer.
                 </p>
                 <button
                   type="button"
-                  class="btn-text !p-1 text-xs font-semibold text-primary-700 shrink-0"
+                  class="btn-text min-h-11 min-w-11 !px-2 !py-2 text-sm font-semibold text-primary-700 shrink-0"
                   (click)="dismissFirstVisitBanner()"
                 >
                   Entendido
@@ -159,8 +160,9 @@
                 <!-- Option: Vista Integral / Ficha Completa -->
                 <button
                   type="button"
-                  class="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition whitespace-nowrap"
+                  class="flex min-h-11 items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition whitespace-nowrap"
                   [ngClass]="activeExpedienteSubTab === 'todo' ? 'bg-primary-600 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100'"
+                  [attr.aria-pressed]="activeExpedienteSubTab === 'todo'"
                   (click)="setExpedienteSubTab('todo')"
                 >
                   <span class="flex items-center gap-1.5">
@@ -180,8 +182,9 @@
 
                 <button
                   type="button"
-                  class="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition whitespace-nowrap"
+                  class="flex min-h-11 items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition whitespace-nowrap"
                   [ngClass]="activeExpedienteSubTab === 'datos-personales' ? 'bg-primary-50 text-primary-700 font-bold border border-primary-100 shadow-xs' : 'text-slate-700 hover:bg-slate-100'"
+                  [attr.aria-pressed]="activeExpedienteSubTab === 'datos-personales'"
                   (click)="setExpedienteSubTab('datos-personales')"
                 >
                   <span>Datos Personales</span>
@@ -189,8 +192,9 @@
 
                 <button
                   type="button"
-                  class="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition whitespace-nowrap"
+                  class="flex min-h-11 items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition whitespace-nowrap"
                   [ngClass]="activeExpedienteSubTab === 'antecedentes' ? 'bg-primary-50 text-primary-700 font-bold border border-primary-100 shadow-xs' : 'text-slate-700 hover:bg-slate-100'"
+                  [attr.aria-pressed]="activeExpedienteSubTab === 'antecedentes'"
                   (click)="setExpedienteSubTab('antecedentes')"
                 >
                   <span>Antecedentes</span>
@@ -201,8 +205,9 @@
 
                 <button
                   type="button"
-                  class="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition whitespace-nowrap"
+                  class="flex min-h-11 items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition whitespace-nowrap"
                   [ngClass]="activeExpedienteSubTab === 'alergias' ? 'bg-primary-50 text-primary-700 font-bold border border-primary-100 shadow-xs' : 'text-slate-700 hover:bg-slate-100'"
+                  [attr.aria-pressed]="activeExpedienteSubTab === 'alergias'"
                   (click)="setExpedienteSubTab('alergias')"
                 >
                   <span>Alergias</span>
@@ -213,8 +218,9 @@
 
                 <button
                   type="button"
-                  class="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition whitespace-nowrap"
+                  class="flex min-h-11 items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition whitespace-nowrap"
                   [ngClass]="activeExpedienteSubTab === 'medicamentos' ? 'bg-primary-50 text-primary-700 font-bold border border-primary-100 shadow-xs' : 'text-slate-700 hover:bg-slate-100'"
+                  [attr.aria-pressed]="activeExpedienteSubTab === 'medicamentos'"
                   (click)="setExpedienteSubTab('medicamentos')"
                 >
                   <span>Medicamentos</span>
@@ -225,8 +231,9 @@
 
                 <button
                   type="button"
-                  class="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition whitespace-nowrap"
+                  class="flex min-h-11 items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition whitespace-nowrap"
                   [ngClass]="activeExpedienteSubTab === 'recetas' ? 'bg-primary-50 text-primary-700 font-bold border border-primary-100 shadow-xs' : 'text-slate-700 hover:bg-slate-100'"
+                  [attr.aria-pressed]="activeExpedienteSubTab === 'recetas'"
                   (click)="setExpedienteSubTab('recetas')"
                 >
                   <span>Recetas</span>
@@ -234,8 +241,9 @@
 
                 <button
                   type="button"
-                  class="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition whitespace-nowrap"
+                  class="flex min-h-11 items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition whitespace-nowrap"
                   [ngClass]="activeExpedienteSubTab === 'documentos' ? 'bg-primary-50 text-primary-700 font-bold border border-primary-100 shadow-xs' : 'text-slate-700 hover:bg-slate-100'"
+                  [attr.aria-pressed]="activeExpedienteSubTab === 'documentos'"
                   (click)="setExpedienteSubTab('documentos')"
                 >
                   <span>Documentos</span>
@@ -297,21 +305,21 @@
                           <div class="rounded-lg bg-slate-50/60 p-3.5 border border-line space-y-2.5">
                             <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 border-b border-line pb-1.5">Identidad y Demografía</h4>
                             <div class="grid grid-cols-2 gap-3 text-xs">
-                              <div><span class="text-muted block text-[10px] uppercase">Documento</span><span class="font-semibold text-ink font-mono">{{ patient.identificationDocument || 'S/D' }}</span></div>
-                              <div><span class="text-muted block text-[10px] uppercase">Fecha Nac.</span><span class="font-semibold text-ink">{{ patient.dateOfBirth || 'S/D' }}</span></div>
-                              <div><span class="text-muted block text-[10px] uppercase">Género</span><span class="font-semibold text-ink">{{ patient.gender || 'S/D' }}</span></div>
-                              <div><span class="text-muted block text-[10px] uppercase">Estado Civil</span><span class="font-semibold text-ink">{{ patient.maritalStatus || 'S/D' }}</span></div>
-                              <div class="col-span-2"><span class="text-muted block text-[10px] uppercase">Ocupación</span><span class="font-semibold text-ink">{{ patient.occupation || 'S/D' }}</span></div>
+                              <div><span class="text-muted block text-xs uppercase">Documento</span><span class="font-semibold text-ink font-mono">{{ patient.identificationDocument || 'S/D' }}</span></div>
+                              <div><span class="text-muted block text-xs uppercase">Fecha Nac.</span><span class="font-semibold text-ink">{{ patient.dateOfBirth || 'S/D' }}</span></div>
+                              <div><span class="text-muted block text-xs uppercase">Género</span><span class="font-semibold text-ink">{{ patient.gender || 'S/D' }}</span></div>
+                              <div><span class="text-muted block text-xs uppercase">Estado Civil</span><span class="font-semibold text-ink">{{ patient.maritalStatus || 'S/D' }}</span></div>
+                              <div class="col-span-2"><span class="text-muted block text-xs uppercase">Ocupación</span><span class="font-semibold text-ink">{{ patient.occupation || 'S/D' }}</span></div>
                             </div>
                           </div>
 
                           <div class="rounded-lg bg-slate-50/60 p-3.5 border border-line space-y-2.5">
                             <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 border-b border-line pb-1.5">Ubicación y Contacto</h4>
                             <div class="grid gap-2 text-xs">
-                              <div><span class="text-muted block text-[10px] uppercase">Teléfono</span><span class="font-semibold text-ink">{{ patient.contactNumber || 'S/D' }}</span></div>
-                              <div><span class="text-muted block text-[10px] uppercase">Correo Electrónico</span><span class="font-semibold text-ink">{{ patient.email || 'S/D' }}</span></div>
-                              <div><span class="text-muted block text-[10px] uppercase">Dirección</span><span class="font-semibold text-ink">{{ patient.address || 'S/D' }}</span></div>
-                              <div><span class="text-muted block text-[10px] uppercase">Contacto Emergencia</span><span class="font-semibold text-ink">{{ patient.emergencyContact || 'S/D' }}</span></div>
+                              <div><span class="text-muted block text-xs uppercase">Teléfono</span><span class="font-semibold text-ink">{{ patient.contactNumber || 'S/D' }}</span></div>
+                              <div><span class="text-muted block text-xs uppercase">Correo Electrónico</span><span class="font-semibold text-ink">{{ patient.email || 'S/D' }}</span></div>
+                              <div><span class="text-muted block text-xs uppercase">Dirección</span><span class="font-semibold text-ink">{{ patient.address || 'S/D' }}</span></div>
+                              <div><span class="text-muted block text-xs uppercase">Contacto Emergencia</span><span class="font-semibold text-ink">{{ patient.emergencyContact || 'S/D' }}</span></div>
                             </div>
                           </div>
                         </div>
@@ -454,21 +462,21 @@
                         <div class="card !p-4 space-y-3">
                           <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 border-b border-line pb-2">Información Básica</h3>
                           <div class="grid grid-cols-2 gap-3 text-xs">
-                            <div><span class="text-muted block text-[10px] uppercase">Documento</span><span class="font-semibold text-ink font-mono">{{ patient.identificationDocument || 'S/D' }}</span></div>
-                            <div><span class="text-muted block text-[10px] uppercase">Fecha Nac.</span><span class="font-semibold text-ink">{{ patient.dateOfBirth || 'S/D' }}</span></div>
-                            <div><span class="text-muted block text-[10px] uppercase">Género</span><span class="font-semibold text-ink">{{ patient.gender || 'S/D' }}</span></div>
-                            <div><span class="text-muted block text-[10px] uppercase">Estado Civil</span><span class="font-semibold text-ink">{{ patient.maritalStatus || 'S/D' }}</span></div>
-                            <div class="col-span-2"><span class="text-muted block text-[10px] uppercase">Ocupación</span><span class="font-semibold text-ink">{{ patient.occupation || 'S/D' }}</span></div>
+                            <div><span class="text-muted block text-xs uppercase">Documento</span><span class="font-semibold text-ink font-mono">{{ patient.identificationDocument || 'S/D' }}</span></div>
+                            <div><span class="text-muted block text-xs uppercase">Fecha Nac.</span><span class="font-semibold text-ink">{{ patient.dateOfBirth || 'S/D' }}</span></div>
+                            <div><span class="text-muted block text-xs uppercase">Género</span><span class="font-semibold text-ink">{{ patient.gender || 'S/D' }}</span></div>
+                            <div><span class="text-muted block text-xs uppercase">Estado Civil</span><span class="font-semibold text-ink">{{ patient.maritalStatus || 'S/D' }}</span></div>
+                            <div class="col-span-2"><span class="text-muted block text-xs uppercase">Ocupación</span><span class="font-semibold text-ink">{{ patient.occupation || 'S/D' }}</span></div>
                           </div>
                         </div>
 
                         <div class="card !p-4 space-y-3">
                           <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 border-b border-line pb-2">Contacto y Residencia</h3>
                           <div class="grid gap-2.5 text-xs">
-                            <div><span class="text-muted block text-[10px] uppercase">Teléfono</span><span class="font-semibold text-ink">{{ patient.contactNumber || 'S/D' }}</span></div>
-                            <div><span class="text-muted block text-[10px] uppercase">Correo Electrónico</span><span class="font-semibold text-ink">{{ patient.email || 'S/D' }}</span></div>
-                            <div><span class="text-muted block text-[10px] uppercase">Dirección</span><span class="font-semibold text-ink">{{ patient.address || 'S/D' }}</span></div>
-                            <div><span class="text-muted block text-[10px] uppercase">Contacto Emergencia</span><span class="font-semibold text-ink">{{ patient.emergencyContact || 'S/D' }}</span></div>
+                            <div><span class="text-muted block text-xs uppercase">Teléfono</span><span class="font-semibold text-ink">{{ patient.contactNumber || 'S/D' }}</span></div>
+                            <div><span class="text-muted block text-xs uppercase">Correo Electrónico</span><span class="font-semibold text-ink">{{ patient.email || 'S/D' }}</span></div>
+                            <div><span class="text-muted block text-xs uppercase">Dirección</span><span class="font-semibold text-ink">{{ patient.address || 'S/D' }}</span></div>
+                            <div><span class="text-muted block text-xs uppercase">Contacto Emergencia</span><span class="font-semibold text-ink">{{ patient.emergencyContact || 'S/D' }}</span></div>
                           </div>
                         </div>
                       </div>
@@ -503,8 +511,9 @@
                 <div class="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-line">
                   <button
                     type="button"
-                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
+                    class="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-semibold transition"
                     [ngClass]="activeSpecialtySubTab === 'evaluacion-psicologica' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    [attr.aria-pressed]="activeSpecialtySubTab === 'evaluacion-psicologica'"
                     (click)="setSpecialtySubTab('evaluacion-psicologica')"
                   >
                     <span>Evaluación Inicial</span>
@@ -514,16 +523,18 @@
                   </button>
                   <button
                     type="button"
-                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
+                    class="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-semibold transition"
                     [ngClass]="activeSpecialtySubTab === 'pruebas-psicologicas' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    [attr.aria-pressed]="activeSpecialtySubTab === 'pruebas-psicologicas'"
                     (click)="setSpecialtySubTab('pruebas-psicologicas')"
                   >
                     <span>Pruebas Psicométricas</span>
                   </button>
                   <button
                     type="button"
-                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
+                    class="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-semibold transition"
                     [ngClass]="activeSpecialtySubTab === 'diagnosticos' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    [attr.aria-pressed]="activeSpecialtySubTab === 'diagnosticos'"
                     (click)="setSpecialtySubTab('diagnosticos')"
                   >
                     <span>Diagnósticos</span>
@@ -533,8 +544,9 @@
                   </button>
                   <button
                     type="button"
-                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
+                    class="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-semibold transition"
                     [ngClass]="activeSpecialtySubTab === 'plan-terapeutico' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    [attr.aria-pressed]="activeSpecialtySubTab === 'plan-terapeutico'"
                     (click)="setSpecialtySubTab('plan-terapeutico')"
                   >
                     <span>Plan Terapéutico</span>
@@ -565,16 +577,18 @@
                 <div class="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-line">
                   <button
                     type="button"
-                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
-                    [ngClass]="activeSpecialtySubTab === 'evaluacion-inicial' ? 'bg-cyan-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-semibold transition"
+                    [ngClass]="activeSpecialtySubTab === 'evaluacion-inicial' ? 'bg-cyan-700 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    [attr.aria-pressed]="activeSpecialtySubTab === 'evaluacion-inicial'"
                     (click)="setSpecialtySubTab('evaluacion-inicial')"
                   >
                     <span>Evaluación Inicial</span>
                   </button>
                   <button
                     type="button"
-                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
-                    [ngClass]="activeSpecialtySubTab === 'antecedentes-dermatologicos' ? 'bg-cyan-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-semibold transition"
+                    [ngClass]="activeSpecialtySubTab === 'antecedentes-dermatologicos' ? 'bg-cyan-700 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    [attr.aria-pressed]="activeSpecialtySubTab === 'antecedentes-dermatologicos'"
                     (click)="setSpecialtySubTab('antecedentes-dermatologicos')"
                   >
                     <span>Antecedentes Dermato</span>
@@ -584,8 +598,9 @@
                   </button>
                   <button
                     type="button"
-                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
-                    [ngClass]="activeSpecialtySubTab === 'lesiones' ? 'bg-cyan-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-semibold transition"
+                    [ngClass]="activeSpecialtySubTab === 'lesiones' ? 'bg-cyan-700 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    [attr.aria-pressed]="activeSpecialtySubTab === 'lesiones'"
                     (click)="setSpecialtySubTab('lesiones')"
                   >
                     <span>Lesiones y Fotos</span>
@@ -595,8 +610,9 @@
                   </button>
                   <button
                     type="button"
-                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
-                    [ngClass]="activeSpecialtySubTab === 'diagnosticos' ? 'bg-cyan-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-semibold transition"
+                    [ngClass]="activeSpecialtySubTab === 'diagnosticos' ? 'bg-cyan-700 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    [attr.aria-pressed]="activeSpecialtySubTab === 'diagnosticos'"
                     (click)="setSpecialtySubTab('diagnosticos')"
                   >
                     <span>Diagnósticos</span>
@@ -606,8 +622,9 @@
                   </button>
                   <button
                     type="button"
-                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
-                    [ngClass]="activeSpecialtySubTab === 'examenes-auxiliares' ? 'bg-cyan-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-semibold transition"
+                    [ngClass]="activeSpecialtySubTab === 'examenes-auxiliares' ? 'bg-cyan-700 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    [attr.aria-pressed]="activeSpecialtySubTab === 'examenes-auxiliares'"
                     (click)="setSpecialtySubTab('examenes-auxiliares')"
                   >
                     <span>Exámenes Auxiliares</span>
@@ -617,8 +634,9 @@
                   </button>
                   <button
                     type="button"
-                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
-                    [ngClass]="activeSpecialtySubTab === 'tratamientos' ? 'bg-cyan-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-semibold transition"
+                    [ngClass]="activeSpecialtySubTab === 'tratamientos' ? 'bg-cyan-700 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    [attr.aria-pressed]="activeSpecialtySubTab === 'tratamientos'"
                     (click)="setSpecialtySubTab('tratamientos')"
                   >
                     <span>Tratamientos</span>
@@ -628,8 +646,9 @@
                   </button>
                   <button
                     type="button"
-                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
-                    [ngClass]="activeSpecialtySubTab === 'procedimientos' ? 'bg-cyan-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-semibold transition"
+                    [ngClass]="activeSpecialtySubTab === 'procedimientos' ? 'bg-cyan-700 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    [attr.aria-pressed]="activeSpecialtySubTab === 'procedimientos'"
                     (click)="setSpecialtySubTab('procedimientos')"
                   >
                     <span>Procedimientos</span>
@@ -639,8 +658,9 @@
                   </button>
                   <button
                     type="button"
-                    class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
-                    [ngClass]="activeSpecialtySubTab === 'controles' ? 'bg-cyan-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    class="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-semibold transition"
+                    [ngClass]="activeSpecialtySubTab === 'controles' ? 'bg-cyan-700 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                    [attr.aria-pressed]="activeSpecialtySubTab === 'controles'"
                     (click)="setSpecialtySubTab('controles')"
                   >
                     <span>Controles</span>
@@ -693,14 +713,12 @@
 
       <app-patient-clinical-sidebar
         [patient]="patient"
-        [age]="age"
         [isProfessional]="isProfessional"
         [upcomingAppointments]="upcomingAppointments"
         [recentAppointments]="recentAppointments"
         [activeAlerts]="activeAlerts"
         [diagnoses]="diagnoses"
         [medications]="medications"
-        (photoSelected)="onPhotoSelected($event)"
         (alertsRequested)="openAlertsModal()"
       ></app-patient-clinical-sidebar>
     </div>
@@ -754,9 +772,9 @@
             </div>
           } @else {
             <div class="list-state card">
-              <svg [lucideIcon]="CheckCircle2" [size]="28" class="text-emerald-500 mb-1"></svg>
-              <p class="text-sm font-semibold text-ink">No hay alertas de riesgo activas</p>
-              <p class="text-xs text-muted">El paciente no registra alertas críticas ni factores de riesgo vigentes.</p>
+              <svg [lucideIcon]="Info" [size]="28" class="text-slate-500 mb-1"></svg>
+              <p class="text-sm font-semibold text-ink">No hay alertas de riesgo activas registradas</p>
+              <p class="text-xs text-muted">Aquí aparecerán las alertas vigentes del paciente.</p>
             </div>
           }
         </div>

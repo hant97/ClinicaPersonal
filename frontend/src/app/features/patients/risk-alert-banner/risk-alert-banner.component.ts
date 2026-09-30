@@ -2,18 +2,13 @@ import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, Chang
 import { CommonModule } from '@angular/common';
 import { Allergy } from '../../../core/models/allergy.model';
 import { RiskAlert } from '../../../core/models/risk-alert.model';
-import { Appointment } from '../../../core/models/appointment.model';
 import { LucideDynamicIcon } from '@lucide/angular';
 import {
   AlertTriangle,
   Pill,
   Stethoscope,
-  CalendarCheck,
-  CheckCircle2,
+  Info,
   ShieldAlert,
-  ChevronRight,
-  Sparkles,
-  Calendar
 } from '../../../shared/icons/lucide-icons';
 
 @Component({
@@ -27,24 +22,18 @@ export class RiskAlertBannerComponent implements OnChanges {
   readonly AlertTriangle = AlertTriangle;
   readonly Pill = Pill;
   readonly Stethoscope = Stethoscope;
-  readonly CalendarCheck = CalendarCheck;
-  readonly CheckCircle2 = CheckCircle2;
+  readonly Info = Info;
   readonly ShieldAlert = ShieldAlert;
-  readonly ChevronRight = ChevronRight;
-  readonly Sparkles = Sparkles;
-  readonly Calendar = Calendar;
 
   @Input() allergies: Allergy[] = [];
   @Input() activeAlerts: RiskAlert[] = [];
   @Input() medications: any[] = [];
   @Input() diagnoses: any[] = [];
-  @Input() upcomingAppointment?: Appointment;
 
   @Output() openAllergies = new EventEmitter<void>();
   @Output() openAlerts = new EventEmitter<void>();
   @Output() openMedications = new EventEmitter<void>();
   @Output() openDiagnoses = new EventEmitter<void>();
-  @Output() scheduleAppointment = new EventEmitter<void>();
 
   activeAllergiesList: Allergy[] = [];
   hasSevereAllergy = false;

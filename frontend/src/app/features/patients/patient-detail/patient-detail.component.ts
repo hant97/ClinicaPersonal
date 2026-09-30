@@ -55,7 +55,7 @@ import {
   Plus,
   ArrowLeft,
   Clock,
-  CheckCircle2,
+  Info,
   FolderOpen,
   Sparkles,
   ChevronDown,
@@ -107,7 +107,7 @@ export class PatientDetailComponent implements OnInit {
   readonly Plus = Plus;
   readonly ArrowLeft = ArrowLeft;
   readonly Clock = Clock;
-  readonly CheckCircle2 = CheckCircle2;
+  readonly Info = Info;
   readonly FolderOpen = FolderOpen;
   readonly Sparkles = Sparkles;
   readonly Brain = Brain;
@@ -152,7 +152,6 @@ export class PatientDetailComponent implements OnInit {
   isDermatology = false;
   specialtyElementsCount = 0;
   expedienteElementsCount = 0;
-  nextUpcomingAppointment?: Appointment;
 
   patientId: number | null = null;
   currentIdentifier: string = '';
@@ -405,10 +404,9 @@ export class PatientDetailComponent implements OnInit {
 
   loadAppointments(patientId: number): void {
     this.dataService.loadAppointmentsSummary(patientId).subscribe({
-      next: ({ upcoming, recent, next }) => {
+      next: ({ upcoming, recent }) => {
         this.upcomingAppointments = upcoming;
         this.recentAppointments = recent;
-        this.nextUpcomingAppointment = next;
       },
       error: () => this.toastService.show('No se pudieron cargar las citas del paciente', 'error')
     });
