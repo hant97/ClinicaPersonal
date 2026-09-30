@@ -2,8 +2,10 @@ package com.clinica.backend.integration;
 
 import com.clinica.backend.dto.AppointmentDto;
 import com.clinica.backend.dto.InventoryTransactionDto;
+import com.clinica.backend.dto.PaymentTransactionDto;
 import com.clinica.backend.exception.ConflictException;
 import com.clinica.backend.model.Patient;
+import com.clinica.backend.model.Payment;
 import com.clinica.backend.model.Supply;
 import com.clinica.backend.model.TransactionReason;
 import com.clinica.backend.model.TransactionType;
@@ -11,9 +13,12 @@ import com.clinica.backend.model.User;
 import com.clinica.backend.repository.AppointmentRepository;
 import com.clinica.backend.repository.InventoryTransactionRepository;
 import com.clinica.backend.repository.PatientRepository;
+import com.clinica.backend.repository.PaymentRepository;
+import com.clinica.backend.repository.PaymentTransactionRepository;
 import com.clinica.backend.repository.SupplyRepository;
 import com.clinica.backend.service.AppointmentService;
 import com.clinica.backend.service.InventoryTransactionService;
+import com.clinica.backend.service.PaymentService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -26,7 +31,9 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.math.BigDecimal;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -46,6 +53,8 @@ class PostgresCriticalConcurrencyIntegrationTest {
     @Autowired
     private AppointmentService appointmentService;
     @Autowired
+    private PaymentService paymentService;
+    @Autowired
     private InventoryTransactionRepository inventoryTransactionRepository;
     @Autowired
     private SupplyRepository supplyRepository;
@@ -53,6 +62,10 @@ class PostgresCriticalConcurrencyIntegrationTest {
     private AppointmentRepository appointmentRepository;
     @Autowired
     private PatientRepository patientRepository;
+    @Autowired
+    private PaymentRepository paymentRepository;
+    @Autowired
+    private PaymentTransactionRepository paymentTransactionRepository;
 
     @DynamicPropertySource
     static void postgresProperties(DynamicPropertyRegistry registry) {
@@ -71,6 +84,8 @@ class PostgresCriticalConcurrencyIntegrationTest {
     @AfterEach
     void cleanUp() {
         inventoryTransactionRepository.deleteAll();
+        paymentTransactionRepository.deleteAll();
+        paymentRepository.deleteAll();
         appointmentRepository.deleteAll();
         supplyRepository.deleteAll();
         patientRepository.deleteAll();
@@ -136,6 +151,43 @@ class PostgresCriticalConcurrencyIntegrationTest {
 
         assertEquals(1, successes);
         assertEquals(1, appointmentRepository.count());
+    }
+
+    @Test
+    void concurrentInstallmentsCannotExceedPaymentAmount() throws Exception {
+        Patient patient = new Patient();
+        patient.setFirstName("Paciente");
+        patient.setLastName("Cobro concurrente");
+        patient.setGender("OTRO");
+        patient.setSpecialty("PSICOLOGIA");
+        patient = patientRepository.save(patient);
+
+        Payment payment = new Payment();
+        payment.setPatient(patient);
+        payment.setAmount(new BigDecimal("100.00"));
+        payment.setPaymentDate(LocalDateTime.now());
+        payment.setSpecialty("PSICOLOGIA");
+        payment = paymentRepository.save(payment);
+        Long paymentId = payment.getId();
+
+        Callable<Boolean> operation = authenticatedOperation(() -> {
+            PaymentTransactionDto request = new PaymentTransactionDto();
+            request.setAmount(new BigDecimal("70.00"));
+            try {
+                paymentService.addTransaction(paymentId, request);
+                return true;
+            } catch (IllegalArgumentException exception) {
+                if (!exception.getMessage().contains("excede el saldo pendiente")) {
+                    throw exception;
+                }
+                return false;
+            }
+        });
+
+        assertEquals(1, runConcurrently(operation, operation));
+        assertEquals(1, paymentTransactionRepository.count());
+        assertEquals(new BigDecimal("70.00"),
+                paymentTransactionRepository.findAll().getFirst().getAmount());
     }
 
     private Callable<Boolean> authenticatedOperation(Callable<Boolean> operation) {

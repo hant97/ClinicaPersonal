@@ -10,7 +10,5 @@ public interface ClinicalSessionDraftRepository extends JpaRepository<ClinicalSe
 
     Optional<ClinicalSessionDraft> findByProfessionalIdAndPatientId(Long professionalId, Long patientId);
 
-    void deleteByProfessionalIdAndPatientId(Long professionalId, Long patientId);
-
     long deleteByExpiresAtBefore(LocalDateTime now);
 }

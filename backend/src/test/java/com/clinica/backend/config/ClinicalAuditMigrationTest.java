@@ -29,7 +29,7 @@ class ClinicalAuditMigrationTest {
                 .locations("classpath:db/migration")
                 .load();
 
-        assertEquals(17, flyway.migrate().migrationsExecuted);
+        assertEquals(18, flyway.migrate().migrationsExecuted);
         assertAuditColumns("clinical_sessions");
         assertAuditColumns("dermatological_evaluations");
         assertAuditColumns("general_history");
@@ -47,6 +47,7 @@ class ClinicalAuditMigrationTest {
         assertConcurrencyProtections();
         assertRiskAssessmentsTable();
         assertClinicalServiceCategoryCatalog();
+        assertClinicalDraftVersionColumn();
         assertEquals(0, flyway.migrate().migrationsExecuted);
     }
 
@@ -84,6 +85,14 @@ class ClinicalAuditMigrationTest {
                              "AND catalog.specialty = 'GENERAL'")) {
             assertTrue(rs.next());
             assertEquals(6, rs.getInt(1));
+        }
+    }
+
+    private void assertClinicalDraftVersionColumn() throws Exception {
+        try (Connection connection = DriverManager.getConnection(URL, "sa", "");
+             ResultSet columns = connection.getMetaData()
+                     .getColumns(null, null, "clinical_session_drafts", "version")) {
+            assertTrue(columns.next(), "Column 'version' missing in clinical_session_drafts table");
         }
     }
 

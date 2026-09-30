@@ -1,4 +1,5 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { COMMON_STANDALONE_IMPORTS } from '../../../shared/common-standalone-imports';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -44,7 +45,7 @@ import { ClinicalHistory } from '../../../core/models/clinical-history.model';
 import { RiskAlert } from '../../../core/models/risk-alert.model';
 import { CatalogItem } from '../../../core/models/catalog.model';
 import { PageResponse } from '../../../core/models/page.model';
-import { Subscription, catchError, debounceTime, of, retry, switchMap } from 'rxjs';
+import { Subscription, catchError, debounceTime, of, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-clinical-session-page',
@@ -97,10 +98,13 @@ export class ClinicalSessionPageComponent implements OnInit, OnDestroy {
   draftSaved = false;
   draftSaving = false;
   draftError = false;
+  draftConflict = false;
   isEditing = false;
 
   private formSubscription?: Subscription;
-  private draftSaveSubscription?: Subscription;
+  private draftVersion: number | null = null;
+  private pendingDraft?: { content: Record<string, unknown>; legacyStorageKey?: string };
+  private savedSessionMessage?: string;
   private sessionSaved = false;
 
   constructor(
@@ -388,6 +392,7 @@ export class ClinicalSessionPageComponent implements OnInit, OnDestroy {
 
       if (draft) {
         this.sessionForm.patchValue(draft.content, { emitEvent: false });
+        this.draftVersion = draft.version;
         this.draftSaved = true;
         this.draftError = false;
         return;
@@ -404,46 +409,119 @@ export class ClinicalSessionPageComponent implements OnInit, OnDestroy {
   }
 
   private persistDraft(content: Record<string, unknown>, legacyStorageKey?: string): void {
-    if (!this.patient?.id || this.isEditing || this.savingSession || this.sessionSaved) return;
+    if (!this.patient?.id || this.isEditing || this.savingSession || this.sessionSaved || this.draftConflict) return;
 
-    this.draftSaveSubscription?.unsubscribe();
+    if (this.draftSaving) {
+      this.pendingDraft = { content, legacyStorageKey };
+      return;
+    }
     this.draftSaved = false;
     this.draftSaving = true;
     this.draftError = false;
-    this.draftSaveSubscription = this.clinicalSessionDraftService.saveDraft(this.patient.id, content).subscribe({
-      next: () => {
+    this.clinicalSessionDraftService.saveDraft(this.patient.id, content, this.draftVersion).subscribe({
+      next: draft => {
+        this.draftVersion = draft.version;
         this.draftSaving = false;
         this.draftSaved = true;
         this.draftError = false;
         if (legacyStorageKey) removeLegacyClinicalDraft(legacyStorageKey);
+        if (this.savedSessionMessage) {
+          this.finishSavedSession(this.savedSessionMessage);
+        } else if (this.pendingDraft) {
+          const pending = this.pendingDraft;
+          this.pendingDraft = undefined;
+          this.persistDraft(pending.content, pending.legacyStorageKey);
+        }
       },
-      error: () => {
+      error: (error: HttpErrorResponse) => {
         this.draftSaving = false;
         this.draftSaved = false;
-        this.draftError = true;
+        this.pendingDraft = undefined;
+        this.draftConflict = error.status === 409;
+        this.draftError = !this.draftConflict;
+        if (this.savedSessionMessage) {
+          this.finishSavedSession(this.savedSessionMessage);
+        }
       }
     });
   }
 
   private deleteDraftAndReturn(successMessage: string): void {
     this.sessionSaved = true;
-    this.draftSaveSubscription?.unsubscribe();
-    if (!this.patient?.id) {
+    this.pendingDraft = undefined;
+    if (this.draftSaving) {
+      this.savedSessionMessage = successMessage;
+      return;
+    }
+    this.finishSavedSession(successMessage);
+  }
+
+  private finishSavedSession(successMessage: string): void {
+    this.savedSessionMessage = undefined;
+    if (!this.patient?.id || this.draftVersion === null) {
       this.toastService.success(successMessage);
       this.navigateBackToPatient();
       return;
     }
 
-    this.clinicalSessionDraftService.deleteDraft(this.patient.id).pipe(retry(1)).subscribe({
+    this.clinicalSessionDraftService.deleteDraft(this.patient.id, this.draftVersion).subscribe({
       next: () => {
+        this.draftVersion = null;
         this.draftSaved = false;
         this.toastService.success(successMessage);
         this.navigateBackToPatient();
       },
-      error: () => {
-        this.toastService.warning('La consulta se guardó, pero no se pudo eliminar el borrador.');
+      error: (error: HttpErrorResponse) => {
+        this.toastService.warning(error.status === 409
+          ? 'La consulta se guardó, pero otro borrador más reciente sigue en el servidor.'
+          : 'La consulta se guardó, pero no se pudo eliminar el borrador.');
         this.navigateBackToPatient();
       }
+    });
+  }
+
+  async loadServerDraft(): Promise<void> {
+    if (!this.patient?.id) return;
+    const confirmed = await this.notificationService.confirm(
+      'Cargar borrador del servidor',
+      'Se reemplazarán los cambios de esta pestaña por la versión guardada en el servidor. ¿Deseas continuar?',
+      'Sí, cargar borrador',
+      'Conservar mis cambios'
+    );
+    if (!confirmed) return;
+    this.clinicalSessionDraftService.getDraft(this.patient.id).subscribe({
+      next: draft => {
+        this.draftVersion = draft?.version ?? null;
+        this.draftConflict = false;
+        this.draftError = false;
+        this.draftSaved = !!draft;
+        if (draft) {
+          this.sessionForm.reset(draft.content, { emitEvent: false });
+          this.toastService.success('Se cargó el borrador del servidor.');
+        } else {
+          this.toastService.warning('Ya no hay un borrador en el servidor. Tus cambios siguen en esta pestaña.');
+        }
+      },
+      error: () => this.toastService.error('No se pudo cargar el borrador del servidor.')
+    });
+  }
+
+  async replaceServerDraft(): Promise<void> {
+    if (!this.patient?.id) return;
+    const confirmed = await this.notificationService.confirm(
+      'Reemplazar borrador del servidor',
+      'Los cambios de esta pestaña reemplazarán el borrador más reciente del servidor. ¿Deseas continuar?',
+      'Sí, reemplazar',
+      'Cancelar'
+    );
+    if (!confirmed) return;
+    this.clinicalSessionDraftService.getDraft(this.patient.id).subscribe({
+      next: draft => {
+        this.draftVersion = draft?.version ?? null;
+        this.draftConflict = false;
+        this.persistDraft(this.sessionForm.getRawValue() as Record<string, unknown>);
+      },
+      error: () => this.toastService.error('No se pudo verificar el borrador del servidor.')
     });
   }
 

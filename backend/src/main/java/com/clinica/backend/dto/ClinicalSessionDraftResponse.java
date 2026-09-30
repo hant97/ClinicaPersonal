@@ -11,4 +11,5 @@ import java.time.LocalDateTime;
 public class ClinicalSessionDraftResponse {
     private JsonNode content;
     private LocalDateTime expiresAt;
+    private Long version;
 }

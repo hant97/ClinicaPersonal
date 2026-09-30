@@ -146,7 +146,7 @@ public class PaymentService {
 
     @Transactional
     public PaymentDto update(Long id, PaymentDto dto) {
-        Payment payment = paymentRepository.findById(id)
+        Payment payment = paymentRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new IllegalArgumentException("Cobro no encontrado"));
         String specialty = getCurrentUserSpecialty();
         if (!specialty.equals(payment.getSpecialty())) {
@@ -243,7 +243,7 @@ public class PaymentService {
 
     @Transactional
     public void delete(Long id) {
-        Payment payment = paymentRepository.findById(id)
+        Payment payment = paymentRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new IllegalArgumentException("Cobro no encontrado"));
         if (!getCurrentUserSpecialty().equals(payment.getSpecialty())) {
             throw new AccessDeniedException("Cobro fuera de la especialidad del usuario");
@@ -266,7 +266,7 @@ public class PaymentService {
     }
 
     private Payment findActivePayment(Long paymentId) {
-        Payment payment = paymentRepository.findById(paymentId)
+        Payment payment = paymentRepository.findByIdForUpdate(paymentId)
                 .orElseThrow(() -> new IllegalArgumentException("Cobro no encontrado"));
         if (!getCurrentUserSpecialty().equals(payment.getSpecialty())) {
             throw new AccessDeniedException("Cobro fuera de la especialidad del usuario");

@@ -168,7 +168,7 @@ class PaymentServiceTest {
             payment.getTransactions().add(transaction);
         }
 
-        when(paymentRepository.findById(100L)).thenReturn(Optional.of(payment));
+        when(paymentRepository.findByIdForUpdate(100L)).thenReturn(Optional.of(payment));
         when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
         return payment;
     }
@@ -385,7 +385,7 @@ class PaymentServiceTest {
         existing.setTransactions(new ArrayList<>());
         oldItem.setPayment(existing);
 
-        when(paymentRepository.findById(100L)).thenReturn(Optional.of(existing));
+        when(paymentRepository.findByIdForUpdate(100L)).thenReturn(Optional.of(existing));
         when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         mockClinicalService(3L);
@@ -434,7 +434,7 @@ class PaymentServiceTest {
         existing.setItems(new ArrayList<>());
         existing.setTransactions(new ArrayList<>());
 
-        when(paymentRepository.findById(100L)).thenReturn(Optional.of(existing));
+        when(paymentRepository.findByIdForUpdate(100L)).thenReturn(Optional.of(existing));
 
         PaymentDto dto = new PaymentDto();
         dto.setPatientId(5L);
@@ -476,7 +476,7 @@ class PaymentServiceTest {
         existing.setItems(new ArrayList<>());
         existing.setTransactions(new ArrayList<>());
 
-        when(paymentRepository.findById(100L)).thenReturn(Optional.of(existing));
+        when(paymentRepository.findByIdForUpdate(100L)).thenReturn(Optional.of(existing));
 
         PaymentDto dto = new PaymentDto();
         dto.setPatientId(99L);
@@ -503,7 +503,7 @@ class PaymentServiceTest {
         existing.setItems(new ArrayList<>());
         existing.setTransactions(new ArrayList<>());
 
-        when(paymentRepository.findById(100L)).thenReturn(Optional.of(existing));
+        when(paymentRepository.findByIdForUpdate(100L)).thenReturn(Optional.of(existing));
 
         PaymentDto dto = new PaymentDto();
         dto.setPatientId(5L);
@@ -536,7 +536,7 @@ class PaymentServiceTest {
         existing.setItems(new ArrayList<>());
         existing.setTransactions(new ArrayList<>());
 
-        when(paymentRepository.findById(100L)).thenReturn(Optional.of(existing));
+        when(paymentRepository.findByIdForUpdate(100L)).thenReturn(Optional.of(existing));
         when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         mockClinicalService(3L);
@@ -564,6 +564,7 @@ class PaymentServiceTest {
         assertEquals(new BigDecimal("40.00"), result.getPaidAmount());
         assertEquals(new BigDecimal("60.00"), result.getBalanceAmount());
         assertEquals(1, result.getTransactions().size());
+        verify(paymentRepository).findByIdForUpdate(100L);
     }
 
     @Test
@@ -675,7 +676,7 @@ class PaymentServiceTest {
         existing.setItems(new ArrayList<>(List.of(item)));
         item.setPayment(existing);
 
-        when(paymentRepository.findById(100L)).thenReturn(Optional.of(existing));
+        when(paymentRepository.findByIdForUpdate(100L)).thenReturn(Optional.of(existing));
         when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         paymentService.delete(100L);

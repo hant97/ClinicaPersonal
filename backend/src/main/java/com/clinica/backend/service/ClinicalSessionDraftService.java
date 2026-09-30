@@ -3,6 +3,7 @@ package com.clinica.backend.service;
 import com.clinica.backend.dto.ClinicalSessionDraftRequest;
 import com.clinica.backend.dto.ClinicalSessionDraftResponse;
 import com.clinica.backend.exception.ResourceNotFoundException;
+import com.clinica.backend.exception.ConflictException;
 import com.clinica.backend.model.ClinicalSessionDraft;
 import com.clinica.backend.model.Patient;
 import com.clinica.backend.model.User;
@@ -65,21 +66,36 @@ public class ClinicalSessionDraftService {
         }
 
         LocalDateTime now = LocalDateTime.now();
-        ClinicalSessionDraft draft = draftRepository
-                .findByProfessionalIdAndPatientId(professional.getId(), patientId)
-                .orElseGet(ClinicalSessionDraft::new);
+        Optional<ClinicalSessionDraft> existing = draftRepository
+                .findByProfessionalIdAndPatientId(professional.getId(), patientId);
+        if (existing.isPresent() && !existing.get().getVersion().equals(request.getVersion())) {
+            throw new ConflictException("El borrador cambió en otra pestaña. Revise la versión guardada antes de continuar.");
+        }
+        if (existing.isEmpty() && request.getVersion() != null) {
+            throw new ConflictException("El borrador ya no existe. Revise el estado actual antes de continuar.");
+        }
+        ClinicalSessionDraft draft = existing.orElseGet(ClinicalSessionDraft::new);
         draft.setProfessional(professional);
         draft.setPatient(patient);
         draft.setContentJson(contentJson);
         draft.setExpiresAt(now.plusDays(EXPIRATION_DAYS));
-        return toResponse(draftRepository.save(draft));
+        return toResponse(draftRepository.saveAndFlush(draft));
     }
 
     @Transactional
-    public void deleteDraft(Long patientId) {
+    public void deleteDraft(Long patientId, Long version) {
         User professional = clinicalAuthorizationService.currentProfessional();
         getPatient(patientId, professional);
-        draftRepository.deleteByProfessionalIdAndPatientId(professional.getId(), patientId);
+        Optional<ClinicalSessionDraft> existing = draftRepository
+                .findByProfessionalIdAndPatientId(professional.getId(), patientId);
+        if (existing.isEmpty()) {
+            return;
+        }
+        if (!existing.get().getVersion().equals(version)) {
+            throw new ConflictException("El borrador cambió en otra pestaña y no se puede eliminar.");
+        }
+        draftRepository.delete(existing.get());
+        draftRepository.flush();
     }
 
     @Scheduled(fixedDelay = 3_600_000)
@@ -96,6 +112,7 @@ public class ClinicalSessionDraftService {
     private ClinicalSessionDraftResponse toResponse(ClinicalSessionDraft draft) {
         return new ClinicalSessionDraftResponse(
                 objectMapper.readTree(draft.getContentJson()),
-                draft.getExpiresAt());
+                draft.getExpiresAt(),
+                draft.getVersion());
     }
 }

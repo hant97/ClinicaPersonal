@@ -541,7 +541,7 @@ class AttentionServiceTest {
 
         when(attentionRepository.findByIdAndSpecialtyAndDeletedFalse(10L, "PSICOLOGIA"))
                 .thenReturn(Optional.of(attention));
-        when(paymentRepository.findByIdAndDeletedFalse(60L))
+        when(paymentRepository.findByIdForUpdate(60L))
                 .thenReturn(Optional.of(payment));
         when(attentionRepository.save(any(Attention.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -550,6 +550,7 @@ class AttentionServiceTest {
         assertEquals(60L, result.getPaymentId());
         assertEquals(Attention.STATUS_COBRADA, result.getStatus());
         assertEquals(10L, payment.getAttentionId());
+        verify(paymentRepository).findByIdForUpdate(60L);
         verify(paymentRepository).save(payment);
     }
 

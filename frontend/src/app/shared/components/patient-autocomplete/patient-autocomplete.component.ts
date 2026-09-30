@@ -1,6 +1,16 @@
 import { Component, ElementRef, forwardRef, HostListener, Input, OnDestroy, OnInit } from '@angular/core';
 
-import { ControlValueAccessor, FormBuilder, FormControl, FormGroup, NG_VALUE_ACCESSOR, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  ControlValueAccessor,
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  NG_VALUE_ACCESSOR,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators
+} from '@angular/forms';
 import { PatientService } from '../../../core/services/patient/patient.service';
 import { Patient } from '../../../core/models/patient.model';
 import { CatalogService } from '../../../core/services/catalog.service';
@@ -10,6 +20,12 @@ import { LucideDynamicIcon } from '@lucide/angular';
 import {
   UserPlus, X, User, Phone, Mail, FileText } from '../../icons/lucide-icons';
 import { debounceTime, distinctUntilChanged, Subject, switchMap, takeUntil, tap, of, map } from 'rxjs';
+
+function requiredTrimmed(control: AbstractControl): ValidationErrors | null {
+  return typeof control.value === 'string' && control.value.trim().length > 0
+    ? null
+    : { required: true };
+}
 
 @Component({
   selector: 'app-patient-autocomplete',
@@ -63,9 +79,9 @@ export class PatientAutocompleteComponent implements OnInit, OnDestroy, ControlV
 
   ngOnInit(): void {
     this.quickAddForm = this.fb.group({
-      firstName: ['', [Validators.required, Validators.maxLength(50)]],
-      lastName: ['', [Validators.required, Validators.maxLength(50)]],
-      identificationDocument: ['', [Validators.required, Validators.maxLength(20)]],
+      firstName: ['', [requiredTrimmed, Validators.maxLength(50)]],
+      lastName: ['', [requiredTrimmed, Validators.maxLength(50)]],
+      identificationDocument: ['', [requiredTrimmed, Validators.maxLength(20)]],
       contactNumber: ['', [Validators.maxLength(20)]],
       email: ['', [Validators.email]],
       gender: ['', [Validators.required]]

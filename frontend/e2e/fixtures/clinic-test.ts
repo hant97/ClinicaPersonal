@@ -422,6 +422,18 @@ async function handleApiRoute(route: Route): Promise<void> {
     return;
   }
 
+  if (/\/v1\/clinical-drafts\/patients\/[^/]+$/.test(pathname)) {
+    if (request.method() === 'GET' || request.method() === 'DELETE') {
+      await route.fulfill({ status: 204 });
+      return;
+    }
+    if (request.method() === 'PUT') {
+      const body = request.postDataJSON() as { content: Record<string, unknown>; version: number | null };
+      await json(route, { content: body.content, expiresAt: `${today}T12:00:00`, version: (body.version ?? -1) + 1 });
+      return;
+    }
+  }
+
   if (request.method() === 'GET') {
     await json(route, pageResponse([]));
     return;

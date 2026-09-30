@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -41,8 +42,8 @@ public class ClinicalSessionDraftController {
     }
 
     @DeleteMapping
-    public ResponseEntity<Void> deleteDraft(@PathVariable Long patientId) {
-        draftService.deleteDraft(patientId);
+    public ResponseEntity<Void> deleteDraft(@PathVariable Long patientId, @RequestParam Long version) {
+        draftService.deleteDraft(patientId, version);
         return ResponseEntity.noContent().cacheControl(CacheControl.noStore()).build();
     }
 }

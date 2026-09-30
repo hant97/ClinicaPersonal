@@ -1,4 +1,4 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -7,6 +7,7 @@ import { getLegacyClinicalDrafts, removeLegacyClinicalDraft } from '../utils/cli
 export interface ClinicalSessionDraft {
   content: Record<string, unknown>;
   expiresAt: string;
+  version: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -19,12 +20,13 @@ export class ClinicalSessionDraftService {
     return this.http.get<ClinicalSessionDraft | null>(`${this.apiUrl}/${patientId}`);
   }
 
-  saveDraft(patientId: number, content: Record<string, unknown>): Observable<ClinicalSessionDraft> {
-    return this.http.put<ClinicalSessionDraft>(`${this.apiUrl}/${patientId}`, { content });
+  saveDraft(patientId: number, content: Record<string, unknown>, version: number | null): Observable<ClinicalSessionDraft> {
+    return this.http.put<ClinicalSessionDraft>(`${this.apiUrl}/${patientId}`, { content, version });
   }
 
-  deleteDraft(patientId: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${patientId}`);
+  deleteDraft(patientId: number, version: number): Observable<void> {
+    const params = new HttpParams().set('version', version);
+    return this.http.delete<void>(`${this.apiUrl}/${patientId}`, { params });
   }
 
   migrateLegacyDrafts(username: string | null): Observable<void> {
@@ -34,7 +36,7 @@ export class ClinicalSessionDraftService {
       this.getDraft(draft.patientId).pipe(
         switchMap(existingDraft => existingDraft
           ? of(existingDraft)
-          : this.saveDraft(draft.patientId, draft.content)),
+          : this.saveDraft(draft.patientId, draft.content, null)),
         tap(() => removeLegacyClinicalDraft(draft.storageKey)),
         map(() => null),
         catchError((error: HttpErrorResponse) => {

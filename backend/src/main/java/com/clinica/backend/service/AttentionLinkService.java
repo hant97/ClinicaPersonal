@@ -87,7 +87,8 @@ public class AttentionLinkService {
         Attention attention = attentionRepository.findByIdAndSpecialtyAndDeletedFalse(attentionId, specialty)
                 .orElseThrow(() -> new ResourceNotFoundException("Atención no encontrada con ID: " + attentionId));
 
-        Payment payment = paymentRepository.findByIdAndDeletedFalse(paymentId)
+        Payment payment = paymentRepository.findByIdForUpdate(paymentId)
+                .filter(p -> !p.isDeleted())
                 .orElseThrow(() -> new ResourceNotFoundException("Pago no encontrado con ID: " + paymentId));
 
         attention.setPayment(payment);

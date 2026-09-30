@@ -1,6 +1,7 @@
 package com.clinica.backend.dto;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,4 +14,7 @@ public class ClinicalSessionDraftRequest {
 
     @NotNull
     private JsonNode content;
+
+    @PositiveOrZero
+    private Long version;
 }

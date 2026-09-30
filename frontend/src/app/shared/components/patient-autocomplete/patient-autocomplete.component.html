@@ -94,14 +94,22 @@
             <label for="qa-firstName" class="form-label text-xs">Nombres <span class="text-danger">*</span></label>
             <input type="text" id="qa-firstName" formControlName="firstName" class="input-field text-sm" placeholder="Ej: Juan">
             @if (quickAddForm.get('firstName')?.invalid && (quickAddForm.get('firstName')?.dirty || quickAddForm.get('firstName')?.touched)) {
-              <p class="mt-1 text-xs text-danger">El nombre es requerido.</p>
+              @if (quickAddForm.get('firstName')?.hasError('required')) {
+                <p class="mt-1 text-xs text-danger">El nombre es requerido.</p>
+              } @else if (quickAddForm.get('firstName')?.hasError('maxlength')) {
+                <p class="mt-1 text-xs text-danger">El nombre no debe superar 50 caracteres.</p>
+              }
             }
           </div>
           <div>
             <label for="qa-lastName" class="form-label text-xs">Apellidos <span class="text-danger">*</span></label>
             <input type="text" id="qa-lastName" formControlName="lastName" class="input-field text-sm" placeholder="Ej: Pérez García">
             @if (quickAddForm.get('lastName')?.invalid && (quickAddForm.get('lastName')?.dirty || quickAddForm.get('lastName')?.touched)) {
-              <p class="mt-1 text-xs text-danger">Los apellidos son requeridos.</p>
+              @if (quickAddForm.get('lastName')?.hasError('required')) {
+                <p class="mt-1 text-xs text-danger">Los apellidos son requeridos.</p>
+              } @else if (quickAddForm.get('lastName')?.hasError('maxlength')) {
+                <p class="mt-1 text-xs text-danger">Los apellidos no deben superar 50 caracteres.</p>
+              }
             }
           </div>
         </div>
@@ -110,7 +118,11 @@
           <label for="qa-doc" class="form-label text-xs">DNI / Documento <span class="text-danger">*</span></label>
           <input type="text" id="qa-doc" formControlName="identificationDocument" class="input-field text-sm" placeholder="Ej: 71234567">
           @if (quickAddForm.get('identificationDocument')?.invalid && (quickAddForm.get('identificationDocument')?.dirty || quickAddForm.get('identificationDocument')?.touched)) {
-            <p class="mt-1 text-xs text-danger">El documento de identidad es requerido.</p>
+            @if (quickAddForm.get('identificationDocument')?.hasError('required')) {
+              <p class="mt-1 text-xs text-danger">El documento de identidad es requerido.</p>
+            } @else if (quickAddForm.get('identificationDocument')?.hasError('maxlength')) {
+              <p class="mt-1 text-xs text-danger">El documento no debe superar 20 caracteres.</p>
+            }
           }
         </div>
 
@@ -143,7 +155,7 @@
 
         <div class="flex justify-end gap-2 border-t border-line pt-4 mt-2">
           <button type="button" class="btn-secondary text-xs px-4 py-2" (click)="closeQuickAdd()">Cancelar</button>
-          <button type="submit" class="btn-primary text-xs px-4 py-2" [disabled]="isSavingQuickPatient">
+          <button type="submit" class="btn-primary text-xs px-4 py-2" [disabled]="quickAddForm.invalid || isSavingQuickPatient">
             {{ isSavingQuickPatient ? 'Registrando…' : 'Guardar y Seleccionar' }}
           </button>
         </div>
