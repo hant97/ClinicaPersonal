@@ -31,8 +31,8 @@
 		<org.mapstruct.version>1.6.3</org.mapstruct.version>
 		<awssdk.version>2.55.4</awssdk.version>
 		<jjwt.version>0.13.0</jjwt.version>
-		<!-- Spring Boot 4.1.1 gestiona Jackson 3.1.5; 3.1.6 corrige las alertas GHSA del databind. -->
-		<jackson-bom.version>3.1.6</jackson-bom.version>
+		<!-- Spring Boot 4.1.1 gestiona Jackson 3.1.5; 3.1.7 corrige las dos alertas OSV del databind. -->
+		<jackson-bom.version>3.1.7</jackson-bom.version>
 		<!-- Spring Boot 4.1.1 gestiona Tomcat 11.0.24; 11.0.25 corrige GHSA-9xv2-5v5q-p794,
 		     GHSA-gcx9-497g-6cp6 y GHSA-h3x4-894j-xpx5. Retirar al adoptar un Boot que lo incluya. -->
 		<tomcat.version>11.0.25</tomcat.version>
